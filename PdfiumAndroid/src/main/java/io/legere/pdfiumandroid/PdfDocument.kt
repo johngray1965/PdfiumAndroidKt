@@ -4,13 +4,14 @@ package io.legere.pdfiumandroid
 
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import java.io.Closeable
 
 
 private const val MAX_RECURSION = 16
 
 @Suppress("TooManyFunctions")
 class PdfDocument(val mNativeDocPtr: Long, private val mCurrentDpi: Int
-) : AutoCloseable {
+) : Closeable {
 
     private external fun nativeGetPageCount(docPtr: Long): Int
     private external fun nativeLoadPage(docPtr: Long, pageIndex: Int): Long
