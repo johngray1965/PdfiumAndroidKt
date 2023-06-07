@@ -16,15 +16,15 @@ import kotlinx.coroutines.withContext
 @Suppress("TooManyFunctions")
 class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) {
 
-    suspend fun getPageWidth(): Int {
+    suspend fun getPageWidth(screenDpi: Int): Int {
         return withContext(dispatcher) {
-            page.getPageWidth()
+            page.getPageWidth(screenDpi)
         }
     }
 
-    suspend fun getPageHeight(): Int {
+    suspend fun getPageHeight(screenDpi: Int): Int {
         return withContext(dispatcher) {
-            page.getPageHeight()
+            page.getPageHeight(screenDpi)
         }
     }
 
@@ -82,29 +82,30 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         }
     }
 
-    suspend fun getPageSize(): Size {
+    suspend fun getPageSize(screenDpi: Int): Size {
         return withContext(dispatcher) {
-            page.getPageSize()
-        }
-    }
-
-    suspend fun renderPage(
-        surface: Surface?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int
-    ) {
-        return withContext(dispatcher) {
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
+            page.getPageSize(screenDpi)
         }
     }
 
     @Suppress("LongParameterList")
     suspend fun renderPage(
         surface: Surface?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int,
+        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int
+    ) {
+        return withContext(dispatcher) {
+            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi)
+        }
+    }
+
+    @Suppress("LongParameterList")
+    suspend fun renderPage(
+        surface: Surface?,
+        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int,
         renderAnnot: Boolean
     ) {
         return withContext(dispatcher) {
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot)
         }
     }
 
@@ -118,20 +119,20 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, textMask: Boolean
+        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int, textMask: Boolean
     ) {
         return withContext(dispatcher) {
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, false, textMask)
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, false, textMask)
         }
     }
 
     @Suppress("LongParameterList")
     suspend fun renderPageBitmap(bitmap: Bitmap?,
-                                 startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int,
+                                 startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int,
                                  renderAnnot: Boolean, textMask: Boolean
     ) {
         return withContext(dispatcher) {
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)
         }
     }
 

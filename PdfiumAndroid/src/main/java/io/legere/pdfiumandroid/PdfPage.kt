@@ -15,8 +15,7 @@ import java.io.Closeable
 class PdfPage(
     private val doc: PdfDocument,
     private val pageIndex: Int,
-    val pagePtr: Long,
-    private val mCurrentDpi: Int
+    val pagePtr: Long
 ) : Closeable {
 
     private external fun nativeClosePage(pagePtr: Long)
@@ -69,9 +68,9 @@ class PdfPage(
      * Get page width in pixels. <br></br>
      * This method requires page to be opened.
      */
-    fun getPageWidth(): Int {
+    fun getPageWidth(screenDpi: Int): Int {
         synchronized(PdfiumCore.lock) {
-            return nativeGetPageWidthPixel(pagePtr, mCurrentDpi)
+            return nativeGetPageWidthPixel(pagePtr, screenDpi)
         }
     }
 
@@ -79,9 +78,9 @@ class PdfPage(
      * Get page height in pixels. <br></br>
      * This method requires page to be opened.
      */
-    fun getPageHeight(): Int {
+    fun getPageHeight(screenDpi: Int): Int {
         synchronized(PdfiumCore.lock) {
-            return nativeGetPageHeightPixel(pagePtr, mCurrentDpi)
+            return nativeGetPageHeightPixel(pagePtr, screenDpi)
         }
     }
 
@@ -215,12 +214,12 @@ class PdfPage(
      * Get size of page in pixels.<br></br>
      * This method does not require given page to be opened.
      */
-    fun getPageSize(): Size {
+    fun getPageSize(screenDpi: Int): Size {
         synchronized(PdfiumCore.lock) {
             return nativeGetPageSizeByIndex(
                 doc.mNativeDocPtr,
                 pageIndex,
-                mCurrentDpi
+                screenDpi
             )
         }
     }
@@ -229,10 +228,10 @@ class PdfPage(
      * Render page fragment on [Surface].<br></br>
      * Page must be opened before rendering.
      */
+    @Suppress("LongParameterList")
     fun renderPage(surface: Surface?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int
-    ) {
-        renderPage(surface, startX, startY, drawSizeX, drawSizeY, false)
+            startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int) {
+            renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, false )
     }
 
     /**
@@ -243,13 +242,14 @@ class PdfPage(
     fun renderPage(
         surface: Surface?,
         startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int,
+        screenDpi: Int,
         renderAnnot: Boolean
     ) {
         synchronized(PdfiumCore.lock) {
             try {
                 //nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
                 nativeRenderPage(
-                    pagePtr, surface, mCurrentDpi,
+                    pagePtr, surface, screenDpi,
                     startX, startY, drawSizeX, drawSizeY, renderAnnot
                 )
             } catch (e: NullPointerException) {
@@ -289,7 +289,7 @@ class PdfPage(
      */
     @Suppress("LongParameterList")
     fun renderPageBitmap(bitmap: Bitmap?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, textMask: Boolean
+        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int, textMask: Boolean
     ) {
         renderPageBitmap(
             bitmap,
@@ -297,6 +297,7 @@ class PdfPage(
             startY,
             drawSizeX,
             drawSizeY,
+            screenDpi,
             false,
             textMask
         )
@@ -311,12 +312,12 @@ class PdfPage(
      */
     @Suppress("LongParameterList")
     fun renderPageBitmap(bitmap: Bitmap?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int,
+        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int,
         renderAnnot: Boolean, textMask: Boolean
     ) {
         synchronized(PdfiumCore.lock) {
             nativeRenderPageBitmap(
-                pagePtr, bitmap, mCurrentDpi,
+                pagePtr, bitmap, screenDpi,
                 startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask
             )
         }

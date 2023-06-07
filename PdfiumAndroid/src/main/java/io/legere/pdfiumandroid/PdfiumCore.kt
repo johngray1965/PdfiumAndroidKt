@@ -2,7 +2,6 @@
 
 package io.legere.pdfiumandroid
 
-import android.content.Context
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -11,18 +10,18 @@ import java.io.IOException
 import java.lang.reflect.Field
 
 
-class PdfiumCore(ctx: Context) {
+class PdfiumCore {
 
     private external fun nativeOpenDocument(fd: Int, password: String?): Long
     private external fun nativeOpenMemDocument(data: ByteArray?, password: String?): Long
 
     private external fun nativeGetLinkRect(linkPtr: Long): RectF?
 
-    private val mCurrentDpi: Int
+    //private val mCurrentDpi: Int
 
     /** Context needed to get screen density  */
     init {
-        mCurrentDpi = ctx.resources.displayMetrics.densityDpi
+        //mCurrentDpi = ctx.resources.displayMetrics.densityDpi
         Log.d(TAG, "Starting PdfiumAndroid ")
     }
 
@@ -36,7 +35,7 @@ class PdfiumCore(ctx: Context) {
     @Throws(IOException::class)
     fun newDocument(fd: ParcelFileDescriptor, password: String?): PdfDocument {
         synchronized(lock) {
-            return PdfDocument(nativeOpenDocument(getNumFd(fd), password), mCurrentDpi).also { document ->
+            return PdfDocument(nativeOpenDocument(getNumFd(fd), password)).also { document ->
                 document.parcelFileDescriptor = fd
             }
         }
@@ -53,7 +52,7 @@ class PdfiumCore(ctx: Context) {
     @Throws(IOException::class)
     fun newDocument(data: ByteArray?, password: String?): PdfDocument {
         synchronized(lock) {
-            return PdfDocument(nativeOpenMemDocument(data, password), mCurrentDpi).also { document ->
+            return PdfDocument(nativeOpenMemDocument(data, password)).also { document ->
                 document.parcelFileDescriptor = null
             }
         }

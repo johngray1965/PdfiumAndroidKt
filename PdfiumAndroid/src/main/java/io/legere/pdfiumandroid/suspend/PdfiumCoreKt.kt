@@ -2,15 +2,14 @@
 
 package io.legere.pdfiumandroid.suspend
 
-import android.content.Context
 import android.os.ParcelFileDescriptor
 import io.legere.pdfiumandroid.PdfiumCore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
-class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher, context: Context) {
+class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher) {
 
-    private val coreInternal = PdfiumCore(context)
+    private val coreInternal = PdfiumCore()
 
     suspend fun newDocument(fd: ParcelFileDescriptor): PdfDocumentKt {
         return withContext(dispatcher) {

@@ -10,7 +10,7 @@ import java.io.Closeable
 private const val MAX_RECURSION = 16
 
 @Suppress("TooManyFunctions")
-class PdfDocument(val mNativeDocPtr: Long, private val mCurrentDpi: Int
+class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 ) : Closeable {
 
     private external fun nativeGetPageCount(docPtr: Long): Int
@@ -38,7 +38,7 @@ class PdfDocument(val mNativeDocPtr: Long, private val mCurrentDpi: Int
     fun openPage(pageIndex: Int): PdfPage {
         synchronized(PdfiumCore.lock) {
             val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
-            return PdfPage(this, pageIndex, pagePtr, mCurrentDpi)
+            return PdfPage(this, pageIndex, pagePtr)
         }
     }
 
@@ -52,7 +52,7 @@ class PdfDocument(val mNativeDocPtr: Long, private val mCurrentDpi: Int
                 if (pageIndex > toIndex) break
                 pageIndex++
             }
-            return pagesPtr.map { PdfPage(this, pageIndex, it, mCurrentDpi) }
+            return pagesPtr.map { PdfPage(this, pageIndex, it) }
         }
     }
 
