@@ -27,7 +27,6 @@ class PdfPage(
     private external fun nativeGetPageHeightPixel(pagePtr: Long, dpi: Int): Int
     private external fun nativeGetPageWidthPoint(pagePtr: Long): Int
     private external fun nativeGetPageHeightPoint(pagePtr: Long): Int
-    private external fun nativeGetFontSize(pagePtr: Long, charIndex: Int): Double
     private external fun nativeGetPageMediaBox(pagePtr: Long): FloatArray
     private external fun nativeGetPageCropBox(pagePtr: Long): FloatArray
     private external fun nativeGetPageBleedBox(pagePtr: Long): FloatArray
@@ -108,17 +107,6 @@ class PdfPage(
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageHeightPoint(pagePtr)
-        }
-    }
-
-    /**
-     * Get character font size in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
-     */
-    fun getFontSize(charIndex: Int): Double {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
-        synchronized(PdfiumCore.lock) {
-            return nativeGetFontSize(pagePtr, charIndex)
         }
     }
 
@@ -275,23 +263,6 @@ class PdfPage(
                 Log.e(TAG, "Exception throw from native", e)
             }
         }
-    }
-
-    @Suppress("TooGenericExceptionCaught")
-    fun textPageGetFontSize(index: Int): Double {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
-        synchronized(PdfiumCore.lock) {
-            try {
-                return nativeGetFontSize(pagePtr, index)
-            } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
-                e.printStackTrace()
-            } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
-                e.printStackTrace()
-            }
-        }
-        return 0.0
     }
 
     /**

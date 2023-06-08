@@ -110,6 +110,17 @@ class PdfTextPageKtTest  : BasePDFTest() {
         }
     }
 
+
+    @Test
+    fun getFontSize() = runTest {
+        pdfDocument.openTextPage(0).use { textPage ->
+            val fontSize = textPage.getFontSize(0)
+
+            Truth.assertThat(fontSize).isEqualTo(22.559999465942383)
+        }
+    }
+
+
     @Test(expected = IllegalStateException::class)
     fun close() = runTest {
         var pageAfterClose: PdfTextPageKt?

@@ -72,6 +72,12 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         }
     }
 
+    suspend fun getFontSize(charIndex: Int): Double {
+        return withContext(dispatcher) {
+            page.getFontSize(charIndex)
+        }
+    }
+
     override fun close() {
         page.close()
     }

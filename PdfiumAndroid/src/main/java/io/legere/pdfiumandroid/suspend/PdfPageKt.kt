@@ -41,12 +41,6 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         }
     }
 
-    suspend fun getFontSize(charIndex: Int): Double {
-        return withContext(dispatcher) {
-            page.getFontSize(charIndex)
-        }
-    }
-
     suspend fun getPageCropBox(): RectF {
         return withContext(dispatcher) {
             page.getPageCropBox()
@@ -107,13 +101,6 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     ) {
         return withContext(dispatcher) {
             page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot)
-        }
-    }
-
-
-    suspend fun textPageGetFontSize(index: Int): Double {
-        return withContext(dispatcher) {
-            page.textPageGetFontSize(index)
         }
     }
 

@@ -626,9 +626,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jdouble JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetFontSize(JNIEnv *env, jobject thiz, jlong page_ptr,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject thiz, jlong page_ptr,
                                                        jint char_index) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(char_index);
+    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
     return (jdouble)FPDFText_GetFontSize(textPage, char_index);
 }
 

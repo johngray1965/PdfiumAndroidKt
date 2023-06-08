@@ -83,7 +83,7 @@ class PdfDocumentKtTest : BasePDFTest() {
     fun saveAsCopy() = runTest  {
         pdfDocument.saveAsCopy(object: PdfWriteCallback {
             override fun WriteBlock(data: ByteArray?): Int {
-                Truth.assertThat(data?.size).isEqualTo(pdfBytes?.size)
+                //Truth.assertThat(data?.size).isEqualTo(pdfBytes?.size)
                 Truth.assertThat(data).isEqualTo(pdfBytes)
                 return data?.size ?: 0
             }

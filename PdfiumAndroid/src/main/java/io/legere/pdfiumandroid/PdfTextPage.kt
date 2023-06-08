@@ -36,6 +36,9 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
 
     private external fun nativeTextCountRects(textPagePtr: Long, startIndex: Int, count: Int): Int
     private external fun nativeTextGetRect(textPagePtr: Long, rectIndex: Int): DoubleArray
+
+    private external fun nativeGetFontSize(pagePtr: Long, charIndex: Int): Double
+
     @Suppress("LongParameterList")
     private external fun nativeTextGetBoundedText(
         textPagePtr: Long,
@@ -224,6 +227,17 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
                 e.printStackTrace()
             }
             return null
+        }
+    }
+
+    /**
+     * Get character font size in PostScript points (1/72th of an inch).<br></br>
+     * This method requires page to be opened.
+     */
+    fun getFontSize(charIndex: Int): Double {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
+        synchronized(PdfiumCore.lock) {
+            return nativeGetFontSize(pagePtr, charIndex)
         }
     }
 

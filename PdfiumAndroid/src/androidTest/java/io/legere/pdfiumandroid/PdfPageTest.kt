@@ -65,15 +65,6 @@ class PdfPageTest :  BasePDFTest() {
     }
 
     @Test
-    fun getFontSize() {
-        pdfDocument.openPage(0).use { page ->
-            val fontSize = page.getFontSize(0)
-
-            assertThat(fontSize).isEqualTo(612)
-        }
-    }
-
-    @Test
     fun getPageCropBox() {
         pdfDocument.openPage(0).use { page ->
             val cropBox = page.getPageCropBox()
@@ -145,15 +136,6 @@ class PdfPageTest :  BasePDFTest() {
     @Test
     fun testRenderPage() {
         // I really don't know how to test it
-    }
-
-    @Test
-    fun textPageGetFontSize() {
-        pdfDocument.openPage(0).use { page ->
-            val size = page.textPageGetFontSize(0)
-
-            assertThat(size).isEqualTo(10.0) // We always get 0.0, but it's not correct
-        }
     }
 
     @Test
