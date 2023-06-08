@@ -443,7 +443,7 @@ JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobject thiz,
                                                              jlong doc_ptr) {
     auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    FPDF_CloseDocument(doc->pdfDocument);
+    // FPDF_CloseDocument(*doc); The old library does not have this function, if we do, we get a crash
     delete doc;
 }
 

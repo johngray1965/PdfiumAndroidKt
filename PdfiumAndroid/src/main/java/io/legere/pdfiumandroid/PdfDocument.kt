@@ -13,6 +13,7 @@ private const val MAX_RECURSION = 16
 class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 ) : Closeable {
 
+    private var isClosed = false
     private external fun nativeGetPageCount(docPtr: Long): Int
     private external fun nativeLoadPage(docPtr: Long, pageIndex: Int): Long
     private external fun nativeCloseDocument(docPtr: Long)
@@ -29,6 +30,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
 
     fun getPageCount(): Int {
+        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageCount(mNativeDocPtr)
         }
@@ -36,6 +38,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
     /** Open page and store native pointer in [PdfDocument]  */
     fun openPage(pageIndex: Int): PdfPage {
+        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
             return PdfPage(this, pageIndex, pagePtr)
@@ -44,6 +47,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
     /** Open range of pages and store native pointers in [PdfDocument]  */
     fun openPages(fromIndex: Int, toIndex: Int): List<PdfPage> {
+        check(!isClosed) { "Already closed" }
         var pagesPtr: LongArray
         synchronized(PdfiumCore.lock) {
             pagesPtr = nativeLoadPages(this.mNativeDocPtr, fromIndex, toIndex)
@@ -59,6 +63,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
     /** Get metadata for given document  */
     fun getDocumentMeta(): Meta {
+        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val meta = Meta()
             meta.title = nativeGetDocumentMetaText(mNativeDocPtr, "Title")
@@ -78,6 +83,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
         bookmarkPtr: Long,
         level: Long
     ) {
+        check(!isClosed) { "Already closed" }
         var levelMutable = level
         val bookmark = Bookmark()
         bookmark.mNativePtr = bookmarkPtr
@@ -96,6 +102,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
     /** Get table of contents (bookmarks) for given document  */
     fun getTableOfContents(): List<Bookmark> {
+        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val topLevel: MutableList<Bookmark> =
                 ArrayList()
@@ -109,6 +116,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
 
     fun openTextPage(pageIndex: Int): PdfTextPage {
+        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val page = openPage(pageIndex)
             val textPagePtr = nativeLoadTextPage(this.mNativeDocPtr, page.pagePtr)
@@ -117,6 +125,7 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
     }
 
     fun openTextPages(fromIndex: Int, toIndex: Int): List<PdfTextPage> {
+        check(!isClosed) { "Already closed" }
         var textPagesPtr: LongArray
         synchronized(PdfiumCore.lock) {
             textPagesPtr = nativeLoadPages(mNativeDocPtr, fromIndex, toIndex)
@@ -133,11 +142,14 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 
 
     fun saveAsCopy(callback: PdfWriteCallback): Boolean {
+        check(!isClosed) { "Already closed" }
         return nativeSaveAsCopy(mNativeDocPtr, callback)
     }
 
     override fun close() {
+        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
+            isClosed = true
             nativeCloseDocument(mNativeDocPtr)
             parcelFileDescriptor?.close()
             parcelFileDescriptor = null
