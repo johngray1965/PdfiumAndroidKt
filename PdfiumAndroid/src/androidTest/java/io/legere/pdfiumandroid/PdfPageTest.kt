@@ -123,6 +123,7 @@ class PdfPageTest :  BasePDFTest() {
         pdfDocument.openPage(0).use { page ->
             val artBox = page.getPageBoundingBox()
 
+            // Note, that looks incorrect, but pdfs coordinate systems starts from bottom left corner
             assertThat(artBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
         }
     }
@@ -138,17 +139,21 @@ class PdfPageTest :  BasePDFTest() {
 
     @Test
     fun renderPage() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        // I really don't know how to test it
     }
 
     @Test
     fun testRenderPage() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        // I really don't know how to test it
     }
 
     @Test
     fun textPageGetFontSize() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+            val size = page.textPageGetFontSize(0)
+
+            assertThat(size).isEqualTo(10.0) // We always get 0.0, but it's not correct
+        }
     }
 
     @Test
@@ -163,7 +168,11 @@ class PdfPageTest :  BasePDFTest() {
 
     @Test
     fun getPageLinks() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+            val links = page.getPageLinks()
+
+            assertThat(links.size).isEqualTo(0) // The test doc doesn't have links
+        }
     }
 
     @Test
