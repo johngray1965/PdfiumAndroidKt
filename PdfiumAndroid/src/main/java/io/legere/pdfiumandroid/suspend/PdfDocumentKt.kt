@@ -6,8 +6,10 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import java.io.Closeable
 
-class PdfDocumentKt(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) {
+class PdfDocumentKt(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
+    Closeable {
 
     suspend fun getPageCount(): Int {
         return withContext(dispatcher) {
@@ -57,9 +59,7 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
         }
     }
 
-    suspend fun close() {
-        return withContext(dispatcher) {
-            document.close()
-        }
+    override fun close() {
+        document.close()
     }
 }

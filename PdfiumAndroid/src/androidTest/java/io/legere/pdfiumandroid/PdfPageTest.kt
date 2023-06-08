@@ -1,16 +1,15 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import android.util.Log
-import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.util.Size
 import junit.framework.TestCase
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class PdfPageTest {
+class PdfPageTest :  BasePDFTest() {
 
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
@@ -141,57 +140,57 @@ class PdfPageTest {
 
     @Test
     fun renderPage() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun testRenderPage() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun textPageGetFontSize() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun renderPageBitmap() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun testRenderPageBitmap() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun getPageLinks() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun mapPageCoordsToDevice() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun mapDeviceCoordsToPage() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun mapRectToDevice() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun mapRectToPage() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test(expected = IllegalStateException::class)
     fun close() {
-        var pageAfterClose: PdfPage? = null
+        var pageAfterClose: PdfPage?
         pdfDocument.openPage(0).use { page ->
             pageAfterClose = page
         }
@@ -199,17 +198,5 @@ class PdfPageTest {
     }
 
 
-    private fun getPdfBytes(filename: String) : ByteArray? {
-        val appContext = InstrumentationRegistry.getInstrumentation().context
-        val assetManager = appContext.assets
-        try {
-            val input = assetManager.open(filename)
-            return input.readBytes()
-        } catch (e: Exception) {
-            Log.e(PdfiumCoreTest::class.simpleName, "Ugh",  e)
-        }
-        assetManager.close()
-        return null
-    }
 
 }

@@ -1,16 +1,13 @@
 package io.legere.pdfiumandroid
 
-import android.util.Log
-import androidx.test.platform.app.InstrumentationRegistry
+import io.legere.pdfiumandroid.base.BasePDFTest
 import org.junit.Assert.assertNotNull
 import org.junit.Test
 
-class PdfiumCoreTest {
+class PdfiumCoreTest : BasePDFTest() {
 
     @Test
     fun newDocument() {
-        InstrumentationRegistry.getInstrumentation().context
-
         val pdfBytes = getPdfBytes("f01.pdf")
 
         assertNotNull(pdfBytes)
@@ -19,19 +16,6 @@ class PdfiumCoreTest {
         val pdfDocument = pdfiumCore.newDocument(pdfBytes)
 
         assertNotNull(pdfDocument)
-    }
-
-    private fun getPdfBytes(filename: String) : ByteArray? {
-        val appContext = InstrumentationRegistry.getInstrumentation().context
-        val assetManager = appContext.assets
-        try {
-            val input = assetManager.open(filename)
-            return input.readBytes()
-        } catch (e: Exception) {
-            Log.e(PdfiumCoreTest::class.simpleName, "Ugh",  e)
-        }
-        assetManager.close()
-        return null
     }
 
 }

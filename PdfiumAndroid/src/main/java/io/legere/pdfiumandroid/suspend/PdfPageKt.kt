@@ -12,9 +12,10 @@ import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import java.io.Closeable
 
 @Suppress("TooManyFunctions")
-class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) {
+class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
     suspend fun getPageWidth(screenDpi: Int): Int {
         return withContext(dispatcher) {
@@ -178,9 +179,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         }
     }
 
-    suspend fun close() {
-        return withContext(dispatcher) {
-            page.close()
-        }
+    override fun close() {
+        page.close()
     }
 }

@@ -1,10 +1,12 @@
 package io.legere.pdfiumandroid.suspend
 
+import io.legere.pdfiumandroid.base.BasePDFTest
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class PdfTextPageKtTest {
+class PdfTextPageKtTest  : BasePDFTest() {
 
     @Before
     fun setUp() {
@@ -15,52 +17,52 @@ class PdfTextPageKtTest {
     }
 
     @Test
-    fun textPageCountChars() {
-        assert(false) { "not implemented yet" }
+    fun textPageCountChars() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageGetText() {
-        assert(false) { "not implemented yet" }
+    fun textPageGetText() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageGetUnicode() {
-        assert(false) { "not implemented yet" }
+    fun textPageGetUnicode() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageGetCharBox() {
-        assert(false) { "not implemented yet" }
+    fun textPageGetCharBox() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageGetCharIndexAtPos() {
-        assert(false) { "not implemented yet" }
+    fun textPageGetCharIndexAtPos() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageCountRects() {
-        assert(false) { "not implemented yet" }
+    fun textPageCountRects() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageGetRect() {
-        assert(false) { "not implemented yet" }
+    fun textPageGetRect() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
-    fun textPageGetBoundedText() {
-        assert(false) { "not implemented yet" }
+    fun textPageGetBoundedText() = runTest {
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun close() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun getPage() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 }

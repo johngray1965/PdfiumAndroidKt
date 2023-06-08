@@ -1,15 +1,14 @@
 package io.legere.pdfiumandroid
 
-import android.util.Log
-import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.base.BasePDFTest
 import junit.framework.TestCase.assertNotNull
 import org.junit.After
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
-class PdfDocumentTest {
+class PdfDocumentTest : BasePDFTest() {
 
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
@@ -30,12 +29,12 @@ class PdfDocumentTest {
 
     @Test
     fun getParcelFileDescriptor() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
     fun setParcelFileDescriptor() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test
@@ -89,7 +88,7 @@ class PdfDocumentTest {
 
     @Test
     fun saveAsCopy() {
-        assert(false) { "not implemented yet" }
+        assert(notImplementedAssetValue) { "not implemented yet" }
     }
 
     @Test(expected = IllegalStateException::class)
@@ -102,19 +101,6 @@ class PdfDocumentTest {
 
         // Now it should be closed
         shouldBeClosed?.openPage(0) // This should throw an exception
-    }
-
-    private fun getPdfBytes(filename: String) : ByteArray? {
-        val appContext = InstrumentationRegistry.getInstrumentation().context
-        val assetManager = appContext.assets
-        try {
-            val input = assetManager.open(filename)
-            return input.readBytes()
-        } catch (e: Exception) {
-            Log.e(PdfiumCoreTest::class.simpleName, "Ugh",  e)
-        }
-        assetManager.close()
-        return null
     }
 
 }
