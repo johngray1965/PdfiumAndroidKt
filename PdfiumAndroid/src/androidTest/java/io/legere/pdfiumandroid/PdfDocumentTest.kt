@@ -28,16 +28,6 @@ class PdfDocumentTest : BasePDFTest() {
     }
 
     @Test
-    fun getParcelFileDescriptor() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
-    }
-
-    @Test
-    fun setParcelFileDescriptor() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
-    }
-
-    @Test
     fun getPageCount() {
         val pageCount = pdfDocument.getPageCount()
 
@@ -88,7 +78,13 @@ class PdfDocumentTest : BasePDFTest() {
 
     @Test
     fun saveAsCopy() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.saveAsCopy(object: PdfWriteCallback {
+            override fun WriteBlock(data: ByteArray?): Int {
+                assertThat(data?.size).isEqualTo(pdfBytes?.size)
+                assertThat(data).isEqualTo(pdfBytes)
+                return data?.size ?: 0
+            }
+        })
     }
 
     @Test(expected = IllegalStateException::class)

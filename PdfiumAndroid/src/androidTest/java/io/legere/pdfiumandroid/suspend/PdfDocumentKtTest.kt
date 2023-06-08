@@ -1,6 +1,7 @@
 package io.legere.pdfiumandroid.suspend
 
 import com.google.common.truth.Truth
+import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.base.BasePDFTest
 import junit.framework.TestCase
 import kotlinx.coroutines.Dispatchers
@@ -80,12 +81,22 @@ class PdfDocumentKtTest : BasePDFTest() {
 
     @Test
     fun saveAsCopy() = runTest  {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.saveAsCopy(object: PdfWriteCallback {
+            override fun WriteBlock(data: ByteArray?): Int {
+                Truth.assertThat(data?.size).isEqualTo(pdfBytes?.size)
+                Truth.assertThat(data).isEqualTo(pdfBytes)
+                return data?.size ?: 0
+            }
+        })
     }
 
-    @Test
-    fun close() {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+    @Test(expected = IllegalStateException::class)
+    fun close() = runTest {
+        var documentAfterClose: PdfDocumentKt?
+        PdfiumCoreKt(Dispatchers.Unconfined).newDocument(pdfBytes).use {
+            documentAfterClose = it
+        }
+        documentAfterClose?.openPage(0)
     }
 
 
