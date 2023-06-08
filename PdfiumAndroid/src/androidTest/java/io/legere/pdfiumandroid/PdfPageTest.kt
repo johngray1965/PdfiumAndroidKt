@@ -14,8 +14,6 @@ class PdfPageTest :  BasePDFTest() {
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
 
-    private val noResultRect = RectF(-1f, -1f, -1f, -1f)
-
     @Before
     fun setUp() {
         pdfBytes = getPdfBytes("f01.pdf")

@@ -17,8 +17,6 @@ class PdfPageKtTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentKt
     private var pdfBytes: ByteArray? = null
 
-    private val noResultRect = RectF(-1f, -1f, -1f, -1f)
-
     @Before
     fun setUp() = runBlocking {
         pdfBytes = getPdfBytes("f01.pdf")
