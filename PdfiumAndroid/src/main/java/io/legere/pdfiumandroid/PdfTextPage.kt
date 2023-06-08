@@ -105,11 +105,13 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
             try {
                 val o =
                     nativeTextGetCharBox(pagePtr, index)
+                // Note these are in an odd order left, right, bottom, top
+                // what what Pdfium native code returns
                 val r = RectF()
-                r.left = o[LEFT].toFloat()
-                r.right = o[RIGHT].toFloat()
-                r.bottom = o[BOTTOM].toFloat()
-                r.top = o[TOP].toFloat()
+                r.left = o[0].toFloat()
+                r.right = o[1].toFloat()
+                r.bottom = o[2].toFloat()
+                r.top = o[3].toFloat()
                 return r
             } catch (e: NullPointerException) {
                 Log.e(TAG, "mContext may be null")
@@ -138,12 +140,8 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
                     xTolerance,
                     yTolerance
                 )
-            } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
-                e.printStackTrace()
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
-                e.printStackTrace()
+                Log.e(TAG, "Exception throw from native", e)
             }
         }
         return -1
@@ -179,10 +177,10 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
                 val o =
                     nativeTextGetRect(pagePtr, rectIndex)
                 val r = RectF()
-                r.left = o[LEFT].toFloat()
-                r.top = o[TOP].toFloat()
-                r.right = o[RIGHT].toFloat()
-                r.bottom = o[BOTTOM].toFloat()
+                r.left = o[0].toFloat()
+                r.top = o[1].toFloat()
+                r.right = o[2].toFloat()
+                r.bottom = o[3].toFloat()
                 return r
             } catch (e: NullPointerException) {
                 Log.e(TAG, "mContext may be null")
@@ -252,11 +250,6 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
     
     companion object {
         private val TAG = PdfTextPage::class.java.name
-
-        const val LEFT = 0
-        const val TOP = 1
-        const val RIGHT = 2
-        const val BOTTOM = 3
 
     }
 

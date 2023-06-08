@@ -576,7 +576,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject t
         fw.env = env;
 
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-        return (jboolean)FPDF_SaveAsCopy(doc->pdfDocument, &fw, 0);
+        return (jboolean)FPDF_SaveAsCopy(doc->pdfDocument, &fw, FPDF_NO_INCREMENTAL);
     }
     return false;
 }

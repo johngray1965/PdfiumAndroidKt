@@ -62,14 +62,14 @@ class PdfTextPageKtTest  : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rect = textPage.textPageGetCharBox(0)
 
-            Truth.assertThat(rect).isEqualTo( RectF(90.314415f, 103.44171f, 699.1206f, 715.3187f))
+            Truth.assertThat(rect).isEqualTo( RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
         }
     }
 
     @Test
     fun textPageGetCharIndexAtPos() = runTest {
         pdfDocument.openTextPage(0).use { textPage ->
-            val characterToLookup = 1
+            val characterToLookup = 0
             val rect = textPage.textPageGetCharBox(characterToLookup)
 
             val pos = textPage.textPageGetCharIndexAtPos(
