@@ -5,6 +5,7 @@ package io.legere.pdfiumandroid.suspend
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import io.legere.pdfiumandroid.PdfDocument
@@ -151,7 +152,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     @Suppress("LongParameterList")
     suspend fun mapRectToDevice(startX: Int, startY: Int, sizeX: Int,
                                     sizeY: Int, rotate: Int, coords: RectF
-    ): RectF {
+    ): Rect {
         return withContext(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
@@ -159,7 +160,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
 
     @Suppress("LongParameterList")
     suspend fun mapRectToPage(startX: Int, startY: Int, sizeX: Int,
-                              sizeY: Int, rotate: Int, coords: RectF
+                              sizeY: Int, rotate: Int, coords: Rect
     ): RectF {
         return withContext(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)

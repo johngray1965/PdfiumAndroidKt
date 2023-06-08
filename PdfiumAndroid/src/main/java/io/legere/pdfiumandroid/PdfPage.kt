@@ -5,6 +5,7 @@ package io.legere.pdfiumandroid
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
 import android.view.Surface
@@ -391,7 +392,7 @@ class PdfPage(
     @Suppress("LongParameterList")
     fun mapRectToDevice(startX: Int, startY: Int, sizeX: Int,
         sizeY: Int, rotate: Int, coords: RectF
-    ): RectF {
+    ): Rect {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         val leftTop = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
             coords.left.toDouble(), coords.top.toDouble()
@@ -399,11 +400,11 @@ class PdfPage(
         val rightBottom = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
             coords.right.toDouble(), coords.bottom.toDouble()
         )
-        return RectF(
-            leftTop.x.toFloat(),
-            leftTop.y.toFloat(),
-            rightBottom.x.toFloat(),
-            rightBottom.y.toFloat()
+        return Rect(
+            leftTop.x,
+            leftTop.y,
+            rightBottom.x,
+            rightBottom.y
         )
     }
 
@@ -413,7 +414,7 @@ class PdfPage(
      */
     @Suppress("LongParameterList")
     fun mapRectToPage(startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, coords: RectF
+        sizeY: Int, rotate: Int, coords: Rect
     ): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         val leftTop = mapDeviceCoordsToPage(
@@ -422,8 +423,8 @@ class PdfPage(
             sizeX,
             sizeY,
             rotate,
-            coords.left.toInt(),
-            coords.top.toInt()
+            coords.left,
+            coords.top
         )
         val rightBottom = mapDeviceCoordsToPage(
             startX,
@@ -431,8 +432,8 @@ class PdfPage(
             sizeX,
             sizeY,
             rotate,
-            coords.right.toInt(),
-            coords.bottom.toInt()
+            coords.right,
+            coords.bottom
         )
         return RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
     }

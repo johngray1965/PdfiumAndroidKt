@@ -1,5 +1,9 @@
 package io.legere.pdfiumandroid.suspend
 
+import android.graphics.Bitmap
+import android.graphics.Point
+import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
@@ -142,12 +146,34 @@ class PdfPageKtTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmap() = runTest {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+
+            val conf = Bitmap.Config.RGB_565 // see other conf types
+
+            val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
+
+
+            page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true)
+
+            // How to verify that it's correct?
+            // Even if we don't verify the bitmap, we can check that it doesn't crash
+        }
     }
 
     @Test
     fun testRenderPageBitmap() = runTest {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+
+            val conf = Bitmap.Config.RGB_565 // see other conf types
+
+            val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
+
+
+            page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true, true)
+
+            // How to verify that it's correct?
+            // Even if we don't verify the bitmap, we can check that it doesn't crash
+        }
     }
 
     @Test
@@ -161,22 +187,46 @@ class PdfPageKtTest : BasePDFTest() {
 
     @Test
     fun mapPageCoordsToDevice() = runTest {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+            val devicePt = page.mapPageCoordsToDevice(0, 0, 100, 100, 0, 0.0, 0.0)
+
+            assertThat(devicePt).isEqualTo(Point(0, 100))
+        }
     }
 
     @Test
     fun mapDeviceCoordsToPage() = runTest {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+            val devicePt = page.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 0, 0)
+
+            assertThat(devicePt).isEqualTo(PointF(0f, 792.00006f))
+        }
     }
 
     @Test
     fun mapRectToDevice() = runTest {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+            val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
+
+            assertThat(devicePt).isEqualTo(
+                Rect(
+                    0,   // 0f in coords to 0f in device
+                    100, // 0f in corrds in at the bottom, the bottom of the device is 100f
+                    16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
+                    87) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+            )
+        }
     }
 
     @Test
     fun mapRectToPage() = runTest {
-        assert(notImplementedAssetValue) { "not implemented yet" }
+        pdfDocument.openPage(0).use { page ->
+            val devicePt = page.mapRectToPage(0, 0, 100, 100, 0, Rect(0, 0, 100, 100))
+
+            assertThat(devicePt).isEqualTo(
+                RectF(0.0f, 792.00006f, 612.0f, 0.0f)
+            )
+        }
     }
 
     @Test(expected = IllegalStateException::class)
