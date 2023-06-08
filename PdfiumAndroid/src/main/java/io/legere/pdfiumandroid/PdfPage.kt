@@ -18,6 +18,9 @@ class PdfPage(
     val pagePtr: Long
 ) : Closeable {
 
+    var isClosed = false
+        private set
+
     private external fun nativeClosePage(pagePtr: Long)
     private external fun nativeClosePages(pagesPtr: LongArray)
     private external fun nativeGetPageWidthPixel(pagePtr: Long, dpi: Int): Int
@@ -69,6 +72,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageWidth(screenDpi: Int): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageWidthPixel(pagePtr, screenDpi)
         }
@@ -79,6 +83,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageHeight(screenDpi: Int): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageHeightPixel(pagePtr, screenDpi)
         }
@@ -89,6 +94,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageWidthPoint(): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageWidthPoint(pagePtr)
         }
@@ -99,6 +105,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageHeightPoint(): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageHeightPoint(pagePtr)
         }
@@ -109,6 +116,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getFontSize(charIndex: Int): Double {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetFontSize(pagePtr, charIndex)
         }
@@ -119,6 +127,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageCropBox(): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val o = nativeGetPageCropBox(pagePtr)
             val r = RectF()
@@ -135,6 +144,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageMediaBox(): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val o = nativeGetPageMediaBox(pagePtr)
             val r = RectF()
@@ -151,6 +161,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageBleedBox(): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val o = nativeGetPageBleedBox(pagePtr)
             val r = RectF()
@@ -167,6 +178,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageTrimBox(): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val o = nativeGetPageTrimBox(pagePtr)
             val r = RectF()
@@ -183,6 +195,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageArtBox(): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val o = nativeGetPageArtBox(pagePtr)
             val r = RectF()
@@ -199,6 +212,7 @@ class PdfPage(
      * This method requires page to be opened.
      */
     fun getPageBoundingBox(): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val o = nativeGetPageBoundingBox(pagePtr)
             val r = RectF()
@@ -215,6 +229,7 @@ class PdfPage(
      * This method does not require given page to be opened.
      */
     fun getPageSize(screenDpi: Int): Size {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageSizeByIndex(
                 doc.mNativeDocPtr,
@@ -231,6 +246,7 @@ class PdfPage(
     @Suppress("LongParameterList")
     fun renderPage(surface: Surface?,
             startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int) {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
             renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, false )
     }
 
@@ -245,6 +261,7 @@ class PdfPage(
         screenDpi: Int,
         renderAnnot: Boolean
     ) {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 //nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
@@ -262,6 +279,7 @@ class PdfPage(
 
     @Suppress("TooGenericExceptionCaught")
     fun textPageGetFontSize(index: Int): Double {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 return nativeGetFontSize(pagePtr, index)
@@ -291,6 +309,7 @@ class PdfPage(
     fun renderPageBitmap(bitmap: Bitmap?,
         startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int, textMask: Boolean
     ) {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         renderPageBitmap(
             bitmap,
             startX,
@@ -315,6 +334,7 @@ class PdfPage(
         startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int,
         renderAnnot: Boolean, textMask: Boolean
     ) {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             nativeRenderPageBitmap(
                 pagePtr, bitmap, screenDpi,
@@ -325,6 +345,7 @@ class PdfPage(
 
     /** Get all links from given page  */
     fun getPageLinks(): List<PdfDocument.Link> {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             val links: MutableList<PdfDocument.Link> =
                 ArrayList()
@@ -358,6 +379,7 @@ class PdfPage(
     fun mapPageCoordsToDevice(startX: Int, startY: Int, sizeX: Int,
         sizeY: Int, rotate: Int, pageX: Double, pageY: Double
     ): Point {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         return nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY)
     }
 
@@ -378,6 +400,7 @@ class PdfPage(
     fun mapDeviceCoordsToPage(startX: Int, startY: Int, sizeX: Int,
         sizeY: Int, rotate: Int, deviceX: Int, deviceY: Int
     ): PointF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         return nativeDeviceCoordsToPage(
             pagePtr,
             startX,
@@ -398,6 +421,7 @@ class PdfPage(
     fun mapRectToDevice(startX: Int, startY: Int, sizeX: Int,
         sizeY: Int, rotate: Int, coords: RectF
     ): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         val leftTop = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
             coords.left.toDouble(), coords.top.toDouble()
         )
@@ -420,6 +444,7 @@ class PdfPage(
     fun mapRectToPage(startX: Int, startY: Int, sizeX: Int,
         sizeY: Int, rotate: Int, coords: RectF
     ): RectF {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         val leftTop = mapDeviceCoordsToPage(
             startX,
             startY,
@@ -444,7 +469,9 @@ class PdfPage(
 
 
     override fun close() {
+        if (isClosed) return
         synchronized(PdfiumCore.lock) {
+            isClosed = true
             nativeClosePage(pagePtr)
         }
     }

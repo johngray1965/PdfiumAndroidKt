@@ -2,21 +2,21 @@ package io.legere.pdfiumandroid
 
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase.assertNotNull
-
 import org.junit.After
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
 class PdfDocumentTest {
 
-    lateinit var pdfDocument: PdfDocument
+    private lateinit var pdfDocument: PdfDocument
+    private var pdfBytes: ByteArray? = null
 
     @Before
     fun setUp() {
-        InstrumentationRegistry.getInstrumentation().context
-
-        val pdfBytes = getPdfBytes("f01.pdf")
+        pdfBytes = getPdfBytes("f01.pdf")
 
         assertNotNull(pdfBytes)
 
@@ -72,16 +72,19 @@ class PdfDocumentTest {
         val toc = pdfDocument.getTableOfContents()
 
         assertNotNull(toc)
+        assertThat(toc.size).isEqualTo(0)
     }
 
     @Test
     fun openTextPage() {
-        assert(false) { "not implemented yet" }
+        val textPage = pdfDocument.openTextPage(0)
+        assertNotNull(textPage)
     }
 
     @Test
     fun openTextPages() {
-        assert(false) { "not implemented yet" }
+        val textPages = pdfDocument.openTextPages(0, 3)
+        assertThat(textPages.size).isEqualTo(4)
     }
 
     @Test
@@ -89,9 +92,16 @@ class PdfDocumentTest {
         assert(false) { "not implemented yet" }
     }
 
-    @Test
-    fun close() {
-        assert(false) { "not implemented yet" }
+    @Test(expected = IllegalStateException::class)
+    fun closeDocument() {
+        var shouldBeClosed: PdfDocument?
+        PdfiumCore().newDocument(pdfBytes).use { pdfDocument ->
+            Assert.assertNotNull(pdfDocument)
+            shouldBeClosed = pdfDocument
+        }
+
+        // Now it should be closed
+        shouldBeClosed?.openPage(0) // This should throw an exception
     }
 
     private fun getPdfBytes(filename: String) : ByteArray? {

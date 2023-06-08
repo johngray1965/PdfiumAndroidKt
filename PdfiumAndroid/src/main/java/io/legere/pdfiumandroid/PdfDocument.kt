@@ -13,7 +13,9 @@ private const val MAX_RECURSION = 16
 class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
 ) : Closeable {
 
-    private var isClosed = false
+    var isClosed = false
+        private set
+
     private external fun nativeGetPageCount(docPtr: Long): Int
     private external fun nativeLoadPage(docPtr: Long, pageIndex: Int): Long
     private external fun nativeCloseDocument(docPtr: Long)

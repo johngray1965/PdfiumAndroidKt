@@ -11,6 +11,10 @@ import java.nio.charset.StandardCharsets
 
 @Suppress("TooManyFunctions")
 class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) : Closeable {
+
+    var isClosed = false
+        private set
+
     private external fun nativeCloseTextPage(pagePtr: Long)
     private external fun nativeTextCountChars(textPagePtr: Long): Int
     private external fun nativeTextGetText(
@@ -43,6 +47,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
     ): Int
     
     fun textPageCountChars(): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeTextCountChars(pagePtr)
         }
@@ -52,6 +57,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         startIndex: Int,
         length: Int
     ): String? {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 val buf = ShortArray(length + 1)
@@ -81,6 +87,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
     }
 
     fun textPageGetUnicode(index: Int): Char {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeTextGetUnicode(
                 pagePtr,
@@ -90,15 +97,16 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
     }
 
     fun textPageGetCharBox(index: Int): RectF? {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 val o =
                     nativeTextGetCharBox(pagePtr, index)
                 val r = RectF()
-                r.left = o[0].toFloat()
-                r.right = o[1].toFloat()
-                r.bottom = o[2].toFloat()
-                r.top = o[3].toFloat()
+                r.left = o[LEFT].toFloat()
+                r.right = o[RIGHT].toFloat()
+                r.bottom = o[BOTTOM].toFloat()
+                r.top = o[TOP].toFloat()
                 return r
             } catch (e: NullPointerException) {
                 Log.e(TAG, "mContext may be null")
@@ -117,6 +125,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         xTolerance: Double,
         yTolerance: Double
     ): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 return nativeTextGetCharIndexAtPos(
@@ -141,6 +150,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         startIndex: Int,
         count: Int
     ): Int {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 return nativeTextCountRects(
@@ -160,6 +170,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
     }
 
     fun textPageGetRect(rectIndex: Int): RectF? {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 val o =
@@ -185,6 +196,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         rect: RectF,
         length: Int
     ): String? {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
                 val buf = ShortArray(length + 1)
@@ -217,7 +229,9 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
 
 
     override fun close() {
+        if (isClosed) return
         synchronized(PdfiumCore.lock) {
+            isClosed = true
             nativeCloseTextPage(pagePtr)
         }
     }
