@@ -1,6 +1,7 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import io.legere.pdfiumandroid.base.BasePDFTest
 import junit.framework.TestCase
@@ -10,7 +11,9 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class PdfTextPageKtTest  : BasePDFTest() {
 
     private lateinit var pdfDocument: PdfDocumentKt

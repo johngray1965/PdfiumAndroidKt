@@ -1,11 +1,14 @@
 package io.legere.pdfiumandroid.suspend
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.legere.pdfiumandroid.base.BasePDFTest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class PdfiumCoreKtTest : BasePDFTest() {
 
     @Test

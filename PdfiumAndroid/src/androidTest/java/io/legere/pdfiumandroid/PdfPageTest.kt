@@ -5,6 +5,7 @@ import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.util.Size
@@ -12,8 +13,10 @@ import junit.framework.TestCase
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
 
+@RunWith(AndroidJUnit4::class)
 class PdfPageTest :  BasePDFTest() {
 
     private lateinit var pdfDocument: PdfDocument
