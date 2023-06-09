@@ -9,7 +9,6 @@ import java.io.FileDescriptor
 import java.io.IOException
 import java.lang.reflect.Field
 
-
 class PdfiumCore {
 
     private external fun nativeOpenDocument(fd: Int, password: String?): Long
@@ -17,11 +16,8 @@ class PdfiumCore {
 
     private external fun nativeGetLinkRect(linkPtr: Long): RectF?
 
-    //private val mCurrentDpi: Int
-
     /** Context needed to get screen density  */
     init {
-        //mCurrentDpi = ctx.resources.displayMetrics.densityDpi
         Log.d(TAG, "Starting PdfiumAndroid ")
     }
 
@@ -39,7 +35,6 @@ class PdfiumCore {
                 document.parcelFileDescriptor = fd
             }
         }
-
     }
 
     /** Create new document from bytearray  */

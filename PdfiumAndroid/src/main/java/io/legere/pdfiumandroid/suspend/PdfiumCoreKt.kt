@@ -35,6 +35,3 @@ class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher) {
         }
     }
 }
-
-
-

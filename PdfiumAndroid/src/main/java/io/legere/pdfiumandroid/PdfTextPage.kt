@@ -48,7 +48,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         bottom: Double,
         arr: ShortArray
     ): Int
-    
+
     fun textPageCountChars(): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -239,7 +239,6 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         }
     }
 
-
     override fun close() {
         if (isClosed) return
         synchronized(PdfiumCore.lock) {
@@ -247,10 +246,8 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
             nativeCloseTextPage(pagePtr)
         }
     }
-    
+
     companion object {
         private val TAG = PdfTextPage::class.java.name
-
     }
-
 }

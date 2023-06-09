@@ -37,34 +37,56 @@ class PdfPage(
     private external fun nativeGetDestPageIndex(docPtr: Long, linkPtr: Long): Int?
     private external fun nativeGetLinkURI(docPtr: Long, linkPtr: Long): String?
     private external fun nativeGetLinkRect(docPtr: Long, linkPtr: Long): RectF?
+
     @Suppress("LongParameterList")
     private external fun nativeRenderPage(
-        pagePtr: Long, surface: Surface?, dpi: Int,
-        startX: Int, startY: Int,
-        drawSizeHor: Int, drawSizeVer: Int,
+        pagePtr: Long,
+        surface: Surface?,
+        dpi: Int,
+        startX: Int,
+        startY: Int,
+        drawSizeHor: Int,
+        drawSizeVer: Int,
         renderAnnot: Boolean
     )
 
     @Suppress("LongParameterList")
     private external fun nativeRenderPageBitmap(
-        pagePtr: Long, bitmap: Bitmap?, dpi: Int,
-        startX: Int, startY: Int,
-        drawSizeHor: Int, drawSizeVer: Int,
-        renderAnnot: Boolean, textMask: Boolean
+        pagePtr: Long,
+        bitmap: Bitmap?,
+        dpi: Int,
+        startX: Int,
+        startY: Int,
+        drawSizeHor: Int,
+        drawSizeVer: Int,
+        renderAnnot: Boolean,
+        textMask: Boolean
     )
     private external fun nativeGetPageSizeByIndex(docPtr: Long, pageIndex: Int, dpi: Int): Size
     private external fun nativeGetPageLinks(pagePtr: Long): LongArray
 
     @Suppress("LongParameterList")
     private external fun nativePageCoordsToDevice(
-        pagePtr: Long, startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, pageX: Double, pageY: Double
+        pagePtr: Long,
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        pageX: Double,
+        pageY: Double
     ): Point
 
     @Suppress("LongParameterList")
     private external fun nativeDeviceCoordsToPage(
-        pagePtr: Long, startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, deviceX: Int, deviceY: Int
+        pagePtr: Long,
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        deviceX: Int,
+        deviceY: Int
     ): PointF
 
     /**
@@ -233,10 +255,16 @@ class PdfPage(
      * Page must be opened before rendering.
      */
     @Suppress("LongParameterList")
-    fun renderPage(surface: Surface?,
-            startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int) {
+    fun renderPage(
+        surface: Surface?,
+        startX: Int,
+        startY: Int,
+        drawSizeX: Int,
+        drawSizeY: Int,
+        screenDpi: Int
+    ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
-            renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, false )
+        renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, false)
     }
 
     /**
@@ -246,17 +274,26 @@ class PdfPage(
     @Suppress("LongParameterList", "TooGenericExceptionCaught")
     fun renderPage(
         surface: Surface?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int,
+        startX: Int,
+        startY: Int,
+        drawSizeX: Int,
+        drawSizeY: Int,
         screenDpi: Int,
         renderAnnot: Boolean
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             try {
-                //nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
+                // nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
                 nativeRenderPage(
-                    pagePtr, surface, screenDpi,
-                    startX, startY, drawSizeX, drawSizeY, renderAnnot
+                    pagePtr,
+                    surface,
+                    screenDpi,
+                    startX,
+                    startY,
+                    drawSizeX,
+                    drawSizeY,
+                    renderAnnot
                 )
             } catch (e: NullPointerException) {
                 Log.e(TAG, "mContext may be null", e)
@@ -278,8 +315,14 @@ class PdfPage(
      *
      */
     @Suppress("LongParameterList")
-    fun renderPageBitmap(bitmap: Bitmap?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int, textMask: Boolean
+    fun renderPageBitmap(
+        bitmap: Bitmap?,
+        startX: Int,
+        startY: Int,
+        drawSizeX: Int,
+        drawSizeY: Int,
+        screenDpi: Int,
+        textMask: Boolean
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         renderPageBitmap(
@@ -302,9 +345,15 @@ class PdfPage(
      * For more info see [PdfiumCore.renderPageBitmap]
      */
     @Suppress("LongParameterList")
-    fun renderPageBitmap(bitmap: Bitmap?,
-        startX: Int, startY: Int, drawSizeX: Int, drawSizeY: Int, screenDpi: Int,
-        renderAnnot: Boolean, textMask: Boolean
+    fun renderPageBitmap(
+        bitmap: Bitmap?,
+        startX: Int,
+        startY: Int,
+        drawSizeX: Int,
+        drawSizeY: Int,
+        screenDpi: Int,
+        renderAnnot: Boolean,
+        textMask: Boolean
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -348,8 +397,14 @@ class PdfPage(
      * @return mapped coordinates
      */
     @Suppress("LongParameterList")
-    fun mapPageCoordsToDevice(startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, pageX: Double, pageY: Double
+    fun mapPageCoordsToDevice(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        pageX: Double,
+        pageY: Double
     ): Point {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         return nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY)
@@ -369,8 +424,14 @@ class PdfPage(
      * @return mapped coordinates
      */
     @Suppress("LongParameterList")
-    fun mapDeviceCoordsToPage(startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, deviceX: Int, deviceY: Int
+    fun mapDeviceCoordsToPage(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        deviceX: Int,
+        deviceY: Int
     ): PointF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         return nativeDeviceCoordsToPage(
@@ -390,15 +451,32 @@ class PdfPage(
      * @return mapped coordinates
      */
     @Suppress("LongParameterList")
-    fun mapRectToDevice(startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, coords: RectF
+    fun mapRectToDevice(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: RectF
     ): Rect {
         check(!isClosed && !doc.isClosed) { "Already closed" }
-        val leftTop = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
-            coords.left.toDouble(), coords.top.toDouble()
+        val leftTop = mapPageCoordsToDevice(
+            startX,
+            startY,
+            sizeX,
+            sizeY,
+            rotate,
+            coords.left.toDouble(),
+            coords.top.toDouble()
         )
-        val rightBottom = mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate,
-            coords.right.toDouble(), coords.bottom.toDouble()
+        val rightBottom = mapPageCoordsToDevice(
+            startX,
+            startY,
+            sizeX,
+            sizeY,
+            rotate,
+            coords.right.toDouble(),
+            coords.bottom.toDouble()
         )
         return Rect(
             leftTop.x,
@@ -413,8 +491,13 @@ class PdfPage(
      * @return mapped coordinates
      */
     @Suppress("LongParameterList")
-    fun mapRectToPage(startX: Int, startY: Int, sizeX: Int,
-        sizeY: Int, rotate: Int, coords: Rect
+    fun mapRectToPage(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: Rect
     ): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         val leftTop = mapDeviceCoordsToPage(
@@ -438,8 +521,6 @@ class PdfPage(
         return RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
     }
 
-
-
     override fun close() {
         if (isClosed) return
         synchronized(PdfiumCore.lock) {
@@ -449,12 +530,11 @@ class PdfPage(
     }
 
     companion object {
-        private const val TAG =  "PdfPage"
+        private const val TAG = "PdfPage"
 
         const val LEFT = 0
         const val TOP = 1
         const val RIGHT = 2
         const val BOTTOM = 3
     }
-
 }

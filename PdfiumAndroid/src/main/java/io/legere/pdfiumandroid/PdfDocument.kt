@@ -6,11 +6,11 @@ import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import java.io.Closeable
 
-
 private const val MAX_RECURSION = 16
 
 @Suppress("TooManyFunctions")
-class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
+class PdfDocument(
+    val mNativeDocPtr: Long // , private val mCurrentDpi: Int*
 ) : Closeable {
 
     var isClosed = false
@@ -29,7 +29,6 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
     private external fun nativeSaveAsCopy(docPtr: Long, callback: PdfWriteCallback): Boolean
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
-
 
     fun getPageCount(): Int {
         check(!isClosed) { "Already closed" }
@@ -61,7 +60,6 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
             return pagesPtr.map { PdfPage(this, pageIndex, it) }
         }
     }
-
 
     /** Get metadata for given document  */
     fun getDocumentMeta(): Meta {
@@ -116,7 +114,6 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
         }
     }
 
-
     fun openTextPage(pageIndex: Int): PdfTextPage {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -140,8 +137,6 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
             }
         }
     }
-
-
 
     fun saveAsCopy(callback: PdfWriteCallback): Boolean {
         check(!isClosed) { "Already closed" }
@@ -177,5 +172,4 @@ class PdfDocument(val mNativeDocPtr: Long //, private val mCurrentDpi: Int*
     }
 
     class Link(val bounds: RectF, val destPageIdx: Int?, val uri: String?)
-
 }

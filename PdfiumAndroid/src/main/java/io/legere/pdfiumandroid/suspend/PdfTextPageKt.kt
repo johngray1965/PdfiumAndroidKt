@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
-class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable  {
+class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
     suspend fun textPageCountChars(): Int {
         return withContext(dispatcher) {
@@ -81,5 +81,4 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     override fun close() {
         page.close()
     }
-
 }
