@@ -8,6 +8,9 @@ import java.io.Closeable
 
 private const val MAX_RECURSION = 16
 
+/**
+ * PdfDocument represents a PDF file and allows you to load pages from it.
+ */
 @Suppress("TooManyFunctions")
 class PdfDocument(
     val mNativeDocPtr: Long // , private val mCurrentDpi: Int*
@@ -30,6 +33,10 @@ class PdfDocument(
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
 
+    /**
+     *  Get the page count of the PDF document
+     *  @return the number of pages
+     */
     fun getPageCount(): Int {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -37,7 +44,12 @@ class PdfDocument(
         }
     }
 
-    /** Open page and store native pointer in [PdfDocument]  */
+    /**
+     * Open page and store native pointer in [PdfDocument]
+     * @param pageIndex the page index
+     * @return the opened page [PdfPage]
+     * @throws IllegalArgumentException if  document is closed or the page cannot be loaded
+     */
     fun openPage(pageIndex: Int): PdfPage {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -46,7 +58,13 @@ class PdfDocument(
         }
     }
 
-    /** Open range of pages and store native pointers in [PdfDocument]  */
+    /**
+     * Open range of pages and store native pointers in [PdfDocument]
+     * @param fromIndex the start index of the range
+     * @param toIndex the end index of the range
+     * @return the opened pages [PdfPage]
+     * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
+     */
     fun openPages(fromIndex: Int, toIndex: Int): List<PdfPage> {
         check(!isClosed) { "Already closed" }
         var pagesPtr: LongArray
@@ -61,7 +79,11 @@ class PdfDocument(
         }
     }
 
-    /** Get metadata for given document  */
+    /**
+     * Get metadata for given document
+     * @return the [Meta] data
+     * @throws IllegalArgumentException if document is closed
+     */
     fun getDocumentMeta(): Meta {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -100,7 +122,11 @@ class PdfDocument(
         }
     }
 
-    /** Get table of contents (bookmarks) for given document  */
+    /**
+     * Get table of contents (bookmarks) for given document
+     * @return the [Bookmark] list
+     * @throws IllegalArgumentException if document is closed
+     */
     fun getTableOfContents(): List<Bookmark> {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -114,6 +140,12 @@ class PdfDocument(
         }
     }
 
+    /**
+     * Open a text page
+     * @param pageIndex the page index
+     * @return the opened [PdfTextPage]
+     * @throws IllegalArgumentException if document is closed or the page cannot be loaded
+     */
     fun openTextPage(pageIndex: Int): PdfTextPage {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -123,6 +155,13 @@ class PdfDocument(
         }
     }
 
+    /**
+     * Open a range of text pages
+     * @param fromIndex the start index of the range
+     * @param toIndex the end index of the range
+     * @return the opened [PdfTextPage] list
+     * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
+     */
     fun openTextPages(fromIndex: Int, toIndex: Int): List<PdfTextPage> {
         check(!isClosed) { "Already closed" }
         var textPagesPtr: LongArray
@@ -138,11 +177,21 @@ class PdfDocument(
         }
     }
 
+    /**
+     * Save document as a copy
+     * @param callback the [PdfWriteCallback] to be called with the data
+     * @return true if the document was successfully saved
+     * @throws IllegalArgumentException if document is closed
+     */
     fun saveAsCopy(callback: PdfWriteCallback): Boolean {
         check(!isClosed) { "Already closed" }
         return nativeSaveAsCopy(mNativeDocPtr, callback)
     }
 
+    /**
+     * Close the document
+     * @throws IllegalArgumentException if document is closed
+     */
     override fun close() {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {

@@ -9,6 +9,9 @@ import java.io.FileDescriptor
 import java.io.IOException
 import java.lang.reflect.Field
 
+/**
+ * PdfiumCore is the main entry-point for access to the PDFium API.
+ */
 class PdfiumCore {
 
     private external fun nativeOpenDocument(fd: Int, password: String?): Long
@@ -21,13 +24,22 @@ class PdfiumCore {
         Log.d(TAG, "Starting PdfiumAndroid ")
     }
 
-    /** Create new document from file  */
+    /**
+     * Create new document from file
+     * @param fd opened file descriptor of file
+     * @return PdfDocument
+     */
     @Throws(IOException::class)
     fun newDocument(fd: ParcelFileDescriptor): PdfDocument {
         return newDocument(fd, null)
     }
 
-    /** Create new document from file with password  */
+    /**
+     * Create new document from file with password
+     * @param fd opened file descriptor of file
+     * @param password password for decryption
+     * @return PdfDocument
+     */
     @Throws(IOException::class)
     fun newDocument(fd: ParcelFileDescriptor, password: String?): PdfDocument {
         synchronized(lock) {
@@ -37,13 +49,22 @@ class PdfiumCore {
         }
     }
 
-    /** Create new document from bytearray  */
+    /**
+     * Create new document from bytearray
+     * @param data bytearray of pdf file
+     * @return PdfDocument
+     */
     @Throws(IOException::class)
     fun newDocument(data: ByteArray?): PdfDocument {
         return newDocument(data, null)
     }
 
-    /** Create new document from bytearray with password  */
+    /**
+     * Create new document from bytearray with password
+     * @param data bytearray of pdf file
+     * @param password password for decryption
+     * @return PdfDocument
+     */
     @Throws(IOException::class)
     fun newDocument(data: ByteArray?, password: String?): PdfDocument {
         synchronized(lock) {

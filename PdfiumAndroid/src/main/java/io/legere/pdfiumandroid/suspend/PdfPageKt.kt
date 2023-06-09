@@ -15,75 +15,116 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
+/**
+ * PdfPageKt represents a single page of a PDF file.
+ * @property page the [PdfPage] to wrap
+ * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
+ */
 @Suppress("TooManyFunctions")
 class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
+    /**
+     * suspend version of [PdfPage.getPageWidth]
+     */
     suspend fun getPageWidth(screenDpi: Int): Int {
         return withContext(dispatcher) {
             page.getPageWidth(screenDpi)
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageHeight]
+     */
     suspend fun getPageHeight(screenDpi: Int): Int {
         return withContext(dispatcher) {
             page.getPageHeight(screenDpi)
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageWidthPoint]
+     */
     suspend fun getPageWidthPoint(): Int {
         return withContext(dispatcher) {
             page.getPageWidthPoint()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageHeightPoint]
+     */
     suspend fun getPageHeightPoint(): Int {
         return withContext(dispatcher) {
             page.getPageHeightPoint()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageCropBox]
+     */
     suspend fun getPageCropBox(): RectF {
         return withContext(dispatcher) {
             page.getPageCropBox()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageMediaBox]
+     */
     suspend fun getPageMediaBox(): RectF {
         return withContext(dispatcher) {
             page.getPageMediaBox()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageBleedBox]
+     */
     suspend fun getPageBleedBox(): RectF {
         return withContext(dispatcher) {
             page.getPageBleedBox()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageTrimBox]
+     */
     suspend fun getPageTrimBox(): RectF {
         return withContext(dispatcher) {
             page.getPageTrimBox()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageArtBox]
+     */
     suspend fun getPageArtBox(): RectF {
         return withContext(dispatcher) {
             page.getPageArtBox()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageBoundingBox]
+     */
     suspend fun getPageBoundingBox(): RectF {
         return withContext(dispatcher) {
             page.getPageBoundingBox()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageSize]
+     */
     suspend fun getPageSize(screenDpi: Int): Size {
         return withContext(dispatcher) {
             page.getPageSize(screenDpi)
         }
     }
 
+    /**
+     * suspend version of [PdfPage.renderPage]
+     */
     @Suppress("LongParameterList")
     suspend fun renderPage(
         surface: Surface?,
@@ -99,21 +140,9 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     }
 
     @Suppress("LongParameterList")
-    suspend fun renderPage(
-        surface: Surface?,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int,
-        screenDpi: Int,
-        renderAnnot: Boolean
-    ) {
-        return withContext(dispatcher) {
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot)
-        }
-    }
-
-    @Suppress("LongParameterList")
+    /**
+     * suspend version of [PdfPage.renderPageBitmap]
+     */
     suspend fun renderPageBitmap(
         bitmap: Bitmap,
         startX: Int,
@@ -121,35 +150,26 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         drawSizeX: Int,
         drawSizeY: Int,
         screenDpi: Int,
-        textMask: Boolean
-    ) {
-        return withContext(dispatcher) {
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, false, textMask)
-        }
-    }
-
-    @Suppress("LongParameterList")
-    suspend fun renderPageBitmap(
-        bitmap: Bitmap?,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int,
-        screenDpi: Int,
-        renderAnnot: Boolean,
-        textMask: Boolean
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false
     ) {
         return withContext(dispatcher) {
             page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)
         }
     }
 
+    /**
+     * suspend version of [PdfPage.getPageLinks]
+     */
     suspend fun getPageLinks(): List<PdfDocument.Link> {
         return withContext(dispatcher) {
             page.getPageLinks()
         }
     }
 
+    /**
+     * suspend version of [PdfPage.mapPageCoordsToDevice]
+     */
     @Suppress("LongParameterList")
     suspend fun mapPageCoordsToDevice(
         startX: Int,
@@ -166,6 +186,9 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     }
 
     @Suppress("LongParameterList")
+    /**
+     * suspend version of [PdfPage.mapDeviceCoordsToPage]
+     */
     suspend fun mapDeviceCoordsToPage(
         startX: Int,
         startY: Int,
@@ -181,6 +204,9 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     }
 
     @Suppress("LongParameterList")
+    /**
+     * suspend version of [PdfPage.mapRectToDevice]
+     */
     suspend fun mapRectToDevice(
         startX: Int,
         startY: Int,
@@ -195,6 +221,9 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     }
 
     @Suppress("LongParameterList")
+    /**
+     * suspend version of [PdfPage.mapRectToPage]
+     */
     suspend fun mapRectToPage(
         startX: Int,
         startY: Int,
@@ -208,6 +237,9 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         }
     }
 
+    /**
+     * Closes the page
+     */
     override fun close() {
         page.close()
     }

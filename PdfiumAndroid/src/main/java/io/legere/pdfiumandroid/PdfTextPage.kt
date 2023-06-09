@@ -9,6 +9,13 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
 
+/**
+ * PdfTextPage is a wrapper around the native PdfiumCore text page
+ * It is used to get text and other information about the text on a page
+ * @property doc the PdfDocument this page belongs to
+ * @property pageIndex the index of this page in the document
+ * @property pagePtr the pointer to the native page
+ */
 @Suppress("TooManyFunctions")
 class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) : Closeable {
 
@@ -49,6 +56,11 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         arr: ShortArray
     ): Int
 
+    /**
+     * Get character count of the page
+     * @return the number of characters on the page
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageCountChars(): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -56,6 +68,13 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         }
     }
 
+    /**
+     * Get the text on the page
+     * @param startIndex the index of the first character to get
+     * @param length the number of characters to get
+     * @return the text
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetText(
         startIndex: Int,
         length: Int
@@ -89,6 +108,12 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         }
     }
 
+    /**
+     * Get a unicode character on the page
+     * @param index the index of the character to get
+     * @return the character
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetUnicode(index: Int): Char {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -99,6 +124,12 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         }
     }
 
+    /**
+     * Get the bounding box of a character on the page
+     * @param index the index of the character to get
+     * @return the bounding box
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetCharBox(index: Int): RectF? {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -124,6 +155,15 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         return null
     }
 
+    /**
+     * Get the index of the character at a given position on the page
+     * @param x the x position
+     * @param y the y position
+     * @param xTolerance the x tolerance
+     * @param yTolerance the y tolerance
+     * @return the index of the character at the position
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetCharIndexAtPos(
         x: Double,
         y: Double,
@@ -147,6 +187,13 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         return -1
     }
 
+    /**
+     * Get the count of rectages that bound the text on the page in a given range
+     * @param startIndex the index of the first character to get
+     * @param count the number of characters to get
+     * @return the number of rectangles
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageCountRects(
         startIndex: Int,
         count: Int
@@ -170,6 +217,12 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         return -1
     }
 
+    /**
+     * Get the bounding box of a text on the page
+     * @param rectIndex the index of the rectangle to get
+     * @return the bounding box
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetRect(rectIndex: Int): RectF? {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -193,6 +246,13 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         return null
     }
 
+    /**
+     * Get the text bounded by the given rectangle
+     * @param rect the rectangle to bound the text
+     * @param length the maximum number of characters to get
+     * @return the text bounded by the rectangle
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetBoundedText(
         rect: RectF,
         length: Int
@@ -230,7 +290,9 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
 
     /**
      * Get character font size in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     * @param charIndex the index of the character to get
+     * @return the font size
+     * @throws IllegalStateException if the page or document is closed
      */
     fun getFontSize(charIndex: Int): Double {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -239,6 +301,9 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
         }
     }
 
+    /**
+     * Close the page and release all resources
+     */
     override fun close() {
         if (isClosed) return
         synchronized(PdfiumCore.lock) {

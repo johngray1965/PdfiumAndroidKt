@@ -8,14 +8,25 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
+/**
+ * PdfTextPageKt represents a single text page of a PDF file.
+ * @property page the [PdfTextPage] to wrap
+ * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
+ */
 class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
+    /**
+     * suspend version of [PdfTextPage.textPageCountChars]
+     */
     suspend fun textPageCountChars(): Int {
         return withContext(dispatcher) {
             page.textPageCountChars()
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageGetText]
+     */
     suspend fun textPageGetText(
         startIndex: Int,
         length: Int
@@ -25,18 +36,27 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageGetUnicode]
+     */
     suspend fun textPageGetUnicode(index: Int): Char {
         return withContext(dispatcher) {
             page.textPageGetUnicode(index)
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageGetCharBox]
+     */
     suspend fun textPageGetCharBox(index: Int): RectF? {
         return withContext(dispatcher) {
             page.textPageGetCharBox(index)
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageGetCharIndexAtPos]
+     */
     suspend fun textPageGetCharIndexAtPos(
         x: Double,
         y: Double,
@@ -48,6 +68,9 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageCountRects]
+     */
     suspend fun textPageCountRects(
         startIndex: Int,
         count: Int
@@ -57,12 +80,18 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageGetRect]
+     */
     suspend fun textPageGetRect(rectIndex: Int): RectF? {
         return withContext(dispatcher) {
             page.textPageGetRect(rectIndex)
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.textPageGetBoundedText]
+     */
     suspend fun textPageGetBoundedText(
         rect: RectF,
         length: Int
@@ -72,12 +101,18 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         }
     }
 
+    /**
+     * suspend version of [PdfTextPage.getFontSize]
+     */
     suspend fun getFontSize(charIndex: Int): Double {
         return withContext(dispatcher) {
             page.getFontSize(charIndex)
         }
     }
 
+    /**
+     * Close the page and free all resources.
+     */
     override fun close() {
         page.close()
     }

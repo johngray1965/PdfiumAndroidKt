@@ -12,6 +12,9 @@ import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
 import java.io.Closeable
 
+/**
+ * Represents a single page in a [PdfDocument].
+ */
 @Suppress("TooManyFunctions")
 class PdfPage(
     private val doc: PdfDocument,
@@ -90,8 +93,10 @@ class PdfPage(
     ): PointF
 
     /**
-     * Get page width in pixels. <br></br>
-     * This method requires page to be opened.
+     * Get page width in pixels.
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return page width in pixels
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidth(screenDpi: Int): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -101,8 +106,10 @@ class PdfPage(
     }
 
     /**
-     * Get page height in pixels. <br></br>
-     * This method requires page to be opened.
+     * Get page height in pixels.
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return page height in pixels
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeight(screenDpi: Int): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -112,8 +119,9 @@ class PdfPage(
     }
 
     /**
-     * Get page width in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     * Get page width in PostScript points (1/72th of an inch).
+     * @return page width in points
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidthPoint(): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -123,8 +131,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     * Get page height in PostScript points (1/72th of an inch)
+     * @return page height in points
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeightPoint(): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -134,8 +143,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     *  Get the page's crop box in PostScript points (1/72th of an inch)
+     *  @return page crop box in points or RectF(-1, -1, -1, -1) if not present
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageCropBox(): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -151,8 +161,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     *  Get the page's media box in PostScript points (1/72th of an inch)
+     *  @return page media box in points or RectF(-1, -1, -1, -1) if not present
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageMediaBox(): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -168,8 +179,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     *  Get the page's bleed box in PostScript points (1/72th of an inch)
+     *  @return page bleed box in pointsor RectF(-1, -1, -1, -1) if not present
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBleedBox(): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -185,8 +197,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     *  Get the page's trim box in PostScript points (1/72th of an inch)
+     *  @return page trim box in points or RectF(-1, -1, -1, -1) if not present
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageTrimBox(): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -202,8 +215,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     *  Get the page's art box in PostScript points (1/72th of an inch)
+     *  @return page art box in points or RectF(-1, -1, -1, -1) if not present
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageArtBox(): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -219,8 +233,9 @@ class PdfPage(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch).<br></br>
-     * This method requires page to be opened.
+     *  Get the page's bounding box in PostScript points (1/72th of an inch)
+     *  @return page bounding box in points or RectF(-1, -1, -1, -1) if not present
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBoundingBox(): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -236,8 +251,9 @@ class PdfPage(
     }
 
     /**
-     * Get size of page in pixels.<br></br>
-     * This method does not require given page to be opened.
+     *  Get the page's size in pixels
+     *  @return page size in pixels
+     *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageSize(screenDpi: Int): Size {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -252,24 +268,14 @@ class PdfPage(
 
     /**
      * Render page fragment on [Surface].<br></br>
-     * Page must be opened before rendering.
-     */
-    @Suppress("LongParameterList")
-    fun renderPage(
-        surface: Surface?,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int,
-        screenDpi: Int
-    ) {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
-        renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi, false)
-    }
-
-    /**
-     * Render page fragment on [Surface]. This method allows to render annotations.<br></br>
-     * Page must be opened before rendering.
+     * @param surface Surface on which to render page
+     * @param startX left position of the page in the surface
+     * @param startY top position of the page in the surface
+     * @param drawSizeX horizontal size of the page on the surface
+     * @param drawSizeY vertical size of the page on the surface
+     * @param screenDpi screen dpi
+     * @param renderAnnot whether render annotation
+     * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList", "TooGenericExceptionCaught")
     fun renderPage(
@@ -279,7 +285,7 @@ class PdfPage(
         drawSizeX: Int,
         drawSizeY: Int,
         screenDpi: Int,
-        renderAnnot: Boolean
+        renderAnnot: Boolean = false
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -305,8 +311,15 @@ class PdfPage(
 
     /**
      * Render page fragment on [Bitmap].<br></br>
-     * Page must be opened before rendering.
-     *
+     * @param bitmap Bitmap on which to render page
+     * @param startX left position of the page in the bitmap
+     * @param startY top position of the page in the bitmap
+     * @param drawSizeX horizontal size of the page on the bitmap
+     * @param drawSizeY vertical size of the page on the bitmap
+     * @param screenDpi screen dpi
+     * @param renderAnnot whether render annotation
+     * @param textMask whether to render text as image mask
+     * @throws IllegalStateException If the page or document is closed
      *
      * Supported bitmap configurations:
      *
@@ -322,38 +335,8 @@ class PdfPage(
         drawSizeX: Int,
         drawSizeY: Int,
         screenDpi: Int,
-        textMask: Boolean
-    ) {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
-        renderPageBitmap(
-            bitmap,
-            startX,
-            startY,
-            drawSizeX,
-            drawSizeY,
-            screenDpi,
-            false,
-            textMask
-        )
-    }
-
-    /**
-     * Render page fragment on [Bitmap]. This method allows to render annotations.<br></br>
-     * Page must be opened before rendering.
-     *
-     *
-     * For more info see [PdfiumCore.renderPageBitmap]
-     */
-    @Suppress("LongParameterList")
-    fun renderPageBitmap(
-        bitmap: Bitmap?,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int,
-        screenDpi: Int,
-        renderAnnot: Boolean,
-        textMask: Boolean
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -395,6 +378,7 @@ class PdfPage(
      * @param pageX     X value in page coordinates
      * @param pageY     Y value in page coordinate
      * @return mapped coordinates
+     * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
     fun mapPageCoordsToDevice(
@@ -422,6 +406,7 @@ class PdfPage(
      * @param deviceX   X value in page coordinates
      * @param deviceY   Y value in page coordinate
      * @return mapped coordinates
+     * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
     fun mapDeviceCoordsToPage(
@@ -447,8 +432,19 @@ class PdfPage(
     }
 
     /**
-     * @see PdfiumCore.mapPageCoordsToDevice
+     * maps a rectangle from page space to device space
+     *
+     * @param startX    left pixel position of the display area in device coordinates
+     * @param startY    top pixel position of the display area in device coordinates
+     * @param sizeX     horizontal size (in pixels) for displaying the page
+     * @param sizeY     vertical size (in pixels) for displaying the page
+     * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
+     * 2 (rotated 180 degrees), 3 (rotated 90 degrees counter-clockwise)
+     * @param coords    rectangle to map
+     *
      * @return mapped coordinates
+     *
+     * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
     fun mapRectToDevice(
@@ -487,8 +483,16 @@ class PdfPage(
     }
 
     /**
-     * @see PdfiumCore.mapDeviceCoordsToPage
+     * Maps a rectangle from device space to page space
+     * @param startX    left pixel position of the display area in device coordinates
+     * @param startY    top pixel position of the display area in device coordinates
+     * @param sizeX     horizontal size (in pixels) for displaying the page
+     * @param sizeY     vertical size (in pixels) for displaying the page
+     * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
+     * 2 (rotated 180 degrees), 3 (rotated 90 degrees counter-clockwise)
+     * @param coords    rectangle to map
      * @return mapped coordinates
+     * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
     fun mapRectToPage(
@@ -521,6 +525,9 @@ class PdfPage(
         return RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
     }
 
+    /**
+     * Close the page and release all resources
+     */
     override fun close() {
         if (isClosed) return
         synchronized(PdfiumCore.lock) {

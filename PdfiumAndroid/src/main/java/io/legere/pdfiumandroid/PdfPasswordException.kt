@@ -1,5 +1,10 @@
+@file:Suppress("unused")
+
 package io.legere.pdfiumandroid
 
 import java.io.IOException
 
-class PdfPasswordException constructor(msg: String? = null): IOException(msg)
+/**
+ * PdfPasswordException is thrown when a password is required to open a document
+ */
+class PdfPasswordException constructor(msg: String? = null) : IOException(msg)
