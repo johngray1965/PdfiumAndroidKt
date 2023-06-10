@@ -22,8 +22,7 @@ class PdfPage(
     val pagePtr: Long
 ) : Closeable {
 
-    var isClosed = false
-        private set
+    private var isClosed = false
 
     private external fun nativeClosePage(pagePtr: Long)
     private external fun nativeClosePages(pagesPtr: LongArray)

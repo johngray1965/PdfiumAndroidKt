@@ -10,6 +10,6 @@ interface PdfWriteCallback {
      * WriteBlock is called by native code to write a block of data
      * @param data the data to write
      */
-    @Suppress("FunctionNaming")
+    @Suppress("FunctionNaming", "FunctionName")
     fun WriteBlock(data: ByteArray?): Int
 }

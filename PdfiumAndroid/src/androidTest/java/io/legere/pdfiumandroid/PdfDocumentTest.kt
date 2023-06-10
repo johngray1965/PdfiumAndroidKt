@@ -81,10 +81,10 @@ class PdfDocumentTest : BasePDFTest() {
 
     @Test
     fun saveAsCopy() {
-        pdfDocument.saveAsCopy(object: PdfWriteCallback {
+        pdfDocument.saveAsCopy(object : PdfWriteCallback {
             override fun WriteBlock(data: ByteArray?): Int {
-                //assertThat(data?.size).isEqualTo(pdfBytes?.size)
-                //assertThat(data).isEqualTo(pdfBytes)
+                // assertThat(data?.size).isEqualTo(pdfBytes?.size)
+                // assertThat(data).isEqualTo(pdfBytes)
                 return data?.size ?: 0
             }
         })
@@ -101,5 +101,4 @@ class PdfDocumentTest : BasePDFTest() {
         // Now it should be closed
         shouldBeClosed?.openPage(0) // This should throw an exception
     }
-
 }

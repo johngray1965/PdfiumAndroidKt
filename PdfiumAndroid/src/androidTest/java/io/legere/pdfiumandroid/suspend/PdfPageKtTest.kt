@@ -155,7 +155,6 @@ class PdfPageKtTest : BasePDFTest() {
 
             val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
 
-
             page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true)
 
             // How to verify that it's correct?
@@ -171,8 +170,7 @@ class PdfPageKtTest : BasePDFTest() {
 
             val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
 
-
-            page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true, true)
+            page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, renderAnnot = true, textMask = true)
 
             // How to verify that it's correct?
             // Even if we don't verify the bitmap, we can check that it doesn't crash
@@ -213,10 +211,11 @@ class PdfPageKtTest : BasePDFTest() {
 
             assertThat(devicePt).isEqualTo(
                 Rect(
-                    0,   // 0f in coords to 0f in device
+                    0, // 0f in coords to 0f in device
                     100, // 0f in corrds in at the bottom, the bottom of the device is 100f
                     16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
-                    87) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+                    87
+                ) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
             )
         }
     }
@@ -247,5 +246,4 @@ class PdfPageKtTest : BasePDFTest() {
             assertThat(page).isNotNull()
         }
     }
-
 }

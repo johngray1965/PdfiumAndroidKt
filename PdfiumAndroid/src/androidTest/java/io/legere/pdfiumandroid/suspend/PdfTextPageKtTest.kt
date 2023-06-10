@@ -14,7 +14,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class PdfTextPageKtTest  : BasePDFTest() {
+class PdfTextPageKtTest : BasePDFTest() {
 
     private lateinit var pdfDocument: PdfDocumentKt
     private var pdfBytes: ByteArray? = null
@@ -65,7 +65,7 @@ class PdfTextPageKtTest  : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rect = textPage.textPageGetCharBox(0)
 
-            Truth.assertThat(rect).isEqualTo( RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
+            Truth.assertThat(rect).isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
         }
     }
 
@@ -91,7 +91,7 @@ class PdfTextPageKtTest  : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rectCount = textPage.textPageCountRects(0, 100)
 
-            Truth.assertThat(rectCount).isEqualTo( 4)
+            Truth.assertThat(rectCount).isEqualTo(4)
         }
     }
 
@@ -100,7 +100,7 @@ class PdfTextPageKtTest  : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rect = textPage.textPageGetRect(0)
 
-            Truth.assertThat(rect).isEqualTo( RectF(0f, 0f, 0f, 0f))
+            Truth.assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
         }
     }
 
@@ -109,10 +109,9 @@ class PdfTextPageKtTest  : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val text = textPage.textPageGetBoundedText(RectF(0f, 97f, 100f, 100f), 100)
 
-            Truth.assertThat(text).isEqualTo( "Do")
+            Truth.assertThat(text).isEqualTo("Do")
         }
     }
-
 
     @Test
     fun getFontSize() = runTest {
@@ -122,7 +121,6 @@ class PdfTextPageKtTest  : BasePDFTest() {
             Truth.assertThat(fontSize).isEqualTo(22.559999465942383)
         }
     }
-
 
     @Test(expected = IllegalStateException::class)
     fun close() = runTest {

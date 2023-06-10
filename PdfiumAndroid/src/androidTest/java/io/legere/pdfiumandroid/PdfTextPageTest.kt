@@ -62,7 +62,7 @@ class PdfTextPageTest : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rect = textPage.textPageGetCharBox(0)
 
-            assertThat(rect).isEqualTo( RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
+            assertThat(rect).isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
         }
     }
 
@@ -88,7 +88,7 @@ class PdfTextPageTest : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rectCount = textPage.textPageCountRects(0, 100)
 
-            assertThat(rectCount).isEqualTo( 4)
+            assertThat(rectCount).isEqualTo(4)
         }
     }
 
@@ -97,7 +97,7 @@ class PdfTextPageTest : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val rect = textPage.textPageGetRect(0)
 
-            assertThat(rect).isEqualTo( RectF(0f, 0f, 0f, 0f))
+            assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
         }
     }
 
@@ -106,7 +106,7 @@ class PdfTextPageTest : BasePDFTest() {
         pdfDocument.openTextPage(0).use { textPage ->
             val text = textPage.textPageGetBoundedText(RectF(0f, 97f, 100f, 100f), 100)
 
-            assertThat(text).isEqualTo( "Do")
+            assertThat(text).isEqualTo("Do")
         }
     }
 

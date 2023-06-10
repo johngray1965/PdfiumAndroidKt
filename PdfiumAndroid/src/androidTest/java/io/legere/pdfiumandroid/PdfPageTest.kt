@@ -15,9 +15,8 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
-
 @RunWith(AndroidJUnit4::class)
-class PdfPageTest :  BasePDFTest() {
+class PdfPageTest : BasePDFTest() {
 
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
@@ -137,23 +136,12 @@ class PdfPageTest :  BasePDFTest() {
     }
 
     @Test
-    fun renderPage() {
-        // I really don't know how to test it
-    }
-
-    @Test
-    fun testRenderPage() {
-        // I really don't know how to test it
-    }
-
-    @Test
     fun renderPageBitmap() {
         pdfDocument.openPage(0).use { page ->
 
             val conf = Bitmap.Config.RGB_565 // see other conf types
 
             val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
-
 
             page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true)
 
@@ -169,7 +157,6 @@ class PdfPageTest :  BasePDFTest() {
             val conf = Bitmap.Config.RGB_565 // see other conf types
 
             val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
-
 
             page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true, true)
 
@@ -212,10 +199,11 @@ class PdfPageTest :  BasePDFTest() {
 
             assertThat(devicePt).isEqualTo(
                 Rect(
-                    0,   // 0f in coords to 0f in device
+                    0, // 0f in coords to 0f in device
                     100, // 0f in corrds in at the bottom, the bottom of the device is 100f
                     16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
-                    87) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+                    87
+                ) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
             )
         }
     }
@@ -239,7 +227,4 @@ class PdfPageTest :  BasePDFTest() {
         }
         pageAfterClose!!.getPageWidth(72)
     }
-
-
-
 }

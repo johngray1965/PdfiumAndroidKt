@@ -19,8 +19,7 @@ import java.nio.charset.StandardCharsets
 @Suppress("TooManyFunctions")
 class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) : Closeable {
 
-    var isClosed = false
-        private set
+    private var isClosed = false
 
     private external fun nativeCloseTextPage(pagePtr: Long)
     private external fun nativeTextCountChars(textPagePtr: Long): Int

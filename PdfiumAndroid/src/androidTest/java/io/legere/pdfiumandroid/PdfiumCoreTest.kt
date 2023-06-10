@@ -20,5 +20,4 @@ class PdfiumCoreTest : BasePDFTest() {
 
         assertNotNull(pdfDocument)
     }
-
 }

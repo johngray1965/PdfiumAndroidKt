@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
-    id 'maven-publish'
 }
 
 android {
@@ -40,6 +39,13 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+//    publishing {
+//        singleVariant("release") {
+//            // if you don't want sources/javadoc, remove these lines
+//            //withSourcesJar()
+//            //withJavadocJar()
+//        }
+//    }
 }
 
 dependencies {
@@ -58,3 +64,63 @@ dependencies {
     androidTestImplementation 'androidx.arch.core:core-testing:2.2.0'
 
 }
+//publishing {
+//    publications {
+//        release(MavenPublication) {
+//            groupId = 'io.legere'
+//            artifactId = 'pdfiumandroid'
+//            version = '1.0'
+//
+//            afterEvaluate {
+//                from components.release
+//            }
+//        }
+//    }
+//}
+//
+//publishing {
+//    publications {
+//        mavenJava(MavenPublication) {
+//            pom {
+//                name = 'PdfiumAndroidKt'
+//                description = 'Pdfium Android binding with Bitmap rendering and Text extraction'
+//                url = 'https://github.com/johngray1965/PdfiumAndroidKt'
+//                properties = [
+//                        myProp          : "value",
+//                        "prop.with.dots": "anotherValue"
+//                ]
+//                licenses {
+//                    license {
+//                        name = 'The Apache License, Version 2.0'
+//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id = 'johngray1965'
+//                        name = 'John Gray'
+//                        email = 'johngray1965@gmail.com'
+//                    }
+//                }
+//                scm {
+//                    connection = 'scm:git:git://example.com/my-library.git'
+//                    developerConnection = 'scm:git:ssh://example.com/my-library.git'
+//                    url = 'http://example.com/my-library/'
+//                }
+//            }
+//        }
+//    }
+//    repositories {
+//        maven {
+//            url = uri("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt")
+//            credentials {
+//                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USER")
+//                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+//                println("username: $username")
+//                println("password: $password")
+//            }
+//        }
+//    }
+//}
+
+apply from: '../gradle-mvn-push.gradle'

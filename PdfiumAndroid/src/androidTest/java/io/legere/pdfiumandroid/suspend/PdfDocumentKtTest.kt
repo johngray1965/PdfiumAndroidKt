@@ -55,14 +55,14 @@ class PdfDocumentKtTest : BasePDFTest() {
     }
 
     @Test
-    fun getDocumentMeta() = runTest  {
+    fun getDocumentMeta() = runTest {
         val meta = pdfDocument.getDocumentMeta()
 
         TestCase.assertNotNull(meta)
     }
 
     @Test
-    fun getTableOfContents() = runTest  {
+    fun getTableOfContents() = runTest {
         // I don't think this test document has a table of contents
         val toc = pdfDocument.getTableOfContents()
 
@@ -71,23 +71,23 @@ class PdfDocumentKtTest : BasePDFTest() {
     }
 
     @Test
-    fun openTextPage() = runTest  {
+    fun openTextPage() = runTest {
         val textPage = pdfDocument.openTextPage(0)
         TestCase.assertNotNull(textPage)
     }
 
     @Test
-    fun openTextPages() = runTest  {
+    fun openTextPages() = runTest {
         val textPages = pdfDocument.openTextPages(0, 3)
         Truth.assertThat(textPages.size).isEqualTo(4)
     }
 
     @Test
-    fun saveAsCopy() = runTest  {
-        pdfDocument.saveAsCopy(object: PdfWriteCallback {
+    fun saveAsCopy() = runTest {
+        pdfDocument.saveAsCopy(object : PdfWriteCallback {
             override fun WriteBlock(data: ByteArray?): Int {
-                //Truth.assertThat(data?.size).isEqualTo(pdfBytes?.size)
-                //Truth.assertThat(data).isEqualTo(pdfBytes)
+                // Truth.assertThat(data?.size).isEqualTo(pdfBytes?.size)
+                // Truth.assertThat(data).isEqualTo(pdfBytes)
                 return data?.size ?: 0
             }
         })
@@ -101,6 +101,4 @@ class PdfDocumentKtTest : BasePDFTest() {
         }
         documentAfterClose?.openPage(0)
     }
-
-
 }
