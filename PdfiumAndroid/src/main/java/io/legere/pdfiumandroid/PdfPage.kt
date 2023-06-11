@@ -17,8 +17,8 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfPage(
-    private val doc: PdfDocument,
-    private val pageIndex: Int,
+    val doc: PdfDocument,
+    val pageIndex: Int,
     val pagePtr: Long
 ) : Closeable {
 
