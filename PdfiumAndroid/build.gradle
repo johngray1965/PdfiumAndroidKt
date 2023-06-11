@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+    id 'signing'
 }
 
 android {
@@ -39,13 +41,13 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-//    publishing {
-//        singleVariant("release") {
-//            // if you don't want sources/javadoc, remove these lines
-//            //withSourcesJar()
-//            //withJavadocJar()
-//        }
-//    }
+    publishing {
+        singleVariant("release") {
+            // if you don't want sources/javadoc, remove these lines
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 dependencies {
@@ -64,63 +66,96 @@ dependencies {
     androidTestImplementation 'androidx.arch.core:core-testing:2.2.0'
 
 }
-//publishing {
-//    publications {
-//        release(MavenPublication) {
-//            groupId = 'io.legere'
-//            artifactId = 'pdfiumandroid'
-//            version = '1.0'
-//
-//            afterEvaluate {
-//                from components.release
-//            }
-//        }
-//    }
-//}
-//
-//publishing {
-//    publications {
-//        mavenJava(MavenPublication) {
-//            pom {
-//                name = 'PdfiumAndroidKt'
-//                description = 'Pdfium Android binding with Bitmap rendering and Text extraction'
-//                url = 'https://github.com/johngray1965/PdfiumAndroidKt'
-//                properties = [
-//                        myProp          : "value",
-//                        "prop.with.dots": "anotherValue"
-//                ]
-//                licenses {
-//                    license {
-//                        name = 'The Apache License, Version 2.0'
-//                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-//                    }
-//                }
-//                developers {
-//                    developer {
-//                        id = 'johngray1965'
-//                        name = 'John Gray'
-//                        email = 'johngray1965@gmail.com'
-//                    }
-//                }
-//                scm {
-//                    connection = 'scm:git:git://example.com/my-library.git'
-//                    developerConnection = 'scm:git:ssh://example.com/my-library.git'
-//                    url = 'http://example.com/my-library/'
-//                }
-//            }
-//        }
-//    }
-//    repositories {
-//        maven {
-//            url = uri("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt")
-//            credentials {
-//                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_USER")
-//                password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-//                println("username: $username")
-//                println("password: $password")
-//            }
-//        }
-//    }
-//}
 
-apply from: '../gradle-mvn-push.gradle'
+def isReleaseBuild() {
+    def version = findProperty('VERSION_NAME') ?: "1.0.0"
+    return !version.contains("SNAPSHOT")
+}
+
+def getReleaseRepositoryUrl() {
+    return  hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
+            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+}
+
+def getSnapshotRepositoryUrl() {
+    return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
+            : "https://oss.sonatype.org/content/repositories/snapshots/"
+}
+
+def getRepositoryUrl() {
+    return isReleaseBuild() ? getReleaseRepositoryUrl() : getSnapshotRepositoryUrl()
+}
+
+def getRepositoryUsername() {
+    return hasProperty('NEXUS_USERNAME') ? getProperty('NEXUS_USERNAME') : ""
+}
+
+def getRepositoryPassword() {
+    return hasProperty('NEXUS_PASSWORD') ?  getProperty('NEXUS_PASSWORD') : ""
+}
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = getProperty('GROUP')
+            artifactId = getProperty('POM_ARTIFACT_ID')
+            version = '1.0.1'
+            pom {
+
+                name = 'PdfiumAndroid'
+                packaging = getProperty('POM_PACKAGING')
+                description = getProperty('POM_DESCRIPTION')
+                url = getProperty('POM_URL')
+
+                licenses {
+                    license {
+                        name = getProperty('POM_LICENCE_NAME')
+                        url = getProperty('POM_LICENCE_URL')
+                        distribution = getProperty('POM_LICENCE_DIST')
+                    }
+                }
+                developers {
+                    developer {
+                        id = getProperty('POM_DEVELOPER_ID')
+                        name = getProperty('POM_DEVELOPER_NAME')
+                    }
+                }
+                scm {
+                    url = getProperty('POM_SCM_URL')
+                    connection = getProperty('POM_SCM_CONNECTION')
+                    developerConnection = getProperty('POM_SCM_DEV_CONNECTION')
+                }
+            }
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+
+    }
+    repositories {
+        maven {
+            //url = uri("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt")
+            url = getRepositoryUrl()
+            credentials {
+                username = getRepositoryUsername()// project.findProperty("gpr.user") ?: System.getenv("GITHUB_USER")
+                password = getRepositoryPassword() //project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.release
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            mavenRelease(MavenPublication) {
+                from components.release
+            }
+        }
+    }
+}
+
+

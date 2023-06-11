@@ -17,11 +17,12 @@
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
-version = VERSION_NAME
-group = GROUP
+version = findProperty('VERSION_NAME') ?: "1.0.0"
+group = findProperty('GROUP') ?: "io.legere"
 
 def isReleaseBuild() {
-    return VERSION_NAME.contains("SNAPSHOT") == false
+    def version = findProperty('VERSION_NAME') ?: "1.0.0"
+    return !version.contains("SNAPSHOT")
 }
 
 def getReleaseRepositoryUrl() {
@@ -35,11 +36,11 @@ def getSnapshotRepositoryUrl() {
 }
 
 def getRepositoryUsername() {
-    return hasProperty('NEXUS_USERNAME') ? NEXUS_USERNAME : ""
+    return hasProperty('NEXUS_USERNAME') ? getProperty('NEXUS_USERNAME') : ""
 }
 
 def getRepositoryPassword() {
-    return hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
+    return hasProperty('NEXUS_PASSWORD') ?  getProperty('NEXUS_PASSWORD') : ""
 }
 
 def configurePom(pom) {
@@ -70,85 +71,85 @@ def configurePom(pom) {
     }
 }
 
-afterEvaluate { project ->
-    publishing {
-        repositories {
-            maven {
-                def releasesRepoUrl = getReleaseRepositoryUrl()
-                def snapshotsRepoUrl = getSnapshotRepositoryUrl()
-                url = isReleaseBuild() ? releasesRepoUrl : snapshotsRepoUrl
-
-                credentials(PasswordCredentials) {
-                    username = getRepositoryUsername()
-                    password = getRepositoryPassword()
-                }
-            }
-        }
-    }
-
-    if (project.getPlugins().hasPlugin('com.android.application') ||
-            project.getPlugins().hasPlugin('com.android.library')) {
-
-        task androidJavadocs(type: Javadoc) {
-            source = android.sourceSets.main.java.source
-            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-            excludes = ['**/*.kt']
-        }
-
-        task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-            archiveClassifier = 'javadoc'
-            from androidJavadocs.destinationDir
-        }
-
-        task androidSourcesJar(type: Jar) {
-            archiveClassifier = 'sources'
-            from android.sourceSets.main.java.source
-        }
-    }
-
-    if (JavaVersion.current().isJava8Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addStringOption('Xdoclint:none', '-quiet')
-            }
-        }
-    }
-
-    if (JavaVersion.current().isJava9Compatible()) {
-        allprojects {
-            tasks.withType(Javadoc) {
-                options.addBooleanOption('html5', true)
-            }
-        }
-    }
-
-    artifacts {
-        if (project.getPlugins().hasPlugin('com.android.application') ||
-                project.getPlugins().hasPlugin('com.android.library')) {
-            archives androidSourcesJar
-            archives androidJavadocsJar
-        }
-    }
-
-    android.libraryVariants.all { variant ->
-        tasks.androidJavadocs.doFirst {
-            classpath += files(variant.javaCompileProvider.get().classpath.files.join(File.pathSeparator))
-        }
-    }
-
-    publishing.publications.all { publication ->
-        publication.groupId = GROUP
-        publication.version = VERSION_NAME
-
-        publication.artifact androidSourcesJar
-        publication.artifact androidJavadocsJar
-
-        configurePom(publication.pom)
-    }
-
-    signing {
-        publishing.publications.all { publication ->
-            sign publication
-        }
-    }
-}
+//afterEvaluate { project ->
+//    publishing {
+//        repositories {
+//            maven {
+//                def releasesRepoUrl = getReleaseRepositoryUrl()
+//                def snapshotsRepoUrl = getSnapshotRepositoryUrl()
+//                url = isReleaseBuild() ? releasesRepoUrl : snapshotsRepoUrl
+//
+//                credentials(PasswordCredentials) {
+//                    username = getRepositoryUsername()
+//                    password = getRepositoryPassword()
+//                }
+//            }
+//        }
+//    }
+//
+//    if (project.getPlugins().hasPlugin('com.android.application') ||
+//            project.getPlugins().hasPlugin('com.android.library')) {
+//
+//        task androidJavadocs(type: Javadoc) {
+//            source = android.sourceSets.main.java.source
+//            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+//            excludes = ['**/*.kt']
+//        }
+//
+//        task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+//            archiveClassifier = 'javadoc'
+//            from androidJavadocs.destinationDir
+//        }
+//
+//        task androidSourcesJar(type: Jar) {
+//            archiveClassifier = 'sources'
+//            from android.sourceSets.main.java.source
+//        }
+//    }
+//
+//    if (JavaVersion.current().isJava8Compatible()) {
+//        allprojects {
+//            tasks.withType(Javadoc) {
+//                options.addStringOption('Xdoclint:none', '-quiet')
+//            }
+//        }
+//    }
+//
+//    if (JavaVersion.current().isJava9Compatible()) {
+//        allprojects {
+//            tasks.withType(Javadoc) {
+//                options.addBooleanOption('html5', true)
+//            }
+//        }
+//    }
+//
+//    artifacts {
+//        if (project.getPlugins().hasPlugin('com.android.application') ||
+//                project.getPlugins().hasPlugin('com.android.library')) {
+//            archives androidSourcesJar
+//            archives androidJavadocsJar
+//        }
+//    }
+//
+//    android.libraryVariants.all { variant ->
+//        tasks.androidJavadocs.doFirst {
+//            classpath += files(variant.javaCompileProvider.get().classpath.files.join(File.pathSeparator))
+//        }
+//    }
+//
+//    publishing.publications.all { publication ->
+//        publication.groupId = getProperty('GROUP')
+//        publication.version = getProperty('VERSION_NAME')
+//
+//        publication.artifact androidSourcesJar
+//        publication.artifact androidJavadocsJar
+//
+//        configurePom(publication.pom)
+//    }
+//
+//    signing {
+//        publishing.publications.all { publication ->
+//            sign publication
+//        }
+//    }
+//}
