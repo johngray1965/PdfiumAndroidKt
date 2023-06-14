@@ -2,6 +2,7 @@
 
 package io.legere.pdfiumandroid
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
@@ -18,7 +19,13 @@ import java.lang.reflect.Field
  * PdfiumCore is the main entry-point for access to the PDFium API.
  */
 @Suppress("TooManyFunctions")
-class PdfiumCore {
+class PdfiumCore(context: Context? = null) {
+
+    private val mCurrentDpi: Int
+
+    init {
+        mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
+    }
 
     private external fun nativeOpenDocument(fd: Int, password: String?): Long
     private external fun nativeOpenMemDocument(data: ByteArray?, password: String?): Long
@@ -80,113 +87,121 @@ class PdfiumCore {
         }
     }
 
-    @Deprecated("Use PdfDocument.getPageCount()", ReplaceWith("pdfDocument.getPageCount()"), DeprecationLevel.ERROR)
+    @Deprecated("Use PdfDocument.getPageCount()", ReplaceWith("pdfDocument.getPageCount()"), DeprecationLevel.WARNING)
     fun getPageCount(pdfDocument: PdfDocument) {
-        error("Method has been moved")
+        pdfDocument.getPageCount()
     }
 
-    @Deprecated("Use PdfDocument.closeDocument()", ReplaceWith("pdfDocument.close()"), DeprecationLevel.ERROR)
+    @Deprecated("Use PdfDocument.closeDocument()", ReplaceWith("pdfDocument.close()"), DeprecationLevel.WARNING)
     fun closeDocument(pdfDocument: PdfDocument) {
-        error("Method has been moved")
+        pdfDocument.close()
     }
 
     @Deprecated(
         "Use PdfDocument.getTableOfContents()",
         ReplaceWith("pdfDocument.getTableOfContents()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun getTableOfContents(mPdfDocument: PdfDocument): List<PdfDocument.Bookmark>? {
-        error("Method has been moved")
+    fun getTableOfContents(pdfDocument: PdfDocument): List<PdfDocument.Bookmark> {
+        return pdfDocument.getTableOfContents()
     }
 
     @Deprecated(
         "Use PdfDocument.openTextPage()",
         ReplaceWith("pdfDocument.openTextPage(pageIndex)"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun openTextPage(pdfDocument: PdfDocument, pageIndex: Int): Long {
-        error("Method has been moved")
+        return pageIndex.toLong()
     }
 
     @Deprecated(
         "Use PdfDocument.openPage()",
         ReplaceWith("pdfDocument.openPage(pageIndex)"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun openPage(pdfDocument: PdfDocument, pageIndex: Int): Long {
-        error("Method has been moved")
+        return pageIndex.toLong()
     }
 
     @Deprecated(
         "Use Page.getPageMediaBox()",
         ReplaceWith("page.getPageMediaBox()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun getPageMediaBox(pdfDocument: PdfDocument, pageIndex: Int): RectF {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.getPageMediaBox()
+        }
     }
 
     @Deprecated(
         "Use page.close()",
         ReplaceWith("page.close()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun closePage(pdfDocument: PdfDocument, pageIndex: Int) {
-        error("Method has been moved")
     }
 
     @Deprecated(
         "Use textPage.close()",
         ReplaceWith("textPage.close()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun closeTextPage(pdfDocument: PdfDocument, pageIndex: Int) {
-        error("Method has been moved")
     }
 
     @Deprecated(
         "Use textPage.textPageCountChars()",
         ReplaceWith("textPage.textPageCountChars()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun textPageCountChars(pdfDocument: PdfDocument, pageIndex: Int) {
-        error("Method has been moved")
+    fun textPageCountChars(pdfDocument: PdfDocument, pageIndex: Int): Int {
+        pdfDocument.openTextPage(pageIndex).use { textPage ->
+            return textPage.textPageCountChars()
+        }
     }
 
     @Deprecated(
         "Use textPage.textPageGetText(start, count)",
         ReplaceWith("textPage.textPageGetText(start, count)"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun textPageGetText(pdfDocument: PdfDocument, pageIndex: Int, start: Int, count: Int): String {
-        error("Method has been moved")
+    fun textPageGetText(pdfDocument: PdfDocument, pageIndex: Int, start: Int, count: Int): String? {
+        pdfDocument.openTextPage(pageIndex).use { textPage ->
+            return textPage.textPageGetText(start, count)
+        }
     }
 
     @Deprecated(
         "Use pdfDocument.getDocumentMeta()",
         ReplaceWith("pdfDocument.getDocumentMeta()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun getDocumentMeta(pdfDocument: PdfDocument): PdfDocument.Meta? {
-        error("Method has been moved")
+    fun getDocumentMeta(pdfDocument: PdfDocument): PdfDocument.Meta {
+        return pdfDocument.getDocumentMeta()
     }
 
     @Deprecated(
         "Use PdfPage.getPageWidthPoint()",
         ReplaceWith("page.getPageWidthPoint()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun getPageWidthPoint(pdfDocument: PdfDocument, pageIndex: Int): Int {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.getPageWidthPoint()
+        }
     }
 
     @Deprecated(
         "Use PdfPage.getPageHeightPoint()",
         ReplaceWith("page.getPageHeightPoint()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun getPageHeightPoint(pdfDocument: PdfDocument, pageIndex: Int): Int {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.getPageHeightPoint()
+        }
     }
 
     @Deprecated(
@@ -194,12 +209,13 @@ class PdfiumCore {
         ReplaceWith(
             "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     @Suppress("LongParameterList")
     fun renderPageBitmap(
         pdfDocument: PdfDocument,
         bitmap: Bitmap?,
+        pageIndex: Int,
         startX: Int,
         startY: Int,
         drawSizeX: Int,
@@ -208,7 +224,9 @@ class PdfiumCore {
         renderAnnot: Boolean = false,
         textMask: Boolean = false
     ) {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)
+        }
     }
 
     @Deprecated(
@@ -216,10 +234,12 @@ class PdfiumCore {
         ReplaceWith(
             "page.textPageGetRect(index)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun textPageGetRect(pdfDocument: PdfDocument, page: Int, index: Int): RectF {
-        error("Method has been moved")
+    fun textPageGetRect(pdfDocument: PdfDocument, page: Int, index: Int): RectF? {
+        pdfDocument.openTextPage(page).use { textPage ->
+            return textPage.textPageGetRect(index)
+        }
     }
 
     @Deprecated(
@@ -227,10 +247,12 @@ class PdfiumCore {
         ReplaceWith(
             "page.textPageGetBoundedText(sourceRect, size)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun textPageGetBoundedText(pdfDocument: PdfDocument, pageIndex: Int, sourceRect: RectF, size: Int): RectF {
-        error("Method has been moved")
+    fun textPageGetBoundedText(pdfDocument: PdfDocument, pageIndex: Int, sourceRect: RectF, size: Int): String? {
+        pdfDocument.openTextPage(pageIndex).use { textPage ->
+            return textPage.textPageGetBoundedText(sourceRect, size)
+        }
     }
 
     @Deprecated(
@@ -238,7 +260,7 @@ class PdfiumCore {
         ReplaceWith(
             "page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     @Suppress("LongParameterList")
     fun mapRectToPage(
@@ -251,7 +273,9 @@ class PdfiumCore {
         rotate: Int,
         coords: Rect
     ): RectF {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
+        }
     }
 
     @Deprecated(
@@ -259,7 +283,7 @@ class PdfiumCore {
         ReplaceWith(
             "textPage.textPageCountRects(startIndex, count)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     fun textPageCountRects(
         pdfDocument: PdfDocument,
@@ -267,7 +291,9 @@ class PdfiumCore {
         startIndex: Int,
         count: Int
     ): Int {
-        error("Method has been moved")
+        pdfDocument.openTextPage(pageIndex).use { textPage ->
+            return textPage.textPageCountRects(startIndex, count)
+        }
     }
 
     @Deprecated(
@@ -277,8 +303,8 @@ class PdfiumCore {
         ),
         DeprecationLevel.ERROR
     )
-    fun openPage(pdfDocument: PdfDocument, fromIndex: Int, toIndex: Int): LongArray? {
-        error("Method has been moved")
+    fun openPage(pdfDocument: PdfDocument, fromIndex: Int, toIndex: Int): Array<Long> {
+        return (fromIndex.toLong()..toIndex.toLong()).toList().toTypedArray()
     }
 
     @Deprecated(
@@ -286,10 +312,12 @@ class PdfiumCore {
         ReplaceWith(
             "page.getPageWidth()"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun getPageWidth(doc: PdfDocument, index: Int): Int {
-        error("Method has been moved")
+    fun getPageWidth(pdfDocument: PdfDocument, index: Int): Int {
+        pdfDocument.openPage(index).use { page ->
+            return page.getPageWidth(mCurrentDpi)
+        }
     }
 
     @Deprecated(
@@ -297,10 +325,12 @@ class PdfiumCore {
         ReplaceWith(
             "page.getPageHeight()"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun getPageHeight(doc: PdfDocument, index: Int): Int {
-        error("Method has been moved")
+    fun getPageHeight(pdfDocument: PdfDocument, index: Int): Int {
+        pdfDocument.openPage(index).use { page ->
+            return page.getPageHeight(mCurrentDpi)
+        }
     }
 
     @Deprecated(
@@ -308,10 +338,12 @@ class PdfiumCore {
         ReplaceWith(
             "page.getPageSize()"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
-    fun getPageSize(doc: PdfDocument, index: Int): Size? {
-        error("Method has been moved")
+    fun getPageSize(pdfDocument: PdfDocument, index: Int): Size {
+        pdfDocument.openPage(index).use { page ->
+            return page.getPageSize(mCurrentDpi)
+        }
     }
 
     @Deprecated(
@@ -319,40 +351,22 @@ class PdfiumCore {
         ReplaceWith(
             "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     @Suppress("LongParameterList")
     fun renderPage(
-        doc: PdfDocument,
-        surface: Surface?,
-        pageIndex: Int,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int
-    ) {
-        error("Method has been moved")
-    }
-
-    @Deprecated(
-        "Use PdfPage.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot)",
-        ReplaceWith(
-            "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot)"
-        ),
-        DeprecationLevel.ERROR
-    )
-    @Suppress("LongParameterList")
-    fun renderPage(
-        doc: PdfDocument,
+        pdfDocument: PdfDocument,
         surface: Surface?,
         pageIndex: Int,
         startX: Int,
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        renderAnnot: Boolean
+        renderAnnot: Boolean = false
     ) {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, mCurrentDpi, false)
+        }
     }
 
     @Deprecated(
@@ -360,40 +374,22 @@ class PdfiumCore {
         ReplaceWith(
             "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     @Suppress("LongParameterList")
     fun renderPageBitmap(
-        doc: PdfDocument,
-        bitmap: Bitmap?,
-        pageIndex: Int,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int
-    ) {
-        error("Method has been moved")
-    }
-
-    @Deprecated(
-        "Use PdfPage.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)",
-        ReplaceWith(
-            "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)"
-        ),
-        DeprecationLevel.ERROR
-    )
-    @Suppress("LongParameterList")
-    fun renderPageBitmap(
-        doc: PdfDocument,
+        pdfDocument: PdfDocument,
         bitmap: Bitmap?,
         pageIndex: Int,
         startX: Int,
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        renderAnnot: Boolean
+        renderAnnot: Boolean = false
     ) {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, mCurrentDpi, renderAnnot)
+        }
     }
 
     @Deprecated(
@@ -401,11 +397,13 @@ class PdfiumCore {
         ReplaceWith(
             "page.getPageLinks()"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     @Suppress("LongParameterList")
-    fun getPageLinks(doc: PdfDocument, pageIndex: Int): List<PdfDocument.Link>? {
-        error("Method has been moved")
+    fun getPageLinks(pdfDocument: PdfDocument, pageIndex: Int): List<PdfDocument.Link> {
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.getPageLinks()
+        }
     }
 
     @Deprecated(
@@ -413,11 +411,11 @@ class PdfiumCore {
         ReplaceWith(
             "page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)"
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.WARNING
     )
     @Suppress("LongParameterList")
     fun mapPageCoordsToDevice(
-        doc: PdfDocument,
+        pdfDocument: PdfDocument,
         pageIndex: Int,
         startX: Int,
         startY: Int,
@@ -427,7 +425,9 @@ class PdfiumCore {
         pageX: Double,
         pageY: Double
     ): Point {
-        error("Method has been moved")
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
+        }
     }
 
     @Deprecated(
@@ -435,11 +435,11 @@ class PdfiumCore {
         ReplaceWith(
             "page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)",
         ),
-        DeprecationLevel.ERROR,
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
     fun mapRectToDevice(
-        doc: PdfDocument,
+        pdfDocument: PdfDocument,
         pageIndex: Int,
         startX: Int,
         startY: Int,
@@ -447,8 +447,10 @@ class PdfiumCore {
         sizeY: Int,
         rotate: Int,
         coords: RectF
-    ): RectF? {
-        error("Method has been moved")
+    ): Rect {
+        pdfDocument.openPage(pageIndex).use { page ->
+            return page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
+        }
     }
 
     companion object {
