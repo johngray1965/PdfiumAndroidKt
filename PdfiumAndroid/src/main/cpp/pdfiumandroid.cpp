@@ -70,6 +70,7 @@ public:
 DocumentFile::~DocumentFile(){
     if(pdfDocument != nullptr){
         FPDF_CloseDocument(pdfDocument);
+        pdfDocument = nullptr;
     }
 
     destroyLibraryIfNeed();
@@ -443,7 +444,7 @@ JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobject thiz,
                                                              jlong doc_ptr) {
     auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    // FPDF_CloseDocument(*doc); The old library does not have this function, if we do, we get a crash
+    // The destructor will close the document
     delete doc;
 }
 

@@ -4,6 +4,14 @@
 
 // Original code copyright 2014 Foxit Software Inc. http://www.foxitsoftware.com
 
+// This is the main header file for embedders of PDFium. It provides APIs to
+// initialize the library, load documents, and render pages, amongst other
+// things.
+//
+// NOTE: None of the PDFium APIs are thread-safe. They expect to be called
+// from a single thread. Barring that, embedders are required to ensure (via
+// a mutex or similar) that only a single PDFium call can be made at a time.
+//
 // NOTE: External docs refer to this file as "fpdfview.h", so do not rename
 // despite lack of consistency with other public files.
 
@@ -71,9 +79,9 @@ typedef struct fpdf_pageobject_t__* FPDF_PAGEOBJECT;  // (text, path, etc.)
 typedef struct fpdf_pageobjectmark_t__* FPDF_PAGEOBJECTMARK;
 typedef const struct fpdf_pagerange_t__* FPDF_PAGERANGE;
 typedef const struct fpdf_pathsegment_t* FPDF_PATHSEGMENT;
-typedef void* FPDF_RECORDER;  // Passed into Skia as a SkPictureRecorder.
 typedef struct fpdf_schhandle_t__* FPDF_SCHHANDLE;
 typedef const struct fpdf_signature_t__* FPDF_SIGNATURE;
+typedef void* FPDF_SKIA_CANVAS;  // Passed into Skia as an SkCanvas.
 typedef struct fpdf_structelement_t__* FPDF_STRUCTELEMENT;
 typedef const struct fpdf_structelement_attr_t__* FPDF_STRUCTELEMENT_ATTR;
 typedef struct fpdf_structtree_t__* FPDF_STRUCTTREE;
@@ -98,12 +106,14 @@ typedef enum _FPDF_DUPLEXTYPE_ {
 // String types
 typedef unsigned short FPDF_WCHAR;
 
-// FPDFSDK may use three types of strings: byte string, wide string (UTF-16LE
-// encoded), and platform dependent string
+// The public PDFium API uses three types of strings: byte string, wide string
+// (UTF-16LE encoded), and platform dependent string.
+
+// Public PDFium API type for byte strings.
 typedef const char* FPDF_BYTESTRING;
 
-// FPDFSDK always uses UTF-16LE encoded wide strings, each character uses 2
-// bytes (except surrogation), with the low byte first.
+// The public PDFium API always uses UTF-16LE encoded wide strings, each
+// character uses 2 bytes (except surrogation), with the low byte first.
 typedef const FPDF_WCHAR* FPDF_WIDESTRING;
 
 // Structure for persisting a string beyond the duration of a callback.
@@ -191,9 +201,6 @@ typedef int FPDF_ANNOT_APPEARANCEMODE;
 // Dictionary value types.
 typedef int FPDF_OBJECT_TYPE;
 
-#if defined(COMPONENT_BUILD)
-// FPDF_EXPORT should be consistent with |export| in the pdfium_fuzzer
-// template in testing/fuzzers/BUILD.gn.
 #if defined(WIN32)
 #if defined(FPDF_IMPLEMENTATION)
 #define FPDF_EXPORT __declspec(dllexport)
@@ -207,9 +214,6 @@ typedef int FPDF_OBJECT_TYPE;
 #define FPDF_EXPORT
 #endif  // defined(FPDF_IMPLEMENTATION)
 #endif  // defined(WIN32)
-#else
-#define FPDF_EXPORT
-#endif  // defined(COMPONENT_BUILD)
 
 #if defined(WIN32) && defined(FPDFSDK_EXPORTS)
 #define FPDF_CALLCONV __stdcall
@@ -221,18 +225,6 @@ typedef int FPDF_OBJECT_TYPE;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-// Function: FPDF_InitLibrary
-//          Initialize the FPDFSDK library
-// Parameters:
-//          None
-// Return value:
-//          None.
-// Comments:
-//          Convenience function to call FPDF_InitLibraryWithConfig() for
-//          backwards compatibility purposes. This will be deprecated in the
-//          future.
-FPDF_EXPORT void FPDF_CALLCONV FPDF_InitLibrary();
 
 // PDF renderer types - Experimental.
 // Selection of 2D graphics library to use for rendering to FPDF_BITMAPs.
@@ -280,11 +272,10 @@ typedef struct FPDF_LIBRARY_CONFIG_ {
   // corresponding render library is not included in the build will similarly
   // fail with an immediate crash.
   FPDF_RENDERER_TYPE m_RendererType;
-
 } FPDF_LIBRARY_CONFIG;
 
 // Function: FPDF_InitLibraryWithConfig
-//          Initialize the FPDFSDK library
+//          Initialize the PDFium library and allocate global resources for it.
 // Parameters:
 //          config - configuration information as above.
 // Return value:
@@ -295,17 +286,33 @@ typedef struct FPDF_LIBRARY_CONFIG_ {
 FPDF_EXPORT void FPDF_CALLCONV
 FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config);
 
-// Function: FPDF_DestroyLibary
-//          Release all resources allocated by the FPDFSDK library.
+// Function: FPDF_InitLibrary
+//          Initialize the PDFium library (alternative form).
+// Parameters:
+//          None
+// Return value:
+//          None.
+// Comments:
+//          Convenience function to call FPDF_InitLibraryWithConfig() with a
+//          default configuration for backwards compatibility purposes. New
+//          code should call FPDF_InitLibraryWithConfig() instead. This will
+//          be deprecated in the future.
+FPDF_EXPORT void FPDF_CALLCONV FPDF_InitLibrary();
+
+// Function: FPDF_DestroyLibrary
+//          Release global resources allocated to the PDFium library by
+//          FPDF_InitLibrary() or FPDF_InitLibraryWithConfig().
 // Parameters:
 //          None.
 // Return value:
 //          None.
 // Comments:
-//          You can call this function to release all memory blocks allocated by
-//          the library.
-//          After this function is called, you should not call any PDF
+//          After this function is called, you must not call any PDF
 //          processing functions.
+//
+//          Calling this function does not automatically close other
+//          objects. It is recommended to close other objects before
+//          closing the library with this function.
 FPDF_EXPORT void FPDF_CALLCONV FPDF_DestroyLibrary();
 
 // Policy for accessing the local machine time.
@@ -435,7 +442,7 @@ typedef struct {
   // Position is specified by byte offset from the beginning of the file.
   // The pointer to the buffer is never NULL and the size is never 0.
   // The position and size will never go out of range of the file length.
-  // It may be possible for FPDFSDK to call this function multiple times for
+  // It may be possible for PDFium to call this function multiple times for
   // the same position.
   // Return value: should be non-zero if successful, zero for error.
   int (*m_GetBlock)(void* param,
@@ -912,18 +919,19 @@ FPDF_RenderPageBitmapWithMatrix(FPDF_BITMAP bitmap,
 
 #if defined(_SKIA_SUPPORT_)
 // Experimental API.
-// Function: FPDF_RenderPageSkp
-//          Render contents of a page to a Skia SkPictureRecorder.
+// Function: FPDF_RenderPageSkia
+//          Render contents of a page to a Skia SkCanvas.
 // Parameters:
+//          canvas      -   SkCanvas to render to.
 //          page        -   Handle to the page.
 //          size_x      -   Horizontal size (in pixels) for displaying the page.
 //          size_y      -   Vertical size (in pixels) for displaying the page.
 // Return value:
-//          The SkPictureRecorder that holds the rendering of the page, or NULL
-//          on failure. Caller takes ownership of the returned result.
-FPDF_EXPORT FPDF_RECORDER FPDF_CALLCONV FPDF_RenderPageSkp(FPDF_PAGE page,
-                                                           int size_x,
-                                                           int size_y);
+//          None.
+FPDF_EXPORT void FPDF_CALLCONV FPDF_RenderPageSkia(FPDF_SKIA_CANVAS canvas,
+                                                   FPDF_PAGE page,
+                                                   int size_x,
+                                                   int size_y);
 #endif
 
 // Function: FPDF_ClosePage

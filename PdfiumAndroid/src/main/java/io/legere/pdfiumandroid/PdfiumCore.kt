@@ -460,12 +460,7 @@ class PdfiumCore(context: Context? = null) {
 
         init {
             try {
-                System.loadLibrary("partition_alloc.cr")
-                System.loadLibrary("c++_chrome.cr")
-                System.loadLibrary("chrome_zlib.cr")
-                System.loadLibrary("absl.cr")
-                System.loadLibrary("icuuc.cr")
-                System.loadLibrary("pdfium.cr")
+                System.loadLibrary("pdfium")
                 System.loadLibrary("pdfiumandroid")
             } catch (e: UnsatisfiedLinkError) {
                 Log.e(TAG, "Native libraries failed to load - $e")

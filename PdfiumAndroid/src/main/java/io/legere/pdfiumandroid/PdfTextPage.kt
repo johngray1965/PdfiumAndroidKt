@@ -74,6 +74,7 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
      * @return the text
      * @throws IllegalStateException if the page or document is closed
      */
+    @Suppress("ReturnCount")
     fun textPageGetText(
         startIndex: Int,
         length: Int
@@ -88,6 +89,11 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
                     length,
                     buf
                 )
+
+                if (r <= 0) {
+                    return ""
+                }
+
                 val bytes = ByteArray((r - 1) * 2)
                 val bb = ByteBuffer.wrap(bytes)
                 bb.order(ByteOrder.LITTLE_ENDIAN)
