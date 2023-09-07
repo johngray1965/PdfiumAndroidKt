@@ -340,7 +340,9 @@ static jlong loadPageInternal(JNIEnv *env, DocumentFile *doc, int pageIndex){
     }
 }
 
-static void closePageInternal(jlong pagePtr) { FPDF_ClosePage(reinterpret_cast<FPDF_PAGE>(pagePtr)); }
+static void closePageInternal(jlong pagePtr) {
+    FPDF_ClosePage(reinterpret_cast<FPDF_PAGE>(pagePtr));
+}
 
 static void renderPageInternal( FPDF_PAGE page,
                                 ANativeWindow_Buffer *windowBuffer,
@@ -388,17 +390,27 @@ extern "C"
 JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfiumCore_nativeGetLinkRect(JNIEnv *env, jobject thiz,
                                                           jlong link_ptr) {
-    auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
-    FS_RECTF fsRectF;
-    FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
+    try {
+        auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
+        FS_RECTF fsRectF;
+        FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
 
-    if (!result) {
+        if (!result) {
+            return nullptr;
+        }
+
+        jclass clazz = env->FindClass("android/graphics/RectF");
+        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FFFF)V");
+        return env->NewObject(clazz, constructorID, fsRectF.left, fsRectF.top, fsRectF.right,
+                              fsRectF.bottom);
+    } catch (const char *msg) {
+        LOGE("%s", msg);
+
+        jniThrowException(env, "java/lang/IllegalStateException",
+                          "cannot get link rect");
+
         return nullptr;
     }
-
-    jclass clazz = env->FindClass("android/graphics/RectF");
-    jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FFFF)V");
-    return env->NewObject(clazz, constructorID, fsRectF.left, fsRectF.top, fsRectF.right, fsRectF.bottom);
 }
 
 class FileWrite : public FPDF_FILEWRITE {
@@ -420,52 +432,118 @@ public:
     }
 };
 
+void raise_java_oom_exception(JNIEnv *pEnv, std::bad_alloc &alloc);
+
+void raise_java_runtime_exception(JNIEnv *pEnv, std::runtime_error &error);
+
+void raise_java_invalid_arg_exception(JNIEnv *pEnv, std::invalid_argument &argument);
+
+void raise_java_exception(JNIEnv *pEnv, std::exception &exception);
+
+void handleUnexpected(JNIEnv *pEnv, char const *name);
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject thiz,
                                                             jlong doc_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    return (jint)FPDF_GetPageCount(doc->pdfDocument);
+    try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+        return (jint)FPDF_GetPageCount(doc->pdfDocument);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject thiz, jlong doc_ptr,
                                                         jint page_index) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    return loadPageInternal(env, doc, (int)page_index);
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        return loadPageInternal(env, doc, (int) page_index);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jobject thiz, jlong page_ptr) {
-    closePageInternal(page_ptr);
+    try {
+        closePageInternal(page_ptr);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
 }
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobject thiz,
                                                              jlong doc_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    // The destructor will close the document
-    delete doc;
+    try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+        // The destructor will close the document
+        delete doc;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+
 }
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject thiz, jlong doc_ptr,
                                                          jint from_index, jint to_index) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+    try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
 
-    if(to_index < from_index) return nullptr;
-    jlong pages[ to_index - from_index + 1 ];
+        if(to_index < from_index) return nullptr;
+        jlong pages[ to_index - from_index + 1 ];
 
-    int i;
-    for(i = 0; i <= (to_index - from_index); i++){
-        pages[i] = loadPageInternal(env, doc, (int)(i + from_index));
+        int i;
+        for(i = 0; i <= (to_index - from_index); i++){
+            pages[i] = loadPageInternal(env, doc, (int)(i + from_index));
+        }
+
+        jlongArray javaPages = env -> NewLongArray( (jsize)(to_index - from_index + 1) );
+        env -> SetLongArrayRegion(javaPages, 0, (jsize)(to_index - from_index + 1), (const jlong*)pages);
+
+        return javaPages;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-
-    jlongArray javaPages = env -> NewLongArray( (jsize)(to_index - from_index + 1) );
-    env -> SetLongArrayRegion(javaPages, 0, (jsize)(to_index - from_index + 1), (const jlong*)pages);
-
-    return javaPages;
+    return nullptr;
 
 }
 
@@ -473,20 +551,31 @@ extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, jobject thiz,
                                                                    jlong doc_ptr, jstring tag) {
-    const char *ctag = env->GetStringUTFChars(tag, nullptr);
-    if (ctag == nullptr) {
-        return env->NewStringUTF("");
-    }
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+    try {
+        const char *ctag = env->GetStringUTFChars(tag, nullptr);
+        if (ctag == nullptr) {
+            return env->NewStringUTF("");
+        }
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
 
-    size_t bufferLen = FPDF_GetMetaText(doc->pdfDocument, ctag, nullptr, 0);
-    if (bufferLen <= 2) {
-        return env->NewStringUTF("");
+        size_t bufferLen = FPDF_GetMetaText(doc->pdfDocument, ctag, nullptr, 0);
+        if (bufferLen <= 2) {
+            return env->NewStringUTF("");
+        }
+        std::wstring text;
+        FPDF_GetMetaText(doc->pdfDocument, ctag, WriteInto(&text, bufferLen + 1), bufferLen);
+        env->ReleaseStringUTFChars(tag, ctag);
+        return env->NewString((jchar*) text.c_str(), bufferLen / 2 - 1);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    std::wstring text;
-    FPDF_GetMetaText(doc->pdfDocument, ctag, WriteInto(&text, bufferLen + 1), bufferLen);
-    env->ReleaseStringUTFChars(tag, ctag);
-    return env->NewString((jchar*) text.c_str(), bufferLen / 2 - 1);
+    return nullptr;
 }
 
 extern "C"
@@ -494,22 +583,33 @@ JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env, jobject thiz,
                                                                      jlong doc_ptr,
                                                                      jobject bookmark_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    FPDF_BOOKMARK parent;
-    if(bookmark_ptr == nullptr) {
-        parent = nullptr;
-    } else {
-        jclass longClass = env->GetObjectClass(bookmark_ptr);
-        jmethodID longValueMethod = env->GetMethodID(longClass, "longValue", "()J");
+    try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+        FPDF_BOOKMARK parent;
+        if(bookmark_ptr == nullptr) {
+            parent = nullptr;
+        } else {
+            jclass longClass = env->GetObjectClass(bookmark_ptr);
+            jmethodID longValueMethod = env->GetMethodID(longClass, "longValue", "()J");
 
-        jlong ptr = env->CallLongMethod(bookmark_ptr, longValueMethod);
-        parent = reinterpret_cast<FPDF_BOOKMARK>(ptr);
+            jlong ptr = env->CallLongMethod(bookmark_ptr, longValueMethod);
+            parent = reinterpret_cast<FPDF_BOOKMARK>(ptr);
+        }
+        FPDF_BOOKMARK bookmark = FPDFBookmark_GetFirstChild(doc->pdfDocument, parent);
+        if (bookmark == nullptr) {
+            return nullptr;
+        }
+        return NewLong(env, reinterpret_cast<jlong>(bookmark));
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    FPDF_BOOKMARK bookmark = FPDFBookmark_GetFirstChild(doc->pdfDocument, parent);
-    if (bookmark == nullptr) {
-        return nullptr;
-    }
-    return NewLong(env, reinterpret_cast<jlong>(bookmark));
+    return nullptr;
 }
 
 extern "C"
@@ -517,67 +617,122 @@ JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, jobject thiz,
                                                                   jlong doc_ptr,
                                                                   jlong bookmark_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    auto parent = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
-    FPDF_BOOKMARK bookmark = FPDFBookmark_GetNextSibling(doc->pdfDocument, parent);
-    if (bookmark == nullptr) {
-        return nullptr;
+    try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+        auto parent = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
+        FPDF_BOOKMARK bookmark = FPDFBookmark_GetNextSibling(doc->pdfDocument, parent);
+        if (bookmark == nullptr) {
+            return nullptr;
+        }
+        return NewLong(env, reinterpret_cast<jlong>(bookmark));
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    return NewLong(env, reinterpret_cast<jlong>(bookmark));
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject thiz,
                                                             jlong doc_ptr, jlong page_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    return loadTextPageInternal(env, doc, page_ptr);
+    try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+        return loadTextPageInternal(env, doc, page_ptr);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, jobject thiz,
                                                                 jlong bookmark_ptr) {
-    auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
-    size_t bufferLen = FPDFBookmark_GetTitle(bookmark, nullptr, 0);
-    if (bufferLen <= 2) {
-        return env->NewStringUTF("");
+    try {
+        auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
+        size_t bufferLen = FPDFBookmark_GetTitle(bookmark, nullptr, 0);
+        if (bufferLen <= 2) {
+            return env->NewStringUTF("");
+        }
+        std::wstring title;
+        FPDFBookmark_GetTitle(bookmark, WriteInto(&title, bufferLen + 1), bufferLen);
+        return env->NewString((jchar*) title.c_str(), bufferLen / 2 - 1);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    std::wstring title;
-    FPDFBookmark_GetTitle(bookmark, WriteInto(&title, bufferLen + 1), bufferLen);
-    return env->NewString((jchar*) title.c_str(), bufferLen / 2 - 1);
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, jobject thiz,
                                                                 jlong doc_ptr, jlong link_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
-    FPDF_DEST dest = FPDFLink_GetDest(doc->pdfDocument, link);
-    if (dest == nullptr) {
-        return nullptr;
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
+        FPDF_DEST dest = FPDFLink_GetDest(doc->pdfDocument, link);
+        if (dest == nullptr) {
+            return nullptr;
+        }
+        unsigned long index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
+        return NewInteger(env, (jint) index);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    unsigned long index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
-    return NewInteger(env, (jint) index);
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject thiz, jlong doc_ptr,
                                                           jobject callback) {
-    jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/PdfWriteCallback");
-    if (callback != nullptr && env->IsInstanceOf(callback, callbackClass)) {
-        //Setup the callback to Java.
-        FileWrite fw = FileWrite();
-        fw.version = 1;
-        fw.FPDF_FILEWRITE::WriteBlock = FileWrite::WriteBlockCallback;
-        fw.callbackObject = callback;
-        fw.callbackMethodID = env->GetMethodID(callbackClass, "WriteBlock", "([B)I");
-        fw.env = env;
+    try {
+        jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/PdfWriteCallback");
+        if (callback != nullptr && env->IsInstanceOf(callback, callbackClass)) {
+            //Setup the callback to Java.
+            FileWrite fw = FileWrite();
+            fw.version = 1;
+            fw.FPDF_FILEWRITE::WriteBlock = FileWrite::WriteBlockCallback;
+            fw.callbackObject = callback;
+            fw.callbackMethodID = env->GetMethodID(callbackClass, "WriteBlock", "([B)I");
+            fw.env = env;
 
-        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-        return (jboolean)FPDF_SaveAsCopy(doc->pdfDocument, &fw, FPDF_NO_INCREMENTAL);
+            auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+            return (jboolean) FPDF_SaveAsCopy(doc->pdfDocument, &fw, FPDF_NO_INCREMENTAL);
+        }
+        return false;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
     return false;
 }
@@ -586,189 +741,322 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jobject thiz,
                                                       jlongArray pages_ptr) {
-    int length = (int)(env -> GetArrayLength(pages_ptr));
-    jlong *pages = env -> GetLongArrayElements(pages_ptr, nullptr);
+    try {
+        int length = (int) (env->GetArrayLength(pages_ptr));
+        jlong *pages = env->GetLongArrayElements(pages_ptr, nullptr);
 
-    int i;
-    for(i = 0; i < length; i++){ closePageInternal(pages[i]); }
+        int i;
+        for (i = 0; i < length; i++) { closePageInternal(pages[i]); }
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jobject thiz,
                                                              jlong page_ptr, jint dpi) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    return (jint)(FPDF_GetPageWidth(page) * dpi / 72);
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        return (jint) (FPDF_GetPageWidth(page) * dpi / 72);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jobject thiz,
                                                               jlong page_ptr, jint dpi) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    return (jint)(FPDF_GetPageHeight(page) * dpi / 72);
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        return (jint)(FPDF_GetPageHeight(page) * dpi / 72);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jobject thiz,
                                                              jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    return (jint)FPDF_GetPageWidth(page);
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        return (jint)FPDF_GetPageWidth(page);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobject thiz,
                                                               jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    return (jint)FPDF_GetPageHeight(page);
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        return (jint)FPDF_GetPageHeight(page);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jdouble JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject thiz, jlong page_ptr,
                                                        jint char_index) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
-    return (jdouble)FPDFText_GetFontSize(textPage, char_index);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
+        return (jdouble) FPDFText_GetFontSize(textPage, char_index);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return 0;
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jobject thiz,
                                                            jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    jfloatArray result = env->NewFloatArray(4);
-    if (result == nullptr) {
-        return nullptr;
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
 
-    float rect[4];
-    if (!FPDFPage_GetMediaBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-        rect[0] = -1.0f;
-        rect[1] = -1.0f;
-        rect[2] = -1.0f;
-        rect[3] = -1.0f;
-    }
+        float rect[4];
+        if (!FPDFPage_GetMediaBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
+            rect[0] = -1.0f;
+            rect[1] = -1.0f;
+            rect[2] = -1.0f;
+            rect[3] = -1.0f;
+        }
 
-    env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-    return result;
+        env->SetFloatArrayRegion(result, 0, 4, (jfloat *) rect);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jobject thiz,
                                                           jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    jfloatArray result = env->NewFloatArray(4);
-    if (result == nullptr) {
-        return nullptr;
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
 
-    float rect[4];
-    if (!FPDFPage_GetCropBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-        rect[0] = -1.0f;
-        rect[1] = -1.0f;
-        rect[2] = -1.0f;
-        rect[3] = -1.0f;
-    }
+        float rect[4];
+        if (!FPDFPage_GetCropBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
+            rect[0] = -1.0f;
+            rect[1] = -1.0f;
+            rect[2] = -1.0f;
+            rect[3] = -1.0f;
+        }
 
-    env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-    return result;
+        env->SetFloatArrayRegion(result, 0, 4, (jfloat *) rect);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jobject thiz,
                                                            jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    jfloatArray result = env->NewFloatArray(4);
-    if (result == nullptr) {
-        return nullptr;
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
 
-    float rect[4];
-    if (!FPDFPage_GetBleedBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-        rect[0] = -1.0f;
-        rect[1] = -1.0f;
-        rect[2] = -1.0f;
-        rect[3] = -1.0f;
-    }
+        float rect[4];
+        if (!FPDFPage_GetBleedBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
+            rect[0] = -1.0f;
+            rect[1] = -1.0f;
+            rect[2] = -1.0f;
+            rect[3] = -1.0f;
+        }
 
-    env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-    return result;
+        env->SetFloatArrayRegion(result, 0, 4, (jfloat *) rect);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jobject thiz,
                                                           jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    jfloatArray result = env->NewFloatArray(4);
-    if (result == nullptr) {
-        return nullptr;
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
 
-    float rect[4];
-    if (!FPDFPage_GetTrimBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-        rect[0] = -1.0f;
-        rect[1] = -1.0f;
-        rect[2] = -1.0f;
-        rect[3] = -1.0f;
-    }
+        float rect[4];
+        if (!FPDFPage_GetTrimBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
+            rect[0] = -1.0f;
+            rect[1] = -1.0f;
+            rect[2] = -1.0f;
+            rect[3] = -1.0f;
+        }
 
-    env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-    return result;
+        env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jobject thiz,
                                                          jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    jfloatArray result = env->NewFloatArray(4);
-    if (result == nullptr) {
-        return nullptr;
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
 
-    float rect[4];
-    if (!FPDFPage_GetArtBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-        rect[0] = -1.0f;
-        rect[1] = -1.0f;
-        rect[2] = -1.0f;
-        rect[3] = -1.0f;
-    }
+        float rect[4];
+        if (!FPDFPage_GetArtBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
+            rect[0] = -1.0f;
+            rect[1] = -1.0f;
+            rect[2] = -1.0f;
+            rect[3] = -1.0f;
+        }
 
-    env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-    return result;
+        env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jobject thiz,
                                                               jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    jfloatArray result = env->NewFloatArray(4);
-    if (result == nullptr) {
-        return nullptr;
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
 
-    float rect[4];
-    FS_RECTF fsRect;
-    if (!FPDF_GetPageBoundingBox(page, &fsRect)) {
-        rect[0] = -1.0f;
-        rect[1] = -1.0f;
-        rect[2] = -1.0f;
-        rect[3] = -1.0f;
-    } else {
-        rect[0] = fsRect.left;
-        rect[1] = fsRect.top;
-        rect[2] = fsRect.right;
-        rect[3] = fsRect.bottom;
-    }
+        float rect[4];
+        FS_RECTF fsRect;
+        if (!FPDF_GetPageBoundingBox(page, &fsRect)) {
+            rect[0] = -1.0f;
+            rect[1] = -1.0f;
+            rect[2] = -1.0f;
+            rect[3] = -1.0f;
+        } else {
+            rect[0] = fsRect.left;
+            rect[1] = fsRect.top;
+            rect[2] = fsRect.right;
+            rect[3] = fsRect.bottom;
+        }
 
-    env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-    return result;}
+        env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
+        return result;
+
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
+}
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -776,41 +1064,51 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz,
                                                       jobject surface, jint dpi, jint start_x,
                                                       jint start_y, jint draw_size_hor,
                                                       jint draw_size_ver, jboolean render_annot) {
-    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
-    if(nativeWindow == nullptr){
-        LOGE("native window pointer null");
-        return;
+    try {
+        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+        if (nativeWindow == nullptr) {
+            LOGE("native window pointer null");
+            return;
+        }
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+
+        if (page == nullptr) {
+            LOGE("Render page pointers invalid");
+            return;
+        }
+
+        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
+            LOGD("Set format to RGBA_8888");
+            ANativeWindow_setBuffersGeometry(nativeWindow,
+                                             ANativeWindow_getWidth(nativeWindow),
+                                             ANativeWindow_getHeight(nativeWindow),
+                                             WINDOW_FORMAT_RGBA_8888);
+        }
+
+        ANativeWindow_Buffer buffer;
+        int ret;
+        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
+            LOGE("Locking native window failed: %s", strerror(ret * -1));
+            return;
+        }
+
+        renderPageInternal(page, &buffer,
+                           (int) start_y, (int) start_y,
+                           buffer.width, buffer.height,
+                           (int) draw_size_hor, (int) draw_size_ver,
+                           (bool) render_annot);
+
+        ANativeWindow_unlockAndPost(nativeWindow);
+        ANativeWindow_release(nativeWindow);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-
-    if(page == nullptr){
-        LOGE("Render page pointers invalid");
-        return;
-    }
-
-    if(ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888){
-        LOGD("Set format to RGBA_8888");
-        ANativeWindow_setBuffersGeometry( nativeWindow,
-                                          ANativeWindow_getWidth(nativeWindow),
-                                          ANativeWindow_getHeight(nativeWindow),
-                                          WINDOW_FORMAT_RGBA_8888 );
-    }
-
-    ANativeWindow_Buffer buffer;
-    int ret;
-    if( (ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0 ){
-        LOGE("Locking native window failed: %s", strerror(ret * -1));
-        return;
-    }
-
-    renderPageInternal(page, &buffer,
-                       (int)start_y, (int)start_y,
-                       buffer.width, buffer.height,
-                       (int)draw_size_hor, (int)draw_size_ver,
-                       (bool)render_annot);
-
-    ANativeWindow_unlockAndPost(nativeWindow);
-    ANativeWindow_release(nativeWindow);
 }
 
 extern "C"
@@ -821,137 +1119,171 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
                                                             jint draw_size_hor, jint draw_size_ver,
                                                             jboolean render_annot,
                                                             jboolean text_mask) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
-    if(page == nullptr || bitmap == nullptr){
-        LOGE("Render page pointers invalid");
-        return;
-    }
+        if (page == nullptr || bitmap == nullptr) {
+            LOGE("Render page pointers invalid");
+            return;
+        }
 
-    AndroidBitmapInfo info;
-    int ret;
-    if((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
-        LOGE("Fetching bitmap info failed: %s", strerror(ret * -1));
-        return;
-    }
+        AndroidBitmapInfo info;
+        int ret;
+        if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+            LOGE("Fetching bitmap info failed: %s", strerror(ret * -1));
+            return;
+        }
 
-    auto canvasHorSize = info.width;
-    auto canvasVerSize = info.height;
+        auto canvasHorSize = info.width;
+        auto canvasVerSize = info.height;
 
-    if(info.format != ANDROID_BITMAP_FORMAT_RGBA_8888 && info.format != ANDROID_BITMAP_FORMAT_RGB_565){
-        LOGE("Bitmap format must be RGBA_8888 or RGB_565");
-        return;
-    }
+        if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888 &&
+            info.format != ANDROID_BITMAP_FORMAT_RGB_565) {
+            LOGE("Bitmap format must be RGBA_8888 or RGB_565");
+            return;
+        }
 
-    void *addr;
-    if( (ret = AndroidBitmap_lockPixels(env, bitmap, &addr)) != 0 ){
-        LOGE("Locking bitmap failed: %s", strerror(ret * -1));
-        return;
-    }
+        void *addr;
+        if ((ret = AndroidBitmap_lockPixels(env, bitmap, &addr)) != 0) {
+            LOGE("Locking bitmap failed: %s", strerror(ret * -1));
+            return;
+        }
 
-    void *tmp;
-    int format;
-    int sourceStride;
-    if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
-        tmp = malloc(canvasVerSize * canvasHorSize * sizeof(rgb));
-        sourceStride = canvasHorSize * sizeof(rgb);
-        format = FPDFBitmap_BGR;
-    } else {
-        tmp = addr;
-        sourceStride = info.stride;
-        format = FPDFBitmap_BGRA;
-    }
+        void *tmp;
+        int format;
+        int sourceStride;
+        if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
+            tmp = malloc(canvasVerSize * canvasHorSize * sizeof(rgb));
+            sourceStride = canvasHorSize * sizeof(rgb);
+            format = FPDFBitmap_BGR;
+        } else {
+            tmp = addr;
+            sourceStride = info.stride;
+            format = FPDFBitmap_BGRA;
+        }
 
-    FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx( (int) canvasHorSize, (int) canvasVerSize,
-                                                 format, tmp, sourceStride);
+        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
+                                                    format, tmp, sourceStride);
 
-    /*LOGD("Start X: %d", startX);
-    LOGD("Start Y: %d", startY);
-    LOGD("Canvas Hor: %d", canvasHorSize);
-    LOGD("Canvas Ver: %d", canvasVerSize);
-    LOGD("Draw Hor: %d", drawSizeHor);
-    LOGD("Draw Ver: %d", drawSizeVer);*/
+        /*LOGD("Start X: %d", startX);
+        LOGD("Start Y: %d", startY);
+        LOGD("Canvas Hor: %d", canvasHorSize);
+        LOGD("Canvas Ver: %d", canvasVerSize);
+        LOGD("Draw Hor: %d", drawSizeHor);
+        LOGD("Draw Ver: %d", drawSizeVer);*/
 
-    if(draw_size_hor < canvasHorSize || draw_size_ver < canvasVerSize){
-        FPDFBitmap_FillRect( pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
-                             0x848484FF); //Gray
-    }
+        if (draw_size_hor < canvasHorSize || draw_size_ver < canvasVerSize) {
+            FPDFBitmap_FillRect(pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
+                                0x848484FF); //Gray
+        }
 
-    int baseHorSize = (canvasHorSize < draw_size_hor)? (int) canvasHorSize : (int) draw_size_hor;
-    int baseVerSize = (canvasVerSize < draw_size_ver)? (int) canvasVerSize : (int) draw_size_ver;
-    int baseX = (start_x < 0)? 0 : (int)start_x;
-    int baseY = (start_y < 0)? 0 : (int)start_y;
-    int flags = FPDF_REVERSE_BYTE_ORDER;
+        int baseHorSize = (canvasHorSize < draw_size_hor) ? (int) canvasHorSize
+                                                          : (int) draw_size_hor;
+        int baseVerSize = (canvasVerSize < draw_size_ver) ? (int) canvasVerSize
+                                                          : (int) draw_size_ver;
+        int baseX = (start_x < 0) ? 0 : (int) start_x;
+        int baseY = (start_y < 0) ? 0 : (int) start_y;
+        int flags = FPDF_REVERSE_BYTE_ORDER;
 
-    if(render_annot) {
-        flags |= FPDF_ANNOT;
-    }
+        if (render_annot) {
+            flags |= FPDF_ANNOT;
+        }
 
 //    if(text_mask) {
 //        flags |= FPDF_RENDER_TEXT_MASK;
 //    }
 
-    FPDFBitmap_FillRect( pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
-                         0xFFFFFFFF); //White
+        FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
+                            0xFFFFFFFF); //White
 
-    FPDF_RenderPageBitmap( pdfBitmap, page,
-                           start_x, start_y,
-                           (int)draw_size_hor, (int)draw_size_ver,
-                           0, flags );
+        FPDF_RenderPageBitmap(pdfBitmap, page,
+                              start_x, start_y,
+                              (int) draw_size_hor, (int) draw_size_ver,
+                              0, flags);
 
-    if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
-        rgbBitmapTo565(tmp, sourceStride, addr, &info);
-        free(tmp);
+        if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
+            rgbBitmapTo565(tmp, sourceStride, addr, &info);
+            free(tmp);
+        }
+
+        AndroidBitmap_unlockPixels(env, bitmap);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-
-    AndroidBitmap_unlockPixels(env, bitmap);
-
-    }
+}
 
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jobject thiz,
                                                               jlong doc_ptr, jint page_index,
                                                               jint dpi) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    if(doc == nullptr) {
-        LOGE("Document is null");
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        if (doc == nullptr) {
+            LOGE("Document is null");
 
-        jniThrowException(env, "java/lang/IllegalStateException",
-                          "Document is null");
-        return nullptr;
+            jniThrowException(env, "java/lang/IllegalStateException",
+                              "Document is null");
+            return nullptr;
+        }
+
+        double width, height;
+        int result = FPDF_GetPageSizeByIndex(doc->pdfDocument, page_index, &width, &height);
+
+        if (result == 0) {
+            width = 0;
+            height = 0;
+        }
+
+        jint widthInt = (jint) (width * dpi / 72);
+        jint heightInt = (jint) (height * dpi / 72);
+
+        jclass clazz = env->FindClass("io/legere/pdfiumandroid/util/Size");
+        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
+        return env->NewObject(clazz, constructorID, widthInt, heightInt);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-
-    double width, height;
-    int result = FPDF_GetPageSizeByIndex(doc->pdfDocument, page_index, &width, &height);
-
-    if (result == 0) {
-        width = 0;
-        height = 0;
-    }
-
-    jint widthInt = (jint) (width * dpi / 72);
-    jint heightInt = (jint) (height * dpi / 72);
-
-    jclass clazz = env->FindClass("io/legere/pdfiumandroid/util/Size");
-    jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
-    return env->NewObject(clazz, constructorID, widthInt, heightInt);
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jobject thiz, jlong page_ptr) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    int pos = 0;
-    std::vector<jlong> links;
-    FPDF_LINK link;
-    while (FPDFLink_Enumerate(page, &pos, &link)) {
-        links.push_back(reinterpret_cast<jlong>(link));
-    }
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        int pos = 0;
+        std::vector<jlong> links;
+        FPDF_LINK link;
+        while (FPDFLink_Enumerate(page, &pos, &link)) {
+            links.push_back(reinterpret_cast<jlong>(link));
+        }
 
-    jlongArray result = env->NewLongArray(links.size());
-    env->SetLongArrayRegion(result, 0, links.size(), &links[0]);
-    return result;
+        jlongArray result = env->NewLongArray(links.size());
+        env->SetLongArrayRegion(result, 0, links.size(), &links[0]);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
@@ -961,14 +1293,26 @@ Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jobje
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
                                                               jdouble page_x, jdouble page_y) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    int deviceX, deviceY;
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        int deviceX, deviceY;
 
-    FPDF_PageToDevice(page, start_x, start_y, size_x, size_y, rotate, page_x, page_y, &deviceX, &deviceY);
+        FPDF_PageToDevice(page, start_x, start_y, size_x, size_y, rotate, page_x, page_y, &deviceX,
+                          &deviceY);
 
-    jclass clazz = env->FindClass("android/graphics/Point");
-    jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
-    return env->NewObject(clazz, constructorID, deviceX, deviceY);
+        jclass clazz = env->FindClass("android/graphics/Point");
+        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
+        return env->NewObject(clazz, constructorID, deviceX, deviceY);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 extern "C"
@@ -978,14 +1322,26 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jobje
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
                                                               jint device_x, jint device_y) {
-    auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-    double pageX, pageY;
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        double pageX, pageY;
 
-    FPDF_DeviceToPage(page, start_x, start_y, size_x, size_y, rotate, device_x, device_y, &pageX, &pageY);
+        FPDF_DeviceToPage(page, start_x, start_y, size_x, size_y, rotate, device_x, device_y,
+                          &pageX, &pageY);
 
-    jclass clazz = env->FindClass("android/graphics/PointF");
-    jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FF)V");
-    return env->NewObject(clazz, constructorID, (float) pageX, (float) pageY);
+        jclass clazz = env->FindClass("android/graphics/PointF");
+        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FF)V");
+        return env->NewObject(clazz, constructorID, (float) pageX, (float) pageY);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return nullptr;
 }
 
 static void closeTextPageInternal(jlong textPagePtr) { FPDFText_ClosePage(reinterpret_cast<FPDF_TEXTPAGE>(textPagePtr)); }
@@ -994,15 +1350,36 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jobject thiz,
                                                              jlong page_ptr) {
-    closeTextPageInternal(page_ptr);
+    try {
+        closeTextPageInternal(page_ptr);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jobject thiz,
                                                               jlong text_page_ptr) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    return (jint)FPDFText_CountChars(textPage);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        return (jint) FPDFText_CountChars(textPage);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
@@ -1010,38 +1387,71 @@ JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jobject thiz,
                                                            jlong text_page_ptr, jint start_index,
                                                            jint count, jshortArray result) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    jboolean isCopy = 0;
-    auto *arr = (unsigned short *)env->GetShortArrayElements(result, &isCopy);
-    jint output = (jint)FPDFText_GetText(textPage, (int)start_index, (int)count, arr);
-    if (isCopy) {
-        env->SetShortArrayRegion(result, 0, output, (jshort*)arr);
-        env->ReleaseShortArrayElements(result, (jshort*)arr, JNI_ABORT);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        jboolean isCopy = 0;
+        auto *arr = (unsigned short *) env->GetShortArrayElements(result, &isCopy);
+        jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, arr);
+        if (isCopy) {
+            env->SetShortArrayRegion(result, 0, output, (jshort *) arr);
+            env->ReleaseShortArrayElements(result, (jshort *) arr, JNI_ABORT);
+        }
+        return output;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    return output;
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jobject thiz,
                                                               jlong text_page_ptr, jint index) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    return (jint)FPDFText_GetUnicode(textPage, (int)index);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        return (jint) FPDFText_GetUnicode(textPage, (int) index);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jobject thiz,
                                                               jlong text_page_ptr, jint index) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    jdoubleArray result = env->NewDoubleArray(4);
-    if (result == nullptr) {
-        return nullptr;
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        jdoubleArray result = env->NewDoubleArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
+        double fill[4];
+        FPDFText_GetCharBox(textPage, (int) index, &fill[0], &fill[1], &fill[2], &fill[3]);
+        env->SetDoubleArrayRegion(result, 0, 4, (jdouble *) fill);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    double fill[4];
-    FPDFText_GetCharBox(textPage, (int)index, &fill[0], &fill[1], &fill[2], &fill[3]);
-    env->SetDoubleArrayRegion(result, 0, 4, (jdouble*)fill);
-    return result;
+    return nullptr;
 }
 
 extern "C"
@@ -1050,8 +1460,20 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env
                                                                      jlong text_page_ptr, jdouble x,
                                                                      jdouble y, jdouble x_tolerance,
                                                                      jdouble y_tolerance) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    return (jint)FPDFText_GetCharIndexAtPos(textPage, (double)x, (double)y, (double)x_tolerance, (double)y_tolerance);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        return (jint) FPDFText_GetCharIndexAtPos(textPage, (double) x, (double) y,
+                                                 (double) x_tolerance, (double) y_tolerance);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
@@ -1059,23 +1481,45 @@ JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jobject thiz,
                                                               jlong text_page_ptr, jint start_index,
                                                               jint count) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    return (jint)FPDFText_CountRects(textPage, (int)start_index, (int) count);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        return (jint) FPDFText_CountRects(textPage, (int) start_index, (int) count);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    }
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jobject thiz,
                                                            jlong text_page_ptr, jint rect_index) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    jdoubleArray result = env->NewDoubleArray(4);
-    if (result == nullptr) {
-        return nullptr;
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        jdoubleArray result = env->NewDoubleArray(4);
+        if (result == nullptr) {
+            return nullptr;
+        }
+        double fill[4];
+        FPDFText_GetRect(textPage, (int) rect_index, &fill[0], &fill[1], &fill[2], &fill[3]);
+        env->SetDoubleArrayRegion(result, 0, 4, (jdouble *) fill);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    double fill[4];
-    FPDFText_GetRect(textPage, (int)rect_index, &fill[0], &fill[1], &fill[2], &fill[3]);
-    env->SetDoubleArrayRegion(result, 0, 4, (jdouble*)fill);
-    return result;
+    return nullptr;
 }
 
 extern "C"
@@ -1084,83 +1528,191 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, j
                                                                   jlong text_page_ptr, jdouble left,
                                                                   jdouble top, jdouble right,
                                                                   jdouble bottom, jshortArray arr) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-    jboolean isCopy = 0;
-    unsigned short *buffer = nullptr;
-    int bufLen = 0;
-    if (arr != nullptr) {
-        buffer = (unsigned short *)env->GetShortArrayElements(arr, &isCopy);
-        bufLen = env->GetArrayLength(arr);
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        jboolean isCopy = 0;
+        unsigned short *buffer = nullptr;
+        int bufLen = 0;
+        if (arr != nullptr) {
+            buffer = (unsigned short *) env->GetShortArrayElements(arr, &isCopy);
+            bufLen = env->GetArrayLength(arr);
+        }
+        jint output = (jint) FPDFText_GetBoundedText(textPage, (double) left, (double) top,
+                                                     (double) right, (double) bottom, buffer,
+                                                     bufLen);
+        if (isCopy) {
+            env->SetShortArrayRegion(arr, 0, output, (jshort *) buffer);
+            env->ReleaseShortArrayElements(arr, (jshort *) buffer, JNI_ABORT);
+        }
+        return output;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    jint output = (jint)FPDFText_GetBoundedText(textPage, (double)left, (double)top, (double)right, (double)bottom, buffer, bufLen);
-    if (isCopy) {
-        env->SetShortArrayRegion(arr, 0, output, (jshort*)buffer);
-        env->ReleaseShortArrayElements(arr, (jshort*)buffer, JNI_ABORT);
-    }
-    return output;
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jobject thiz,
                                                             jlong doc_ptr, jlong link_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(link_ptr);
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(link_ptr);
 
-    FPDF_DEST dest = FPDFBookmark_GetDest(doc->pdfDocument, bookmark);
-    if (dest == nullptr) {
-        return nullptr;
+        FPDF_DEST dest = FPDFBookmark_GetDest(doc->pdfDocument, bookmark);
+        if (dest == nullptr) {
+            return nullptr;
+        }
+        auto index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
+        return NewInteger(env, (jint) index);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    auto index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
-    return NewInteger(env, (jint) index);
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jobject thiz, jlong doc_ptr,
                                                       jlong link_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
-    FPDF_ACTION action = FPDFLink_GetAction(link);
-    if (action == nullptr) {
-        return nullptr;
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
+        FPDF_ACTION action = FPDFLink_GetAction(link);
+        if (action == nullptr) {
+            return nullptr;
+        }
+        size_t bufferLen = FPDFAction_GetURIPath(doc->pdfDocument, action, nullptr, 0);
+        if (bufferLen <= 0) {
+            return env->NewStringUTF("");
+        }
+        std::string uri;
+        FPDFAction_GetURIPath(doc->pdfDocument, action, WriteInto(&uri, bufferLen), bufferLen);
+        return env->NewStringUTF(uri.c_str());
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    size_t bufferLen = FPDFAction_GetURIPath(doc->pdfDocument, action, nullptr, 0);
-    if (bufferLen <= 0) {
-        return env->NewStringUTF("");
-    }
-    std::string uri;
-    FPDFAction_GetURIPath(doc->pdfDocument, action, WriteInto(&uri, bufferLen), bufferLen);
-    return env->NewStringUTF(uri.c_str());
+    return nullptr;
 }
 
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jobject thiz, jlong doc_ptr,
                                                        jlong link_ptr) {
-    auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
-    FS_RECTF fsRectF;
-    FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
+    try {
+        auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
+        FS_RECTF fsRectF;
+        FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
 
-    if (!result) {
-        return nullptr;
+        if (!result) {
+            return nullptr;
+        }
+
+        jclass clazz = env->FindClass("android/graphics/RectF");
+        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FFFF)V");
+        return env->NewObject(clazz, constructorID, fsRectF.left, fsRectF.top, fsRectF.right,
+                              fsRectF.bottom);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-
-    jclass clazz = env->FindClass("android/graphics/RectF");
-    jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FFFF)V");
-    return env->NewObject(clazz, constructorID, fsRectF.left, fsRectF.top, fsRectF.right, fsRectF.bottom);
+    return nullptr;
 }
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env, jobject thiz,
                                                                     jlong doc_ptr,
                                                                     jlong bookmark_ptr) {
-    auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-    auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
 
-    FPDF_DEST dest = FPDFBookmark_GetDest(doc->pdfDocument, bookmark);
-    if (dest == nullptr) {
-        return -1;
+        FPDF_DEST dest = FPDFBookmark_GetDest(doc->pdfDocument, bookmark);
+        if (dest == nullptr) {
+            return -1;
+        }
+        return (jlong) FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
     }
-    return (jlong) FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
+    return -1;
+}
+
+
+void raise_java_exception(JNIEnv *pEnv, std::exception &exception) {
+    jclass exClass;
+    char const *className = "java/lang/NoClassDefFoundError";
+
+    exClass = pEnv->FindClass( className );
+    if (exClass == nullptr) {
+        handleUnexpected(pEnv, className );
+    } else {
+        pEnv->ThrowNew( exClass, exception.what());
+    }
+}
+
+void raise_java_invalid_arg_exception(JNIEnv *pEnv, std::invalid_argument &argument) {
+    jclass exClass;
+    char const *className = "java/lang/IllegalArgumentException";
+
+    exClass = pEnv->FindClass( className );
+    if (exClass == nullptr) {
+        handleUnexpected(pEnv, className );
+    } else {
+        pEnv->ThrowNew( exClass, argument.what());
+    }
+}
+
+void raise_java_runtime_exception(JNIEnv *pEnv, std::runtime_error &error) {
+    jclass exClass;
+    char const *className = "java/lang/RuntimeException";
+
+    exClass = pEnv->FindClass( className );
+    if (exClass == nullptr) {
+        handleUnexpected(pEnv, className );
+    } else {
+        pEnv->ThrowNew( exClass, error.what());
+    }
+}
+
+void raise_java_oom_exception(JNIEnv *pEnv, std::bad_alloc &alloc) {
+    jclass exClass;
+    char const *className = "java/lang/OutOfMemoryError";
+
+    exClass = pEnv->FindClass( className );
+    if (exClass == nullptr) {
+        handleUnexpected(pEnv, className );
+    } else {
+        pEnv->ThrowNew( exClass, alloc.what());
+    }
+}
+
+void handleUnexpected(JNIEnv *pEnv, char const *name) {
+    LOGE("Unable to find class %s", name);
+    pEnv->ExceptionClear();
 }
