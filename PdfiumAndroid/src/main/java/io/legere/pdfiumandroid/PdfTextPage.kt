@@ -17,7 +17,12 @@ import java.nio.charset.StandardCharsets
  * @property pagePtr the pointer to the native page
  */
 @Suppress("TooManyFunctions")
-class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) : Closeable {
+class PdfTextPage(
+    val doc: PdfDocument,
+    val pageIndex: Int,
+    val pagePtr: Long,
+    val pageMap: MutableMap<Int, PdfDocument.PageCount>
+) : Closeable {
 
     private var isClosed = false
 
@@ -311,6 +316,14 @@ class PdfTextPage(val doc: PdfDocument, val pageIndex: Int, val pagePtr: Long) :
      */
     override fun close() {
         if (isClosed) return
+
+        pageMap[pageIndex]?.let {
+            if (it.count > 1) {
+                it.count--
+                return
+            }
+        }
+
         synchronized(PdfiumCore.lock) {
             isClosed = true
             nativeCloseTextPage(pagePtr)

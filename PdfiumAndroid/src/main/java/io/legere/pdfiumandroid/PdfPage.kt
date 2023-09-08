@@ -19,7 +19,8 @@ import java.io.Closeable
 class PdfPage(
     val doc: PdfDocument,
     val pageIndex: Int,
-    val pagePtr: Long
+    val pagePtr: Long,
+    private val pageMap: MutableMap<Int, PdfDocument.PageCount>
 ) : Closeable {
 
     private var isClosed = false
@@ -529,6 +530,14 @@ class PdfPage(
      */
     override fun close() {
         if (isClosed) return
+
+        pageMap[pageIndex]?.let {
+            if (it.count > 1) {
+                it.count--
+                return
+            }
+        }
+
         synchronized(PdfiumCore.lock) {
             isClosed = true
             nativeClosePage(pagePtr)

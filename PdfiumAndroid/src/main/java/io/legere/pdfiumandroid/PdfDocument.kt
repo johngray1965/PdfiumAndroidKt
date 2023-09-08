@@ -16,6 +16,9 @@ class PdfDocument(
     val mNativeDocPtr: Long // , private val mCurrentDpi: Int*
 ) : Closeable {
 
+    private val pageMap = mutableMapOf<Int, PageCount>()
+    private val textPageMap = mutableMapOf<Int, PageCount>()
+
     var isClosed = false
         private set
 
@@ -53,8 +56,15 @@ class PdfDocument(
     fun openPage(pageIndex: Int): PdfPage {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
+            if (pageMap.containsKey(pageIndex)) {
+                pageMap[pageIndex]?.let {
+                    it.count++
+                    return PdfPage(this, pageIndex, it.pagePtr, pageMap)
+                }
+            }
             val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
-            return PdfPage(this, pageIndex, pagePtr)
+            pageMap[pageIndex] = PageCount(pagePtr, 1)
+            return PdfPage(this, pageIndex, pagePtr, pageMap)
         }
     }
 
@@ -75,7 +85,7 @@ class PdfDocument(
                 if (pageIndex > toIndex) break
                 pageIndex++
             }
-            return pagesPtr.map { PdfPage(this, pageIndex, it) }
+            return pagesPtr.map { PdfPage(this, pageIndex, it, pageMap) }
         }
     }
 
@@ -142,16 +152,22 @@ class PdfDocument(
 
     /**
      * Open a text page
-     * @param pageIndex the page index
+     * @param page the [PdfPage]
      * @return the opened [PdfTextPage]
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
-    fun openTextPage(pageIndex: Int): PdfTextPage {
+    fun openTextPage(page: PdfPage): PdfTextPage {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
-            val page = openPage(pageIndex)
+            if (textPageMap.containsKey(page.pageIndex)) {
+                textPageMap[page.pageIndex]?.let {
+                    it.count++
+                    return PdfTextPage(this, page.pageIndex, it.pagePtr, textPageMap)
+                }
+            }
             val textPagePtr = nativeLoadTextPage(this.mNativeDocPtr, page.pagePtr)
-            return PdfTextPage(this, pageIndex, textPagePtr)
+            textPageMap[page.pageIndex] = PageCount(textPagePtr, 1)
+            return PdfTextPage(this, page.pageIndex, textPagePtr, textPageMap)
         }
     }
 
@@ -171,7 +187,8 @@ class PdfDocument(
                 PdfTextPage(
                     this,
                     fromIndex + index,
-                    pagePtr
+                    pagePtr,
+                    textPageMap
                 )
             }
         }
@@ -221,4 +238,6 @@ class PdfDocument(
     }
 
     class Link(val bounds: RectF, val destPageIdx: Int?, val uri: String?)
+
+    data class PageCount(val pagePtr: Long, var count: Int)
 }

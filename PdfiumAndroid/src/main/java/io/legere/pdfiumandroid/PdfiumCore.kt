@@ -157,8 +157,10 @@ class PdfiumCore(context: Context? = null) {
         DeprecationLevel.WARNING
     )
     fun textPageCountChars(pdfDocument: PdfDocument, pageIndex: Int): Int {
-        pdfDocument.openTextPage(pageIndex).use { textPage ->
-            return textPage.textPageCountChars()
+        pdfDocument.openPage(pageIndex).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                return textPage.textPageCountChars()
+            }
         }
     }
 
@@ -168,8 +170,10 @@ class PdfiumCore(context: Context? = null) {
         DeprecationLevel.WARNING
     )
     fun textPageGetText(pdfDocument: PdfDocument, pageIndex: Int, start: Int, count: Int): String? {
-        pdfDocument.openTextPage(pageIndex).use { textPage ->
-            return textPage.textPageGetText(start, count)
+        pdfDocument.openPage(pageIndex).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                return textPage.textPageGetText(start, count)
+            }
         }
     }
 
@@ -236,9 +240,11 @@ class PdfiumCore(context: Context? = null) {
         ),
         DeprecationLevel.WARNING
     )
-    fun textPageGetRect(pdfDocument: PdfDocument, page: Int, index: Int): RectF? {
-        pdfDocument.openTextPage(page).use { textPage ->
-            return textPage.textPageGetRect(index)
+    fun textPageGetRect(pdfDocument: PdfDocument, pageIndex: Int, index: Int): RectF? {
+        pdfDocument.openPage(pageIndex).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                return textPage.textPageGetRect(index)
+            }
         }
     }
 
@@ -250,8 +256,10 @@ class PdfiumCore(context: Context? = null) {
         DeprecationLevel.WARNING
     )
     fun textPageGetBoundedText(pdfDocument: PdfDocument, pageIndex: Int, sourceRect: RectF, size: Int): String? {
-        pdfDocument.openTextPage(pageIndex).use { textPage ->
-            return textPage.textPageGetBoundedText(sourceRect, size)
+        pdfDocument.openPage(pageIndex).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                return textPage.textPageGetBoundedText(sourceRect, size)
+            }
         }
     }
 
@@ -291,8 +299,10 @@ class PdfiumCore(context: Context? = null) {
         startIndex: Int,
         count: Int
     ): Int {
-        pdfDocument.openTextPage(pageIndex).use { textPage ->
-            return textPage.textPageCountRects(startIndex, count)
+        pdfDocument.openPage(pageIndex).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                return textPage.textPageCountRects(startIndex, count)
+            }
         }
     }
 

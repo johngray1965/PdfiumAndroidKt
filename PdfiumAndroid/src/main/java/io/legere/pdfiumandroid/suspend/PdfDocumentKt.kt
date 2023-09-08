@@ -65,9 +65,9 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     /**
      * suspend version of [PdfDocument.openTextPage]
      */
-    suspend fun openTextPage(pageIndex: Int): PdfTextPageKt {
+    suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt {
         return withContext(dispatcher) {
-            PdfTextPageKt(document.openTextPage(pageIndex), dispatcher)
+            PdfTextPageKt(document.openTextPage(page.page), dispatcher)
         }
     }
 
