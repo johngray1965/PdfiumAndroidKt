@@ -14,9 +14,13 @@ class PdfiumFetcher(
     private val data: PdfiumFetcherData,
     private val options: Options
 ) : Fetcher {
-    override suspend fun fetch(): FetchResult {
+    override suspend fun fetch(): FetchResult? {
         Timber.d("fetch: ${data.page}")
         val bitmap = data.viewModel.getPage(data.page, data.width, data.height, data.density)
+        if (bitmap == null) {
+            Timber.d("fetch: bitmap is null")
+            return null
+        }
         return DrawableResult(
             drawable = BitmapDrawable(options.context.resources, bitmap),
             isSampled = false,

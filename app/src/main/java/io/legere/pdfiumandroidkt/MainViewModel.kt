@@ -65,23 +65,32 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
         }
     }
 
-    suspend fun getPage(pageNum: Int, width: Int, height: Int, density: Int): Bitmap {
+    @Suppress("NestedBlockDepth", "TooGenericExceptionCaught")
+    suspend fun getPage(pageNum: Int, width: Int, height: Int, density: Int): Bitmap? {
         Timber.d("getPage: pageNum: $pageNum, width: $width, height: $height, density: $density")
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-        pdfDocument?.openPage(pageNum)?.use { page ->
-            page.renderPageBitmap(bitmap, 0, 0, width, height, density)
-            pdfDocument?.openTextPage(page)?.use { textPage ->
-                val text = textPage.textPageGetText(0, textPage.textPageCountChars())
-                Timber.d("text: $text")
+        try {
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+            pdfDocument?.openPage(pageNum)?.use { page ->
+                page.renderPageBitmap(bitmap, 0, 0, width, height, density)
+                pdfDocument?.openTextPage(page)?.use { textPage ->
+                    val charCount = textPage.textPageCountChars()
+                    if (charCount > 0) {
+                        val text = textPage.textPageGetText(0, charCount)
+                        Timber.d("text: $text")
 //                val text2 = textPage.textPageGetText2(0, textPage.textPageCountChars())
 //                Timber.d("text2: $text2")
 //                if (text != text2) {
 //                    Timber.e("text != text2")
 //                }
+                    }
+                }
             }
+            Timber.d("finsished getPage $pageNum")
+            return bitmap
+        } catch (e: Exception) {
+            Timber.e(e)
         }
-        Timber.d("finsished getPage $pageNum")
-        return bitmap
+        return null
     }
 
     sealed class UiAction {

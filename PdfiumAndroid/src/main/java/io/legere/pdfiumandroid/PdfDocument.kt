@@ -161,8 +161,6 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
     fun openTextPage(page: PdfPage): PdfTextPage {
-        Timber.d("openTextPage: pageIndex: ${page.pageIndex}")
-
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             if (textPageMap.containsKey(page.pageIndex)) {
