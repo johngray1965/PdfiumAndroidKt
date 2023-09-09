@@ -11,9 +11,7 @@ import android.os.ParcelFileDescriptor
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
 import timber.log.Timber
-import java.io.FileDescriptor
 import java.io.IOException
-import java.lang.reflect.Field
 
 /**
  * PdfiumCore is the main entry-point for access to the PDFium API.
@@ -49,15 +47,15 @@ class PdfiumCore(context: Context? = null) {
 
     /**
      * Create new document from file with password
-     * @param fd opened file descriptor of file
+     * @param parcelFileDescriptor opened file descriptor of file
      * @param password password for decryption
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(fd: ParcelFileDescriptor, password: String?): PdfDocument {
+    fun newDocument(parcelFileDescriptor: ParcelFileDescriptor, password: String?): PdfDocument {
         synchronized(lock) {
-            return PdfDocument(nativeOpenDocument(getNumFd(fd), password)).also { document ->
-                document.parcelFileDescriptor = fd
+            return PdfDocument(nativeOpenDocument(parcelFileDescriptor.fd, password)).also { document ->
+                document.parcelFileDescriptor = parcelFileDescriptor
             }
         }
     }
@@ -106,6 +104,7 @@ class PdfiumCore(context: Context? = null) {
         return pdfDocument.getTableOfContents()
     }
 
+    @Suppress("UNUSED_PARAMETER") // Need to keep for compatibility
     @Deprecated(
         "Use PdfDocument.openTextPage()",
         ReplaceWith("pdfDocument.openTextPage(pageIndex)"),
@@ -115,6 +114,7 @@ class PdfiumCore(context: Context? = null) {
         return pageIndex.toLong()
     }
 
+    @Suppress("UNUSED_PARAMETER") // Need to keep for compatibility
     @Deprecated(
         "Use PdfDocument.openPage()",
         ReplaceWith("pdfDocument.openPage(pageIndex)"),
@@ -135,20 +135,24 @@ class PdfiumCore(context: Context? = null) {
         }
     }
 
+    @Suppress("EmptyMethod")
     @Deprecated(
         "Use page.close()",
         ReplaceWith("page.close()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.ERROR
     )
     fun closePage(pdfDocument: PdfDocument, pageIndex: Int) {
+        // empty
     }
 
+    @Suppress("UNUSED_PARAMETER", "EmptyMethod") // Need to keep for compatibility
     @Deprecated(
         "Use textPage.close()",
         ReplaceWith("textPage.close()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.ERROR
     )
     fun closeTextPage(pdfDocument: PdfDocument, pageIndex: Int) {
+        // empty
     }
 
     @Deprecated(
@@ -158,7 +162,7 @@ class PdfiumCore(context: Context? = null) {
     )
     fun textPageCountChars(pdfDocument: PdfDocument, pageIndex: Int): Int {
         pdfDocument.openPage(pageIndex).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 return textPage.textPageCountChars()
             }
         }
@@ -171,7 +175,7 @@ class PdfiumCore(context: Context? = null) {
     )
     fun textPageGetText(pdfDocument: PdfDocument, pageIndex: Int, start: Int, count: Int): String? {
         pdfDocument.openPage(pageIndex).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 return textPage.textPageGetText(start, count)
             }
         }
@@ -242,7 +246,7 @@ class PdfiumCore(context: Context? = null) {
     )
     fun textPageGetRect(pdfDocument: PdfDocument, pageIndex: Int, index: Int): RectF? {
         pdfDocument.openPage(pageIndex).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 return textPage.textPageGetRect(index)
             }
         }
@@ -257,7 +261,7 @@ class PdfiumCore(context: Context? = null) {
     )
     fun textPageGetBoundedText(pdfDocument: PdfDocument, pageIndex: Int, sourceRect: RectF, size: Int): String? {
         pdfDocument.openPage(pageIndex).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 return textPage.textPageGetBoundedText(sourceRect, size)
             }
         }
@@ -300,12 +304,13 @@ class PdfiumCore(context: Context? = null) {
         count: Int
     ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 return textPage.textPageCountRects(startIndex, count)
             }
         }
     }
 
+    @Suppress("UNUSED_PARAMETER") // Need to keep for compatibility
     @Deprecated(
         "Use PdfDocument.openPage(fromIndex, toIndex)",
         ReplaceWith(
@@ -465,8 +470,6 @@ class PdfiumCore(context: Context? = null) {
 
     companion object {
         private val TAG = PdfiumCore::class.java.name
-        private val FD_CLASS: Class<*> = FileDescriptor::class.java
-        private const val FD_FIELD_NAME = "descriptor"
 
         init {
             try {
@@ -477,7 +480,6 @@ class PdfiumCore(context: Context? = null) {
                 System.loadLibrary("partition_alloc.cr")
                 System.loadLibrary("pdfium.cr")
                 System.loadLibrary("pdfiumandroid")
-
             } catch (e: UnsatisfiedLinkError) {
                 Timber.e(e, "Native libraries failed to load")
             }
@@ -485,21 +487,5 @@ class PdfiumCore(context: Context? = null) {
 
         /* synchronize native methods */
         val lock = Any()
-        private var mFdField: Field? = null
-        fun getNumFd(fdObj: ParcelFileDescriptor): Int {
-            return try {
-                if (mFdField == null) {
-                    mFdField = FD_CLASS.getDeclaredField(FD_FIELD_NAME)
-                    mFdField?.isAccessible = true
-                }
-                mFdField?.getInt(fdObj.fileDescriptor) ?: -1
-            } catch (e: NoSuchFieldException) {
-                Timber.e(e, "getFdField NoSuchFieldException")
-                -1
-            } catch (e: IllegalAccessException) {
-                Timber.e(e, "IllegalAccessException")
-                -1
-            }
-        }
     }
 }

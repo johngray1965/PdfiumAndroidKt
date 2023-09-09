@@ -70,7 +70,7 @@ class PdfDocumentTest : BasePDFTest() {
     @Test
     fun openTextPage() {
         val page = pdfDocument.openPage(0)
-        val textPage = pdfDocument.openTextPage(page)
+        val textPage = page.openTextPage()
         assertNotNull(textPage)
     }
 

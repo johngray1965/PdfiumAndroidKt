@@ -33,7 +33,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageCountChars() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val charCount = textPage.textPageCountChars()
 
                 assertThat(charCount).isEqualTo(3468)
@@ -44,7 +44,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageGetText() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val text = textPage.textPageGetText(0, 100)
 
                 assertThat(text?.length).isEqualTo(100)
@@ -55,10 +55,8 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageGetUnicode() {
         pdfDocument.openPage(0).use { page ->
-
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val char = textPage.textPageGetUnicode(0)
-
                 assertThat(char).isEqualTo('T')
             }
         }
@@ -67,7 +65,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageGetCharBox() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val rect = textPage.textPageGetCharBox(0)
 
                 assertThat(rect).isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
@@ -78,7 +76,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageGetCharIndexAtPos() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val characterToLookup = 0
                 val rect = textPage.textPageGetCharBox(characterToLookup)
 
@@ -97,7 +95,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageCountRects() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val rectCount = textPage.textPageCountRects(0, 100)
 
                 assertThat(rectCount).isEqualTo(4)
@@ -108,7 +106,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageGetRect() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val rect = textPage.textPageGetRect(0)
 
                 assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
@@ -119,7 +117,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun textPageGetBoundedText() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val text = textPage.textPageGetBoundedText(RectF(0f, 97f, 100f, 100f), 100)
 
                 assertThat(text).isEqualTo("Do")
@@ -130,7 +128,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun getFontSize() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 val fontSize = textPage.getFontSize(0)
 
                 // We get 0, but that doesn't seem right
@@ -143,7 +141,7 @@ class PdfTextPageTest : BasePDFTest() {
     fun close() {
         var pageAfterClose: PdfTextPage?
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 pageAfterClose = textPage
             }
             pageAfterClose!!.textPageCountChars()
@@ -153,7 +151,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun getDoc() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 assertThat(textPage.doc).isNotNull()
             }
         }
@@ -162,7 +160,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun getPageIndex() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 assertThat(textPage.pageIndex).isEqualTo(0)
             }
         }
@@ -171,7 +169,7 @@ class PdfTextPageTest : BasePDFTest() {
     @Test
     fun getPagePtr() {
         pdfDocument.openPage(0).use { page ->
-            pdfDocument.openTextPage(page).use { textPage ->
+            page.openTextPage().use { textPage ->
                 assertThat(textPage.pagePtr).isNotNull()
             }
         }

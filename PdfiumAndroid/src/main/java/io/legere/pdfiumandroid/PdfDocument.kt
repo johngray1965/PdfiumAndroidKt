@@ -160,6 +160,7 @@ class PdfDocument(
      * @return the opened [PdfTextPage]
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
+    @Deprecated("Use PdfPage.openTextPage instead", ReplaceWith("page.openTextPage()"))
     fun openTextPage(page: PdfPage): PdfTextPage {
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {

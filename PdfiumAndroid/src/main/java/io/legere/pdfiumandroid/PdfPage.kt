@@ -97,6 +97,7 @@ class PdfPage(
      * @return the opened [PdfTextPage]
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
+    @Suppress("DEPRECATION")
     fun openTextPage(): PdfTextPage = doc.openTextPage(this)
 
     /**

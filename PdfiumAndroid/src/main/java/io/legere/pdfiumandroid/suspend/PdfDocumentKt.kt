@@ -67,6 +67,8 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     /**
      * suspend version of [PdfDocument.openTextPage]
      */
+    @Deprecated("use PdfPageKt.openTextPage", ReplaceWith("page.openTextPage()"))
+    @Suppress("DEPRECATION")
     suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt {
         return withContext(dispatcher) {
             PdfTextPageKt(document.openTextPage(page.page), dispatcher)

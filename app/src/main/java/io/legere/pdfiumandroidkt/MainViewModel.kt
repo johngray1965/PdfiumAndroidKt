@@ -72,7 +72,7 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
             pdfDocument?.openPage(pageNum)?.use { page ->
                 page.renderPageBitmap(bitmap, 0, 0, width, height, density)
-                pdfDocument?.openTextPage(page)?.use { textPage ->
+                page.openTextPage().use { textPage ->
                     val charCount = textPage.textPageCountChars()
                     if (charCount > 0) {
                         val text = textPage.textPageGetText(0, charCount)
@@ -95,7 +95,7 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
 
     sealed class UiAction {
         data class LoadDoc(val uri: Uri) : UiAction()
-        data class Init(val s: String = "Init") : UiAction()
+        data class Init(@Suppress("unused") val s: String = "Init") : UiAction()
     }
 
     enum class LoadStatus {
