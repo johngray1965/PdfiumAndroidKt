@@ -35,107 +35,130 @@ class PdfTextPageKtTest : BasePDFTest() {
 
     @Test
     fun textPageCountChars() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val charCount = textPage.textPageCountChars()
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val charCount = textPage.textPageCountChars()
 
-            Truth.assertThat(charCount).isEqualTo(3468)
+                Truth.assertThat(charCount).isEqualTo(3468)
+            }
         }
     }
 
     @Test
     fun textPageGetText() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val text = textPage.textPageGetText(0, 100)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val text = textPage.textPageGetText(0, 100)
 
-            Truth.assertThat(text?.length).isEqualTo(100)
+                Truth.assertThat(text?.length).isEqualTo(100)
+            }
         }
     }
 
     @Test
     fun textPageGetUnicode() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val char = textPage.textPageGetUnicode(0)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val char = textPage.textPageGetUnicode(0)
 
-            Truth.assertThat(char).isEqualTo('T')
+                Truth.assertThat(char).isEqualTo('T')
+            }
         }
     }
 
     @Test
     fun textPageGetCharBox() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val rect = textPage.textPageGetCharBox(0)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val rect = textPage.textPageGetCharBox(0)
 
-            Truth.assertThat(rect).isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
+                Truth.assertThat(rect)
+                    .isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
+            }
         }
     }
 
     @Test
     fun textPageGetCharIndexAtPos() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val characterToLookup = 0
-            val rect = textPage.textPageGetCharBox(characterToLookup)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val characterToLookup = 0
+                val rect = textPage.textPageGetCharBox(characterToLookup)
 
-            val pos = textPage.textPageGetCharIndexAtPos(
-                rect?.centerX()?.toDouble() ?: 0.0,
-                rect?.centerY()?.toDouble() ?: 0.0,
-                1.0, // Shouldn't need much since we're in the middle of the rect
-                1.0
-            )
+                val pos = textPage.textPageGetCharIndexAtPos(
+                    rect?.centerX()?.toDouble() ?: 0.0,
+                    rect?.centerY()?.toDouble() ?: 0.0,
+                    1.0, // Shouldn't need much since we're in the middle of the rect
+                    1.0
+                )
 
-            Truth.assertThat(pos).isEqualTo(characterToLookup)
+                Truth.assertThat(pos).isEqualTo(characterToLookup)
+            }
         }
     }
 
     @Test
     fun textPageCountRects() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val rectCount = textPage.textPageCountRects(0, 100)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val rectCount = textPage.textPageCountRects(0, 100)
 
-            Truth.assertThat(rectCount).isEqualTo(4)
+                Truth.assertThat(rectCount).isEqualTo(4)
+            }
         }
     }
 
     @Test
     fun textPageGetRect() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val rect = textPage.textPageGetRect(0)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val rect = textPage.textPageGetRect(0)
 
-            Truth.assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
+                Truth.assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
+            }
         }
     }
 
     @Test
     fun textPageGetBoundedText() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val text = textPage.textPageGetBoundedText(RectF(0f, 97f, 100f, 100f), 100)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val text = textPage.textPageGetBoundedText(RectF(0f, 97f, 100f, 100f), 100)
 
-            Truth.assertThat(text).isEqualTo("Do")
+                Truth.assertThat(text).isEqualTo("Do")
+            }
         }
     }
 
     @Test
     fun getFontSize() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
-            val fontSize = textPage.getFontSize(0)
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                val fontSize = textPage.getFontSize(0)
 
-            Truth.assertThat(fontSize).isEqualTo(22.559999465942383)
+                Truth.assertThat(fontSize).isEqualTo(22.559999465942383)
+            }
         }
     }
 
     @Test(expected = IllegalStateException::class)
     fun close() = runTest {
         var pageAfterClose: PdfTextPageKt?
-        pdfDocument.openTextPage(0).use { textPage ->
-            pageAfterClose = textPage
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
+                pageAfterClose = textPage
+            }
         }
         pageAfterClose!!.textPageCountChars()
     }
 
     @Test
     fun getPage() = runTest {
-        pdfDocument.openTextPage(0).use { textPage ->
+        pdfDocument.openPage(0).use { page ->
+            pdfDocument.openTextPage(page).use { textPage ->
 
-            Truth.assertThat(textPage.page).isNotNull()
+                Truth.assertThat(textPage.page).isNotNull()
+            }
         }
     }
 }

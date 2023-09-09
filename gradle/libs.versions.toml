@@ -1,0 +1,39 @@
+[versions]
+activity-compose = "1.7.2"
+androidx-junit = "1.1.5"
+appcompat = "1.6.1"
+coil-compose = "2.4.0"
+glide = "1.0.0-alpha.6"
+core-ktx = "1.10.1"
+core-testing = "2.2.0"
+espresso-core = "3.5.1"
+hilt-android = "2.48"
+junit = "4.13.2"
+kotlinx-coroutines-android = "1.7.3"
+lifecycle-runtime-ktx = "2.6.1"
+material = "1.9.0"
+timber = "5.0.1"
+truth = "1.1.5"
+
+[libraries]
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
+androidx-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "core-testing" }
+androidx-espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espresso-core" }
+androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-junit" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
+compose-glide = { module = "com.github.bumptech.glide:compose", version.ref = "glide" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-android" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-android" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-android" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+truth = { module = "com.google.truth:truth", version.ref = "truth" }
+
+[bundles]
+
+[plugins]

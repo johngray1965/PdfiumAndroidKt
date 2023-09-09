@@ -158,7 +158,7 @@ class PdfPageTest : BasePDFTest() {
 
             val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
 
-            page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, true, true)
+            page.renderPageBitmap(bmp, 0, 0, 612, 792, 0, renderAnnot = true, textMask = true)
 
             // How to verify that it's correct?
             // Even if we don't verify the bitmap, we can check that it doesn't crash

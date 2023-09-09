@@ -8,9 +8,9 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
+import timber.log.Timber
 import java.io.FileDescriptor
 import java.io.IOException
 import java.lang.reflect.Field
@@ -34,7 +34,7 @@ class PdfiumCore(context: Context? = null) {
 
     /** Context needed to get screen density  */
     init {
-        Log.d(TAG, "Starting PdfiumAndroid ")
+        Timber.d("Starting PdfiumAndroid ")
     }
 
     /**
@@ -470,10 +470,16 @@ class PdfiumCore(context: Context? = null) {
 
         init {
             try {
-                System.loadLibrary("pdfium")
+                System.loadLibrary("absl.cr")
+                System.loadLibrary("c++_chrome.cr")
+                System.loadLibrary("chrome_zlib.cr")
+                System.loadLibrary("icuuc.cr")
+                System.loadLibrary("partition_alloc.cr")
+                System.loadLibrary("pdfium.cr")
                 System.loadLibrary("pdfiumandroid")
+
             } catch (e: UnsatisfiedLinkError) {
-                Log.e(TAG, "Native libraries failed to load - $e")
+                Timber.e(e, "Native libraries failed to load")
             }
         }
 
@@ -488,10 +494,10 @@ class PdfiumCore(context: Context? = null) {
                 }
                 mFdField?.getInt(fdObj.fileDescriptor) ?: -1
             } catch (e: NoSuchFieldException) {
-                Log.e(TAG, "getFdField NoSuchFieldException", e)
+                Timber.e(e, "getFdField NoSuchFieldException")
                 -1
             } catch (e: IllegalAccessException) {
-                Log.e(TAG, "IllegalAccessException", e)
+                Timber.e(e, "IllegalAccessException")
                 -1
             }
         }

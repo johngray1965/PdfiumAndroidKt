@@ -4,6 +4,7 @@ package io.legere.pdfiumandroid
 
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import timber.log.Timber
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
@@ -59,9 +60,12 @@ class PdfDocument(
             if (pageMap.containsKey(pageIndex)) {
                 pageMap[pageIndex]?.let {
                     it.count++
+                    Timber.d("from cache openPage: pageIndex: $pageIndex, count: ${it.count}")
                     return PdfPage(this, pageIndex, it.pagePtr, pageMap)
                 }
             }
+            Timber.d("openPage: pageIndex: $pageIndex")
+
             val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
             pageMap[pageIndex] = PageCount(pagePtr, 1)
             return PdfPage(this, pageIndex, pagePtr, pageMap)
@@ -157,14 +161,18 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
     fun openTextPage(page: PdfPage): PdfTextPage {
+        Timber.d("openTextPage: pageIndex: ${page.pageIndex}")
+
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             if (textPageMap.containsKey(page.pageIndex)) {
                 textPageMap[page.pageIndex]?.let {
                     it.count++
+                    Timber.d("from cache openTextPage: pageIndex: ${page.pageIndex}, count: ${it.count}")
                     return PdfTextPage(this, page.pageIndex, it.pagePtr, textPageMap)
                 }
             }
+            Timber.d("openTextPage: pageIndex: ${page.pageIndex}")
             val textPagePtr = nativeLoadTextPage(this.mNativeDocPtr, page.pagePtr)
             textPageMap[page.pageIndex] = PageCount(textPagePtr, 1)
             return PdfTextPage(this, page.pageIndex, textPagePtr, textPageMap)
@@ -210,6 +218,7 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
+        Timber.d("PdfDocument.close")
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             isClosed = true

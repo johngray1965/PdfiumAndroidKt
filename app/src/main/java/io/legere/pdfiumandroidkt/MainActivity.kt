@@ -2,7 +2,6 @@
 
 package io.legere.pdfiumandroidkt
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,28 +30,31 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
-import com.bumptech.glide.integration.compose.GlideImage
+import coil.ComponentRegistry
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
+import io.legere.pdfiumandroidkt.ui.PdfiumFetcher
+import io.legere.pdfiumandroidkt.ui.PdfiumFetcherData
 import io.legere.pdfiumandroidkt.ui.theme.PdfiumAndroidKtTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
@@ -69,6 +71,25 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val imageLoader = ImageLoader.Builder(this)
+            .components(fun ComponentRegistry.Builder.() {
+                add(PdfiumFetcher.Factory())
+            })
+            .allowRgb565(true)
+            .memoryCache {
+                MemoryCache.Builder(this)
+                    .maxSizePercent(0.25)
+                    .build()
+            }
+            .diskCache {
+                DiskCache.Builder()
+                    .directory(cacheDir.resolve("image_cache"))
+                    .maxSizePercent(0.1)
+                    .build()
+            }
+            .build()
+
         setContent {
             PdfiumAndroidKtTheme {
                 // A surface container using the 'background' color from the theme
@@ -76,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MyUI(viewModel, openFileContract)
+                    MyUI(viewModel, openFileContract, imageLoader)
                 }
             }
         }
@@ -85,7 +106,11 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyUI(viewModel: MainViewModel, openFileContract: ActivityResultLauncher<Array<String>>?) {
+fun MyUI(
+    viewModel: MainViewModel,
+    openFileContract: ActivityResultLauncher<Array<String>>?,
+    imageLoader: ImageLoader
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -106,17 +131,17 @@ fun MyUI(viewModel: MainViewModel, openFileContract: ActivityResultLauncher<Arra
         }
     ) { contentPadding ->
         Box(modifier = Modifier.padding(contentPadding)) {
-            MainContent(viewModel)
+            MainContent(viewModel, imageLoader)
         }
     }
 }
 
 @Composable
-fun MainContent(viewModel: MainViewModel) {
+fun MainContent(viewModel: MainViewModel, imageLoader: ImageLoader) {
     val state = viewModel.state.collectAsState()
     when (state.value.loadState) {
         MainViewModel.LoadStatus.Loading -> MaxSizeCenterBox { CircularProgressIndicator() }
-        MainViewModel.LoadStatus.Success -> MyPager(viewModel)
+        MainViewModel.LoadStatus.Success -> MyPager(viewModel, imageLoader)
         MainViewModel.LoadStatus.Error -> Message("Error")
         MainViewModel.LoadStatus.Init -> Message("Load PDF")
     }
@@ -141,9 +166,9 @@ private fun Message(text: String = "Error") {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalGlideComposeApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MyPager(viewModel: MainViewModel) {
+fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
     val state = viewModel.state.collectAsState()
     val pagerState = rememberPagerState(
         initialPage = 0,
@@ -151,8 +176,6 @@ fun MyPager(viewModel: MainViewModel) {
     ) {
         state.value.pageCount
     }
-    rememberCoroutineScope()
-
     var componentWidth by remember { mutableIntStateOf(0) }
     var componentHeight by remember { mutableIntStateOf(0) }
 
@@ -184,50 +207,59 @@ fun MyPager(viewModel: MainViewModel) {
                 Orientation.Horizontal
             ),
             pageContent = {
-                PagerScope(page = it, viewModel = viewModel, componentWidth, componentHeight, density)
+                PagerScope(
+                    page = it,
+                    viewModel = viewModel,
+                    componentWidth,
+                    componentHeight,
+                    density,
+                    imageLoader
+                )
             }
         )
     }
 }
 
-@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
+@Suppress("LongParameterList")
 fun PagerScope(
     page: Int,
     viewModel: MainViewModel,
     componentWidth: Int,
     componentHeight: Int,
-    density: Density
+    density: Density,
+    imageLoader: ImageLoader
 ) {
-    var data: Bitmap? by remember { mutableStateOf(null) }
-
     if (componentWidth <= 0 || componentHeight <= 0) {
         return
     }
 
-    LaunchedEffect(page) {
-        val bitmap = withContext(Dispatchers.IO) {
-            viewModel.getPage(
-                page,
-                componentWidth,
-                componentHeight,
-                density.density.roundToInt()
+    Timber.d(
+        "PagerScope: page: $page, " +
+            "componentWidth: $componentWidth, " +
+            "componentHeight: $componentHeight, " +
+            "density: $density"
+    )
+
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(
+                PdfiumFetcherData(
+                    page = page,
+                    width = componentWidth,
+                    height = componentHeight,
+                    density = density.density.roundToInt(),
+                    viewModel = viewModel
+                )
             )
-        }
-        data = bitmap
-    }
-    Box(
+            .memoryCacheKey("page_$page")
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .build(),
+        contentDescription = "Page $page",
+        imageLoader = imageLoader,
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-    ) {
-        GlideImage(
-            model = data,
-            contentDescription = "Page $page",
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
-            contentScale = ContentScale.Fit,
-        )
-    }
+    )
 }

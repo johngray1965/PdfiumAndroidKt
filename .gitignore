@@ -190,3 +190,4 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/androidstudio,kotlin,c++
 
 /*/.cxx
+/x/**

@@ -3,7 +3,7 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import android.util.Log
+import timber.log.Timber
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -33,6 +33,13 @@ class PdfTextPage(
         startIndex: Int,
         count: Int,
         result: ShortArray
+    ): Int
+
+    private external fun nativeTextGetTextByteArray(
+        textPagePtr: Long,
+        startIndex: Int,
+        count: Int,
+        result: ByteArray
     ): Int
 
     private external fun nativeTextGetUnicode(textPagePtr: Long, index: Int): Int
@@ -80,7 +87,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetText(
+    fun textPageGetTextLegacy(
         startIndex: Int,
         length: Int
     ): String? {
@@ -108,11 +115,38 @@ class PdfTextPage(
                 }
                 return String(bytes, StandardCharsets.UTF_16LE)
             } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
-                e.printStackTrace()
+                Timber.e(e, "mContext may be null")
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
-                e.printStackTrace()
+                Timber.e(e, "Exception throw from native")
+            }
+            return null
+        }
+    }
+
+    @Suppress("ReturnCount")
+    fun textPageGetText(
+        startIndex: Int,
+        length: Int
+    ): String? {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
+        synchronized(PdfiumCore.lock) {
+            try {
+                val bytes = ByteArray(length * 2)
+                val r = nativeTextGetTextByteArray(
+                    pagePtr,
+                    startIndex,
+                    length,
+                    bytes
+                )
+
+                if (r <= 0) {
+                    return ""
+                }
+                return String(bytes, StandardCharsets.UTF_16LE)
+            } catch (e: NullPointerException) {
+                Timber.e(e, "mContext may be null")
+            } catch (e: Exception) {
+                Timber.e(e, "Exception throw from native")
             }
             return null
         }
@@ -155,10 +189,10 @@ class PdfTextPage(
                 r.top = o[3].toFloat()
                 return r
             } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
+                Timber.e(e, "mContext may be null")
                 e.printStackTrace()
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
+                Timber.e(e, "Exception throw from native")
                 e.printStackTrace()
             }
         }
@@ -191,7 +225,7 @@ class PdfTextPage(
                     yTolerance
                 )
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native", e)
+                Timber.e(e, "Exception throw from native")
             }
         }
         return -1
@@ -217,11 +251,9 @@ class PdfTextPage(
                     count
                 )
             } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
-                e.printStackTrace()
+                Timber.e(e, "mContext may be null")
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
-                e.printStackTrace()
+                Timber.e(e, "Exception throw from native")
             }
         }
         return -1
@@ -246,11 +278,9 @@ class PdfTextPage(
                 r.bottom = o[3].toFloat()
                 return r
             } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
-                e.printStackTrace()
+                Timber.e(e, "mContext may be null")
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
-                e.printStackTrace()
+                Timber.e(e, "Exception throw from native")
             }
         }
         return null
@@ -288,11 +318,9 @@ class PdfTextPage(
                 }
                 return String(bytes, StandardCharsets.UTF_16LE)
             } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null")
-                e.printStackTrace()
+                Timber.e(e, "mContext may be null")
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native")
-                e.printStackTrace()
+                Timber.e(e, "Exception throw from native")
             }
             return null
         }
@@ -315,16 +343,20 @@ class PdfTextPage(
      * Close the page and release all resources
      */
     override fun close() {
+        Timber.d("PdfTextPage close: pageIndex: $pageIndex, isClosed: $isClosed")
+
         if (isClosed) return
 
-        pageMap[pageIndex]?.let {
-            if (it.count > 1) {
-                it.count--
-                return
-            }
-        }
-
         synchronized(PdfiumCore.lock) {
+            pageMap[pageIndex]?.let {
+                if (it.count > 1) {
+                    it.count--
+                    return
+                }
+            }
+
+            pageMap.remove(pageIndex)
+
             isClosed = true
             nativeCloseTextPage(pagePtr)
         }

@@ -457,6 +457,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -475,6 +478,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject thi
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -491,6 +497,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jobject thiz, 
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
 }
@@ -510,6 +519,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobjec
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
 
@@ -542,6 +554,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject th
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 
@@ -573,6 +588,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, 
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -608,6 +626,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -633,6 +654,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, j
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -651,6 +675,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;
@@ -677,6 +704,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, job
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -701,6 +731,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, job
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -733,6 +766,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject t
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return false;
 }
@@ -755,6 +791,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jobject thiz,
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
 }
 
@@ -772,6 +811,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jobjec
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;
@@ -792,6 +834,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -810,6 +855,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jobjec
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;
@@ -830,6 +878,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -848,6 +899,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject 
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return 0;
@@ -882,6 +936,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jobject 
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -914,6 +971,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jobject t
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -948,6 +1008,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jobject 
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -981,6 +1044,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jobject t
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1013,6 +1079,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jobject th
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -1053,6 +1122,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jobje
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -1107,6 +1179,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz,
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
 }
@@ -1215,6 +1290,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
 }
 
@@ -1255,6 +1333,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1281,6 +1362,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jobject thi
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -1311,6 +1395,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1340,6 +1427,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1360,6 +1450,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jobjec
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
 }
 
@@ -1378,6 +1471,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -1389,7 +1485,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jobject 
                                                            jint count, jshortArray result) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-        jboolean isCopy = 0;
+        jboolean isCopy = 1;
         auto *arr = (unsigned short *) env->GetShortArrayElements(result, &isCopy);
         jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, arr);
         if (isCopy) {
@@ -1404,6 +1500,42 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jobject 
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return -1;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray(JNIEnv *env, jobject thiz,
+                                                                    jlong text_page_ptr,
+                                                                    jint start_index, jint count,
+                                                                    jbyteArray result) {
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        jboolean isCopy = 0;
+        auto *arr = (jbyteArray) env->GetByteArrayElements(result, &isCopy);
+        unsigned short buffer[count];
+        jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, buffer);
+        memcpy(arr, buffer, count * sizeof(unsigned short));
+        if (isCopy) {
+            env->SetByteArrayRegion(result, 0, count * 2, (jbyte *) arr);
+            env->ReleaseByteArrayElements(result, (jbyte *) arr, JNI_ABORT);
+        }
+        return output;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;
@@ -1423,6 +1555,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jobje
     } catch (std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;
@@ -1450,6 +1585,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jobje
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1472,6 +1610,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -1491,6 +1632,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jobje
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;
@@ -1517,6 +1661,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jobject 
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -1553,6 +1700,9 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, j
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return -1;
 }
@@ -1578,6 +1728,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jobject
     } catch(std::invalid_argument &e) {
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return nullptr;
@@ -1609,6 +1762,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jobject thiz,
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1638,6 +1794,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jobject thiz
         raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
         raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
     }
     return nullptr;
 }
@@ -1657,7 +1816,14 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env,
         return (jlong) FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
     } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
     return -1;

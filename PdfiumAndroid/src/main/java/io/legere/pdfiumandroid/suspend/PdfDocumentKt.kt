@@ -6,6 +6,7 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.Closeable
 
 /**
@@ -30,6 +31,7 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
      * suspend version of [PdfDocument.openPage]
      */
     suspend fun openPage(pageIndex: Int): PdfPageKt {
+        Timber.d("openPage: pageIndex: $pageIndex")
         return withContext(dispatcher) {
             PdfPageKt(document.openPage(pageIndex), dispatcher)
         }

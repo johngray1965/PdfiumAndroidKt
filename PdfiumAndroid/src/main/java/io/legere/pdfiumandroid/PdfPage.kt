@@ -7,9 +7,9 @@ import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
-import android.util.Log
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
+import timber.log.Timber
 import java.io.Closeable
 
 /**
@@ -302,9 +302,9 @@ class PdfPage(
                     renderAnnot
                 )
             } catch (e: NullPointerException) {
-                Log.e(TAG, "mContext may be null", e)
+                Timber.e("mContext may be null", e)
             } catch (e: Exception) {
-                Log.e(TAG, "Exception throw from native", e)
+                Timber.e("Exception throw from native", e)
             }
         }
     }
@@ -529,16 +529,19 @@ class PdfPage(
      * Close the page and release all resources
      */
     override fun close() {
+        Timber.d("PdfPage close: pageIndex: $pageIndex, isClosed: $isClosed")
         if (isClosed) return
 
-        pageMap[pageIndex]?.let {
-            if (it.count > 1) {
-                it.count--
-                return
-            }
-        }
-
         synchronized(PdfiumCore.lock) {
+            pageMap[pageIndex]?.let {
+                if (it.count > 1) {
+                    it.count--
+                    return
+                }
+            }
+
+            pageMap.remove(pageIndex)
+
             isClosed = true
             nativeClosePage(pagePtr)
         }

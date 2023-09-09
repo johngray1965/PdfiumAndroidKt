@@ -69,15 +69,16 @@ class PdfDocumentTest : BasePDFTest() {
 
     @Test
     fun openTextPage() {
-        val textPage = pdfDocument.openTextPage(0)
+        val page = pdfDocument.openPage(0)
+        val textPage = pdfDocument.openTextPage(page)
         assertNotNull(textPage)
     }
 
-    @Test
-    fun openTextPages() {
-        val textPages = pdfDocument.openTextPages(0, 3)
-        assertThat(textPages.size).isEqualTo(4)
-    }
+//    @Test
+//    fun openTextPages() {
+//        val textPages = pdfDocument.openTextPages(0, 3)
+//        assertThat(textPages.size).isEqualTo(4)
+//    }
 
     @Test
     fun saveAsCopy() {

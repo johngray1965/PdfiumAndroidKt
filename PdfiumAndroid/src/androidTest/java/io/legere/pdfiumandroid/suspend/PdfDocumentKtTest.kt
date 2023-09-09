@@ -72,7 +72,8 @@ class PdfDocumentKtTest : BasePDFTest() {
 
     @Test
     fun openTextPage() = runTest {
-        val textPage = pdfDocument.openTextPage(0)
+        val page = pdfDocument.openPage(0)
+        val textPage = pdfDocument.openTextPage(page)
         TestCase.assertNotNull(textPage)
     }
 
