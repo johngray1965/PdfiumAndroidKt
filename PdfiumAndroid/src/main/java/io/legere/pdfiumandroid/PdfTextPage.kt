@@ -190,10 +190,8 @@ class PdfTextPage(
                 return r
             } catch (e: NullPointerException) {
                 Timber.e(e, "mContext may be null")
-                e.printStackTrace()
             } catch (e: Exception) {
                 Timber.e(e, "Exception throw from native")
-                e.printStackTrace()
             }
         }
         return null
@@ -343,8 +341,6 @@ class PdfTextPage(
      * Close the page and release all resources
      */
     override fun close() {
-        Timber.d("PdfTextPage close: pageIndex: $pageIndex, isClosed: $isClosed")
-
         if (isClosed) return
 
         synchronized(PdfiumCore.lock) {

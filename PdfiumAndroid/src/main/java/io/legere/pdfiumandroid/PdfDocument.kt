@@ -60,11 +60,11 @@ class PdfDocument(
             if (pageMap.containsKey(pageIndex)) {
                 pageMap[pageIndex]?.let {
                     it.count++
-                    Timber.d("from cache openPage: pageIndex: $pageIndex, count: ${it.count}")
+//                    Timber.d("from cache openPage: pageIndex: $pageIndex, count: ${it.count}")
                     return PdfPage(this, pageIndex, it.pagePtr, pageMap)
                 }
             }
-            Timber.d("openPage: pageIndex: $pageIndex")
+//            Timber.d("openPage: pageIndex: $pageIndex")
 
             val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
             pageMap[pageIndex] = PageCount(pagePtr, 1)
@@ -167,11 +167,11 @@ class PdfDocument(
             if (textPageMap.containsKey(page.pageIndex)) {
                 textPageMap[page.pageIndex]?.let {
                     it.count++
-                    Timber.d("from cache openTextPage: pageIndex: ${page.pageIndex}, count: ${it.count}")
+//                    Timber.d("from cache openTextPage: pageIndex: ${page.pageIndex}, count: ${it.count}")
                     return PdfTextPage(this, page.pageIndex, it.pagePtr, textPageMap)
                 }
             }
-            Timber.d("openTextPage: pageIndex: ${page.pageIndex}")
+//            Timber.d("openTextPage: pageIndex: ${page.pageIndex}")
             val textPagePtr = nativeLoadTextPage(this.mNativeDocPtr, page.pagePtr)
             textPageMap[page.pageIndex] = PageCount(textPagePtr, 1)
             return PdfTextPage(this, page.pageIndex, textPagePtr, textPageMap)
@@ -217,8 +217,8 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        Timber.d("PdfDocument.close")
         check(!isClosed) { "Already closed" }
+        Timber.d("PdfDocument.close")
         synchronized(PdfiumCore.lock) {
             isClosed = true
             nativeCloseDocument(mNativeDocPtr)

@@ -537,7 +537,6 @@ class PdfPage(
      * Close the page and release all resources
      */
     override fun close() {
-        Timber.d("PdfPage close: pageIndex: $pageIndex, isClosed: $isClosed")
         if (isClosed) return
 
         synchronized(PdfiumCore.lock) {
