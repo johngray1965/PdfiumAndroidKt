@@ -93,6 +93,13 @@ class PdfPage(
     ): PointF
 
     /**
+     * Open a text page
+     * @return the opened [PdfTextPage]
+     * @throws IllegalArgumentException if document is closed or the page cannot be loaded
+     */
+    fun openTextPage(): PdfTextPage = doc.openTextPage(this)
+
+    /**
      * Get page width in pixels.
      * @param screenDpi screen DPI (Dots Per Inch)
      * @return page width in pixels

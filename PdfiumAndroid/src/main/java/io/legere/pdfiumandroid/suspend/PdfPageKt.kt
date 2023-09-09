@@ -24,6 +24,16 @@ import java.io.Closeable
 class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
     /**
+     * Open a text page
+     * @throws IllegalArgumentException if document is closed or the page cannot be loaded
+     */
+    suspend fun openTextPage(): PdfTextPageKt {
+        return withContext(dispatcher) {
+            PdfTextPageKt(page.openTextPage(), dispatcher)
+        }
+    }
+
+    /**
      * suspend version of [PdfPage.getPageWidth]
      */
     suspend fun getPageWidth(screenDpi: Int): Int {
