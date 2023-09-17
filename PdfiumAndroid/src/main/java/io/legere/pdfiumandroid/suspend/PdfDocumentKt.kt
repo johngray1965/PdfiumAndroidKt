@@ -27,6 +27,15 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     }
 
     /**
+     *  suspend version of [PdfDocument.getPageCharCounts]
+     */
+    suspend fun getPageCharCounts(): IntArray {
+        return withContext(dispatcher) {
+            document.getPageCharCounts()
+        }
+    }
+
+    /**
      * suspend version of [PdfDocument.openPage]
      */
     suspend fun openPage(pageIndex: Int): PdfPageKt {

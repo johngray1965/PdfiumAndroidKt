@@ -228,12 +228,11 @@ class PdfiumCore(context: Context? = null) {
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        screenDpi: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
         }
     }
 
@@ -380,7 +379,7 @@ class PdfiumCore(context: Context? = null) {
         renderAnnot: Boolean = false
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, mCurrentDpi, false)
+            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, false)
         }
     }
 
@@ -403,7 +402,7 @@ class PdfiumCore(context: Context? = null) {
         renderAnnot: Boolean = false
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, mCurrentDpi, renderAnnot)
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)
         }
     }
 

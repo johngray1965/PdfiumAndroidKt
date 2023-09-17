@@ -56,12 +56,9 @@ struct rgb {
 };
 
 class DocumentFile {
-private:
-    int fileFd;
 
 public:
     FPDF_DOCUMENT pdfDocument = nullptr;
-    size_t fileSize;
 
     DocumentFile() { initLibraryIfNeed(); }
     ~DocumentFile();
@@ -1133,7 +1130,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jobje
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz, jlong page_ptr,
-                                                      jobject surface, jint dpi, jint start_x,
+                                                      jobject surface, jint start_x,
                                                       jint start_y, jint draw_size_hor,
                                                       jint draw_size_ver, jboolean render_annot) {
     try {
@@ -1190,7 +1187,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject thiz,
                                                             jlong page_ptr, jobject bitmap,
-                                                            jint dpi, jint start_x, jint start_y,
+                                                            jint start_x, jint start_y,
                                                             jint draw_size_hor, jint draw_size_ver,
                                                             jboolean render_annot,
                                                             jboolean text_mask) {
@@ -1296,6 +1293,143 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
     }
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jobject thiz,
+                                                                      jlong page_ptr,
+                                                                      jobject bitmap,
+                                                                      jfloatArray matrixValues,
+                                                                        jobject clip_rect,
+                                                                      jboolean render_annot,
+                                                                      jboolean text_mask) {
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+
+        if (page == nullptr || bitmap == nullptr) {
+            LOGE("Render page pointers invalid");
+            return;
+        }
+
+        AndroidBitmapInfo info;
+        int ret;
+        if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+            LOGE("Fetching bitmap info failed: %s", strerror(ret * -1));
+            return;
+        }
+
+        auto canvasHorSize = info.width;
+        auto canvasVerSize = info.height;
+
+        if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888 &&
+            info.format != ANDROID_BITMAP_FORMAT_RGB_565) {
+            LOGE("Bitmap format must be RGBA_8888 or RGB_565");
+            return;
+        }
+
+        void *addr;
+        if ((ret = AndroidBitmap_lockPixels(env, bitmap, &addr)) != 0) {
+            LOGE("Locking bitmap failed: %s", strerror(ret * -1));
+            return;
+        }
+
+        void *tmp;
+        int format;
+        int sourceStride;
+        if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
+            tmp = malloc(canvasVerSize * canvasHorSize * sizeof(rgb));
+            sourceStride = canvasHorSize * sizeof(rgb);
+            format = FPDFBitmap_BGR;
+        } else {
+            tmp = addr;
+            sourceStride = info.stride;
+            format = FPDFBitmap_BGRA;
+        }
+
+        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
+                                                    format, tmp, sourceStride);
+
+        /*LOGD("Start X: %d", startX);
+        LOGD("Start Y: %d", startY);
+        LOGD("Canvas Hor: %d", canvasHorSize);
+        LOGD("Canvas Ver: %d", canvasVerSize);
+        LOGD("Draw Hor: %d", drawSizeHor);
+        LOGD("Draw Ver: %d", drawSizeVer);*/
+
+//        if (draw_size_hor < canvasHorSize || draw_size_ver < canvasVerSize) {
+//            FPDFBitmap_FillRect(pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
+//                                0x848484FF); //Gray
+//        }
+//
+//        int baseHorSize = (canvasHorSize < draw_size_hor) ? (int) canvasHorSize
+//                                                          : (int) draw_size_hor;
+//        int baseVerSize = (canvasVerSize < draw_size_ver) ? (int) canvasVerSize
+//                                                          : (int) draw_size_ver;
+//        int baseX = (start_x < 0) ? 0 : (int) start_x;
+//        int baseY = (start_y < 0) ? 0 : (int) start_y;
+        int flags = FPDF_REVERSE_BYTE_ORDER;
+
+        if (render_annot) {
+            flags |= FPDF_ANNOT;
+        }
+
+//    if(text_mask) {
+//        flags |= FPDF_RENDER_TEXT_MASK;
+//    }
+
+        FPDFBitmap_FillRect(pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
+                            0xFFFFFFFF); //White
+
+        jclass clazz = env->FindClass("android/graphics/RectF");
+        jfieldID left = env->GetFieldID(clazz, "left", "F");
+        jfieldID top = env->GetFieldID(clazz, "top", "F");
+        jfieldID right = env->GetFieldID(clazz, "right", "F");
+        jfieldID bottom = env->GetFieldID(clazz, "bottom", "F");
+        jfloat leftClip = env->GetFloatField(clip_rect, left);
+        jfloat topClip = env->GetFloatField(clip_rect, top);
+        jfloat rightClip = env->GetFloatField(clip_rect, right);
+        jfloat bottomClip = env->GetFloatField(clip_rect, bottom);
+
+        jboolean isCopy;
+        auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
+
+        auto matrix = FS_MATRIX();
+        matrix.a = matrixFloats[0];
+        matrix.b = 0;
+        matrix.c = 0;
+        matrix.d = matrixFloats[1];
+        matrix.e = matrixFloats[2];
+        matrix.f = matrixFloats[3];
+        auto clip = FS_RECTF();
+        clip.left = leftClip;
+        clip.top = topClip;
+        clip.right = rightClip;
+        clip.bottom = bottomClip;
+        if (isCopy) {
+            env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
+        }
+
+
+        FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+
+        if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
+            rgbBitmapTo565(tmp, sourceStride, addr, &info);
+            free(tmp);
+        }
+
+        AndroidBitmap_unlockPixels(env, bitmap);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+}
 extern "C"
 JNIEXPORT jobject JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jobject thiz,
@@ -1829,6 +1963,42 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env,
     return -1;
 }
 
+extern "C"
+JNIEXPORT jintArray JNICALL
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jobject thiz,
+                                                                 jlong doc_ptr) {
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        auto pageCount = FPDF_GetPageCount(doc->pdfDocument);
+
+        std::vector<int> charCounts;
+
+        for (int i = 0; i< pageCount; i++) {
+            auto page = FPDF_LoadPage(doc->pdfDocument, i);
+            auto textPage = FPDFText_LoadPage(page);
+            auto charCount = FPDFText_CountChars(textPage);
+            charCounts.push_back(charCount);
+            FPDFText_ClosePage(textPage);
+            FPDF_ClosePage(page);
+        }
+
+        jintArray result = env->NewIntArray(charCounts.size());
+        env->SetIntArrayRegion(result, 0, charCounts.size(), &charCounts[0]);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return nullptr;
+}
 
 void raise_java_exception(JNIEnv *pEnv, std::exception &exception) {
     jclass exClass;

@@ -34,6 +34,7 @@ class PdfDocument(
     private external fun nativeLoadTextPage(docPtr: Long, pagePtr: Long): Long
     private external fun nativeGetBookmarkTitle(bookmarkPtr: Long): String
     private external fun nativeSaveAsCopy(docPtr: Long, callback: PdfWriteCallback): Boolean
+    private external fun nativeGetPageCharCounts(docPtr: Long): IntArray
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
 
@@ -45,6 +46,17 @@ class PdfDocument(
         check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             return nativeGetPageCount(mNativeDocPtr)
+        }
+    }
+
+    /**
+     *  Get the page character counts for every page of the PDF document
+     *  @return an array of character counts
+     */
+    fun getPageCharCounts(): IntArray {
+        check(!isClosed) { "Already closed" }
+        synchronized(PdfiumCore.lock) {
+            return nativeGetPageCharCounts(mNativeDocPtr)
         }
     }
 

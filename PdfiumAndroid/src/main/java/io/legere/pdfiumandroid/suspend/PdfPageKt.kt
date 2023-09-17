@@ -3,6 +3,7 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
@@ -141,11 +142,10 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         startX: Int,
         startY: Int,
         drawSizeX: Int,
-        drawSizeY: Int,
-        screenDpi: Int
+        drawSizeY: Int
     ) {
         return withContext(dispatcher) {
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, screenDpi)
+            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
         }
     }
 
@@ -159,12 +159,23 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        screenDpi: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false
     ) {
         return withContext(dispatcher) {
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)
+            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+        }
+    }
+
+    suspend fun renderPageBitmap(
+        bitmap: Bitmap?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false
+    ) {
+        return withContext(dispatcher) {
+            page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask)
         }
     }
 

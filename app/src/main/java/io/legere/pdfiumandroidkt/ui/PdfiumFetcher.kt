@@ -16,7 +16,7 @@ class PdfiumFetcher(
 ) : Fetcher {
     override suspend fun fetch(): FetchResult? {
         Timber.d("fetch: ${data.page}")
-        val bitmap = data.viewModel.getPage(data.page, data.width, data.height, data.density)
+        val bitmap = data.viewModel.getPage(data.page, data.width, data.height)
         if (bitmap == null) {
             Timber.d("fetch: bitmap is null")
             return null

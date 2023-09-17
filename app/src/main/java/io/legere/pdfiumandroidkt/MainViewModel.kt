@@ -2,6 +2,8 @@ package io.legere.pdfiumandroidkt
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.RectF
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +20,9 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -41,15 +45,20 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
                         emit(UiState(loadState = LoadStatus.Loading))
                         val fd = application.contentResolver.openFileDescriptor(action.uri, "r")
                         if (fd != null) {
-                            pdfDocument = pdfiumCore.newDocument(fd)
-                            val pageCount = pdfDocument?.getPageCount() ?: 0
-                            Timber.d("pageCount: $pageCount")
-                            emit(
-                                UiState(
-                                    loadState = LoadStatus.Success,
-                                    pageCount = pageCount
+                            try {
+                                pdfDocument = pdfiumCore.newDocument(fd)
+                                val pageCount = pdfDocument?.getPageCount() ?: 0
+                                Timber.d("pageCount: $pageCount")
+                                emit(
+                                    UiState(
+                                        loadState = LoadStatus.Success,
+                                        pageCount = pageCount
+                                    )
                                 )
-                            )
+                            } catch (e: IOException) {
+                                Timber.e(e)
+                                emit(UiState(loadState = LoadStatus.Error))
+                            }
                         } else {
                             emit(UiState(loadState = LoadStatus.Error))
                         }
@@ -66,12 +75,32 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
     }
 
     @Suppress("NestedBlockDepth", "TooGenericExceptionCaught")
-    suspend fun getPage(pageNum: Int, width: Int, height: Int, density: Int): Bitmap? {
-        Timber.d("getPage: pageNum: $pageNum, width: $width, height: $height, density: $density")
+    suspend fun getPage(pageNum: Int, width: Int, height: Int): Bitmap? {
+        Timber.d("getPage: pageNum: $pageNum, width: $width, height: $height")
         try {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+            val zoom = 1f // 2f
+            val pan = 0f // -width.toFloat() / 2
+            val bitmap = Bitmap.createBitmap(width, height * zoom.roundToInt(), Bitmap.Config.RGB_565)
             pdfDocument?.openPage(pageNum)?.use { page ->
-                page.renderPageBitmap(bitmap, 0, 0, width, height, density)
+                val pageWdith = page.getPageWidthPoint()
+                val pageHeight = page.getPageHeightPoint()
+                val tempSrc = RectF(
+                    0f,
+                    0f,
+                    pageWdith.toFloat(),
+                    pageHeight.toFloat()
+                )
+                val tempDst = RectF(0f, 0f, width.toFloat(), height.toFloat())
+                val result = Matrix()
+                result.setRectToRect(tempSrc, tempDst, Matrix.ScaleToFit.START)
+                result.postScale(zoom, zoom)
+                result.postTranslate(pan, 0f)
+
+                page.renderPageBitmap(
+                    bitmap,
+                    result,
+                    RectF(0f, 0f, width.toFloat(), zoom * height.toFloat())
+                )
                 page.openTextPage().use { textPage ->
                     val charCount = textPage.textPageCountChars()
                     if (charCount > 0) {

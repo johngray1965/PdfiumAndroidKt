@@ -16,9 +16,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -190,7 +189,7 @@ fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
             }
 
     ) {
-        HorizontalPager(
+        VerticalPager(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight(),
@@ -200,8 +199,6 @@ fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
             reverseLayout = false,
             contentPadding = PaddingValues(0.dp),
             beyondBoundsPageCount = 0,
-            pageSize = PageSize.Fill,
-//            flingBehavior = PagerDefaults.flingBehavior(state = state),
             key = null,
             pageNestedScrollConnection = PagerDefaults.pageNestedScrollConnection(
                 Orientation.Horizontal

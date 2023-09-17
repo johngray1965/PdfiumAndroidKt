@@ -3,6 +3,7 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
@@ -11,6 +12,8 @@ import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
 import timber.log.Timber
 import java.io.Closeable
+
+private const val THREE_BY_THREE = 9
 
 /**
  * Represents a single page in a [PdfDocument].
@@ -45,7 +48,6 @@ class PdfPage(
     private external fun nativeRenderPage(
         pagePtr: Long,
         surface: Surface?,
-        dpi: Int,
         startX: Int,
         startY: Int,
         drawSizeHor: Int,
@@ -57,7 +59,6 @@ class PdfPage(
     private external fun nativeRenderPageBitmap(
         pagePtr: Long,
         bitmap: Bitmap?,
-        dpi: Int,
         startX: Int,
         startY: Int,
         drawSizeHor: Int,
@@ -65,6 +66,17 @@ class PdfPage(
         renderAnnot: Boolean,
         textMask: Boolean
     )
+
+    @Suppress("LongParameterList")
+    private external fun nativeRenderPageBitmapWithMatrix(
+        pagePtr: Long,
+        bitmap: Bitmap?,
+        matrix: FloatArray,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false
+    )
+
     private external fun nativeGetPageSizeByIndex(docPtr: Long, pageIndex: Int, dpi: Int): Size
     private external fun nativeGetPageLinks(pagePtr: Long): LongArray
 
@@ -281,7 +293,6 @@ class PdfPage(
      * @param startY top position of the page in the surface
      * @param drawSizeX horizontal size of the page on the surface
      * @param drawSizeY vertical size of the page on the surface
-     * @param screenDpi screen dpi
      * @param renderAnnot whether render annotation
      * @throws IllegalStateException If the page or document is closed
      */
@@ -292,7 +303,6 @@ class PdfPage(
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        screenDpi: Int,
         renderAnnot: Boolean = false
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
@@ -302,7 +312,6 @@ class PdfPage(
                 nativeRenderPage(
                     pagePtr,
                     surface,
-                    screenDpi,
                     startX,
                     startY,
                     drawSizeX,
@@ -324,7 +333,6 @@ class PdfPage(
      * @param startY top position of the page in the bitmap
      * @param drawSizeX horizontal size of the page on the bitmap
      * @param drawSizeY vertical size of the page on the bitmap
-     * @param screenDpi screen dpi
      * @param renderAnnot whether render annotation
      * @param textMask whether to render text as image mask
      * @throws IllegalStateException If the page or document is closed
@@ -332,7 +340,7 @@ class PdfPage(
      * Supported bitmap configurations:
      *
      *  * ARGB_8888 - best quality, high memory usage, higher possibility of OutOfMemoryError
-     *  * RGB_565 - little worse quality, twice less memory usage
+     *  * RGB_565 - little worse quality, 1/2 the memory usage
      *
      */
     @Suppress("LongParameterList")
@@ -342,15 +350,47 @@ class PdfPage(
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        screenDpi: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false
     ) {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
             nativeRenderPageBitmap(
-                pagePtr, bitmap, screenDpi,
-                startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask
+                pagePtr,
+                bitmap,
+                startX,
+                startY,
+                drawSizeX,
+                drawSizeY,
+                renderAnnot,
+                textMask
+            )
+        }
+    }
+
+    fun renderPageBitmap(
+        bitmap: Bitmap?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false
+    ) {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
+        val matrixValues = FloatArray(THREE_BY_THREE)
+        matrix.getValues(matrixValues)
+        synchronized(PdfiumCore.lock) {
+            nativeRenderPageBitmapWithMatrix(
+                pagePtr,
+                bitmap,
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y]
+                ),
+                clipRect,
+                renderAnnot,
+                textMask
             )
         }
     }
