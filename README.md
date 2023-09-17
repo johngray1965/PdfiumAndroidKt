@@ -13,3 +13,8 @@ This is a object-oriented version.   PfdiumCore is give you options to open up t
 For using suspend functions, use PdfiumCoreKt, and it'll return PdfDocummentK,  PdfDocummentK give PdfPageKt and PdfTextPageKt.   All the  <Blah>Kt classes have suspend functions, and will do there work on the dispathcer that's passed into PdfiumCoreKt when its created.
   
 PdfDocument, PdfPage, PdfTextPage and Kt versions all uses Closable.
+
+To use it, add the following app's build.gradle:
+```
+    implementation("io.legere:pdfiumandroid:1.0.10")
+```
