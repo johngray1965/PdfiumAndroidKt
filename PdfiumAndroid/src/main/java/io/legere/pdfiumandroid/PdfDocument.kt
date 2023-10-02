@@ -4,7 +4,6 @@ package io.legere.pdfiumandroid
 
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import timber.log.Timber
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
@@ -230,7 +229,7 @@ class PdfDocument(
      */
     override fun close() {
         check(!isClosed) { "Already closed" }
-        Timber.d("PdfDocument.close")
+        Logger.d(TAG, "PdfDocument.close")
         synchronized(PdfiumCore.lock) {
             isClosed = true
             nativeCloseDocument(mNativeDocPtr)
@@ -260,4 +259,8 @@ class PdfDocument(
     class Link(val bounds: RectF, val destPageIdx: Int?, val uri: String?)
 
     data class PageCount(val pagePtr: Long, var count: Int)
+
+    companion object {
+        private val TAG = PdfDocument::class.java.name
+    }
 }

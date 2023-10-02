@@ -10,7 +10,6 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
-import timber.log.Timber
 import java.io.Closeable
 
 private const val THREE_BY_THREE = 9
@@ -319,9 +318,9 @@ class PdfPage(
                     renderAnnot
                 )
             } catch (e: NullPointerException) {
-                Timber.e("mContext may be null", e)
+                Logger.e(TAG, e,"mContext may be null")
             } catch (e: Exception) {
-                Timber.e("Exception throw from native", e)
+                Logger.e(TAG, e,"Exception throw from native")
             }
         }
     }

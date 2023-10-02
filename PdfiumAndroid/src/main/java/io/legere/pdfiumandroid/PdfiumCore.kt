@@ -10,18 +10,19 @@ import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
-import timber.log.Timber
 import java.io.IOException
 
 /**
  * PdfiumCore is the main entry-point for access to the PDFium API.
  */
 @Suppress("TooManyFunctions")
-class PdfiumCore(context: Context? = null) {
+class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogger()) {
 
     private val mCurrentDpi: Int
 
     init {
+        Logger.setLogger(logger)
+        Logger.d(TAG,"Starting PdfiumAndroid ")
         mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
     }
 
@@ -32,7 +33,6 @@ class PdfiumCore(context: Context? = null) {
 
     /** Context needed to get screen density  */
     init {
-        Timber.d("Starting PdfiumAndroid ")
     }
 
     /**
@@ -480,7 +480,7 @@ class PdfiumCore(context: Context? = null) {
                 System.loadLibrary("pdfium.cr")
                 System.loadLibrary("pdfiumandroid")
             } catch (e: UnsatisfiedLinkError) {
-                Timber.e(e, "Native libraries failed to load")
+                Logger.e(TAG, e, "Native libraries failed to load")
             }
         }
 

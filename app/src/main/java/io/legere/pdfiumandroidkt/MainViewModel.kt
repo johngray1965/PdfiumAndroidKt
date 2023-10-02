@@ -8,6 +8,7 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.legere.pdfiumandroid.LoggerInterface
 import io.legere.pdfiumandroid.suspend.PdfDocumentKt
 import io.legere.pdfiumandroid.suspend.PdfiumCoreKt
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,15 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
     val state: StateFlow<UiState>
     val accept: (UiAction) -> Unit
 
-    private val pdfiumCore = PdfiumCoreKt(Dispatchers.Default)
+    private val pdfiumCore = PdfiumCoreKt(Dispatchers.Default, object : LoggerInterface {
+        override fun d(tag: String, message: String?) {
+            Timber.tag(tag).d(message)
+        }
+
+        override fun e(tag: String, t: Throwable?, message: String?) {
+            Timber.tag(tag).e(t, message)
+        }
+    })
     private var pdfDocument: PdfDocumentKt? = null
 
     init {

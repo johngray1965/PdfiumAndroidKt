@@ -3,6 +3,8 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.os.ParcelFileDescriptor
+import io.legere.pdfiumandroid.DefaultLogger
+import io.legere.pdfiumandroid.LoggerInterface
 import io.legere.pdfiumandroid.PdfiumCore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -12,9 +14,9 @@ import kotlinx.coroutines.withContext
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  * @constructor create a [PdfiumCoreKt] from a [PdfiumCore]
  */
-class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher) {
+class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher, logger: LoggerInterface = DefaultLogger())  {
 
-    private val coreInternal = PdfiumCore()
+    private val coreInternal = PdfiumCore(logger = logger)
 
     /**
      * suspend version of [PdfiumCore.newDocument]
