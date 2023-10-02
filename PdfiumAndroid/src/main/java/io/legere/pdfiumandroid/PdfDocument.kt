@@ -4,7 +4,7 @@ package io.legere.pdfiumandroid
 
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import timber.log.Timber
+import android.util.Log
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
@@ -230,7 +230,7 @@ class PdfDocument(
      */
     override fun close() {
         check(!isClosed) { "Already closed" }
-        Timber.d("PdfDocument.close")
+        Log.d("PdfDocument", "PdfDocument.close")
         synchronized(PdfiumCore.lock) {
             isClosed = true
             nativeCloseDocument(mNativeDocPtr)

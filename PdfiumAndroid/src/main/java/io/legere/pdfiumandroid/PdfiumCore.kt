@@ -8,9 +8,9 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
-import timber.log.Timber
 import java.io.IOException
 
 /**
@@ -32,7 +32,7 @@ class PdfiumCore(context: Context? = null) {
 
     /** Context needed to get screen density  */
     init {
-        Timber.d("Starting PdfiumAndroid ")
+        Log.d("PdfiumCore", "Starting PdfiumAndroid ")
     }
 
     /**
@@ -480,7 +480,7 @@ class PdfiumCore(context: Context? = null) {
                 System.loadLibrary("pdfium.cr")
                 System.loadLibrary("pdfiumandroid")
             } catch (e: UnsatisfiedLinkError) {
-                Timber.e(e, "Native libraries failed to load")
+                Log.e("PdfiumCore", "Native libraries failed to load", e)
             }
         }
 

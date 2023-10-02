@@ -3,7 +3,7 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import timber.log.Timber
+import android.util.Log
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -115,9 +115,9 @@ class PdfTextPage(
                 }
                 return String(bytes, StandardCharsets.UTF_16LE)
             } catch (e: NullPointerException) {
-                Timber.e(e, "mContext may be null")
+                Log.e("PdfTextPage", "mContext may be null", e)
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
             return null
         }
@@ -144,9 +144,9 @@ class PdfTextPage(
                 }
                 return String(bytes, StandardCharsets.UTF_16LE)
             } catch (e: NullPointerException) {
-                Timber.e(e, "mContext may be null")
+                Log.e("PdfTextPage", "mContext may be null", e)
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
             return null
         }
@@ -189,9 +189,9 @@ class PdfTextPage(
                 r.top = o[3].toFloat()
                 return r
             } catch (e: NullPointerException) {
-                Timber.e(e, "mContext may be null")
+                Log.e("PdfTextPage", "mContext may be null", e)
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
         }
         return null
@@ -223,7 +223,7 @@ class PdfTextPage(
                     yTolerance
                 )
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
         }
         return -1
@@ -249,9 +249,9 @@ class PdfTextPage(
                     count
                 )
             } catch (e: NullPointerException) {
-                Timber.e(e, "mContext may be null")
+                Log.e("PdfTextPage", "mContext may be null", e)
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
         }
         return -1
@@ -276,9 +276,9 @@ class PdfTextPage(
                 r.bottom = o[3].toFloat()
                 return r
             } catch (e: NullPointerException) {
-                Timber.e(e, "mContext may be null")
+                Log.e("PdfTextPage", "mContext may be null", e)
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
         }
         return null
@@ -316,9 +316,9 @@ class PdfTextPage(
                 }
                 return String(bytes, StandardCharsets.UTF_16LE)
             } catch (e: NullPointerException) {
-                Timber.e(e, "mContext may be null")
+                Log.e("PdfTextPage", "mContext may be null", e)
             } catch (e: Exception) {
-                Timber.e(e, "Exception throw from native")
+                Log.e("PdfTextPage", "Exception throw from native", e)
             }
             return null
         }
