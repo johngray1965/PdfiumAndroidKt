@@ -1457,7 +1457,21 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jobje
         jint heightInt = (jint) (height * dpi / 72);
 
         jclass clazz = env->FindClass("io/legere/pdfiumandroid/util/Size");
+        if (clazz == nullptr) {
+            LOGE("Size class not found");
+
+            jniThrowException(env, "java/lang/IllegalStateException",
+                              "Size class not found");
+            return nullptr;
+        }
         jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
+        if (constructorID == nullptr) {
+            LOGE("Size constructor not found");
+
+            jniThrowException(env, "java/lang/IllegalStateException",
+                              "Size constructor not found");
+            return nullptr;
+        }
         return env->NewObject(clazz, constructorID, widthInt, heightInt);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);

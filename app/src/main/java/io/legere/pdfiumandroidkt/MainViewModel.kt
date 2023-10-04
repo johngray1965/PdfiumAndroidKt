@@ -91,6 +91,8 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
             val pan = 0f // -width.toFloat() / 2
             val bitmap = Bitmap.createBitmap(width, height * zoom.roundToInt(), Bitmap.Config.RGB_565)
             pdfDocument?.openPage(pageNum)?.use { page ->
+                val size = page.getPageSize(1)
+                Timber.d("getPageSize: pageNum: $pageNum, width: ${size.width}, height: ${size.height}")
                 val pageWdith = page.getPageWidthPoint()
                 val pageHeight = page.getPageHeightPoint()
                 val tempSrc = RectF(

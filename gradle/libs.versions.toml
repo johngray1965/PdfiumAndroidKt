@@ -4,16 +4,20 @@ androidx-junit = "1.1.5"
 appcompat = "1.6.1"
 coil-compose = "2.4.0"
 glide = "1.0.0-alpha.6"
-core-ktx = "1.10.1"
+core-ktx = "1.12.0"
 core-testing = "2.2.0"
 espresso-core = "3.5.1"
 hilt-android = "2.48"
 junit = "4.13.2"
 kotlinx-coroutines-android = "1.7.3"
-lifecycle-runtime-ktx = "2.6.1"
+lifecycle-runtime-ktx = "2.6.2"
 material = "1.9.0"
 timber = "5.0.1"
 truth = "1.1.5"
+agp = "8.1.2"
+uiautomator = "2.2.0"
+benchmark-macro-junit4 = "1.1.1"
+org-jetbrains-kotlin-android = "1.8.21"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
@@ -33,7 +37,11 @@ kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-t
 material = { module = "com.google.android.material:material", version.ref = "material" }
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
+uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
+benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
 
 [bundles]
 
 [plugins]
+com-android-test = { id = "com.android.test", version.ref = "agp" }
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }

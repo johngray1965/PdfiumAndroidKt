@@ -26,6 +26,13 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        qa {
+            initWith release
+            minifyEnabled true
+            signingConfig = debug.signingConfig
+            matchingFallbacks = ['release']
+        }
+
     }
     externalNativeBuild {
         cmake {
