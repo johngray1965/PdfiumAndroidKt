@@ -60,6 +60,9 @@ class DocumentFile {
 public:
     FPDF_DOCUMENT pdfDocument = nullptr;
 
+    public:
+    jbyte *cDataCopy = NULL;
+
     DocumentFile() { initLibraryIfNeed(); }
     ~DocumentFile();
 };
@@ -69,7 +72,10 @@ DocumentFile::~DocumentFile(){
         FPDF_CloseDocument(pdfDocument);
         pdfDocument = nullptr;
     }
-
+    if(cDataCopy != NULL){
+        free(cDataCopy);
+        cDataCopy = NULL;
+    }
     destroyLibraryIfNeed();
 }
 
@@ -277,13 +283,11 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
         cpassword = env->GetStringUTFChars(password, nullptr);
     }
 
-    jbyte *cData = env->GetByteArrayElements(data, nullptr);
     int size = (int) env->GetArrayLength(data);
     auto *cDataCopy = new jbyte[size];
-    memcpy(cDataCopy, cData, size);
+    env->GetByteArrayRegion(data, 0, size, cDataCopy);
     FPDF_DOCUMENT document = FPDF_LoadMemDocument( reinterpret_cast<const void*>(cDataCopy),
                                                    size, cpassword);
-    env->ReleaseByteArrayElements(data, cData, JNI_ABORT);
 
     if(cpassword != nullptr) {
         env->ReleaseStringUTFChars(password, cpassword);
@@ -308,7 +312,7 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
     }
 
     docFile->pdfDocument = document;
-
+    docFile->cDataCopy = cDataCopy;
     return reinterpret_cast<jlong>(docFile);
 }
 
