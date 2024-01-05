@@ -57,11 +57,6 @@ find_library( # Sets the name of the path variable.
 target_link_libraries( # Specifies the target library.
         pdfiumandroid
 
-        libabsl
-        libc++_chrome
-        libchrome_zlib
-        libicuuc
-        libpartition_alloc
         libpdfium
 
         # Links the target library to the log library
@@ -72,16 +67,6 @@ target_link_libraries( # Specifies the target library.
         )
 
 
-add_library( libabsl SHARED IMPORTED )
-add_library( libc++_chrome SHARED IMPORTED )
-add_library( libchrome_zlib SHARED IMPORTED )
-add_library( libicuuc SHARED IMPORTED )
-add_library( libpartition_alloc SHARED IMPORTED )
 add_library( libpdfium SHARED IMPORTED )
 
-set_target_properties( libabsl PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libabsl.cr.so)
-set_target_properties( libc++_chrome PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libc++_chrome.cr.so)
-set_target_properties( libchrome_zlib PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libchrome_zlib.cr.so)
-set_target_properties( libicuuc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libicuuc.cr.so)
-set_target_properties( libpartition_alloc PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libpartition_alloc.cr.so)
-set_target_properties( libpdfium PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libpdfium.cr.so)
+set_target_properties( libpdfium PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libpdfium.so)
