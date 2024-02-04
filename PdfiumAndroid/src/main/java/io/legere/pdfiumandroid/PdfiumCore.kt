@@ -8,7 +8,9 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import android.util.Log
 import android.view.Surface
+import io.legere.pdfiumandroid.util.InitLock
 import io.legere.pdfiumandroid.util.Size
 import java.io.IOException
 
@@ -22,18 +24,15 @@ class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogg
 
     init {
         Logger.setLogger(logger)
-        Logger.d(TAG,"Starting PdfiumAndroid ")
+        Logger.d(TAG, "Starting PdfiumAndroid ")
         mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
+        isReader.waitForReady()
     }
 
     private external fun nativeOpenDocument(fd: Int, password: String?): Long
     private external fun nativeOpenMemDocument(data: ByteArray?, password: String?): Long
 
     private external fun nativeGetLinkRect(linkPtr: Long): RectF?
-
-    /** Context needed to get screen density  */
-    init {
-    }
 
     /**
      * Create new document from file
@@ -470,21 +469,32 @@ class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogg
     companion object {
         private val TAG = PdfiumCore::class.java.name
 
-        init {
-            try {
-                System.loadLibrary("absl.cr")
-                System.loadLibrary("c++_chrome.cr")
-                System.loadLibrary("chrome_zlib.cr")
-                System.loadLibrary("icuuc.cr")
-                System.loadLibrary("partition_alloc.cr")
-                System.loadLibrary("pdfium.cr")
-                System.loadLibrary("pdfiumandroid")
-            } catch (e: UnsatisfiedLinkError) {
-                Logger.e(TAG, e, "Native libraries failed to load")
-            }
-        }
-
         /* synchronize native methods */
         val lock = Any()
+
+        val isReader = InitLock()
+
+        init {
+            Log.d(TAG, "init")
+            Thread {
+                Log.d(TAG, "init thread start")
+                synchronized(lock) {
+                    Log.d(TAG, "init in lock")
+                    try {
+                        System.loadLibrary("absl.cr")
+                        System.loadLibrary("c++_chrome.cr")
+                        System.loadLibrary("chrome_zlib.cr")
+                        System.loadLibrary("icuuc.cr")
+                        System.loadLibrary("partition_alloc.cr")
+                        System.loadLibrary("pdfium.cr")
+                        System.loadLibrary("pdfiumandroid")
+                        isReader.markReady()
+                    } catch (e: UnsatisfiedLinkError) {
+                        Logger.e(TAG, e, "Native libraries failed to load")
+                    }
+                    Log.d(TAG, "init in lock")
+                }
+            }.start()
+        }
     }
 }
