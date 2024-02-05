@@ -201,6 +201,7 @@ fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
             beyondBoundsPageCount = 0,
             key = null,
             pageNestedScrollConnection = PagerDefaults.pageNestedScrollConnection(
+                pagerState,
                 Orientation.Horizontal
             ),
             pageContent = {
