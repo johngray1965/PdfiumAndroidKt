@@ -481,12 +481,7 @@ class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogg
                 synchronized(lock) {
                     Log.d(TAG, "init in lock")
                     try {
-                        System.loadLibrary("absl.cr")
-                        System.loadLibrary("c++_chrome.cr")
-                        System.loadLibrary("chrome_zlib.cr")
-                        System.loadLibrary("icuuc.cr")
-                        System.loadLibrary("partition_alloc.cr")
-                        System.loadLibrary("pdfium.cr")
+                        System.loadLibrary("pdfium")
                         System.loadLibrary("pdfiumandroid")
                         isReader.markReady()
                     } catch (e: UnsatisfiedLinkError) {
