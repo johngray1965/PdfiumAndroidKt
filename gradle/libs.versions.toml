@@ -2,18 +2,18 @@
 activity-compose = "1.8.2"
 androidx-junit = "1.1.5"
 appcompat = "1.6.1"
-coil-compose = "2.4.0"
+coil-compose = "2.5.0"
 glide = "1.0.0-beta01"
 core-ktx = "1.12.0"
 core-testing = "2.2.0"
 espresso-core = "3.5.1"
-hilt-android = "2.49"
+hilt-android = "2.50"
 junit = "4.13.2"
 kotlinx-coroutines-android = "1.7.3"
 lifecycle-runtime-ktx = "2.7.0"
 material = "1.11.0"
 timber = "5.0.1"
-truth = "1.1.5"
+truth = "1.4.0"
 
 [libraries]
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
