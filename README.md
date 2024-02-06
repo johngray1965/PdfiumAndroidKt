@@ -16,5 +16,5 @@ PdfDocument, PdfPage, PdfTextPage and Kt versions all uses Closable.
 
 To use it, add the following app's build.gradle:
 ```
-    implementation("io.legere:pdfiumandroid:1.0.16")
+    implementation("io.legere:pdfiumandroid:1.0.17")
 ```

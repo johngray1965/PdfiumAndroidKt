@@ -37,6 +37,7 @@ material = { module = "com.google.android.material:material", version.ref = "mat
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
+arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 
 [bundles]
 
