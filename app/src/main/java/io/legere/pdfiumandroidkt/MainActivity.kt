@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +55,9 @@ import io.legere.pdfiumandroidkt.ui.theme.PdfiumAndroidKtTheme
 import timber.log.Timber
 import kotlin.math.roundToInt
 
+private const val MAX_MEMORY_CACHE_SIZE_PERCENTAGE = 0.25
+private const val MAX_DISK_CACHE_SIZE_PERCENTAGE = 0.1
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -78,13 +80,13 @@ class MainActivity : ComponentActivity() {
             .allowRgb565(true)
             .memoryCache {
                 MemoryCache.Builder(this)
-                    .maxSizePercent(0.25)
+                    .maxSizePercent(MAX_MEMORY_CACHE_SIZE_PERCENTAGE)
                     .build()
             }
             .diskCache {
                 DiskCache.Builder()
                     .directory(cacheDir.resolve("image_cache"))
-                    .maxSizePercent(0.1)
+                    .maxSizePercent(MAX_DISK_CACHE_SIZE_PERCENTAGE)
                     .build()
             }
             .build()
@@ -139,7 +141,7 @@ fun MyUI(
 fun MainContent(viewModel: MainViewModel, imageLoader: ImageLoader) {
     val state = viewModel.state.collectAsState()
     when (state.value.loadState) {
-        MainViewModel.LoadStatus.Loading -> MaxSizeCenterBox { CircularProgressIndicator() }
+        MainViewModel.LoadStatus.Loading -> MaxSizeCenterBox { Message("Loading") }
         MainViewModel.LoadStatus.Success -> MyPager(viewModel, imageLoader)
         MainViewModel.LoadStatus.Error -> Message("Error")
         MainViewModel.LoadStatus.Init -> Message("Load PDF")

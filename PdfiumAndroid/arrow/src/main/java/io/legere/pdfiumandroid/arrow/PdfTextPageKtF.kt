@@ -1,27 +1,26 @@
 @file:Suppress("unused")
 
-package io.legere.pdfiumandroid.suspend
+package io.legere.pdfiumandroid.arrow
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.Logger
+import arrow.core.Either
 import io.legere.pdfiumandroid.PdfTextPage
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
- * PdfTextPageKt represents a single text page of a PDF file.
+ * PdfTextPageKtF represents a single text page of a PDF file.
  * @property page the [PdfTextPage] to wrap
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  */
 @Suppress("TooManyFunctions")
-class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
+class PdfTextPageKtF(private val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */
-    suspend fun textPageCountChars(): Int {
-        return withContext(dispatcher) {
+    suspend fun textPageCountChars(): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.textPageCountChars()
         }
     }
@@ -32,8 +31,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     suspend fun textPageGetText(
         startIndex: Int,
         length: Int
-    ): String? {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, String?> {
+        return wrapEither(dispatcher) {
             page.textPageGetText(startIndex, length)
         }
     }
@@ -41,8 +40,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     /**
      * suspend version of [PdfTextPage.textPageGetUnicode]
      */
-    suspend fun textPageGetUnicode(index: Int): Char {
-        return withContext(dispatcher) {
+    suspend fun textPageGetUnicode(index: Int): Either<PdfiumKtFErrors, Char> {
+        return wrapEither(dispatcher) {
             page.textPageGetUnicode(index)
         }
     }
@@ -50,8 +49,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     /**
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
-    suspend fun textPageGetCharBox(index: Int): RectF? {
-        return withContext(dispatcher) {
+    suspend fun textPageGetCharBox(index: Int): Either<PdfiumKtFErrors, RectF?> {
+        return wrapEither(dispatcher) {
             page.textPageGetCharBox(index)
         }
     }
@@ -64,8 +63,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         y: Double,
         xTolerance: Double,
         yTolerance: Double
-    ): Int {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
     }
@@ -76,8 +75,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     suspend fun textPageCountRects(
         startIndex: Int,
         count: Int
-    ): Int {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.textPageCountRects(startIndex, count)
         }
     }
@@ -85,8 +84,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     /**
      * suspend version of [PdfTextPage.textPageGetRect]
      */
-    suspend fun textPageGetRect(rectIndex: Int): RectF? {
-        return withContext(dispatcher) {
+    suspend fun textPageGetRect(rectIndex: Int): Either<PdfiumKtFErrors, RectF?> {
+        return wrapEither(dispatcher) {
             page.textPageGetRect(rectIndex)
         }
     }
@@ -97,8 +96,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     suspend fun textPageGetBoundedText(
         rect: RectF,
         length: Int
-    ): String? {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, String?> {
+        return wrapEither(dispatcher) {
             page.textPageGetBoundedText(rect, length)
         }
     }
@@ -106,8 +105,8 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
     /**
      * suspend version of [PdfTextPage.getFontSize]
      */
-    suspend fun getFontSize(charIndex: Int): Double {
-        return withContext(dispatcher) {
+    suspend fun getFontSize(charIndex: Int): Either<PdfiumKtFErrors, Double> {
+        return wrapEither(dispatcher) {
             page.getFontSize(charIndex)
         }
     }
@@ -119,13 +118,10 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         page.close()
     }
 
-    fun safeClose(): Boolean {
-        return try {
+    fun safeClose(): Either<PdfiumKtFErrors, Boolean> {
+        return Either.catch {
             page.close()
             true
-        } catch (e: IllegalStateException) {
-            Logger.e("PdfTextPageKt", e, "PdfTextPageKt.safeClose",)
-            false
-        }
+        }.mapLeft { exceptionToPdfiumKtFError(it) }
     }
 }

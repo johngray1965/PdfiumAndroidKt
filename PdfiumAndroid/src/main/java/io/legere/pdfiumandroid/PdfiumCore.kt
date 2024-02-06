@@ -10,23 +10,26 @@ import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.Surface
+import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.InitLock
 import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.IOException
 
 /**
  * PdfiumCore is the main entry-point for access to the PDFium API.
  */
 @Suppress("TooManyFunctions")
-class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogger()) {
+class PdfiumCore(context: Context? = null, val config: Config = Config()) {
 
     private val mCurrentDpi: Int
 
     init {
-        Logger.setLogger(logger)
+        pdfiumConfig = config
+        Logger.setLogger(config.logger)
         Logger.d(TAG, "Starting PdfiumAndroid ")
         mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
-        isReader.waitForReady()
+        isReady.waitForReady()
     }
 
     private external fun nativeOpenDocument(fd: Int, password: String?): Long
@@ -472,7 +475,7 @@ class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogg
         /* synchronize native methods */
         val lock = Any()
 
-        val isReader = InitLock()
+        val isReady = InitLock()
 
         init {
             Log.d(TAG, "init")
@@ -488,7 +491,7 @@ class PdfiumCore(context: Context? = null, logger: LoggerInterface = DefaultLogg
                         System.loadLibrary("partition_alloc.cr")
                         System.loadLibrary("pdfium.cr")
                         System.loadLibrary("pdfiumandroid")
-                        isReader.markReady()
+                        isReady.markReady()
                     } catch (e: UnsatisfiedLinkError) {
                         Logger.e(TAG, e, "Native libraries failed to load")
                     }

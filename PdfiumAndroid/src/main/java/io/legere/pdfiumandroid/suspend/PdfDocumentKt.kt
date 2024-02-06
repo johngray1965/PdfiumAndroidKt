@@ -2,6 +2,7 @@
 
 package io.legere.pdfiumandroid.suspend
 
+import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import kotlinx.coroutines.CoroutineDispatcher
@@ -14,6 +15,7 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  * @constructor create a [PdfDocumentKt] from a [PdfDocument]
  */
+@Suppress("TooManyFunctions")
 class PdfDocumentKt(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
     Closeable {
 
@@ -106,5 +108,15 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
      */
     override fun close() {
         document.close()
+    }
+
+    fun safeClose(): Boolean {
+        return try {
+            document.close()
+            true
+        } catch (e: IllegalStateException) {
+            Logger.e("PdfDocumentKt", e, "PdfDocumentKt.safeClose")
+            false
+        }
     }
 }

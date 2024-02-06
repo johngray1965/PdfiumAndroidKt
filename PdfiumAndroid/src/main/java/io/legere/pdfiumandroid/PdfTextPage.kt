@@ -3,6 +3,7 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
+import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -72,7 +73,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageCountChars(): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
             return nativeTextCountChars(pagePtr)
         }
@@ -90,7 +91,7 @@ class PdfTextPage(
         startIndex: Int,
         length: Int
     ): String? {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             try {
                 val buf = ShortArray(length + 1)
@@ -127,7 +128,7 @@ class PdfTextPage(
         startIndex: Int,
         length: Int
     ): String? {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             try {
                 val bytes = ByteArray(length * 2)
@@ -173,8 +174,9 @@ class PdfTextPage(
      * @return the bounding box
      * @throws IllegalStateException if the page or document is closed
      */
+    @Suppress("ReturnCount", "MagicNumber")
     fun textPageGetCharBox(index: Int): RectF? {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             try {
                 val o =
@@ -205,13 +207,14 @@ class PdfTextPage(
      * @return the index of the character at the position
      * @throws IllegalStateException if the page or document is closed
      */
+    @Suppress("ReturnCount")
     fun textPageGetCharIndexAtPos(
         x: Double,
         y: Double,
         xTolerance: Double,
         yTolerance: Double
     ): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
             try {
                 return nativeTextGetCharIndexAtPos(
@@ -262,10 +265,11 @@ class PdfTextPage(
      * @return the bounding box
      * @throws IllegalStateException if the page or document is closed
      */
+    @Suppress("MagicNumber")
     fun textPageGetRect(rectIndex: Int): RectF? {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
-            try {
+            return try {
                 val o =
                     nativeTextGetRect(pagePtr, rectIndex)
                 val r = RectF()
@@ -273,14 +277,15 @@ class PdfTextPage(
                 r.top = o[1].toFloat()
                 r.right = o[2].toFloat()
                 r.bottom = o[3].toFloat()
-                return r
+                r
             } catch (e: NullPointerException) {
                 Logger.e(TAG, e, "mContext may be null")
+                null
             } catch (e: Exception) {
                 Logger.e(TAG, e, "Exception throw from native")
+                null
             }
         }
-        return null
     }
 
     /**
@@ -294,9 +299,9 @@ class PdfTextPage(
         rect: RectF,
         length: Int
     ): String? {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
-            try {
+            return try {
                 val buf = ShortArray(length + 1)
                 val r = nativeTextGetBoundedText(
                     pagePtr,
@@ -313,13 +318,14 @@ class PdfTextPage(
                     val s = buf[i]
                     bb.putShort(s)
                 }
-                return String(bytes, StandardCharsets.UTF_16LE)
+                String(bytes, StandardCharsets.UTF_16LE)
             } catch (e: NullPointerException) {
                 Logger.e(TAG, e, "mContext may be null")
+                null
             } catch (e: Exception) {
                 Logger.e(TAG, e, "Exception throw from native")
+                null
             }
-            return null
         }
     }
 
@@ -330,7 +336,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun getFontSize(charIndex: Int): Double {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return 0.0
         synchronized(PdfiumCore.lock) {
             return nativeGetFontSize(pagePtr, charIndex)
         }
@@ -340,7 +346,7 @@ class PdfTextPage(
      * Close the page and release all resources
      */
     override fun close() {
-        if (isClosed) return
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
 
         synchronized(PdfiumCore.lock) {
             pageMap[pageIndex]?.let {

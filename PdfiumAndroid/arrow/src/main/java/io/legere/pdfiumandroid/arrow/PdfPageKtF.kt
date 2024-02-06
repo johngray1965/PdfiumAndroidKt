@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package io.legere.pdfiumandroid.suspend
+package io.legere.pdfiumandroid.arrow
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -9,37 +9,36 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
-import io.legere.pdfiumandroid.Logger
+import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
- * PdfPageKt represents a single page of a PDF file.
+ * PdfPageKtF represents a single page of a PDF file.
  * @property page the [PdfPage] to wrap
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  */
 @Suppress("TooManyFunctions")
-class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
+class PdfPageKtF(private val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
     /**
      * Open a text page
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
-    suspend fun openTextPage(): PdfTextPageKt {
-        return withContext(dispatcher) {
-            PdfTextPageKt(page.openTextPage(), dispatcher)
+    suspend fun openTextPage(): Either<PdfiumKtFErrors, PdfTextPageKtF> {
+        return wrapEither(dispatcher) {
+            PdfTextPageKtF(page.openTextPage(), dispatcher)
         }
     }
 
     /**
      * suspend version of [PdfPage.getPageWidth]
      */
-    suspend fun getPageWidth(screenDpi: Int): Int {
-        return withContext(dispatcher) {
+    suspend fun getPageWidth(screenDpi: Int): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.getPageWidth(screenDpi)
         }
     }
@@ -47,8 +46,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageHeight]
      */
-    suspend fun getPageHeight(screenDpi: Int): Int {
-        return withContext(dispatcher) {
+    suspend fun getPageHeight(screenDpi: Int): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.getPageHeight(screenDpi)
         }
     }
@@ -56,8 +55,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageWidthPoint]
      */
-    suspend fun getPageWidthPoint(): Int {
-        return withContext(dispatcher) {
+    suspend fun getPageWidthPoint(): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.getPageWidthPoint()
         }
     }
@@ -65,8 +64,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageHeightPoint]
      */
-    suspend fun getPageHeightPoint(): Int {
-        return withContext(dispatcher) {
+    suspend fun getPageHeightPoint(): Either<PdfiumKtFErrors, Int> {
+        return wrapEither(dispatcher) {
             page.getPageHeightPoint()
         }
     }
@@ -74,8 +73,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageCropBox]
      */
-    suspend fun getPageCropBox(): RectF {
-        return withContext(dispatcher) {
+    suspend fun getPageCropBox(): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.getPageCropBox()
         }
     }
@@ -83,8 +82,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageMediaBox]
      */
-    suspend fun getPageMediaBox(): RectF {
-        return withContext(dispatcher) {
+    suspend fun getPageMediaBox(): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.getPageMediaBox()
         }
     }
@@ -92,8 +91,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageBleedBox]
      */
-    suspend fun getPageBleedBox(): RectF {
-        return withContext(dispatcher) {
+    suspend fun getPageBleedBox(): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.getPageBleedBox()
         }
     }
@@ -101,8 +100,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageTrimBox]
      */
-    suspend fun getPageTrimBox(): RectF {
-        return withContext(dispatcher) {
+    suspend fun getPageTrimBox(): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.getPageTrimBox()
         }
     }
@@ -110,8 +109,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageArtBox]
      */
-    suspend fun getPageArtBox(): RectF {
-        return withContext(dispatcher) {
+    suspend fun getPageArtBox(): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.getPageArtBox()
         }
     }
@@ -119,8 +118,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageBoundingBox]
      */
-    suspend fun getPageBoundingBox(): RectF {
-        return withContext(dispatcher) {
+    suspend fun getPageBoundingBox(): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.getPageBoundingBox()
         }
     }
@@ -128,8 +127,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
     /**
      * suspend version of [PdfPage.getPageSize]
      */
-    suspend fun getPageSize(screenDpi: Int): Size {
-        return withContext(dispatcher) {
+    suspend fun getPageSize(screenDpi: Int): Either<PdfiumKtFErrors, Size> {
+        return wrapEither(dispatcher) {
             page.getPageSize(screenDpi)
         }
     }
@@ -144,9 +143,10 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int
-    ) {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Boolean> {
+        return wrapEither(dispatcher) {
             page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
+            true
         }
     }
 
@@ -162,9 +162,10 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         drawSizeY: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false
-    ) {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Boolean> {
+        return wrapEither(dispatcher) {
             page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+            true
         }
     }
 
@@ -174,17 +175,18 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false
-    ) {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Boolean> {
+        return wrapEither(dispatcher) {
             page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask)
+            true
         }
     }
 
     /**
      * suspend version of [PdfPage.getPageLinks]
      */
-    suspend fun getPageLinks(): List<PdfDocument.Link> {
-        return withContext(dispatcher) {
+    suspend fun getPageLinks(): Either<PdfiumKtFErrors, List<PdfDocument.Link>> {
+        return wrapEither(dispatcher) {
             page.getPageLinks()
         }
     }
@@ -201,8 +203,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         rotate: Int,
         pageX: Double,
         pageY: Double
-    ): Point {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Point> {
+        return wrapEither(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
     }
@@ -219,8 +221,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         rotate: Int,
         deviceX: Int,
         deviceY: Int
-    ): PointF {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, PointF> {
+        return wrapEither(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
     }
@@ -236,8 +238,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         sizeY: Int,
         rotate: Int,
         coords: RectF
-    ): Rect {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, Rect> {
+        return wrapEither(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
     }
@@ -253,8 +255,8 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         sizeY: Int,
         rotate: Int,
         coords: Rect
-    ): RectF {
-        return withContext(dispatcher) {
+    ): Either<PdfiumKtFErrors, RectF> {
+        return wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }
     }
@@ -266,13 +268,10 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         page.close()
     }
 
-    fun safeClose(): Boolean {
-        return try {
+    fun safeClose(): Either<PdfiumKtFErrors, Boolean> {
+        return Either.catch {
             page.close()
             true
-        } catch (e: IllegalStateException) {
-            Logger.e("PdfPageKt", e, "PdfPageKt.safeClose",)
-            false
-        }
+        }.mapLeft { exceptionToPdfiumKtFError(it) }
     }
 }

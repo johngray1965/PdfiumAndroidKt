@@ -10,6 +10,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
 
 private const val THREE_BY_THREE = 9
@@ -118,7 +119,8 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidth(screenDpi: Int): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
+
         synchronized(PdfiumCore.lock) {
             return nativeGetPageWidthPixel(pagePtr, screenDpi)
         }
@@ -131,7 +133,8 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeight(screenDpi: Int): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
+
         synchronized(PdfiumCore.lock) {
             return nativeGetPageHeightPixel(pagePtr, screenDpi)
         }
@@ -143,7 +146,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidthPoint(): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
             return nativeGetPageWidthPoint(pagePtr)
         }
@@ -155,7 +158,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeightPoint(): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
             return nativeGetPageHeightPoint(pagePtr)
         }
@@ -304,7 +307,7 @@ class PdfPage(
         drawSizeY: Int,
         renderAnnot: Boolean = false
     ) {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
             try {
                 // nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
@@ -318,9 +321,9 @@ class PdfPage(
                     renderAnnot
                 )
             } catch (e: NullPointerException) {
-                Logger.e(TAG, e,"mContext may be null")
+                Logger.e(TAG, e, "mContext may be null")
             } catch (e: Exception) {
-                Logger.e(TAG, e,"Exception throw from native")
+                Logger.e(TAG, e, "Exception throw from native")
             }
         }
     }
@@ -352,7 +355,7 @@ class PdfPage(
         renderAnnot: Boolean = false,
         textMask: Boolean = false
     ) {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
             nativeRenderPageBitmap(
                 pagePtr,
@@ -374,7 +377,7 @@ class PdfPage(
         renderAnnot: Boolean = false,
         textMask: Boolean = false
     ) {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         val matrixValues = FloatArray(THREE_BY_THREE)
         matrix.getValues(matrixValues)
         synchronized(PdfiumCore.lock) {
@@ -396,7 +399,7 @@ class PdfPage(
 
     /** Get all links from given page  */
     fun getPageLinks(): List<PdfDocument.Link> {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return emptyList()
         synchronized(PdfiumCore.lock) {
             val links: MutableList<PdfDocument.Link> =
                 ArrayList()
@@ -576,7 +579,7 @@ class PdfPage(
      * Close the page and release all resources
      */
     override fun close() {
-        if (isClosed) return
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
 
         synchronized(PdfiumCore.lock) {
             pageMap[pageIndex]?.let {

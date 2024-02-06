@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.legere.pdfiumandroid.LoggerInterface
 import io.legere.pdfiumandroid.suspend.PdfDocumentKt
 import io.legere.pdfiumandroid.suspend.PdfiumCoreKt
+import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,15 +33,20 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
     val state: StateFlow<UiState>
     val accept: (UiAction) -> Unit
 
-    private val pdfiumCore = PdfiumCoreKt(Dispatchers.Default, object : LoggerInterface {
-        override fun d(tag: String, message: String?) {
-            Timber.tag(tag).d(message)
-        }
+    private val pdfiumCore = PdfiumCoreKt(
+        Dispatchers.Default,
+        Config().copy(
+            logger = object : LoggerInterface {
+                override fun d(tag: String, message: String?) {
+                    Timber.tag(tag).d(message)
+                }
 
-        override fun e(tag: String, t: Throwable?, message: String?) {
-            Timber.tag(tag).e(t, message)
-        }
-    })
+                override fun e(tag: String, t: Throwable?, message: String?) {
+                    Timber.tag(tag).e(t, message)
+                }
+            }
+        )
+    )
     private var pdfDocument: PdfDocumentKt? = null
 
     init {
@@ -93,12 +99,12 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
             pdfDocument?.openPage(pageNum)?.use { page ->
                 val size = page.getPageSize(1)
                 Timber.d("getPageSize: pageNum: $pageNum, width: ${size.width}, height: ${size.height}")
-                val pageWdith = page.getPageWidthPoint()
+                val pageWidth = page.getPageWidthPoint()
                 val pageHeight = page.getPageHeightPoint()
                 val tempSrc = RectF(
                     0f,
                     0f,
-                    pageWdith.toFloat(),
+                    pageWidth.toFloat(),
                     pageHeight.toFloat()
                 )
                 val tempDst = RectF(0f, 0f, width.toFloat(), height.toFloat())
@@ -110,7 +116,8 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
                 page.renderPageBitmap(
                     bitmap,
                     result,
-                    RectF(0f, 0f, width.toFloat(), zoom * height.toFloat())
+                    RectF(0f, 0f, width.toFloat(), zoom * height.toFloat()),
+                    renderAnnot = true
                 )
                 page.openTextPage().use { textPage ->
                     val charCount = textPage.textPageCountChars()
@@ -125,7 +132,7 @@ class MainViewModel @Inject constructor(application: Application) : AndroidViewM
                     }
                 }
             }
-            Timber.d("finsished getPage $pageNum")
+            Timber.d("finished getPage $pageNum")
             return bitmap
         } catch (e: Exception) {
             Timber.e(e)

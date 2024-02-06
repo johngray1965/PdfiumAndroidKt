@@ -6,9 +6,10 @@ import android.util.Log
 // in the future, we might expand this.
 interface LoggerInterface {
     fun d(tag: String, message: String?)
-    fun e(tag: String, t: Throwable?,  message: String?)
+    fun e(tag: String, t: Throwable?, message: String?)
 }
 
+@Suppress("MemberNameEqualsClassName")
 object Logger : LoggerInterface {
     private var logger: LoggerInterface? = null
     override fun d(tag: String, message: String?) {
@@ -24,10 +25,9 @@ object Logger : LoggerInterface {
     }
 }
 
-class DefaultLogger: LoggerInterface {
+class DefaultLogger : LoggerInterface {
     override fun d(tag: String, message: String?) {
         message?.let { Log.d(tag, message) }
-
     }
 
     override fun e(tag: String, t: Throwable?, message: String?) {
