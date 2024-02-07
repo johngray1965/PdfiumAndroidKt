@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinAndroid)
     `maven-publish`
+    signing
 }
 
 android {
@@ -37,7 +38,7 @@ android {
 }
 
 dependencies {
-    implementation("io.legere:pdfiumandroid:1.0.17")
+    implementation("io.legere:pdfiumandroid:1.0.18")
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.arrow.core)
     testImplementation(libs.junit)
@@ -122,4 +123,8 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    sign(publishing.publications)
 }

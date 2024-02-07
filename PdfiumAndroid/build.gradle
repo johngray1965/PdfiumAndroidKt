@@ -137,7 +137,6 @@ publishing {
     }
     repositories {
         maven {
-            //url = uri("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt")
             url = getRepositoryUrl()
             credentials {
                 username = getRepositoryUsername()// project.findProperty("gpr.user") ?: System.getenv("GITHUB_USER")

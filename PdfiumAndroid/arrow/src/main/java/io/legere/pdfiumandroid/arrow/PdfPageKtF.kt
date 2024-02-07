@@ -22,7 +22,7 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  */
 @Suppress("TooManyFunctions")
-class PdfPageKtF(private val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
+class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
 
     /**
      * Open a text page

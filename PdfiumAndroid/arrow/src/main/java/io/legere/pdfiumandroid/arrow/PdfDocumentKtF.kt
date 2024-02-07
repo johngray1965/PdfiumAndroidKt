@@ -14,7 +14,7 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  * @constructor create a [PdfDocumentKtF] from a [PdfDocument]
  */
-class PdfDocumentKtF(private val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
+class PdfDocumentKtF(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
     Closeable {
 
     /**
