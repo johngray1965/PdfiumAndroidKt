@@ -743,7 +743,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, job
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject thiz, jlong doc_ptr,
-                                                          jobject callback) {
+                                                          jobject callback, jint flags) {
     try {
         jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/PdfWriteCallback");
         if (callback != nullptr && env->IsInstanceOf(callback, callbackClass)) {
@@ -756,7 +756,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject t
             fw.env = env;
 
             auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
-            return (jboolean) FPDF_SaveAsCopy(doc->pdfDocument, &fw, FPDF_NO_INCREMENTAL);
+            return (jboolean) FPDF_SaveAsCopy(doc->pdfDocument, &fw, flags);
         }
         return false;
     } catch (std::bad_alloc &e) {
