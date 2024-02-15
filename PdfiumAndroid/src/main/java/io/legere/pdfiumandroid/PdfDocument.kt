@@ -33,7 +33,7 @@ class PdfDocument(
     private external fun nativeGetBookmarkDestIndex(docPtr: Long, bookmarkPtr: Long): Long
     private external fun nativeLoadTextPage(docPtr: Long, pagePtr: Long): Long
     private external fun nativeGetBookmarkTitle(bookmarkPtr: Long): String
-    private external fun nativeSaveAsCopy(docPtr: Long, callback: PdfWriteCallback): Boolean
+    private external fun nativeSaveAsCopy(docPtr: Long, callback: PdfWriteCallback, flags: Int): Boolean
     private external fun nativeGetPageCharCounts(docPtr: Long): IntArray
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
@@ -218,12 +218,13 @@ class PdfDocument(
     /**
      * Save document as a copy
      * @param callback the [PdfWriteCallback] to be called with the data
+     * @param flags must be one of [FPDF_INCREMENTAL], [FPDF_NO_INCREMENTAL] or [FPDF_REMOVE_SECURITY]
      * @return true if the document was successfully saved
      * @throws IllegalArgumentException if document is closed
      */
-    fun saveAsCopy(callback: PdfWriteCallback): Boolean {
+    fun saveAsCopy(callback: PdfWriteCallback, flags: Int = FPDF_NO_INCREMENTAL): Boolean {
         if (handleAlreadyClosed(isClosed)) return false
-        return nativeSaveAsCopy(mNativeDocPtr, callback)
+        return nativeSaveAsCopy(mNativeDocPtr, callback, flags)
     }
 
     /**
@@ -265,5 +266,9 @@ class PdfDocument(
 
     companion object {
         private val TAG = PdfDocument::class.java.name
+
+        const val FPDF_INCREMENTAL = 1
+        const val FPDF_NO_INCREMENTAL = 2
+        const val FPDF_REMOVE_SECURITY = 3
     }
 }
