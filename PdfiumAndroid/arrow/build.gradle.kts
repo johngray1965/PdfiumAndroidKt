@@ -24,7 +24,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -38,7 +38,7 @@ android {
 }
 
 dependencies {
-    implementation("io.legere:pdfiumandroid:1.0.18")
+    implementation("io.legere:pdfiumandroid:1.0.19")
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.arrow.core)
     testImplementation(libs.junit)
