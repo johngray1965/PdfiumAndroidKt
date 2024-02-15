@@ -104,7 +104,7 @@ publishing {
             version = findProperty('VERSION_NAME')
             pom {
 
-                name = 'PdfiumAndroid'
+                name = 'pdfiumandroid'
                 packaging = getProperty('POM_PACKAGING')
                 description = getProperty('POM_DESCRIPTION')
                 url = getProperty('POM_URL')

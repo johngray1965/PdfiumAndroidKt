@@ -63,8 +63,7 @@ android {
 
 dependencies {
 
-    implementation project(":PdfiumAndroid")
-    //implementation project(path: ':PdfiumAndroid')
+    implementation project(':pdfiumandroid')//implementation project(path: ':PdfiumAndroid')
     //implementation 'io.legere:pdfiumandroid:1.0.1'
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat

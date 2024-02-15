@@ -13,7 +13,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -38,7 +38,7 @@ android {
 }
 
 dependencies {
-    implementation("io.legere:pdfiumandroid:1.0.19")
+    implementation(project(":pdfiumandroid"))
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.arrow.core)
     testImplementation(libs.junit)
@@ -84,17 +84,18 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
-            artifactId = "pdfiumandroid-arrow"
+            artifactId = "pdfium-android-kt-arrow"
             version = rootProject.properties["VERSION_NAME"] as String
 
             pom {
-                name.set("PdfiumAndroid.Arrow")
+                name.set("pdfiumandroid.arrow")
                 description.set("Arrow support for PdfiumAndroid")
                 url.set(rootProject.properties["POM_URL"] as String)
                 licenses {
                     license {
                         name.set(rootProject.properties["POM_LICENCE_NAME"] as String)
                         url.set(rootProject.properties["POM_LICENCE_URL"] as String)
+                        distribution.set(rootProject.properties["POM_LICENCE_DIST"] as String)
                     }
                 }
                 developers {
