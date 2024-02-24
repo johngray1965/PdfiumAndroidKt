@@ -284,8 +284,8 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
     }
 
     int size = (int) env->GetArrayLength(data);
-    auto *cDataCopy = new jbyte[size];
-    env->GetByteArrayRegion(data, 0, size, cDataCopy);
+    auto *cDataCopy = malloc(size);
+    env->GetByteArrayRegion(data, 0, size, static_cast<jbyte *>(cDataCopy));
     FPDF_DOCUMENT document = FPDF_LoadMemDocument( reinterpret_cast<const void*>(cDataCopy),
                                                    size, cpassword);
 
@@ -312,7 +312,7 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
     }
 
     docFile->pdfDocument = document;
-    docFile->cDataCopy = cDataCopy;
+    docFile->cDataCopy = static_cast<jbyte *>(cDataCopy);
     return reinterpret_cast<jlong>(docFile);
 }
 
