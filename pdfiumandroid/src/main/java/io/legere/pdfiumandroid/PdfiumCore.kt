@@ -21,7 +21,6 @@ import java.io.IOException
  */
 @Suppress("TooManyFunctions")
 class PdfiumCore(context: Context? = null, val config: Config = Config()) {
-
     private val mCurrentDpi: Int
 
     init {
@@ -32,8 +31,15 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         isReady.waitForReady()
     }
 
-    private external fun nativeOpenDocument(fd: Int, password: String?): Long
-    private external fun nativeOpenMemDocument(data: ByteArray?, password: String?): Long
+    private external fun nativeOpenDocument(
+        fd: Int,
+        password: String?,
+    ): Long
+
+    private external fun nativeOpenMemDocument(
+        data: ByteArray?,
+        password: String?,
+    ): Long
 
     private external fun nativeGetLinkRect(linkPtr: Long): RectF?
 
@@ -54,7 +60,10 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(parcelFileDescriptor: ParcelFileDescriptor, password: String?): PdfDocument {
+    fun newDocument(
+        parcelFileDescriptor: ParcelFileDescriptor,
+        password: String?,
+    ): PdfDocument {
         synchronized(lock) {
             return PdfDocument(nativeOpenDocument(parcelFileDescriptor.fd, password)).also { document ->
                 document.parcelFileDescriptor = parcelFileDescriptor
@@ -79,7 +88,10 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(data: ByteArray?, password: String?): PdfDocument {
+    fun newDocument(
+        data: ByteArray?,
+        password: String?,
+    ): PdfDocument {
         synchronized(lock) {
             return PdfDocument(nativeOpenMemDocument(data, password)).also { document ->
                 document.parcelFileDescriptor = null
@@ -100,7 +112,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfDocument.getTableOfContents()",
         ReplaceWith("pdfDocument.getTableOfContents()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     fun getTableOfContents(pdfDocument: PdfDocument): List<PdfDocument.Bookmark> {
         return pdfDocument.getTableOfContents()
@@ -110,7 +122,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfDocument.openTextPage()",
         ReplaceWith("pdfDocument.openTextPage(pageIndex)"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     fun openTextPage(pdfDocument: PdfDocument, pageIndex: Int): Long {
         return pageIndex.toLong()
@@ -120,7 +132,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfDocument.openPage()",
         ReplaceWith("pdfDocument.openPage(pageIndex)"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     fun openPage(pdfDocument: PdfDocument, pageIndex: Int): Long {
         return pageIndex.toLong()
@@ -129,9 +141,12 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use Page.getPageMediaBox()",
         ReplaceWith("page.getPageMediaBox()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun getPageMediaBox(pdfDocument: PdfDocument, pageIndex: Int): RectF {
+    fun getPageMediaBox(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+    ): RectF {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.getPageMediaBox()
         }
@@ -141,9 +156,12 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use page.close()",
         ReplaceWith("page.close()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.ERROR,
     )
-    fun closePage(pdfDocument: PdfDocument, pageIndex: Int) {
+    fun closePage(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+    ) {
         // empty
     }
 
@@ -151,7 +169,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use textPage.close()",
         ReplaceWith("textPage.close()"),
-        DeprecationLevel.ERROR
+        DeprecationLevel.ERROR,
     )
     fun closeTextPage(pdfDocument: PdfDocument, pageIndex: Int) {
         // empty
@@ -160,9 +178,12 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use textPage.textPageCountChars()",
         ReplaceWith("textPage.textPageCountChars()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun textPageCountChars(pdfDocument: PdfDocument, pageIndex: Int): Int {
+    fun textPageCountChars(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+    ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
             page.openTextPage().use { textPage ->
                 return textPage.textPageCountChars()
@@ -173,9 +194,14 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use textPage.textPageGetText(start, count)",
         ReplaceWith("textPage.textPageGetText(start, count)"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun textPageGetText(pdfDocument: PdfDocument, pageIndex: Int, start: Int, count: Int): String? {
+    fun textPageGetText(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        start: Int,
+        count: Int,
+    ): String? {
         pdfDocument.openPage(pageIndex).use { page ->
             page.openTextPage().use { textPage ->
                 return textPage.textPageGetText(start, count)
@@ -186,7 +212,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use pdfDocument.getDocumentMeta()",
         ReplaceWith("pdfDocument.getDocumentMeta()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     fun getDocumentMeta(pdfDocument: PdfDocument): PdfDocument.Meta {
         return pdfDocument.getDocumentMeta()
@@ -195,9 +221,12 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.getPageWidthPoint()",
         ReplaceWith("page.getPageWidthPoint()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun getPageWidthPoint(pdfDocument: PdfDocument, pageIndex: Int): Int {
+    fun getPageWidthPoint(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+    ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.getPageWidthPoint()
         }
@@ -206,9 +235,12 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.getPageHeightPoint()",
         ReplaceWith("page.getPageHeightPoint()"),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun getPageHeightPoint(pdfDocument: PdfDocument, pageIndex: Int): Int {
+    fun getPageHeightPoint(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+    ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.getPageHeightPoint()
         }
@@ -217,9 +249,9 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)",
         ReplaceWith(
-            "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)"
+            "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, screenDpi, renderAnnot, textMask)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
     fun renderPageBitmap(
@@ -231,7 +263,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
             page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
@@ -241,11 +273,15 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.textPageGetRect(index)",
         ReplaceWith(
-            "page.textPageGetRect(index)"
+            "page.textPageGetRect(index)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun textPageGetRect(pdfDocument: PdfDocument, pageIndex: Int, index: Int): RectF? {
+    fun textPageGetRect(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        index: Int,
+    ): RectF? {
         pdfDocument.openPage(pageIndex).use { page ->
             page.openTextPage().use { textPage ->
                 return textPage.textPageGetRect(index)
@@ -256,11 +292,16 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.textPageGetBoundedText(sourceRect, size)",
         ReplaceWith(
-            "page.textPageGetBoundedText(sourceRect, size)"
+            "page.textPageGetBoundedText(sourceRect, size)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun textPageGetBoundedText(pdfDocument: PdfDocument, pageIndex: Int, sourceRect: RectF, size: Int): String? {
+    fun textPageGetBoundedText(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        sourceRect: RectF,
+        size: Int,
+    ): String? {
         pdfDocument.openPage(pageIndex).use { page ->
             page.openTextPage().use { textPage ->
                 return textPage.textPageGetBoundedText(sourceRect, size)
@@ -271,9 +312,9 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)",
         ReplaceWith(
-            "page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)"
+            "page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
     fun mapRectToPage(
@@ -284,7 +325,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect
+        coords: Rect,
     ): RectF {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
@@ -294,15 +335,15 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfTextPage.textPageCountRects(startIndex, count)",
         ReplaceWith(
-            "textPage.textPageCountRects(startIndex, count)"
+            "textPage.textPageCountRects(startIndex, count)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     fun textPageCountRects(
         pdfDocument: PdfDocument,
         pageIndex: Int,
         startIndex: Int,
-        count: Int
+        count: Int,
     ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
             page.openTextPage().use { textPage ->
@@ -315,9 +356,9 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfDocument.openPage(fromIndex, toIndex)",
         ReplaceWith(
-            "pdfDocument.openPage(fromIndex, toIndex)"
+            "pdfDocument.openPage(fromIndex, toIndex)",
         ),
-        DeprecationLevel.ERROR
+        DeprecationLevel.ERROR,
     )
     fun openPage(pdfDocument: PdfDocument, fromIndex: Int, toIndex: Int): Array<Long> {
         return (fromIndex.toLong()..toIndex.toLong()).toList().toTypedArray()
@@ -326,11 +367,14 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.getPageWidth()",
         ReplaceWith(
-            "page.getPageWidth()"
+            "page.getPageWidth()",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun getPageWidth(pdfDocument: PdfDocument, index: Int): Int {
+    fun getPageWidth(
+        pdfDocument: PdfDocument,
+        index: Int,
+    ): Int {
         pdfDocument.openPage(index).use { page ->
             return page.getPageWidth(mCurrentDpi)
         }
@@ -339,11 +383,14 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.getPageHeight()",
         ReplaceWith(
-            "page.getPageHeight()"
+            "page.getPageHeight()",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun getPageHeight(pdfDocument: PdfDocument, index: Int): Int {
+    fun getPageHeight(
+        pdfDocument: PdfDocument,
+        index: Int,
+    ): Int {
         pdfDocument.openPage(index).use { page ->
             return page.getPageHeight(mCurrentDpi)
         }
@@ -352,11 +399,14 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.getPageSize()",
         ReplaceWith(
-            "page.getPageSize()"
+            "page.getPageSize()",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
-    fun getPageSize(pdfDocument: PdfDocument, index: Int): Size {
+    fun getPageSize(
+        pdfDocument: PdfDocument,
+        index: Int,
+    ): Size {
         pdfDocument.openPage(index).use { page ->
             return page.getPageSize(mCurrentDpi)
         }
@@ -365,9 +415,9 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
         ReplaceWith(
-            "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)"
+            "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
     fun renderPage(
@@ -378,7 +428,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        renderAnnot: Boolean = false
+        renderAnnot: Boolean = false,
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
             page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, false)
@@ -388,9 +438,9 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY)",
         ReplaceWith(
-            "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY)"
+            "page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
     fun renderPageBitmap(
@@ -401,7 +451,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        renderAnnot: Boolean = false
+        renderAnnot: Boolean = false,
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
             page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)
@@ -411,12 +461,15 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.getPageLinks()",
         ReplaceWith(
-            "page.getPageLinks()"
+            "page.getPageLinks()",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
-    fun getPageLinks(pdfDocument: PdfDocument, pageIndex: Int): List<PdfDocument.Link> {
+    fun getPageLinks(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+    ): List<PdfDocument.Link> {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.getPageLinks()
         }
@@ -425,9 +478,9 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     @Deprecated(
         "Use PdfPage.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)",
         ReplaceWith(
-            "page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)"
+            "page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)",
         ),
-        DeprecationLevel.WARNING
+        DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
     fun mapPageCoordsToDevice(
@@ -439,7 +492,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         sizeY: Int,
         rotate: Int,
         pageX: Double,
-        pageY: Double
+        pageY: Double,
     ): Point {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
@@ -462,7 +515,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF
+        coords: RectF,
     ): Rect {
         pdfDocument.openPage(pageIndex).use { page ->
             return page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
@@ -472,7 +525,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
     companion object {
         private val TAG = PdfiumCore::class.java.name
 
-        /* synchronize native methods */
+        // synchronize native methods
         val lock = Any()
 
         val isReady = InitLock()
@@ -484,12 +537,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
                 synchronized(lock) {
                     Log.d(TAG, "init in lock")
                     try {
-                        System.loadLibrary("absl.cr")
-                        System.loadLibrary("c++_chrome.cr")
-                        System.loadLibrary("chrome_zlib.cr")
-                        System.loadLibrary("icuuc.cr")
-                        System.loadLibrary("partition_alloc.cr")
-                        System.loadLibrary("pdfium.cr")
+                        System.loadLibrary("pdfium")
                         System.loadLibrary("pdfiumandroid")
                         isReady.markReady()
                     } catch (e: UnsatisfiedLinkError) {
