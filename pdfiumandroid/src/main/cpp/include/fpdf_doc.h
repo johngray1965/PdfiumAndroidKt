@@ -53,8 +53,6 @@ typedef enum {
 //
 // Returns a handle to the first child of |bookmark| or the first top-level
 // bookmark item. NULL if no child or top-level bookmark found.
-// Note that another name for the bookmarks is the document outline, as
-// described in ISO 32000-1:2008, section 12.3.3.
 FPDF_EXPORT FPDF_BOOKMARK FPDF_CALLCONV
 FPDFBookmark_GetFirstChild(FPDF_DOCUMENT document, FPDF_BOOKMARK bookmark);
 
@@ -191,18 +189,8 @@ FPDFAction_GetFilePath(FPDF_ACTION action, void* buffer, unsigned long buflen);
 // character, or 0 on error, typically because the arguments were bad or the
 // action was of the wrong type.
 //
-// The |buffer| may contain badly encoded data. The caller should validate the
-// output. e.g. Check to see if it is UTF-8.
-//
-// If |buflen| is less than the returned length, or |buffer| is NULL, |buffer|
-// will not be modified.
-//
-// Historically, the documentation for this API claimed |buffer| is always
-// encoded in 7-bit ASCII, but did not actually enforce it.
-// https://pdfium.googlesource.com/pdfium.git/+/d609e84cee2e14a18333247485af91df48a40592
-// added that enforcement, but that did not work well for real world PDFs that
-// used UTF-8. As of this writing, this API reverted back to its original
-// behavior prior to commit d609e84cee.
+// The |buffer| is always encoded in 7-bit ASCII. If |buflen| is less than the
+// returned length, or |buffer| is NULL, |buffer| will not be modified.
 FPDF_EXPORT unsigned long FPDF_CALLCONV
 FPDFAction_GetURIPath(FPDF_DOCUMENT document,
                       FPDF_ACTION action,

@@ -8,7 +8,7 @@
 #define PUBLIC_FPDF_FORMFILL_H_
 
 // clang-format off
-// NOLINTNEXTLINE(build/include_directory)
+// NOLINTNEXTLINE(build/include)
 #include "fpdfview.h"
 
 // These values are return values for a public API, so should not be changed
@@ -1560,35 +1560,12 @@ FORM_GetSelectedText(FPDF_FORMHANDLE hHandle,
                      unsigned long buflen);
 
 /*
- * Experimental API
- * Function: FORM_ReplaceAndKeepSelection
- *       Call this function to replace the selected text in a form
- *       text field or user-editable form combobox text field with another
- *       text string (which can be empty or non-empty). If there is no
- *       selected text, this function will append the replacement text after
- *       the current caret position. After the insertion, the inserted text
- *       will be selected.
- * Parameters:
- *       hHandle     -   Handle to the form fill module, as returned by
- *                       FPDFDOC_InitFormFillEnvironment().
- *       page        -   Handle to the page, as Returned by FPDF_LoadPage().
- *       wsText      -   The text to be inserted, in UTF-16LE format.
- * Return Value:
- *       None.
- */
-FPDF_EXPORT void FPDF_CALLCONV
-FORM_ReplaceAndKeepSelection(FPDF_FORMHANDLE hHandle,
-                             FPDF_PAGE page,
-                             FPDF_WIDESTRING wsText);
-
-/*
  * Function: FORM_ReplaceSelection
  *       Call this function to replace the selected text in a form
  *       text field or user-editable form combobox text field with another
  *       text string (which can be empty or non-empty). If there is no
  *       selected text, this function will append the replacement text after
- *       the current caret position. After the insertion, the selection range
- *       will be set to empty.
+ *       the current caret position.
  * Parameters:
  *       hHandle     -   Handle to the form fill module, as returned by
  *                       FPDFDOC_InitFormFillEnvironment().
@@ -1912,16 +1889,16 @@ FPDF_EXPORT void FPDF_CALLCONV FPDF_FFLDraw(FPDF_FORMHANDLE hHandle,
                                             int rotate,
                                             int flags);
 
-#if defined(PDF_USE_SKIA)
-FPDF_EXPORT void FPDF_CALLCONV FPDF_FFLDrawSkia(FPDF_FORMHANDLE hHandle,
-                                                FPDF_SKIA_CANVAS canvas,
-                                                FPDF_PAGE page,
-                                                int start_x,
-                                                int start_y,
-                                                int size_x,
-                                                int size_y,
-                                                int rotate,
-                                                int flags);
+#if defined(_SKIA_SUPPORT_)
+FPDF_EXPORT void FPDF_CALLCONV FPDF_FFLRecord(FPDF_FORMHANDLE hHandle,
+                                              FPDF_RECORDER recorder,
+                                              FPDF_PAGE page,
+                                              int start_x,
+                                              int start_y,
+                                              int size_x,
+                                              int size_y,
+                                              int rotate,
+                                              int flags);
 #endif
 
 /*
