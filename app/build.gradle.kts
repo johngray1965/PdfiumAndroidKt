@@ -1,9 +1,19 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.ktlint)
+}
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 android {
@@ -12,8 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "io.legere.pdfiumandroidkt"
-        minSdk = 21
-        targetSdk = 34
+        minSdk = 23
         versionCode = 1
         versionName = "1.0"
 
@@ -38,12 +47,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_1_8)
-        targetCompatibility(JavaVersion.VERSION_1_8)
-    }
-
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility(JavaVersion.VERSION_17)
+        targetCompatibility(JavaVersion.VERSION_17)
     }
 
     buildFeatures {
@@ -89,7 +94,7 @@ dependencies {
     implementation(libs.timber)
 
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

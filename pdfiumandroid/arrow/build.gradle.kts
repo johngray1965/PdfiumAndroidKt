@@ -1,11 +1,19 @@
-
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.kover)
+    alias(libs.plugins.ktlint)
     `maven-publish`
     signing
+}
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 android {
@@ -29,11 +37,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility(JavaVersion.VERSION_17)
+        targetCompatibility(JavaVersion.VERSION_17)
     }
 }
 
@@ -52,33 +57,27 @@ dependencies {
 
 fun isReleaseBuild(): Boolean = !findProject("VERSION_NAME").toString().contains("SNAPSHOT")
 
-fun getReleaseRepositoryUrl(): String {
-    return if (rootProject.hasProperty("RELEASE_REPOSITORY_URL")) {
+fun getReleaseRepositoryUrl(): String =
+    if (rootProject.hasProperty("RELEASE_REPOSITORY_URL")) {
         rootProject.properties["RELEASE_REPOSITORY_URL"] as String
     } else {
         "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
     }
-}
 
-fun getSnapshotRepositoryUrl(): String {
-    return if (rootProject.hasProperty("SNAPSHOT_REPOSITORY_URL")) {
+fun getSnapshotRepositoryUrl(): String =
+    if (rootProject.hasProperty("SNAPSHOT_REPOSITORY_URL")) {
         rootProject.properties["SNAPSHOT_REPOSITORY_URL"] as String
     } else {
         "https://oss.sonatype.org/content/repositories/snapshots/"
     }
-}
 
-fun getRepositoryUrl(): String {
-    return if (isReleaseBuild()) getReleaseRepositoryUrl() else getSnapshotRepositoryUrl()
-}
+fun getRepositoryUrl(): String = if (isReleaseBuild()) getReleaseRepositoryUrl() else getSnapshotRepositoryUrl()
 
-fun getRepositoryUsername(): String {
-    return if (rootProject.hasProperty("NEXUS_USERNAME")) rootProject.properties["NEXUS_USERNAME"] as String else ""
-}
+fun getRepositoryUsername(): String =
+    if (rootProject.hasProperty("NEXUS_USERNAME")) rootProject.properties["NEXUS_USERNAME"] as String else ""
 
-fun getRepositoryPassword(): String {
-    return if (rootProject.hasProperty("NEXUS_PASSWORD")) rootProject.properties["NEXUS_PASSWORD"] as String else ""
-}
+fun getRepositoryPassword(): String =
+    if (rootProject.hasProperty("NEXUS_PASSWORD")) rootProject.properties["NEXUS_PASSWORD"] as String else ""
 
 publishing {
     publications {

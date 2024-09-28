@@ -1,4 +1,4 @@
-@file:Suppress("FunctionNaming")
+@file:Suppress("FunctionNaming", "ktlint:standard:function-naming")
 
 package io.legere.pdfiumandroidkt
 
@@ -9,15 +9,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.PagerDefaults
-import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -73,25 +71,25 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val imageLoader =
-            ImageLoader.Builder(this)
+            ImageLoader
+                .Builder(this)
                 .components(
                     fun ComponentRegistry.Builder.() {
                         add(PdfiumFetcher.Factory())
                     },
-                )
-                .allowRgb565(true)
+                ).allowRgb565(true)
                 .memoryCache {
-                    MemoryCache.Builder(this)
+                    MemoryCache
+                        .Builder(this)
                         .maxSizePercent(MAX_MEMORY_CACHE_SIZE_PERCENTAGE)
                         .build()
-                }
-                .diskCache {
-                    DiskCache.Builder()
+                }.diskCache {
+                    DiskCache
+                        .Builder()
                         .directory(cacheDir.resolve("image_cache"))
                         .maxSizePercent(MAX_DISK_CACHE_SIZE_PERCENTAGE)
                         .build()
-                }
-                .build()
+                }.build()
 
         setContent {
             PdfiumAndroidKtTheme {
@@ -139,6 +137,7 @@ fun MyUI(
     }
 }
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 fun MainContent(
     viewModel: MainViewModel,
@@ -201,7 +200,7 @@ fun MyPager(
                     componentHeight = it.size.height
                 },
     ) {
-        VerticalPager(
+        HorizontalPager(
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -211,13 +210,7 @@ fun MyPager(
             userScrollEnabled = true,
             reverseLayout = false,
             contentPadding = PaddingValues(0.dp),
-            beyondBoundsPageCount = 0,
             key = null,
-            pageNestedScrollConnection =
-                PagerDefaults.pageNestedScrollConnection(
-                    pagerState,
-                    Orientation.Horizontal,
-                ),
             pageContent = {
                 PagerScope(
                     page = it,
@@ -255,7 +248,8 @@ fun PagerScope(
 
     AsyncImage(
         model =
-            ImageRequest.Builder(LocalContext.current)
+            ImageRequest
+                .Builder(LocalContext.current)
                 .data(
                     PdfiumFetcherData(
                         page = page,
@@ -264,8 +258,7 @@ fun PagerScope(
                         density = density.density.roundToInt(),
                         viewModel = viewModel,
                     ),
-                )
-                .memoryCacheKey("page_$page")
+                ).memoryCacheKey("page_$page")
                 .diskCachePolicy(CachePolicy.ENABLED)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .build(),
