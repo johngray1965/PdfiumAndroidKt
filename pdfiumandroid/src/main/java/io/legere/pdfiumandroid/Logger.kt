@@ -5,18 +5,34 @@ import android.util.Log
 // At the moment we only do debug log with message, or error log with message and throwable
 // in the future, we might expand this.
 interface LoggerInterface {
-    fun d(tag: String, message: String?)
-    fun e(tag: String, t: Throwable?, message: String?)
+    fun d(
+        tag: String,
+        message: String?,
+    )
+
+    fun e(
+        tag: String,
+        t: Throwable?,
+        message: String?,
+    )
 }
 
 @Suppress("MemberNameEqualsClassName")
 object Logger : LoggerInterface {
     private var logger: LoggerInterface? = null
-    override fun d(tag: String, message: String?) {
+
+    override fun d(
+        tag: String,
+        message: String?,
+    ) {
         logger?.d(tag, message)
     }
 
-    override fun e(tag: String, t: Throwable?, message: String?) {
+    override fun e(
+        tag: String,
+        t: Throwable?,
+        message: String?,
+    ) {
         logger?.e(tag, t, message)
     }
 
@@ -26,11 +42,18 @@ object Logger : LoggerInterface {
 }
 
 class DefaultLogger : LoggerInterface {
-    override fun d(tag: String, message: String?) {
+    override fun d(
+        tag: String,
+        message: String?,
+    ) {
         message?.let { Log.d(tag, message) }
     }
 
-    override fun e(tag: String, t: Throwable?, message: String?) {
+    override fun e(
+        tag: String,
+        t: Throwable?,
+        message: String?,
+    ) {
         Log.e(tag, message, t)
     }
 }

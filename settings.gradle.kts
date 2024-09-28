@@ -17,7 +17,7 @@ dependencyResolutionManagement {
     }
 }
 
-// rootProject.name = "PdfiumAndroidKt"
+rootProject.name = "pdfiumandroid"
 include(":app")
 include(":pdfiumandroid")
 include(":pdfiumandroid:arrow")

@@ -12,7 +12,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PdfTextPageTest : BasePDFTest() {
-
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
 
@@ -80,12 +79,13 @@ class PdfTextPageTest : BasePDFTest() {
                 val characterToLookup = 0
                 val rect = textPage.textPageGetCharBox(characterToLookup)
 
-                val pos = textPage.textPageGetCharIndexAtPos(
-                    rect?.centerX()?.toDouble() ?: 0.0,
-                    rect?.centerY()?.toDouble() ?: 0.0,
-                    1.0, // Shouldn't need much since we're in the middle of the rect
-                    1.0
-                )
+                val pos =
+                    textPage.textPageGetCharIndexAtPos(
+                        rect?.centerX()?.toDouble() ?: 0.0,
+                        rect?.centerY()?.toDouble() ?: 0.0,
+                        1.0, // Shouldn't need much since we're in the middle of the rect
+                        1.0,
+                    )
 
                 assertThat(pos).isEqualTo(characterToLookup)
             }

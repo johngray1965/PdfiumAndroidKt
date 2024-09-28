@@ -21,41 +21,61 @@ class PdfTextPage(
     val doc: PdfDocument,
     val pageIndex: Int,
     val pagePtr: Long,
-    val pageMap: MutableMap<Int, PdfDocument.PageCount>
+    val pageMap: MutableMap<Int, PdfDocument.PageCount>,
 ) : Closeable {
-
     private var isClosed = false
 
     private external fun nativeCloseTextPage(pagePtr: Long)
+
     private external fun nativeTextCountChars(textPagePtr: Long): Int
+
     private external fun nativeTextGetText(
         textPagePtr: Long,
         startIndex: Int,
         count: Int,
-        result: ShortArray
+        result: ShortArray,
     ): Int
 
     private external fun nativeTextGetTextByteArray(
         textPagePtr: Long,
         startIndex: Int,
         count: Int,
-        result: ByteArray
+        result: ByteArray,
     ): Int
 
-    private external fun nativeTextGetUnicode(textPagePtr: Long, index: Int): Int
-    private external fun nativeTextGetCharBox(textPagePtr: Long, index: Int): DoubleArray
+    private external fun nativeTextGetUnicode(
+        textPagePtr: Long,
+        index: Int,
+    ): Int
+
+    private external fun nativeTextGetCharBox(
+        textPagePtr: Long,
+        index: Int,
+    ): DoubleArray
+
     private external fun nativeTextGetCharIndexAtPos(
         textPagePtr: Long,
         x: Double,
         y: Double,
         xTolerance: Double,
-        yTolerance: Double
+        yTolerance: Double,
     ): Int
 
-    private external fun nativeTextCountRects(textPagePtr: Long, startIndex: Int, count: Int): Int
-    private external fun nativeTextGetRect(textPagePtr: Long, rectIndex: Int): DoubleArray
+    private external fun nativeTextCountRects(
+        textPagePtr: Long,
+        startIndex: Int,
+        count: Int,
+    ): Int
 
-    private external fun nativeGetFontSize(pagePtr: Long, charIndex: Int): Double
+    private external fun nativeTextGetRect(
+        textPagePtr: Long,
+        rectIndex: Int,
+    ): DoubleArray
+
+    private external fun nativeGetFontSize(
+        pagePtr: Long,
+        charIndex: Int,
+    ): Double
 
     @Suppress("LongParameterList")
     private external fun nativeTextGetBoundedText(
@@ -64,7 +84,7 @@ class PdfTextPage(
         top: Double,
         right: Double,
         bottom: Double,
-        arr: ShortArray
+        arr: ShortArray,
     ): Int
 
     /**
@@ -89,18 +109,19 @@ class PdfTextPage(
     @Suppress("ReturnCount")
     fun textPageGetTextLegacy(
         startIndex: Int,
-        length: Int
+        length: Int,
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             try {
                 val buf = ShortArray(length + 1)
-                val r = nativeTextGetText(
-                    pagePtr,
-                    startIndex,
-                    length,
-                    buf
-                )
+                val r =
+                    nativeTextGetText(
+                        pagePtr,
+                        startIndex,
+                        length,
+                        buf,
+                    )
 
                 if (r <= 0) {
                     return ""
@@ -126,18 +147,19 @@ class PdfTextPage(
     @Suppress("ReturnCount")
     fun textPageGetText(
         startIndex: Int,
-        length: Int
+        length: Int,
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             try {
                 val bytes = ByteArray(length * 2)
-                val r = nativeTextGetTextByteArray(
-                    pagePtr,
-                    startIndex,
-                    length,
-                    bytes
-                )
+                val r =
+                    nativeTextGetTextByteArray(
+                        pagePtr,
+                        startIndex,
+                        length,
+                        bytes,
+                    )
 
                 if (r <= 0) {
                     return ""
@@ -163,7 +185,7 @@ class PdfTextPage(
         synchronized(PdfiumCore.lock) {
             return nativeTextGetUnicode(
                 pagePtr,
-                index
+                index,
             ).toChar()
         }
     }
@@ -212,7 +234,7 @@ class PdfTextPage(
         x: Double,
         y: Double,
         xTolerance: Double,
-        yTolerance: Double
+        yTolerance: Double,
     ): Int {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
@@ -222,7 +244,7 @@ class PdfTextPage(
                     x,
                     y,
                     xTolerance,
-                    yTolerance
+                    yTolerance,
                 )
             } catch (e: Exception) {
                 Logger.e(TAG, e, "Exception throw from native")
@@ -240,7 +262,7 @@ class PdfTextPage(
      */
     fun textPageCountRects(
         startIndex: Int,
-        count: Int
+        count: Int,
     ): Int {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
@@ -248,7 +270,7 @@ class PdfTextPage(
                 return nativeTextCountRects(
                     pagePtr,
                     startIndex,
-                    count
+                    count,
                 )
             } catch (e: NullPointerException) {
                 Logger.e(TAG, e, "mContext may be null")
@@ -297,20 +319,21 @@ class PdfTextPage(
      */
     fun textPageGetBoundedText(
         rect: RectF,
-        length: Int
+        length: Int,
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             return try {
                 val buf = ShortArray(length + 1)
-                val r = nativeTextGetBoundedText(
-                    pagePtr,
-                    rect.left.toDouble(),
-                    rect.top.toDouble(),
-                    rect.right.toDouble(),
-                    rect.bottom.toDouble(),
-                    buf
-                )
+                val r =
+                    nativeTextGetBoundedText(
+                        pagePtr,
+                        rect.left.toDouble(),
+                        rect.top.toDouble(),
+                        rect.right.toDouble(),
+                        rect.bottom.toDouble(),
+                        buf,
+                    )
                 val bytes = ByteArray((r - 1) * 2)
                 val bb = ByteBuffer.wrap(bytes)
                 bb.order(ByteOrder.LITTLE_ENDIAN)

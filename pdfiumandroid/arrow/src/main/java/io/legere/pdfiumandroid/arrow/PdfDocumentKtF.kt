@@ -16,7 +16,6 @@ import java.io.Closeable
  */
 class PdfDocumentKtF(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
     Closeable {
-
     /**
      *  suspend version of [PdfDocument.getPageCount]
      */
@@ -47,7 +46,10 @@ class PdfDocumentKtF(val document: PdfDocument, private val dispatcher: Coroutin
     /**
      * suspend version of [PdfDocument.openPages]
      */
-    suspend fun openPages(fromIndex: Int, toIndex: Int): Either<PdfiumKtFErrors, List<PdfPageKtF>> {
+    suspend fun openPages(
+        fromIndex: Int,
+        toIndex: Int,
+    ): Either<PdfiumKtFErrors, List<PdfPageKtF>> {
         return wrapEither(dispatcher) {
             document.openPages(fromIndex, toIndex).map { PdfPageKtF(it, dispatcher) }
         }
@@ -76,7 +78,7 @@ class PdfDocumentKtF(val document: PdfDocument, private val dispatcher: Coroutin
      */
     suspend fun openTextPages(
         fromIndex: Int,
-        toIndex: Int
+        toIndex: Int,
     ): Either<PdfiumKtFErrors, List<PdfTextPageKtF>> {
         return wrapEither(dispatcher) {
             document.openTextPages(fromIndex, toIndex).map { PdfTextPageKtF(it, dispatcher) }

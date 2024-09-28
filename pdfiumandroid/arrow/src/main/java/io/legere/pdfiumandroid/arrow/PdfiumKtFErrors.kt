@@ -2,6 +2,7 @@ package io.legere.pdfiumandroid.arrow
 
 sealed class PdfiumKtFErrors {
     data class RuntimeException(val message: String) : PdfiumKtFErrors()
+
     data class AlreadyClosed(val message: String) : PdfiumKtFErrors()
 }
 

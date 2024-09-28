@@ -14,7 +14,6 @@ import kotlinx.coroutines.withContext
  * @constructor create a [PdfiumCoreKt] from a [PdfiumCore]
  */
 class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher, config: Config = Config()) {
-
     private val coreInternal = PdfiumCore(config = config)
 
     /**
@@ -29,7 +28,10 @@ class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher, config: Config =
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
-    suspend fun newDocument(fd: ParcelFileDescriptor, password: String?): PdfDocumentKt {
+    suspend fun newDocument(
+        fd: ParcelFileDescriptor,
+        password: String?,
+    ): PdfDocumentKt {
         return withContext(dispatcher) {
             PdfDocumentKt(coreInternal.newDocument(fd, password), dispatcher)
         }
@@ -47,7 +49,10 @@ class PdfiumCoreKt(private val dispatcher: CoroutineDispatcher, config: Config =
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
-    suspend fun newDocument(data: ByteArray?, password: String?): PdfDocumentKt {
+    suspend fun newDocument(
+        data: ByteArray?,
+        password: String?,
+    ): PdfDocumentKt {
         return withContext(dispatcher) {
             PdfDocumentKt(coreInternal.newDocument(data, password), dispatcher)
         }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.withContext
 
 suspend inline fun <reified T> wrapEither(
     dispatcher: CoroutineDispatcher,
-    crossinline block: () -> T
+    crossinline block: () -> T,
 ): Either<PdfiumKtFErrors, T> {
     return withContext(dispatcher) {
         Either.catch {

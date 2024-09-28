@@ -23,7 +23,6 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
-
     /**
      * Open a text page
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
@@ -142,7 +141,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         startX: Int,
         startY: Int,
         drawSizeX: Int,
-        drawSizeY: Int
+        drawSizeY: Int,
     ): Either<PdfiumKtFErrors, Boolean> {
         return wrapEither(dispatcher) {
             page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
@@ -161,7 +160,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ): Either<PdfiumKtFErrors, Boolean> {
         return wrapEither(dispatcher) {
             page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
@@ -174,7 +173,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ): Either<PdfiumKtFErrors, Boolean> {
         return wrapEither(dispatcher) {
             page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask)
@@ -202,7 +201,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         sizeY: Int,
         rotate: Int,
         pageX: Double,
-        pageY: Double
+        pageY: Double,
     ): Either<PdfiumKtFErrors, Point> {
         return wrapEither(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
@@ -220,7 +219,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         sizeY: Int,
         rotate: Int,
         deviceX: Int,
-        deviceY: Int
+        deviceY: Int,
     ): Either<PdfiumKtFErrors, PointF> {
         return wrapEither(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
@@ -237,7 +236,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF
+        coords: RectF,
     ): Either<PdfiumKtFErrors, Rect> {
         return wrapEither(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
@@ -254,7 +253,7 @@ class PdfPageKtF(val page: PdfPage, private val dispatcher: CoroutineDispatcher)
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect
+        coords: Rect,
     ): Either<PdfiumKtFErrors, RectF> {
         return wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)

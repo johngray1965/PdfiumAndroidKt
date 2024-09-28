@@ -6,7 +6,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 
 @Suppress("unused")
 open class BasePDFTest {
-
     // set to true to skip tests that are not implemented yet
     // set to false to force unimplemented tests to fail
     val notImplementedAssetValue = false

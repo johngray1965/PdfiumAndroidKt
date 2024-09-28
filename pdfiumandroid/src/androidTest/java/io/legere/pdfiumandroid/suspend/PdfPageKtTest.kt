@@ -20,18 +20,18 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PdfPageKtTest : BasePDFTest() {
-
     private lateinit var pdfDocument: PdfDocumentKt
     private var pdfBytes: ByteArray? = null
 
     @Before
-    fun setUp() = runBlocking {
-        pdfBytes = getPdfBytes("f01.pdf")
+    fun setUp() =
+        runBlocking {
+            pdfBytes = getPdfBytes("f01.pdf")
 
-        TestCase.assertNotNull(pdfBytes)
+            TestCase.assertNotNull(pdfBytes)
 
-        pdfDocument = PdfiumCoreKt(Dispatchers.Unconfined).newDocument(pdfBytes)
-    }
+            pdfDocument = PdfiumCoreKt(Dispatchers.Unconfined).newDocument(pdfBytes)
+        }
 
     @After
     fun tearDown() {
@@ -39,211 +39,233 @@ class PdfPageKtTest : BasePDFTest() {
     }
 
     @Test
-    fun getPageWidth() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageWidth(72)
+    fun getPageWidth() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val pageWidth = page.getPageWidth(72)
 
-            assertThat(pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
+                assertThat(pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
+            }
         }
-    }
 
     @Test
-    fun getPageHeight() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageHeight(72)
+    fun getPageHeight() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val pageWidth = page.getPageHeight(72)
 
-            assertThat(pageWidth).isEqualTo(792) // 11 inches * 72 dpi
+                assertThat(pageWidth).isEqualTo(792) // 11 inches * 72 dpi
+            }
         }
-    }
 
     @Test
-    fun getPageWidthPoint() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageWidthPoint()
+    fun getPageWidthPoint() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val pageWidth = page.getPageWidthPoint()
 
-            assertThat(pageWidth).isEqualTo(612) // 11 inches * 72 dpi
+                assertThat(pageWidth).isEqualTo(612) // 11 inches * 72 dpi
+            }
         }
-    }
 
     @Test
-    fun getPageHeightPoint() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageHeightPoint()
+    fun getPageHeightPoint() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val pageWidth = page.getPageHeightPoint()
 
-            assertThat(pageWidth).isEqualTo(792) // 11 inches * 72 dpi
+                assertThat(pageWidth).isEqualTo(792) // 11 inches * 72 dpi
+            }
         }
-    }
 
     @Test
-    fun getPageCropBox() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val cropBox = page.getPageCropBox()
+    fun getPageCropBox() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val cropBox = page.getPageCropBox()
 
-            assertThat(cropBox).isEqualTo(noResultRect)
+                assertThat(cropBox).isEqualTo(noResultRect)
+            }
         }
-    }
 
     @Test
-    fun getPageMediaBox() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val mediaBox = page.getPageMediaBox()
+    fun getPageMediaBox() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val mediaBox = page.getPageMediaBox()
 
-            assertThat(mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
+                assertThat(mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
+            }
         }
-    }
 
     @Test
-    fun getPageBleedBox() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val bleedBox = page.getPageBleedBox()
+    fun getPageBleedBox() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val bleedBox = page.getPageBleedBox()
 
-            assertThat(bleedBox).isEqualTo(noResultRect)
+                assertThat(bleedBox).isEqualTo(noResultRect)
+            }
         }
-    }
 
     @Test
-    fun getPageTrimBox() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val trimBox = page.getPageTrimBox()
+    fun getPageTrimBox() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val trimBox = page.getPageTrimBox()
 
-            assertThat(trimBox).isEqualTo(noResultRect)
+                assertThat(trimBox).isEqualTo(noResultRect)
+            }
         }
-    }
 
     @Test
-    fun getPageArtBox() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val artBox = page.getPageArtBox()
+    fun getPageArtBox() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val artBox = page.getPageArtBox()
 
-            assertThat(artBox).isEqualTo(noResultRect)
+                assertThat(artBox).isEqualTo(noResultRect)
+            }
         }
-    }
 
     @Test
-    fun getPageBoundingBox() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val artBox = page.getPageBoundingBox()
+    fun getPageBoundingBox() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val artBox = page.getPageBoundingBox()
 
-            assertThat(artBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
+                assertThat(artBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
+            }
         }
-    }
 
     @Test
-    fun getPageSize() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val size = page.getPageSize(72)
+    fun getPageSize() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val size = page.getPageSize(72)
 
-            assertThat(size).isEqualTo(Size(612, 792))
+                assertThat(size).isEqualTo(Size(612, 792))
+            }
         }
-    }
 
     @Test
-    fun renderPage() = runTest {
-        // I really don't know how to test it
-    }
-
-    @Test
-    fun testRenderPage() = runTest {
-        // I really don't know how to test it
-    }
-
-    @Test
-    fun renderPageBitmap() = runTest {
-        pdfDocument.openPage(0).use { page ->
-
-            val conf = Bitmap.Config.RGB_565 // see other conf types
-
-            val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
-
-            page.renderPageBitmap(bmp, 0, 0, 612, 792)
-
-            // How to verify that it's correct?
-            // Even if we don't verify the bitmap, we can check that it doesn't crash
+    fun renderPage() =
+        runTest {
+            // I really don't know how to test it
         }
-    }
 
     @Test
-    fun testRenderPageBitmap() = runTest {
-        pdfDocument.openPage(0).use { page ->
-
-            val conf = Bitmap.Config.RGB_565 // see other conf types
-
-            val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
-
-            page.renderPageBitmap(bmp, 0, 0, 612, 792, renderAnnot = true, textMask = true)
-
-            // How to verify that it's correct?
-            // Even if we don't verify the bitmap, we can check that it doesn't crash
+    fun testRenderPage() =
+        runTest {
+            // I really don't know how to test it
         }
-    }
 
     @Test
-    fun getPageLinks() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val links = page.getPageLinks()
+    fun renderPageBitmap() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
 
-            assertThat(links.size).isEqualTo(0) // The test doc doesn't have links
+                val conf = Bitmap.Config.RGB_565 // see other conf types
+
+                val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
+
+                page.renderPageBitmap(bmp, 0, 0, 612, 792)
+
+                // How to verify that it's correct?
+                // Even if we don't verify the bitmap, we can check that it doesn't crash
+            }
         }
-    }
 
     @Test
-    fun mapPageCoordsToDevice() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val devicePt = page.mapPageCoordsToDevice(0, 0, 100, 100, 0, 0.0, 0.0)
+    fun testRenderPageBitmap() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
 
-            assertThat(devicePt).isEqualTo(Point(0, 100))
+                val conf = Bitmap.Config.RGB_565 // see other conf types
+
+                val bmp = Bitmap.createBitmap(612, 792, conf) // this creates a MUTABLE bitmap
+
+                page.renderPageBitmap(bmp, 0, 0, 612, 792, renderAnnot = true, textMask = true)
+
+                // How to verify that it's correct?
+                // Even if we don't verify the bitmap, we can check that it doesn't crash
+            }
         }
-    }
 
     @Test
-    fun mapDeviceCoordsToPage() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val devicePt = page.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 0, 0)
+    fun getPageLinks() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val links = page.getPageLinks()
 
-            assertThat(devicePt).isEqualTo(PointF(0f, 792.00006f))
+                assertThat(links.size).isEqualTo(0) // The test doc doesn't have links
+            }
         }
-    }
 
     @Test
-    fun mapRectToDevice() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
+    fun mapPageCoordsToDevice() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val devicePt = page.mapPageCoordsToDevice(0, 0, 100, 100, 0, 0.0, 0.0)
 
-            assertThat(devicePt).isEqualTo(
-                Rect(
-                    0, // 0f in coords to 0f in device
-                    100, // 0f in corrds in at the bottom, the bottom of the device is 100f
-                    16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
-                    87
-                ) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
-            )
+                assertThat(devicePt).isEqualTo(Point(0, 100))
+            }
         }
-    }
 
     @Test
-    fun mapRectToPage() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            val devicePt = page.mapRectToPage(0, 0, 100, 100, 0, Rect(0, 0, 100, 100))
+    fun mapDeviceCoordsToPage() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val devicePt = page.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 0, 0)
 
-            assertThat(devicePt).isEqualTo(
-                RectF(0.0f, 792.00006f, 612.0f, 0.0f)
-            )
+                assertThat(devicePt).isEqualTo(PointF(0f, 792.00006f))
+            }
         }
-    }
+
+    @Test
+    fun mapRectToDevice() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
+
+                assertThat(devicePt).isEqualTo(
+                    Rect(
+                        0, // 0f in coords to 0f in device
+                        100, // 0f in corrds in at the bottom, the bottom of the device is 100f
+                        16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
+                        87,
+                    ), // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+                )
+            }
+        }
+
+    @Test
+    fun mapRectToPage() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                val devicePt = page.mapRectToPage(0, 0, 100, 100, 0, Rect(0, 0, 100, 100))
+
+                assertThat(devicePt).isEqualTo(
+                    RectF(0.0f, 792.00006f, 612.0f, 0.0f),
+                )
+            }
+        }
 
     @Test(expected = IllegalStateException::class)
-    fun close() = runTest {
-        var pageAfterClose: PdfPageKt?
-        pdfDocument.openPage(0).use { page ->
-            pageAfterClose = page
+    fun close() =
+        runTest {
+            var pageAfterClose: PdfPageKt?
+            pdfDocument.openPage(0).use { page ->
+                pageAfterClose = page
+            }
+            pageAfterClose!!.getPageWidth(72)
         }
-        pageAfterClose!!.getPageWidth(72)
-    }
 
     @Test
-    fun getPage() = runTest {
-        pdfDocument.openPage(0).use { page ->
-            assertThat(page).isNotNull()
+    fun getPage() =
+        runTest {
+            pdfDocument.openPage(0).use { page ->
+                assertThat(page).isNotNull()
+            }
         }
-    }
 }

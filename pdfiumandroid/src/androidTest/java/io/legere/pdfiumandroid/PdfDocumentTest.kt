@@ -12,7 +12,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PdfDocumentTest : BasePDFTest() {
-
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
 
@@ -82,13 +81,15 @@ class PdfDocumentTest : BasePDFTest() {
 
     @Test
     fun saveAsCopy() {
-        pdfDocument.saveAsCopy(object : PdfWriteCallback {
-            override fun WriteBlock(data: ByteArray?): Int {
-                // assertThat(data?.size).isEqualTo(pdfBytes?.size)
-                // assertThat(data).isEqualTo(pdfBytes)
-                return data?.size ?: 0
-            }
-        })
+        pdfDocument.saveAsCopy(
+            object : PdfWriteCallback {
+                override fun WriteBlock(data: ByteArray?): Int {
+                    // assertThat(data?.size).isEqualTo(pdfBytes?.size)
+                    // assertThat(data).isEqualTo(pdfBytes)
+                    return data?.size ?: 0
+                }
+            },
+        )
     }
 
     @Test(expected = IllegalStateException::class)

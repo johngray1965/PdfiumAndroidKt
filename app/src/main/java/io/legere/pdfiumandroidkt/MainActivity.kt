@@ -60,7 +60,6 @@ private const val MAX_DISK_CACHE_SIZE_PERCENTAGE = 0.1
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
     private val viewModel: MainViewModel by viewModels()
 
     private val openFileContract =
@@ -73,30 +72,33 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val imageLoader = ImageLoader.Builder(this)
-            .components(fun ComponentRegistry.Builder.() {
-                add(PdfiumFetcher.Factory())
-            })
-            .allowRgb565(true)
-            .memoryCache {
-                MemoryCache.Builder(this)
-                    .maxSizePercent(MAX_MEMORY_CACHE_SIZE_PERCENTAGE)
-                    .build()
-            }
-            .diskCache {
-                DiskCache.Builder()
-                    .directory(cacheDir.resolve("image_cache"))
-                    .maxSizePercent(MAX_DISK_CACHE_SIZE_PERCENTAGE)
-                    .build()
-            }
-            .build()
+        val imageLoader =
+            ImageLoader.Builder(this)
+                .components(
+                    fun ComponentRegistry.Builder.() {
+                        add(PdfiumFetcher.Factory())
+                    },
+                )
+                .allowRgb565(true)
+                .memoryCache {
+                    MemoryCache.Builder(this)
+                        .maxSizePercent(MAX_MEMORY_CACHE_SIZE_PERCENTAGE)
+                        .build()
+                }
+                .diskCache {
+                    DiskCache.Builder()
+                        .directory(cacheDir.resolve("image_cache"))
+                        .maxSizePercent(MAX_DISK_CACHE_SIZE_PERCENTAGE)
+                        .build()
+                }
+                .build()
 
         setContent {
             PdfiumAndroidKtTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     MyUI(viewModel, openFileContract, imageLoader)
                 }
@@ -110,7 +112,7 @@ class MainActivity : ComponentActivity() {
 fun MyUI(
     viewModel: MainViewModel,
     openFileContract: ActivityResultLauncher<Array<String>>?,
-    imageLoader: ImageLoader
+    imageLoader: ImageLoader,
 ) {
     Scaffold(
         topBar = {
@@ -124,12 +126,12 @@ fun MyUI(
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.outline_file_open_24),
-                            contentDescription = "Open"
+                            contentDescription = "Open",
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { contentPadding ->
         Box(modifier = Modifier.padding(contentPadding)) {
             MainContent(viewModel, imageLoader)
@@ -138,7 +140,10 @@ fun MyUI(
 }
 
 @Composable
-fun MainContent(viewModel: MainViewModel, imageLoader: ImageLoader) {
+fun MainContent(
+    viewModel: MainViewModel,
+    imageLoader: ImageLoader,
+) {
     val state = viewModel.state.collectAsState()
     when (state.value.loadState) {
         MainViewModel.LoadStatus.Loading -> MaxSizeCenterBox { Message("Loading") }
@@ -151,10 +156,11 @@ fun MainContent(viewModel: MainViewModel, imageLoader: ImageLoader) {
 @Composable
 private fun MaxSizeCenterBox(content: @Composable () -> Unit) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+        contentAlignment = Alignment.Center,
     ) {
         content()
     }
@@ -169,14 +175,18 @@ private fun Message(text: String = "Error") {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
+fun MyPager(
+    viewModel: MainViewModel,
+    imageLoader: ImageLoader,
+) {
     val state = viewModel.state.collectAsState()
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        initialPageOffsetFraction = 0f
-    ) {
-        state.value.pageCount
-    }
+    val pagerState =
+        rememberPagerState(
+            initialPage = 0,
+            initialPageOffsetFraction = 0f,
+        ) {
+            state.value.pageCount
+        }
     var componentWidth by remember { mutableIntStateOf(0) }
     var componentHeight by remember { mutableIntStateOf(0) }
 
@@ -184,17 +194,18 @@ fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
     val density = LocalDensity.current
 
     Surface(
-        modifier = Modifier
-            .onGloballyPositioned {
-                componentWidth = it.size.width
-                componentHeight = it.size.height
-            }
-
+        modifier =
+            Modifier
+                .onGloballyPositioned {
+                    componentWidth = it.size.width
+                    componentHeight = it.size.height
+                },
     ) {
         VerticalPager(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
             state = pagerState,
             pageSpacing = 0.dp,
             userScrollEnabled = true,
@@ -202,10 +213,11 @@ fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
             contentPadding = PaddingValues(0.dp),
             beyondBoundsPageCount = 0,
             key = null,
-            pageNestedScrollConnection = PagerDefaults.pageNestedScrollConnection(
-                pagerState,
-                Orientation.Horizontal
-            ),
+            pageNestedScrollConnection =
+                PagerDefaults.pageNestedScrollConnection(
+                    pagerState,
+                    Orientation.Horizontal,
+                ),
             pageContent = {
                 PagerScope(
                     page = it,
@@ -213,9 +225,9 @@ fun MyPager(viewModel: MainViewModel, imageLoader: ImageLoader) {
                     componentWidth,
                     componentHeight,
                     density,
-                    imageLoader
+                    imageLoader,
                 )
-            }
+            },
         )
     }
 }
@@ -228,7 +240,7 @@ fun PagerScope(
     componentWidth: Int,
     componentHeight: Int,
     density: Density,
-    imageLoader: ImageLoader
+    imageLoader: ImageLoader,
 ) {
     if (componentWidth <= 0 || componentHeight <= 0) {
         return
@@ -238,28 +250,30 @@ fun PagerScope(
         "PagerScope: page: $page, " +
             "componentWidth: $componentWidth, " +
             "componentHeight: $componentHeight, " +
-            "density: $density"
+            "density: $density",
     )
 
     AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(
-                PdfiumFetcherData(
-                    page = page,
-                    width = componentWidth,
-                    height = componentHeight,
-                    density = density.density.roundToInt(),
-                    viewModel = viewModel
+        model =
+            ImageRequest.Builder(LocalContext.current)
+                .data(
+                    PdfiumFetcherData(
+                        page = page,
+                        width = componentWidth,
+                        height = componentHeight,
+                        density = density.density.roundToInt(),
+                        viewModel = viewModel,
+                    ),
                 )
-            )
-            .memoryCacheKey("page_$page")
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .memoryCachePolicy(CachePolicy.ENABLED)
-            .build(),
+                .memoryCacheKey("page_$page")
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .build(),
         contentDescription = "Page $page",
         imageLoader = imageLoader,
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
     )
 }

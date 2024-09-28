@@ -15,7 +15,6 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
-
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */
@@ -30,7 +29,7 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
      */
     suspend fun textPageGetText(
         startIndex: Int,
-        length: Int
+        length: Int,
     ): Either<PdfiumKtFErrors, String?> {
         return wrapEither(dispatcher) {
             page.textPageGetText(startIndex, length)
@@ -62,7 +61,7 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
         x: Double,
         y: Double,
         xTolerance: Double,
-        yTolerance: Double
+        yTolerance: Double,
     ): Either<PdfiumKtFErrors, Int> {
         return wrapEither(dispatcher) {
             page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
@@ -74,7 +73,7 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
      */
     suspend fun textPageCountRects(
         startIndex: Int,
-        count: Int
+        count: Int,
     ): Either<PdfiumKtFErrors, Int> {
         return wrapEither(dispatcher) {
             page.textPageCountRects(startIndex, count)
@@ -95,7 +94,7 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
      */
     suspend fun textPageGetBoundedText(
         rect: RectF,
-        length: Int
+        length: Int,
     ): Either<PdfiumKtFErrors, String?> {
         return wrapEither(dispatcher) {
             page.textPageGetBoundedText(rect, length)

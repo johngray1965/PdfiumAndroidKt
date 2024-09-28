@@ -18,7 +18,6 @@ import java.io.Closeable
 @Suppress("TooManyFunctions")
 class PdfDocumentKt(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
     Closeable {
-
     /**
      *  suspend version of [PdfDocument.getPageCount]
      */
@@ -49,7 +48,10 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     /**
      * suspend version of [PdfDocument.openPages]
      */
-    suspend fun openPages(fromIndex: Int, toIndex: Int): List<PdfPageKt> {
+    suspend fun openPages(
+        fromIndex: Int,
+        toIndex: Int,
+    ): List<PdfPageKt> {
         return withContext(dispatcher) {
             document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
         }
@@ -87,7 +89,10 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     /**
      * suspend version of [PdfDocument.openTextPages]
      */
-    suspend fun openTextPages(fromIndex: Int, toIndex: Int): List<PdfTextPageKt> {
+    suspend fun openTextPages(
+        fromIndex: Int,
+        toIndex: Int,
+    ): List<PdfTextPageKt> {
         return withContext(dispatcher) {
             document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
         }

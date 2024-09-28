@@ -17,7 +17,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PdfPageTest : BasePDFTest() {
-
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null
 
@@ -202,8 +201,8 @@ class PdfPageTest : BasePDFTest() {
                     0, // 0f in coords to 0f in device
                     100, // 0f in corrds in at the bottom, the bottom of the device is 100f
                     16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
-                    87
-                ) // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+                    87,
+                ), // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
             )
         }
     }
@@ -214,7 +213,7 @@ class PdfPageTest : BasePDFTest() {
             val devicePt = page.mapRectToPage(0, 0, 100, 100, 0, Rect(0, 0, 100, 100))
 
             assertThat(devicePt).isEqualTo(
-                RectF(0.0f, 792.00006f, 612.0f, 0.0f)
+                RectF(0.0f, 792.00006f, 612.0f, 0.0f),
             )
         }
     }

@@ -14,7 +14,6 @@ import kotlinx.coroutines.CoroutineDispatcher
  * @constructor create a [PdfiumCoreKtF] from a [PdfiumCore]
  */
 class PdfiumCoreKtF(private val dispatcher: CoroutineDispatcher, config: Config = Config()) {
-
     private val coreInternal = PdfiumCore(config = config)
 
     /**
@@ -31,7 +30,7 @@ class PdfiumCoreKtF(private val dispatcher: CoroutineDispatcher, config: Config 
      */
     suspend fun newDocument(
         fd: ParcelFileDescriptor,
-        password: String?
+        password: String?,
     ): Either<PdfiumKtFErrors, PdfDocumentKtF> {
         return wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(fd, password), dispatcher)
@@ -52,7 +51,7 @@ class PdfiumCoreKtF(private val dispatcher: CoroutineDispatcher, config: Config 
      */
     suspend fun newDocument(
         data: ByteArray?,
-        password: String?
+        password: String?,
     ): Either<PdfiumKtFErrors, PdfDocumentKtF> {
         return wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(data, password), dispatcher)

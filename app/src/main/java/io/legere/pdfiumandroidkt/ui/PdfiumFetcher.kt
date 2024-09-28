@@ -12,7 +12,7 @@ import timber.log.Timber
 
 class PdfiumFetcher(
     private val data: PdfiumFetcherData,
-    private val options: Options
+    private val options: Options,
 ) : Fetcher {
     override suspend fun fetch(): FetchResult? {
         Timber.d("fetch: ${data.page}")
@@ -24,12 +24,16 @@ class PdfiumFetcher(
         return DrawableResult(
             drawable = BitmapDrawable(options.context.resources, bitmap),
             isSampled = false,
-            dataSource = DataSource.MEMORY
+            dataSource = DataSource.MEMORY,
         )
     }
 
     class Factory : Fetcher.Factory<PdfiumFetcherData> {
-        override fun create(data: PdfiumFetcherData, options: Options, imageLoader: ImageLoader): Fetcher {
+        override fun create(
+            data: PdfiumFetcherData,
+            options: Options,
+            imageLoader: ImageLoader,
+        ): Fetcher {
             return PdfiumFetcher(data, options)
         }
     }
@@ -40,5 +44,5 @@ data class PdfiumFetcherData(
     val width: Int,
     val height: Int,
     val density: Int,
-    val viewModel: MainViewModel
+    val viewModel: MainViewModel,
 )

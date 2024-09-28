@@ -8,7 +8,6 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class PdfiumCoreTest : BasePDFTest() {
-
     @Test
     fun newDocument() {
         val pdfBytes = getPdfBytes("f01.pdf")

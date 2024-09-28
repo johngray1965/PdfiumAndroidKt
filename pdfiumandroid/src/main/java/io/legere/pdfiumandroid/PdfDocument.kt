@@ -14,9 +14,8 @@ private const val MAX_RECURSION = 16
  */
 @Suppress("TooManyFunctions")
 class PdfDocument(
-    val mNativeDocPtr: Long // , private val mCurrentDpi: Int*
+    val mNativeDocPtr: Long, // , private val mCurrentDpi: Int*
 ) : Closeable {
-
     private val pageMap = mutableMapOf<Int, PageCount>()
     private val textPageMap = mutableMapOf<Int, PageCount>()
 
@@ -24,16 +23,53 @@ class PdfDocument(
         private set
 
     private external fun nativeGetPageCount(docPtr: Long): Int
-    private external fun nativeLoadPage(docPtr: Long, pageIndex: Int): Long
+
+    private external fun nativeLoadPage(
+        docPtr: Long,
+        pageIndex: Int,
+    ): Long
+
     private external fun nativeCloseDocument(docPtr: Long)
-    private external fun nativeLoadPages(docPtr: Long, fromIndex: Int, toIndex: Int): LongArray
-    private external fun nativeGetDocumentMetaText(docPtr: Long, tag: String): String
-    private external fun nativeGetFirstChildBookmark(docPtr: Long, bookmarkPtr: Long?): Long?
-    private external fun nativeGetSiblingBookmark(docPtr: Long, bookmarkPtr: Long): Long?
-    private external fun nativeGetBookmarkDestIndex(docPtr: Long, bookmarkPtr: Long): Long
-    private external fun nativeLoadTextPage(docPtr: Long, pagePtr: Long): Long
+
+    private external fun nativeLoadPages(
+        docPtr: Long,
+        fromIndex: Int,
+        toIndex: Int,
+    ): LongArray
+
+    private external fun nativeGetDocumentMetaText(
+        docPtr: Long,
+        tag: String,
+    ): String
+
+    private external fun nativeGetFirstChildBookmark(
+        docPtr: Long,
+        bookmarkPtr: Long?,
+    ): Long?
+
+    private external fun nativeGetSiblingBookmark(
+        docPtr: Long,
+        bookmarkPtr: Long,
+    ): Long?
+
+    private external fun nativeGetBookmarkDestIndex(
+        docPtr: Long,
+        bookmarkPtr: Long,
+    ): Long
+
+    private external fun nativeLoadTextPage(
+        docPtr: Long,
+        pagePtr: Long,
+    ): Long
+
     private external fun nativeGetBookmarkTitle(bookmarkPtr: Long): String
-    private external fun nativeSaveAsCopy(docPtr: Long, callback: PdfWriteCallback, flags: Int): Boolean
+
+    private external fun nativeSaveAsCopy(
+        docPtr: Long,
+        callback: PdfWriteCallback,
+        flags: Int,
+    ): Boolean
+
     private external fun nativeGetPageCharCounts(docPtr: Long): IntArray
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
@@ -93,7 +129,10 @@ class PdfDocument(
      * @return the opened pages [PdfPage]
      * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
      */
-    fun openPages(fromIndex: Int, toIndex: Int): List<PdfPage> {
+    fun openPages(
+        fromIndex: Int,
+        toIndex: Int,
+    ): List<PdfPage> {
         if (handleAlreadyClosed(isClosed)) return emptyList()
         var pagesPtr: LongArray
         synchronized(PdfiumCore.lock) {
@@ -131,7 +170,7 @@ class PdfDocument(
     private fun recursiveGetBookmark(
         tree: MutableList<Bookmark>,
         bookmarkPtr: Long,
-        level: Long
+        level: Long,
     ) {
         if (handleAlreadyClosed(isClosed)) return
         var levelMutable = level
@@ -199,7 +238,10 @@ class PdfDocument(
      * @return the opened [PdfTextPage] list
      * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
      */
-    fun openTextPages(fromIndex: Int, toIndex: Int): List<PdfTextPage> {
+    fun openTextPages(
+        fromIndex: Int,
+        toIndex: Int,
+    ): List<PdfTextPage> {
         if (handleAlreadyClosed(isClosed)) return emptyList()
         var textPagesPtr: LongArray
         synchronized(PdfiumCore.lock) {
@@ -209,7 +251,7 @@ class PdfDocument(
                     this,
                     fromIndex + index,
                     pagePtr,
-                    textPageMap
+                    textPageMap,
                 )
             }
         }
@@ -222,7 +264,10 @@ class PdfDocument(
      * @return true if the document was successfully saved
      * @throws IllegalArgumentException if document is closed
      */
-    fun saveAsCopy(callback: PdfWriteCallback, flags: Int = FPDF_NO_INCREMENTAL): Boolean {
+    fun saveAsCopy(
+        callback: PdfWriteCallback,
+        flags: Int = FPDF_NO_INCREMENTAL,
+    ): Boolean {
         if (handleAlreadyClosed(isClosed)) return false
         return nativeSaveAsCopy(mNativeDocPtr, callback, flags)
     }

@@ -16,7 +16,6 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
-
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */
@@ -31,7 +30,7 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
      */
     suspend fun textPageGetText(
         startIndex: Int,
-        length: Int
+        length: Int,
     ): String? {
         return withContext(dispatcher) {
             page.textPageGetText(startIndex, length)
@@ -63,7 +62,7 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
         x: Double,
         y: Double,
         xTolerance: Double,
-        yTolerance: Double
+        yTolerance: Double,
     ): Int {
         return withContext(dispatcher) {
             page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
@@ -75,7 +74,7 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
      */
     suspend fun textPageCountRects(
         startIndex: Int,
-        count: Int
+        count: Int,
     ): Int {
         return withContext(dispatcher) {
             page.textPageCountRects(startIndex, count)
@@ -96,7 +95,7 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
      */
     suspend fun textPageGetBoundedText(
         rect: RectF,
-        length: Int
+        length: Int,
     ): String? {
         return withContext(dispatcher) {
             page.textPageGetBoundedText(rect, length)
@@ -124,7 +123,7 @@ class PdfTextPageKt(val page: PdfTextPage, private val dispatcher: CoroutineDisp
             page.close()
             true
         } catch (e: IllegalStateException) {
-            Logger.e("PdfTextPageKt", e, "PdfTextPageKt.safeClose",)
+            Logger.e("PdfTextPageKt", e, "PdfTextPageKt.safeClose")
             false
         }
     }

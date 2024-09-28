@@ -24,7 +24,6 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) : Closeable {
-
     /**
      * Open a text page
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
@@ -143,7 +142,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         startX: Int,
         startY: Int,
         drawSizeX: Int,
-        drawSizeY: Int
+        drawSizeY: Int,
     ) {
         return withContext(dispatcher) {
             page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
@@ -161,7 +160,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ) {
         return withContext(dispatcher) {
             page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
@@ -173,7 +172,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ) {
         return withContext(dispatcher) {
             page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask)
@@ -200,7 +199,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         sizeY: Int,
         rotate: Int,
         pageX: Double,
-        pageY: Double
+        pageY: Double,
     ): Point {
         return withContext(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
@@ -218,7 +217,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         sizeY: Int,
         rotate: Int,
         deviceX: Int,
-        deviceY: Int
+        deviceY: Int,
     ): PointF {
         return withContext(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
@@ -235,7 +234,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF
+        coords: RectF,
     ): Rect {
         return withContext(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
@@ -252,7 +251,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect
+        coords: Rect,
     ): RectF {
         return withContext(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
@@ -271,7 +270,7 @@ class PdfPageKt(val page: PdfPage, private val dispatcher: CoroutineDispatcher) 
             page.close()
             true
         } catch (e: IllegalStateException) {
-            Logger.e("PdfPageKt", e, "PdfPageKt.safeClose",)
+            Logger.e("PdfPageKt", e, "PdfPageKt.safeClose")
             false
         }
     }

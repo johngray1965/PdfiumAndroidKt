@@ -23,26 +23,54 @@ class PdfPage(
     val doc: PdfDocument,
     val pageIndex: Int,
     val pagePtr: Long,
-    private val pageMap: MutableMap<Int, PdfDocument.PageCount>
+    private val pageMap: MutableMap<Int, PdfDocument.PageCount>,
 ) : Closeable {
-
     private var isClosed = false
 
     private external fun nativeClosePage(pagePtr: Long)
+
     private external fun nativeClosePages(pagesPtr: LongArray)
-    private external fun nativeGetPageWidthPixel(pagePtr: Long, dpi: Int): Int
-    private external fun nativeGetPageHeightPixel(pagePtr: Long, dpi: Int): Int
+
+    private external fun nativeGetPageWidthPixel(
+        pagePtr: Long,
+        dpi: Int,
+    ): Int
+
+    private external fun nativeGetPageHeightPixel(
+        pagePtr: Long,
+        dpi: Int,
+    ): Int
+
     private external fun nativeGetPageWidthPoint(pagePtr: Long): Int
+
     private external fun nativeGetPageHeightPoint(pagePtr: Long): Int
+
     private external fun nativeGetPageMediaBox(pagePtr: Long): FloatArray
+
     private external fun nativeGetPageCropBox(pagePtr: Long): FloatArray
+
     private external fun nativeGetPageBleedBox(pagePtr: Long): FloatArray
+
     private external fun nativeGetPageTrimBox(pagePtr: Long): FloatArray
+
     private external fun nativeGetPageArtBox(pagePtr: Long): FloatArray
+
     private external fun nativeGetPageBoundingBox(pagePtr: Long): FloatArray
-    private external fun nativeGetDestPageIndex(docPtr: Long, linkPtr: Long): Int?
-    private external fun nativeGetLinkURI(docPtr: Long, linkPtr: Long): String?
-    private external fun nativeGetLinkRect(docPtr: Long, linkPtr: Long): RectF?
+
+    private external fun nativeGetDestPageIndex(
+        docPtr: Long,
+        linkPtr: Long,
+    ): Int?
+
+    private external fun nativeGetLinkURI(
+        docPtr: Long,
+        linkPtr: Long,
+    ): String?
+
+    private external fun nativeGetLinkRect(
+        docPtr: Long,
+        linkPtr: Long,
+    ): RectF?
 
     @Suppress("LongParameterList")
     private external fun nativeRenderPage(
@@ -52,7 +80,7 @@ class PdfPage(
         startY: Int,
         drawSizeHor: Int,
         drawSizeVer: Int,
-        renderAnnot: Boolean
+        renderAnnot: Boolean,
     )
 
     @Suppress("LongParameterList")
@@ -64,7 +92,7 @@ class PdfPage(
         drawSizeHor: Int,
         drawSizeVer: Int,
         renderAnnot: Boolean,
-        textMask: Boolean
+        textMask: Boolean,
     )
 
     @Suppress("LongParameterList")
@@ -74,10 +102,15 @@ class PdfPage(
         matrix: FloatArray,
         clipRect: RectF,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     )
 
-    private external fun nativeGetPageSizeByIndex(docPtr: Long, pageIndex: Int, dpi: Int): Size
+    private external fun nativeGetPageSizeByIndex(
+        docPtr: Long,
+        pageIndex: Int,
+        dpi: Int,
+    ): Size
+
     private external fun nativeGetPageLinks(pagePtr: Long): LongArray
 
     @Suppress("LongParameterList")
@@ -89,7 +122,7 @@ class PdfPage(
         sizeY: Int,
         rotate: Int,
         pageX: Double,
-        pageY: Double
+        pageY: Double,
     ): Point
 
     @Suppress("LongParameterList")
@@ -101,7 +134,7 @@ class PdfPage(
         sizeY: Int,
         rotate: Int,
         deviceX: Int,
-        deviceY: Int
+        deviceY: Int,
     ): PointF
 
     /**
@@ -283,7 +316,7 @@ class PdfPage(
             return nativeGetPageSizeByIndex(
                 doc.mNativeDocPtr,
                 pageIndex,
-                screenDpi
+                screenDpi,
             )
         }
     }
@@ -305,7 +338,7 @@ class PdfPage(
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
-        renderAnnot: Boolean = false
+        renderAnnot: Boolean = false,
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
@@ -318,7 +351,7 @@ class PdfPage(
                     startY,
                     drawSizeX,
                     drawSizeY,
-                    renderAnnot
+                    renderAnnot,
                 )
             } catch (e: NullPointerException) {
                 Logger.e(TAG, e, "mContext may be null")
@@ -353,7 +386,7 @@ class PdfPage(
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
@@ -365,7 +398,7 @@ class PdfPage(
                 drawSizeX,
                 drawSizeY,
                 renderAnnot,
-                textMask
+                textMask,
             )
         }
     }
@@ -375,7 +408,7 @@ class PdfPage(
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
-        textMask: Boolean = false
+        textMask: Boolean = false,
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         val matrixValues = FloatArray(THREE_BY_THREE)
@@ -388,11 +421,11 @@ class PdfPage(
                     matrixValues[Matrix.MSCALE_X],
                     matrixValues[Matrix.MSCALE_Y],
                     matrixValues[Matrix.MTRANS_X],
-                    matrixValues[Matrix.MTRANS_Y]
+                    matrixValues[Matrix.MTRANS_Y],
                 ),
                 clipRect,
                 renderAnnot,
-                textMask
+                textMask,
             )
         }
     }
@@ -438,7 +471,7 @@ class PdfPage(
         sizeY: Int,
         rotate: Int,
         pageX: Double,
-        pageY: Double
+        pageY: Double,
     ): Point {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         return nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY)
@@ -466,7 +499,7 @@ class PdfPage(
         sizeY: Int,
         rotate: Int,
         deviceX: Int,
-        deviceY: Int
+        deviceY: Int,
     ): PointF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
         return nativeDeviceCoordsToPage(
@@ -477,7 +510,7 @@ class PdfPage(
             sizeY,
             rotate,
             deviceX,
-            deviceY
+            deviceY,
         )
     }
 
@@ -503,32 +536,34 @@ class PdfPage(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF
+        coords: RectF,
     ): Rect {
         check(!isClosed && !doc.isClosed) { "Already closed" }
-        val leftTop = mapPageCoordsToDevice(
-            startX,
-            startY,
-            sizeX,
-            sizeY,
-            rotate,
-            coords.left.toDouble(),
-            coords.top.toDouble()
-        )
-        val rightBottom = mapPageCoordsToDevice(
-            startX,
-            startY,
-            sizeX,
-            sizeY,
-            rotate,
-            coords.right.toDouble(),
-            coords.bottom.toDouble()
-        )
+        val leftTop =
+            mapPageCoordsToDevice(
+                startX,
+                startY,
+                sizeX,
+                sizeY,
+                rotate,
+                coords.left.toDouble(),
+                coords.top.toDouble(),
+            )
+        val rightBottom =
+            mapPageCoordsToDevice(
+                startX,
+                startY,
+                sizeX,
+                sizeY,
+                rotate,
+                coords.right.toDouble(),
+                coords.bottom.toDouble(),
+            )
         return Rect(
             leftTop.x,
             leftTop.y,
             rightBottom.x,
-            rightBottom.y
+            rightBottom.y,
         )
     }
 
@@ -551,27 +586,29 @@ class PdfPage(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect
+        coords: Rect,
     ): RectF {
         check(!isClosed && !doc.isClosed) { "Already closed" }
-        val leftTop = mapDeviceCoordsToPage(
-            startX,
-            startY,
-            sizeX,
-            sizeY,
-            rotate,
-            coords.left,
-            coords.top
-        )
-        val rightBottom = mapDeviceCoordsToPage(
-            startX,
-            startY,
-            sizeX,
-            sizeY,
-            rotate,
-            coords.right,
-            coords.bottom
-        )
+        val leftTop =
+            mapDeviceCoordsToPage(
+                startX,
+                startY,
+                sizeX,
+                sizeY,
+                rotate,
+                coords.left,
+                coords.top,
+            )
+        val rightBottom =
+            mapDeviceCoordsToPage(
+                startX,
+                startY,
+                sizeX,
+                sizeY,
+                rotate,
+                coords.right,
+                coords.bottom,
+            )
         return RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
     }
 
