@@ -20,7 +20,10 @@ import java.io.IOException
  * PdfiumCore is the main entry-point for access to the PDFium API.
  */
 @Suppress("TooManyFunctions")
-class PdfiumCore(context: Context? = null, val config: Config = Config()) {
+class PdfiumCore(
+    context: Context? = null,
+    val config: Config = Config(),
+) {
     private val mCurrentDpi: Int
 
     init {
@@ -49,9 +52,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(fd: ParcelFileDescriptor): PdfDocument {
-        return newDocument(fd, null)
-    }
+    fun newDocument(fd: ParcelFileDescriptor): PdfDocument = newDocument(fd, null)
 
     /**
      * Create new document from file with password
@@ -77,9 +78,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(data: ByteArray?): PdfDocument {
-        return newDocument(data, null)
-    }
+    fun newDocument(data: ByteArray?): PdfDocument = newDocument(data, null)
 
     /**
      * Create new document from bytearray with password
@@ -114,9 +113,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         ReplaceWith("pdfDocument.getTableOfContents()"),
         DeprecationLevel.WARNING,
     )
-    fun getTableOfContents(pdfDocument: PdfDocument): List<PdfDocument.Bookmark> {
-        return pdfDocument.getTableOfContents()
-    }
+    fun getTableOfContents(pdfDocument: PdfDocument): List<PdfDocument.Bookmark> = pdfDocument.getTableOfContents()
 
     @Suppress("UNUSED_PARAMETER") // Need to keep for compatibility
     @Deprecated(
@@ -124,9 +121,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         ReplaceWith("pdfDocument.openTextPage(pageIndex)"),
         DeprecationLevel.WARNING,
     )
-    fun openTextPage(pdfDocument: PdfDocument, pageIndex: Int): Long {
-        return pageIndex.toLong()
-    }
+    fun openTextPage(pdfDocument: PdfDocument, pageIndex: Int): Long = pageIndex.toLong()
 
     @Suppress("UNUSED_PARAMETER") // Need to keep for compatibility
     @Deprecated(
@@ -134,9 +129,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         ReplaceWith("pdfDocument.openPage(pageIndex)"),
         DeprecationLevel.WARNING,
     )
-    fun openPage(pdfDocument: PdfDocument, pageIndex: Int): Long {
-        return pageIndex.toLong()
-    }
+    fun openPage(pdfDocument: PdfDocument, pageIndex: Int): Long = pageIndex.toLong()
 
     @Deprecated(
         "Use Page.getPageMediaBox()",
@@ -214,9 +207,7 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         ReplaceWith("pdfDocument.getDocumentMeta()"),
         DeprecationLevel.WARNING,
     )
-    fun getDocumentMeta(pdfDocument: PdfDocument): PdfDocument.Meta {
-        return pdfDocument.getDocumentMeta()
-    }
+    fun getDocumentMeta(pdfDocument: PdfDocument): PdfDocument.Meta = pdfDocument.getDocumentMeta()
 
     @Deprecated(
         "Use PdfPage.getPageWidthPoint()",
@@ -360,9 +351,11 @@ class PdfiumCore(context: Context? = null, val config: Config = Config()) {
         ),
         DeprecationLevel.ERROR,
     )
-    fun openPage(pdfDocument: PdfDocument, fromIndex: Int, toIndex: Int): Array<Long> {
-        return (fromIndex.toLong()..toIndex.toLong()).toList().toTypedArray()
-    }
+    fun openPage(
+        pdfDocument: PdfDocument,
+        fromIndex: Int,
+        toIndex: Int,
+    ): Array<Long> = (fromIndex.toLong()..toIndex.toLong()).toList().toTypedArray()
 
     @Deprecated(
         "Use PdfPage.getPageWidth()",

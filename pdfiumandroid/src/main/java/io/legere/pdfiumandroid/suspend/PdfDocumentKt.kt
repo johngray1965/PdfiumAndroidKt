@@ -2,6 +2,7 @@
 
 package io.legere.pdfiumandroid.suspend
 
+import androidx.annotation.Keep
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
@@ -16,34 +17,34 @@ import java.io.Closeable
  * @constructor create a [PdfDocumentKt] from a [PdfDocument]
  */
 @Suppress("TooManyFunctions")
-class PdfDocumentKt(val document: PdfDocument, private val dispatcher: CoroutineDispatcher) :
-    Closeable {
+@Keep
+class PdfDocumentKt(
+    val document: PdfDocument,
+    private val dispatcher: CoroutineDispatcher,
+) : Closeable {
     /**
      *  suspend version of [PdfDocument.getPageCount]
      */
-    suspend fun getPageCount(): Int {
-        return withContext(dispatcher) {
+    suspend fun getPageCount(): Int =
+        withContext(dispatcher) {
             document.getPageCount()
         }
-    }
 
     /**
      *  suspend version of [PdfDocument.getPageCharCounts]
      */
-    suspend fun getPageCharCounts(): IntArray {
-        return withContext(dispatcher) {
+    suspend fun getPageCharCounts(): IntArray =
+        withContext(dispatcher) {
             document.getPageCharCounts()
         }
-    }
 
     /**
      * suspend version of [PdfDocument.openPage]
      */
-    suspend fun openPage(pageIndex: Int): PdfPageKt {
-        return withContext(dispatcher) {
+    suspend fun openPage(pageIndex: Int): PdfPageKt =
+        withContext(dispatcher) {
             PdfPageKt(document.openPage(pageIndex), dispatcher)
         }
-    }
 
     /**
      * suspend version of [PdfDocument.openPages]
@@ -51,40 +52,36 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     suspend fun openPages(
         fromIndex: Int,
         toIndex: Int,
-    ): List<PdfPageKt> {
-        return withContext(dispatcher) {
+    ): List<PdfPageKt> =
+        withContext(dispatcher) {
             document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
         }
-    }
 
     /**
      * suspend version of [PdfDocument.getDocumentMeta]
      */
-    suspend fun getDocumentMeta(): PdfDocument.Meta {
-        return withContext(dispatcher) {
+    suspend fun getDocumentMeta(): PdfDocument.Meta =
+        withContext(dispatcher) {
             document.getDocumentMeta()
         }
-    }
 
     /**
      * suspend version of [PdfDocument.getTableOfContents]
      */
-    suspend fun getTableOfContents(): List<PdfDocument.Bookmark> {
-        return withContext(dispatcher) {
+    suspend fun getTableOfContents(): List<PdfDocument.Bookmark> =
+        withContext(dispatcher) {
             document.getTableOfContents()
         }
-    }
 
     /**
      * suspend version of [PdfDocument.openTextPage]
      */
     @Deprecated("use PdfPageKt.openTextPage", ReplaceWith("page.openTextPage()"))
     @Suppress("DEPRECATION")
-    suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt {
-        return withContext(dispatcher) {
+    suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt =
+        withContext(dispatcher) {
             PdfTextPageKt(document.openTextPage(page.page), dispatcher)
         }
-    }
 
     /**
      * suspend version of [PdfDocument.openTextPages]
@@ -92,20 +89,18 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
     suspend fun openTextPages(
         fromIndex: Int,
         toIndex: Int,
-    ): List<PdfTextPageKt> {
-        return withContext(dispatcher) {
+    ): List<PdfTextPageKt> =
+        withContext(dispatcher) {
             document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
         }
-    }
 
     /**
      * suspend version of [PdfDocument.saveAsCopy]
      */
-    suspend fun saveAsCopy(callback: PdfWriteCallback): Boolean {
-        return withContext(dispatcher) {
+    suspend fun saveAsCopy(callback: PdfWriteCallback): Boolean =
+        withContext(dispatcher) {
             document.saveAsCopy(callback)
         }
-    }
 
     /**
      * Close the document
@@ -115,13 +110,12 @@ class PdfDocumentKt(val document: PdfDocument, private val dispatcher: Coroutine
         document.close()
     }
 
-    fun safeClose(): Boolean {
-        return try {
+    fun safeClose(): Boolean =
+        try {
             document.close()
             true
         } catch (e: IllegalStateException) {
             Logger.e("PdfDocumentKt", e, "PdfDocumentKt.safeClose")
             false
         }
-    }
 }

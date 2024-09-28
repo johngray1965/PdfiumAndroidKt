@@ -33,9 +33,7 @@ class PdfiumFetcher(
             data: PdfiumFetcherData,
             options: Options,
             imageLoader: ImageLoader,
-        ): Fetcher {
-            return PdfiumFetcher(data, options)
-        }
+        ): Fetcher = PdfiumFetcher(data, options)
     }
 }
 

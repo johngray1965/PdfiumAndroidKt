@@ -13,17 +13,19 @@ import kotlinx.coroutines.CoroutineDispatcher
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  * @constructor create a [PdfiumCoreKtF] from a [PdfiumCore]
  */
-class PdfiumCoreKtF(private val dispatcher: CoroutineDispatcher, config: Config = Config()) {
+class PdfiumCoreKtF(
+    private val dispatcher: CoroutineDispatcher,
+    config: Config = Config(),
+) {
     private val coreInternal = PdfiumCore(config = config)
 
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
-    suspend fun newDocument(fd: ParcelFileDescriptor): Either<PdfiumKtFErrors, PdfDocumentKtF> {
-        return wrapEither(dispatcher) {
+    suspend fun newDocument(fd: ParcelFileDescriptor): Either<PdfiumKtFErrors, PdfDocumentKtF> =
+        wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(fd), dispatcher)
         }
-    }
 
     /**
      * suspend version of [PdfiumCore.newDocument]
@@ -31,20 +33,18 @@ class PdfiumCoreKtF(private val dispatcher: CoroutineDispatcher, config: Config 
     suspend fun newDocument(
         fd: ParcelFileDescriptor,
         password: String?,
-    ): Either<PdfiumKtFErrors, PdfDocumentKtF> {
-        return wrapEither(dispatcher) {
+    ): Either<PdfiumKtFErrors, PdfDocumentKtF> =
+        wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(fd, password), dispatcher)
         }
-    }
 
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
-    suspend fun newDocument(data: ByteArray?): Either<PdfiumKtFErrors, PdfDocumentKtF> {
-        return wrapEither(dispatcher) {
+    suspend fun newDocument(data: ByteArray?): Either<PdfiumKtFErrors, PdfDocumentKtF> =
+        wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(data), dispatcher)
         }
-    }
 
     /**
      * suspend version of [PdfiumCore.newDocument]
@@ -52,9 +52,8 @@ class PdfiumCoreKtF(private val dispatcher: CoroutineDispatcher, config: Config 
     suspend fun newDocument(
         data: ByteArray?,
         password: String?,
-    ): Either<PdfiumKtFErrors, PdfDocumentKtF> {
-        return wrapEither(dispatcher) {
+    ): Either<PdfiumKtFErrors, PdfDocumentKtF> =
+        wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(data, password), dispatcher)
         }
-    }
 }

@@ -76,7 +76,8 @@ class PdfTextPageKtTest : BasePDFTest() {
                 page.openTextPage().use { textPage ->
                     val rect = textPage.textPageGetCharBox(0)
 
-                    Truth.assertThat(rect)
+                    Truth
+                        .assertThat(rect)
                         .isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
                 }
             }
@@ -94,7 +95,8 @@ class PdfTextPageKtTest : BasePDFTest() {
                         textPage.textPageGetCharIndexAtPos(
                             rect?.centerX()?.toDouble() ?: 0.0,
                             rect?.centerY()?.toDouble() ?: 0.0,
-                            1.0, // Shouldn't need much since we're in the middle of the rect
+                            // Shouldn't need much since we're in the middle of the rect
+                            1.0,
                             1.0,
                         )
 

@@ -14,7 +14,7 @@ private const val MAX_RECURSION = 16
  */
 @Suppress("TooManyFunctions")
 class PdfDocument(
-    val mNativeDocPtr: Long, // , private val mCurrentDpi: Int*
+    val mNativeDocPtr: Long,
 ) : Closeable {
     private val pageMap = mutableMapOf<Int, PageCount>()
     private val textPageMap = mutableMapOf<Int, PageCount>()
@@ -305,9 +305,16 @@ class PdfDocument(
         var mNativePtr: Long = 0
     }
 
-    class Link(val bounds: RectF, val destPageIdx: Int?, val uri: String?)
+    class Link(
+        val bounds: RectF,
+        val destPageIdx: Int?,
+        val uri: String?,
+    )
 
-    data class PageCount(val pagePtr: Long, var count: Int)
+    data class PageCount(
+        val pagePtr: Long,
+        var count: Int,
+    )
 
     companion object {
         private val TAG = PdfDocument::class.java.name

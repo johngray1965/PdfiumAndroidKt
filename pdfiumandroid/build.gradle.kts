@@ -11,6 +11,7 @@ plugins {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
 
@@ -64,6 +65,7 @@ android {
 dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.annotation.jvm)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -14,15 +14,17 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  */
 @Suppress("TooManyFunctions")
-class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDispatcher) : Closeable {
+class PdfTextPageKtF(
+    val page: PdfTextPage,
+    private val dispatcher: CoroutineDispatcher,
+) : Closeable {
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */
-    suspend fun textPageCountChars(): Either<PdfiumKtFErrors, Int> {
-        return wrapEither(dispatcher) {
+    suspend fun textPageCountChars(): Either<PdfiumKtFErrors, Int> =
+        wrapEither(dispatcher) {
             page.textPageCountChars()
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageGetText]
@@ -30,29 +32,26 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
     suspend fun textPageGetText(
         startIndex: Int,
         length: Int,
-    ): Either<PdfiumKtFErrors, String?> {
-        return wrapEither(dispatcher) {
+    ): Either<PdfiumKtFErrors, String?> =
+        wrapEither(dispatcher) {
             page.textPageGetText(startIndex, length)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageGetUnicode]
      */
-    suspend fun textPageGetUnicode(index: Int): Either<PdfiumKtFErrors, Char> {
-        return wrapEither(dispatcher) {
+    suspend fun textPageGetUnicode(index: Int): Either<PdfiumKtFErrors, Char> =
+        wrapEither(dispatcher) {
             page.textPageGetUnicode(index)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
-    suspend fun textPageGetCharBox(index: Int): Either<PdfiumKtFErrors, RectF?> {
-        return wrapEither(dispatcher) {
+    suspend fun textPageGetCharBox(index: Int): Either<PdfiumKtFErrors, RectF?> =
+        wrapEither(dispatcher) {
             page.textPageGetCharBox(index)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageGetCharIndexAtPos]
@@ -62,11 +61,10 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
         y: Double,
         xTolerance: Double,
         yTolerance: Double,
-    ): Either<PdfiumKtFErrors, Int> {
-        return wrapEither(dispatcher) {
+    ): Either<PdfiumKtFErrors, Int> =
+        wrapEither(dispatcher) {
             page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageCountRects]
@@ -74,20 +72,18 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
     suspend fun textPageCountRects(
         startIndex: Int,
         count: Int,
-    ): Either<PdfiumKtFErrors, Int> {
-        return wrapEither(dispatcher) {
+    ): Either<PdfiumKtFErrors, Int> =
+        wrapEither(dispatcher) {
             page.textPageCountRects(startIndex, count)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageGetRect]
      */
-    suspend fun textPageGetRect(rectIndex: Int): Either<PdfiumKtFErrors, RectF?> {
-        return wrapEither(dispatcher) {
+    suspend fun textPageGetRect(rectIndex: Int): Either<PdfiumKtFErrors, RectF?> =
+        wrapEither(dispatcher) {
             page.textPageGetRect(rectIndex)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.textPageGetBoundedText]
@@ -95,20 +91,18 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
     suspend fun textPageGetBoundedText(
         rect: RectF,
         length: Int,
-    ): Either<PdfiumKtFErrors, String?> {
-        return wrapEither(dispatcher) {
+    ): Either<PdfiumKtFErrors, String?> =
+        wrapEither(dispatcher) {
             page.textPageGetBoundedText(rect, length)
         }
-    }
 
     /**
      * suspend version of [PdfTextPage.getFontSize]
      */
-    suspend fun getFontSize(charIndex: Int): Either<PdfiumKtFErrors, Double> {
-        return wrapEither(dispatcher) {
+    suspend fun getFontSize(charIndex: Int): Either<PdfiumKtFErrors, Double> =
+        wrapEither(dispatcher) {
             page.getFontSize(charIndex)
         }
-    }
 
     /**
      * Close the page and free all resources.
@@ -117,10 +111,10 @@ class PdfTextPageKtF(val page: PdfTextPage, private val dispatcher: CoroutineDis
         page.close()
     }
 
-    fun safeClose(): Either<PdfiumKtFErrors, Boolean> {
-        return Either.catch {
-            page.close()
-            true
-        }.mapLeft { exceptionToPdfiumKtFError(it) }
-    }
+    fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
+        Either
+            .catch {
+                page.close()
+                true
+            }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

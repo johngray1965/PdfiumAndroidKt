@@ -83,7 +83,8 @@ class PdfTextPageTest : BasePDFTest() {
                     textPage.textPageGetCharIndexAtPos(
                         rect?.centerX()?.toDouble() ?: 0.0,
                         rect?.centerY()?.toDouble() ?: 0.0,
-                        1.0, // Shouldn't need much since we're in the middle of the rect
+                        // Shouldn't need much since we're in the middle of the rect
+                        1.0,
                         1.0,
                     )
 

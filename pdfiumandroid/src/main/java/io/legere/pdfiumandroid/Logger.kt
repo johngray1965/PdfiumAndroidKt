@@ -1,9 +1,11 @@
 package io.legere.pdfiumandroid
 
 import android.util.Log
+import androidx.annotation.Keep
 
 // At the moment we only do debug log with message, or error log with message and throwable
 // in the future, we might expand this.
+@Keep
 interface LoggerInterface {
     fun d(
         tag: String,

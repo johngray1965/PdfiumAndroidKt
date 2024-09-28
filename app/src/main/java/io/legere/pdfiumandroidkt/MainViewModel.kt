@@ -30,7 +30,9 @@ import kotlin.math.roundToInt
 @HiltViewModel
 class MainViewModel
     @Inject
-    constructor(application: Application) : AndroidViewModel(application) {
+    constructor(
+        application: Application,
+    ) : AndroidViewModel(application) {
         val state: StateFlow<UiState>
         val accept: (UiAction) -> Unit
 
@@ -63,35 +65,36 @@ class MainViewModel
             val actionStateFlow = MutableStateFlow<UiAction>(UiAction.Init())
 
             state =
-                actionStateFlow.flatMapLatest { action ->
-                    flow {
-                        when (action) {
-                            is UiAction.Init -> emit(UiState(loadState = LoadStatus.Init))
-                            is UiAction.LoadDoc -> {
-                                emit(UiState(loadState = LoadStatus.Loading))
-                                val fd = application.contentResolver.openFileDescriptor(action.uri, "r")
-                                if (fd != null) {
-                                    try {
-                                        pdfDocument = pdfiumCore.newDocument(fd)
-                                        val pageCount = pdfDocument?.getPageCount() ?: 0
-                                        Timber.d("pageCount: $pageCount")
-                                        emit(
-                                            UiState(
-                                                loadState = LoadStatus.Success,
-                                                pageCount = pageCount,
-                                            ),
-                                        )
-                                    } catch (e: IOException) {
-                                        Timber.e(e)
+                actionStateFlow
+                    .flatMapLatest { action ->
+                        flow {
+                            when (action) {
+                                is UiAction.Init -> emit(UiState(loadState = LoadStatus.Init))
+                                is UiAction.LoadDoc -> {
+                                    emit(UiState(loadState = LoadStatus.Loading))
+                                    val fd = application.contentResolver.openFileDescriptor(action.uri, "r")
+                                    if (fd != null) {
+                                        try {
+                                            pdfDocument = pdfiumCore.newDocument(fd)
+                                            val pageCount = pdfDocument?.getPageCount() ?: 0
+                                            Timber.d("pageCount: $pageCount")
+                                            emit(
+                                                UiState(
+                                                    loadState = LoadStatus.Success,
+                                                    pageCount = pageCount,
+                                                ),
+                                            )
+                                        } catch (e: IOException) {
+                                            Timber.e(e)
+                                            emit(UiState(loadState = LoadStatus.Error))
+                                        }
+                                    } else {
                                         emit(UiState(loadState = LoadStatus.Error))
                                     }
-                                } else {
-                                    emit(UiState(loadState = LoadStatus.Error))
                                 }
                             }
                         }
-                    }
-                }.stateIn(viewModelScope, SharingStarted.Lazily, UiState())
+                    }.stateIn(viewModelScope, SharingStarted.Lazily, UiState())
 
             accept = { action ->
                 viewModelScope.launch {
@@ -157,7 +160,9 @@ class MainViewModel
         }
 
         sealed class UiAction {
-            data class LoadDoc(val uri: Uri) : UiAction()
+            data class LoadDoc(
+                val uri: Uri,
+            ) : UiAction()
 
             data class Init(
                 @Suppress("unused") val s: String = "Init",

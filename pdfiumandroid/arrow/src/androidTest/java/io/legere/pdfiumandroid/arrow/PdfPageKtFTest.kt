@@ -263,11 +263,15 @@ class PdfPageKtFTest : BasePDFTest() {
 
                     assertThat(devicePt).isEqualTo(
                         Rect(
-                            0, // 0f in coords to 0f in device
-                            100, // 0f in corrds in at the bottom, the bottom of the device is 100f
-                            16, // 100f in coords = 100f/(8.5*72) * 100f = 16f
+                            // 0f in coords to 0f in device
+                            0,
+                            // 0f in corrds in at the bottom, the bottom of the device is 100f
+                            100,
+                            // 100f in coords = 100f/(8.5*72) * 100f = 16f
+                            16,
+                            // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
                             87,
-                        ), // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+                        ),
                     )
                 }
             }

@@ -30,7 +30,7 @@ private val _lightColorScheme =
     )
 
 @Composable
-@Suppress("FunctionNaming")
+@Suppress("FunctionNaming", "ktlint:standard:function-naming")
 fun PdfiumAndroidKtTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+

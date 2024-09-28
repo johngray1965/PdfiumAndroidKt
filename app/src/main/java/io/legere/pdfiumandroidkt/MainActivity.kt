@@ -8,7 +8,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -67,6 +66,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+    @Suppress("ktlint:standard:blank-line-before-declaration")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -172,7 +172,6 @@ private fun Message(text: String = "Error") {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MyPager(
     viewModel: MainViewModel,
