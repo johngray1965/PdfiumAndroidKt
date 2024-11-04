@@ -24,6 +24,7 @@ extern "C" {
 #include "include/utils/Mutex.h"
 #include "util.h"
 #include "include/fpdf_edit.h"
+#include "include/fpdf_formfill.h"
 #include <vector>
 #include <mutex>
 
@@ -214,7 +215,7 @@ extern "C"
 int getBlock(void* param, unsigned long position, unsigned char* outBuffer,
                     unsigned long size) {
     const int fd = reinterpret_cast<intptr_t>(param);
-    const int readCount = pread(fd, outBuffer, size, position);
+    const int readCount = pread(fd, outBuffer, size, (long) position);
     if (readCount < 0) {
         LOGE("Cannot read from file descriptor. Error:%d", errno);
         return 0;
@@ -423,12 +424,12 @@ public:
     _JNIEnv *env;
 
     static int WriteBlockCallback(FPDF_FILEWRITE* pFileWrite, const void* data, unsigned long size) {
-        auto* pThis = static_cast<FileWrite*>(pFileWrite);
+        auto* pThis = reinterpret_cast<FileWrite*>(pFileWrite);
         _JNIEnv *env = pThis->env;
         //Convert the native array to Java array.
         jbyteArray a = env->NewByteArray((int) size);
         if (a != nullptr) {
-            env->SetByteArrayRegion(a, 0, size, (const jbyte *)data);
+            env->SetByteArrayRegion(a, 0, (int) size, (const jbyte *)data);
             return env->CallIntMethod(pThis->callbackObject, pThis->callbackMethodID, a);
         }
         return -1;
@@ -602,7 +603,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, 
         }
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
 
-        size_t bufferLen = FPDF_GetMetaText(doc->pdfDocument, ctag, nullptr, 0);
+        int bufferLen = (int) FPDF_GetMetaText(doc->pdfDocument, ctag, nullptr, 0);
         if (bufferLen <= 2) {
             return env->NewStringUTF("");
         }
@@ -718,7 +719,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, job
                                                                 jlong bookmark_ptr) {
     try {
         auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
-        size_t bufferLen = FPDFBookmark_GetTitle(bookmark, nullptr, 0);
+        int bufferLen = (int) FPDFBookmark_GetTitle(bookmark, nullptr, 0);
         if (bufferLen <= 2) {
             return env->NewStringUTF("");
         }
@@ -1283,12 +1284,15 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz,
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject thiz,
-                                                            jlong page_ptr, jobject bitmap,
+                                                            jlong doc_ptr,
+                                                            jlong page_ptr,
+                                                            jobject bitmap,
                                                             jint start_x, jint start_y,
                                                             jint draw_size_hor, jint draw_size_ver,
                                                             jboolean render_annot,
                                                             jboolean text_mask) {
     try {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr || bitmap == nullptr) {
@@ -1323,11 +1327,11 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
         int sourceStride;
         if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
             tmp = malloc(canvasVerSize * canvasHorSize * sizeof(rgb));
-            sourceStride = canvasHorSize * sizeof(rgb);
+            sourceStride = (int) (canvasHorSize * sizeof(rgb));
             format = FPDFBitmap_BGR;
         } else {
             tmp = addr;
-            sourceStride = info.stride;
+            sourceStride = (int) info.stride;
             format = FPDFBitmap_BGRA;
         }
 
@@ -1342,7 +1346,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
         LOGD("Draw Ver: %d", drawSizeVer);*/
 
         if (draw_size_hor < canvasHorSize || draw_size_ver < canvasVerSize) {
-            FPDFBitmap_FillRect(pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
+            FPDFBitmap_FillRect(pdfBitmap, 0, 0, (int) canvasHorSize, (int) canvasVerSize,
                                 0x848484FF); //Gray
         }
 
@@ -1354,7 +1358,12 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
         int baseY = (start_y < 0) ? 0 : (int) start_y;
         int flags = FPDF_REVERSE_BYTE_ORDER;
 
+        FPDF_FORMFILLINFO form_callbacks = {0};
+        form_callbacks.version = 2;
+        FPDF_FORMHANDLE form;
+
         if (render_annot) {
+            form = FPDFDOC_InitFormFillEnvironment(doc->pdfDocument, &form_callbacks);
             flags |= FPDF_ANNOT;
         }
 
@@ -1369,6 +1378,11 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
                               start_x, start_y,
                               (int) draw_size_hor, (int) draw_size_ver,
                               0, flags);
+
+        if (render_annot) {
+            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, FPDF_ANNOT);
+            FPDFDOC_ExitFormFillEnvironment(form);
+        }
 
         if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
             rgbBitmapTo565(tmp, sourceStride, addr, &info);
@@ -1434,11 +1448,11 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
         int sourceStride;
         if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
             tmp = malloc(canvasVerSize * canvasHorSize * sizeof(rgb));
-            sourceStride = canvasHorSize * sizeof(rgb);
+            sourceStride = (int) (canvasHorSize * sizeof(rgb));
             format = FPDFBitmap_BGR;
         } else {
             tmp = addr;
-            sourceStride = info.stride;
+            sourceStride = (int) info.stride;
             format = FPDFBitmap_BGRA;
         }
 
@@ -1473,7 +1487,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
 //        flags |= FPDF_RENDER_TEXT_MASK;
 //    }
 
-        FPDFBitmap_FillRect(pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
+        FPDFBitmap_FillRect(pdfBitmap, 0, 0, (int) canvasHorSize, (int) canvasVerSize,
                             0xFFFFFFFF); //White
 
         jclass clazz = env->FindClass("android/graphics/RectF");
@@ -1597,8 +1611,8 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jobject thi
             links.push_back(reinterpret_cast<jlong>(link));
         }
 
-        jlongArray result = env->NewLongArray(links.size());
-        env->SetLongArrayRegion(result, 0, links.size(), &links[0]);
+        jlongArray result = env->NewLongArray((int) links.size());
+        env->SetLongArrayRegion(result, 0, (int) links.size(), &links[0]);
         return result;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
@@ -2093,8 +2107,8 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jo
             FPDF_ClosePage(page);
         }
 
-        jintArray result = env->NewIntArray(charCounts.size());
-        env->SetIntArrayRegion(result, 0, charCounts.size(), &charCounts[0]);
+        jintArray result = env->NewIntArray((int) charCounts.size());
+        env->SetIntArrayRegion(result, 0, (int) charCounts.size(), &charCounts[0]);
         return result;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);

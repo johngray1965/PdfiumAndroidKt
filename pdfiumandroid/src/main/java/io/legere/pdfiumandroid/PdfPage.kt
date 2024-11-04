@@ -89,6 +89,7 @@ class PdfPage(
 
     @Suppress("LongParameterList")
     private external fun nativeRenderPageBitmap(
+        docPtr: Long,
         pagePtr: Long,
         bitmap: Bitmap?,
         startX: Int,
@@ -455,6 +456,7 @@ class PdfPage(
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
             nativeRenderPageBitmap(
+                doc.mNativeDocPtr,
                 pagePtr,
                 bitmap,
                 startX,

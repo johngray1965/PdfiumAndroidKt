@@ -2,8 +2,6 @@ package io.legere.pdfiumandroidkt
 
 import android.app.Application
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.RectF
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -112,30 +110,32 @@ class MainViewModel
             Timber.d("getPage: pageNum: $pageNum, width: $width, height: $height")
             try {
                 val zoom = 1f // 2f
-                val pan = 0f // -width.toFloat() / 2
+//                val pan = 0f // -width.toFloat() / 2
                 val bitmap = Bitmap.createBitmap(width, height * zoom.roundToInt(), Bitmap.Config.RGB_565)
                 pdfDocument?.openPage(pageNum)?.use { page ->
                     val size = page.getPageSize(1)
                     Timber.d("getPageSize: pageNum: $pageNum, width: ${size.width}, height: ${size.height}")
-                    val pageWidth = page.getPageWidthPoint()
-                    val pageHeight = page.getPageHeightPoint()
-                    val tempSrc =
-                        RectF(
-                            0f,
-                            0f,
-                            pageWidth.toFloat(),
-                            pageHeight.toFloat(),
-                        )
-                    val tempDst = RectF(0f, 0f, width.toFloat(), height.toFloat())
-                    val result = Matrix()
-                    result.setRectToRect(tempSrc, tempDst, Matrix.ScaleToFit.START)
-                    result.postScale(zoom, zoom)
-                    result.postTranslate(pan, 0f)
+//                    val pageWidth = page.getPageWidthPoint()
+//                    val pageHeight = page.getPageHeightPoint()
+//                    val tempSrc =
+//                        RectF(
+//                            0f,
+//                            0f,
+//                            pageWidth.toFloat(),
+//                            pageHeight.toFloat(),
+//                        )
+//                    val tempDst = RectF(0f, 0f, width.toFloat(), height.toFloat())
+//                    val result = Matrix()
+//                    result.setRectToRect(tempSrc, tempDst, Matrix.ScaleToFit.START)
+//                    result.postScale(zoom, zoom)
+//                    result.postTranslate(pan, 0f)
 
                     page.renderPageBitmap(
                         bitmap,
-                        result,
-                        RectF(0f, 0f, width.toFloat(), zoom * height.toFloat()),
+                        0,
+                        0,
+                        width,
+                        height,
                         renderAnnot = true,
                     )
                     page.openTextPage().use { textPage ->
