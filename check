@@ -1,0 +1,47 @@
+#! /bin/bash
+
+set -e
+
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+CLEAN=clean
+
+while getopts "h?cs" opt; do
+    case "$opt" in
+    h|\?)
+        echo "Usage: $0 [-v] [-n name]"
+        exit 0
+        ;;
+    c)  
+        ;;
+    s)  CLEAN=
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "${1:-}" = "--" ] && shift
+
+nohup java -jar adbserver-desktop.jar > /dev/null 2>&1 &
+serverPID=$!
+
+#./gradlew --continue clean detekt lint testDebugUnitTest  reader:connectedDebugAndroidTest readerData:connectedDebugAndroidTest
+#./gradlew clean detekt lint testDebugUnitTest  reader:connectedDebugAndroidTest readerData:connectedDebugAndroidTest && ./gradlew reader:connectedDebugAndroidTest -Pcucumber
+# for i in io.legere.readerdata.test voicedream.reader voicedream.reader.test; do
+# 	adb shell pm uninstall $i
+# done || true
+#./gradlew clean detekt lint testDebugUnitTest  reader:pixel2DebugAndroidTest readerData:pixel2DebugAndroidTest 	
+# for i in io.legere.readerdata.test voicedream.reader voicedream.reader.test; do
+# 	adb shell pm uninstall $i
+# done || true
+#./gradlew reader:pixel2DebugAndroidTest -Pcucumber
+
+# ./gradlew clean detekt lint testDebugUnitTest  reader:pixel2DebugAndroidTest readerData:pixel2DebugAndroidTest 	&& ./gradlew reader:pixel2DebugAndroidTest -Pcucumber
+#
+#./gradlew clean detekt lint testDebugUnitTest pixel2DebugAndroidTest && ./gradlew pixel2DebugAndroidTest -Pcucumber
+./gradlew $CLEAN detekt lint && \
+	./gradlew testDebugUnitTest && \
+	./gradlew connectedAndroidTest
+
+
+kill $serverPID

@@ -29,6 +29,11 @@ class PdfDocument(
         pageIndex: Int,
     ): Long
 
+    private external fun nativeDeletePage(
+        docPtr: Long,
+        pageIndex: Int,
+    )
+
     private external fun nativeCloseDocument(docPtr: Long)
 
     private external fun nativeLoadPages(
@@ -119,6 +124,18 @@ class PdfDocument(
             val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
             pageMap[pageIndex] = PageCount(pagePtr, 1)
             return PdfPage(this, pageIndex, pagePtr, pageMap)
+        }
+    }
+
+    /**
+     * Delete page
+     * @param pageIndex the page index
+     * @throws IllegalArgumentException if document is closed
+     */
+    fun deletePage(pageIndex: Int) {
+        if (handleAlreadyClosed(isClosed)) return
+        synchronized(PdfiumCore.lock) {
+            nativeDeletePage(this.mNativeDocPtr, pageIndex)
         }
     }
 

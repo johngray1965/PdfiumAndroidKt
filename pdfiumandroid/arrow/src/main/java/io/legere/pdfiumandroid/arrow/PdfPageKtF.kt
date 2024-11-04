@@ -14,6 +14,7 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
@@ -65,6 +66,31 @@ class PdfPageKtF(
     suspend fun getPageHeightPoint(): Either<PdfiumKtFErrors, Int> =
         wrapEither(dispatcher) {
             page.getPageHeightPoint()
+        }
+
+    /**
+     * suspend version of [PdfPage.getPageMatrix]
+     */
+    suspend fun getPageMatrix(): Either<PdfiumKtFErrors, Matrix> =
+        wrapEither(dispatcher) {
+            page.getPageMatrix() ?: error("Page matrix is null")
+        }
+
+    /**
+     * suspend version of [PdfPage.getPageRotation]
+     */
+    suspend fun getPageRotation(): Either<PdfiumKtFErrors, Int> =
+        withContext(dispatcher) {
+            Either
+                .catch {
+                    val rotation = page.getPageRotation()
+                    if (rotation < 0) {
+                        error("Invalid rotation: $rotation")
+                    }
+                    rotation
+                }.mapLeft {
+                    exceptionToPdfiumKtFError(it)
+                }
         }
 
     /**

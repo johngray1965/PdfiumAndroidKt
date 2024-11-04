@@ -377,12 +377,11 @@ class PdfTextPage(
                     it.count--
                     return
                 }
+                pageMap.remove(pageIndex)
+
+                isClosed = true
+                nativeCloseTextPage(pagePtr)
             }
-
-            pageMap.remove(pageIndex)
-
-            isClosed = true
-            nativeCloseTextPage(pagePtr)
         }
     }
 

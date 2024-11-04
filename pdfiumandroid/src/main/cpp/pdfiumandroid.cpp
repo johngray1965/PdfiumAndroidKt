@@ -23,6 +23,7 @@ extern "C" {
 #include "include/fpdf_transformpage.h"
 #include "include/utils/Mutex.h"
 #include "util.h"
+#include "include/fpdf_edit.h"
 #include <vector>
 #include <mutex>
 
@@ -43,6 +44,7 @@ static void initLibraryIfNeed(){
 static void destroyLibraryIfNeed(){
     const std::lock_guard<std::mutex> lock(sLibraryLock);
     sLibraryReferenceCount--;
+    LOGD("sLibraryReferenceCount %d", sLibraryReferenceCount);
     if(sLibraryReferenceCount == 0){
         LOGD("Destroy FPDF library");
         FPDF_DestroyLibrary();
@@ -61,7 +63,7 @@ public:
     FPDF_DOCUMENT pdfDocument = nullptr;
 
     public:
-    jbyte *cDataCopy = NULL;
+    jbyte *cDataCopy = nullptr;
 
     DocumentFile() { initLibraryIfNeed(); }
     ~DocumentFile();
@@ -72,9 +74,9 @@ DocumentFile::~DocumentFile(){
         FPDF_CloseDocument(pdfDocument);
         pdfDocument = nullptr;
     }
-    if(cDataCopy != NULL){
+    if(cDataCopy != nullptr){
         free(cDataCopy);
-        cDataCopy = NULL;
+        cDataCopy = nullptr;
     }
     destroyLibraryIfNeed();
 }
@@ -491,6 +493,32 @@ JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jobject thiz, jlong page_ptr) {
     try {
         closePageInternal(page_ptr);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage(JNIEnv *env, jobject thiz, jlong doc_ptr,
+                                                          jint page_index) {
+    try {
+        auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
+        if(doc == nullptr) throw std::runtime_error( "Get page document null");
+
+        FPDF_DOCUMENT pdfDoc = doc->pdfDocument;
+        if(pdfDoc != nullptr) {
+            FPDFPage_Delete(pdfDoc, (int) page_index);
+        }
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -1131,6 +1159,71 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jobje
     return nullptr;
 }
 
+extern "C"
+JNIEXPORT jfloatArray JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jobject thiz,
+                                                         jlong page_ptr) {
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        jfloatArray result = env->NewFloatArray(6);
+        if (result == nullptr) {
+            return nullptr;
+        }
+        auto count = FPDFPage_CountObjects(page);
+        int index;
+//        for (index = 0; index < count; index++) {
+//            FPDF_PAGEOBJECT pageObject = FPDFPage_GetObject(page, index);
+//            auto objectType = FPDFPageObj_GetType(pageObject);
+////            LOGD("objectType: %d, index: %d", objectType, index);
+//            float matrix[6];
+//            FS_MATRIX fsMatrix;
+//            FPDFPageObj_GetMatrix(pageObject, &fsMatrix);
+////            LOGD("fsMatrix.a: %f", fsMatrix.a);
+////            LOGD("fsMatrix.b: %f", fsMatrix.b);
+////            LOGD("fsMatrix.c: %f", fsMatrix.c);
+////            LOGD("fsMatrix.d: %f", fsMatrix.d);
+////            LOGD("fsMatrix.e: %f", fsMatrix.e);
+////            LOGD("fsMatrix.f: %f", fsMatrix.f);
+//        }
+        FPDF_PAGEOBJECT pageObject = FPDFPage_GetObject(page, 0);
+
+        float matrix[6];
+        FS_MATRIX fsMatrix;
+        if (!FPDFPageObj_GetMatrix(pageObject, &fsMatrix)) {
+            matrix[0] = -1.0f;
+            matrix[1] = -1.0f;
+            matrix[2] = -1.0f;
+            matrix[3] = -1.0f;
+            matrix[4] = -1.0f;
+            matrix[5] = -1.0f;
+        } else {
+            matrix[0] = fsMatrix.a;
+            matrix[1] = fsMatrix.b;
+            matrix[2] = fsMatrix.c;
+            matrix[3] = fsMatrix.d;
+            matrix[4] = fsMatrix.e;
+            matrix[5] = fsMatrix.f;
+        }
+
+        free(pageObject);
+
+        env->SetFloatArrayRegion(result, 0, 6, (jfloat*)matrix);
+        return result;
+
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return nullptr;
+}
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz, jlong page_ptr,
@@ -2069,4 +2162,26 @@ void raise_java_oom_exception(JNIEnv *pEnv, std::bad_alloc &alloc) {
 void handleUnexpected(JNIEnv *pEnv, char const *name) {
     LOGE("Unable to find class %s", name);
     pEnv->ExceptionClear();
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jobject thiz,
+                                                           jlong page_ptr) {
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        return (jint)FPDFPage_GetRotation(page);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return -1;
 }

@@ -71,6 +71,23 @@ class PdfPageKt(
         }
 
     /**
+     * suspend version of [PdfPage.getPageMatrix]
+     */
+    suspend fun getPageMatrix(): Matrix? =
+        withContext(dispatcher) {
+            page.getPageMatrix()
+        }
+
+    /**
+     * suspend version of [PdfPage.getPageRotation]
+     */
+    suspend fun getPageRotation(): Int =
+        withContext(dispatcher) {
+            page.getPageRotation()
+        }
+
+    @Suppress("LongParameterList")
+    /**
      * suspend version of [PdfPage.getPageCropBox]
      */
     suspend fun getPageCropBox(): RectF =

@@ -45,6 +45,8 @@ class PdfPage(
 
     private external fun nativeGetPageHeightPoint(pagePtr: Long): Int
 
+    private external fun nativeGetPageRotation(pagePtr: Long): Int
+
     private external fun nativeGetPageMediaBox(pagePtr: Long): FloatArray
 
     private external fun nativeGetPageCropBox(pagePtr: Long): FloatArray
@@ -56,6 +58,8 @@ class PdfPage(
     private external fun nativeGetPageArtBox(pagePtr: Long): FloatArray
 
     private external fun nativeGetPageBoundingBox(pagePtr: Long): FloatArray
+
+    private external fun nativeGetPageMatrix(pagePtr: Long): FloatArray
 
     private external fun nativeGetDestPageIndex(
         docPtr: Long,
@@ -194,6 +198,66 @@ class PdfPage(
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
             return nativeGetPageHeightPoint(pagePtr)
+        }
+    }
+
+    @Suppress("LongParameterList", "MagicNumber")
+    fun getPageMatrix(): Matrix? {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
+        synchronized(PdfiumCore.lock) {
+            // Translation is performed with [1 0 0 1 tx ty].
+            // Scaling is performed with [sx 0 0 sy 0 0].
+            // Matrix for transformation, in the form [a b c d e f], equivalent to:
+            // | a  b  0 |
+            // | c  d  0 |
+            // | e  f  1 |
+
+            val values = FloatArray(THREE_BY_THREE)
+
+            val pageMatrix = nativeGetPageMatrix(pagePtr)
+
+            Logger.d(TAG, "pageMatrix[0] = ${pageMatrix[0]}")
+            Logger.d(TAG, "pageMatrix[1] = ${pageMatrix[1]}")
+            Logger.d(TAG, "pageMatrix[2] = ${pageMatrix[2]}")
+            Logger.d(TAG, "pageMatrix[3] = ${pageMatrix[3]}")
+            Logger.d(TAG, "pageMatrix[4] = ${pageMatrix[4]}")
+            Logger.d(TAG, "pageMatrix[5] = ${pageMatrix[5]}")
+
+            values[Matrix.MSCALE_X] = pageMatrix[0]
+            values[Matrix.MSKEW_X] = pageMatrix[1]
+            values[Matrix.MSKEW_Y] = pageMatrix[2]
+            values[Matrix.MSCALE_Y] = pageMatrix[3]
+
+            values[Matrix.MTRANS_X] = pageMatrix[4]
+            values[Matrix.MTRANS_Y] = pageMatrix[5]
+
+            values[Matrix.MPERSP_0] = 0f
+            values[Matrix.MPERSP_1] = 0f
+            values[Matrix.MPERSP_2] = 1f
+
+            val matrix = Matrix()
+
+            matrix.setValues(values)
+
+            return matrix
+        }
+    }
+
+    /**
+     * Get page rotation in degrees
+     * @return
+     *  -1 - Error
+     *  0 - No rotation.
+     *  1 - Rotated 90 degrees clockwise.
+     *  2 - Rotated 180 degrees clockwise.
+     *  3 - Rotated 270 degrees clockwise.
+     *
+     *  @throws IllegalStateException If the page or document is closed
+     */
+    fun getPageRotation(): Int {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
+        synchronized(PdfiumCore.lock) {
+            return nativeGetPageRotation(pagePtr)
         }
     }
 
@@ -624,12 +688,12 @@ class PdfPage(
                     it.count--
                     return
                 }
+
+                pageMap.remove(pageIndex)
+
+                isClosed = true
+                nativeClosePage(pagePtr)
             }
-
-            pageMap.remove(pageIndex)
-
-            isClosed = true
-            nativeClosePage(pagePtr)
         }
     }
 

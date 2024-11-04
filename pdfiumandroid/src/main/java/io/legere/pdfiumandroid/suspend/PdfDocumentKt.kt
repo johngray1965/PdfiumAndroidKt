@@ -47,6 +47,14 @@ class PdfDocumentKt(
         }
 
     /**
+     * suspend version of [PdfDocument.deletePage]
+     */
+    suspend fun deletePage(pageIndex: Int): Unit =
+        withContext(dispatcher) {
+            document.deletePage(pageIndex)
+        }
+
+    /**
      * suspend version of [PdfDocument.openPages]
      */
     suspend fun openPages(

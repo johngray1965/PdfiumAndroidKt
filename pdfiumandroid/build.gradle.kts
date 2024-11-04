@@ -102,9 +102,9 @@ fun getRepositoryPassword(): String =
 publishing {
     publications {
         create<MavenPublication>("maven") {
-            groupId = System.getenv("GROUP")
-            artifactId = System.getenv("POM_ARTIFACT_ID")
-            version = System.getenv("VERSION_NAME")
+            groupId = "io.legere"
+            artifactId = "pdfiumandroid"
+            version = rootProject.properties["VERSION_NAME"] as String
 
             pom {
                 name.set("pdfiumandroid")

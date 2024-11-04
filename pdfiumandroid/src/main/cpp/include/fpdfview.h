@@ -150,7 +150,7 @@ typedef struct _FS_MATRIX_ {
   float d;
   float e;
   float f;
-} FS_MATRIX;
+}  FS_MATRIX;
 
 // Rectangle area(float) in device or page coordinate system.
 typedef struct _FS_RECTF_ {

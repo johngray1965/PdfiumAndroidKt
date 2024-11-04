@@ -6,6 +6,7 @@ import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
@@ -14,6 +15,7 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  * @constructor create a [PdfDocumentKtF] from a [PdfDocument]
  */
+@Suppress("TooManyFunctions")
 class PdfDocumentKtF(
     val document: PdfDocument,
     private val dispatcher: CoroutineDispatcher,
@@ -51,6 +53,14 @@ class PdfDocumentKtF(
     ): Either<PdfiumKtFErrors, List<PdfPageKtF>> =
         wrapEither(dispatcher) {
             document.openPages(fromIndex, toIndex).map { PdfPageKtF(it, dispatcher) }
+        }
+
+    /**
+     * suspend version of [PdfDocument.deletePage]
+     */
+    suspend fun deletePage(pageIndex: Int): Unit =
+        withContext(dispatcher) {
+            document.deletePage(pageIndex)
         }
 
     /**
