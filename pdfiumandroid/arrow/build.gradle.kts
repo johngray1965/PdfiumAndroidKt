@@ -1,4 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jreleaser.model.Active
+import org.jreleaser.model.Http
+import org.jreleaser.model.Signing
 
 
 plugins {
@@ -7,6 +10,7 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.jreleaser)
     `maven-publish`
     signing
 }
@@ -74,10 +78,18 @@ fun getSnapshotRepositoryUrl(): String =
 fun getRepositoryUrl(): String = if (isReleaseBuild()) getReleaseRepositoryUrl() else getSnapshotRepositoryUrl()
 
 fun getRepositoryUsername(): String =
-    if (rootProject.hasProperty("NEXUS_USERNAME")) rootProject.properties["NEXUS_USERNAME"] as String else ""
+    if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_USERNAME")) {
+        rootProject.properties["JRELEASER_MAVENCENTRAL_USERNAME"] as String
+    } else {
+        ""
+    }
 
 fun getRepositoryPassword(): String =
-    if (rootProject.hasProperty("NEXUS_PASSWORD")) rootProject.properties["NEXUS_PASSWORD"] as String else ""
+    if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_TOKEN")) {
+        rootProject.properties["JRELEASER_MAVENCENTRAL_TOKEN"] as String
+    } else {
+        ""
+    }
 
 publishing {
     publications {
@@ -116,15 +128,64 @@ publishing {
     }
     repositories {
         maven {
-            url = uri(getRepositoryUrl())
-            credentials {
+            url =
+                uri(layout.buildDirectory.dir("target/staging-deploy"))
+        }
+    }
+//    repositories {
+//        maven {
+//            url = uri(getRepositoryUrl())
+//            credentials {
+//                username = getRepositoryUsername()
+//                password = getRepositoryPassword()
+//            }
+//        }
+//    }
+}
+
+// signing {
+//    sign(publishing.publications)
+// }
+jreleaser {
+    project {
+        inceptionYear = "2023"
+        author("@johngray1965")
+        description = "Arrow support for PdfiumAndroid"
+        version = rootProject.properties["VERSION_NAME"] as String
+    }
+    gitRootSearch = true
+    signing {
+        active = Active.ALWAYS
+        mode = Signing.Mode.COMMAND
+        armored = true
+        verify = false
+        command {
+            executable = "gpg"
+            keyName = "4BBF8FAB"
+            publicKeyring = "/Users/gray/.gnupg/secring.gpg"
+        }
+    }
+    release {
+        github {
+            skipRelease = true
+        }
+    }
+    deploy {
+        maven {
+            mavenCentral.create("sonatype") {
+                active = Active.ALWAYS
+                verifyPom = false
+                authorization = Http.Authorization.BASIC
+                url = "https://central.sonatype.com/api/v1/publisher"
+                stagingRepository(
+                    layout.buildDirectory
+                        .dir("target/staging-deploy")
+                        .get()
+                        .toString(),
+                )
                 username = getRepositoryUsername()
-                password = getRepositoryPassword()
+                println("username: ${getRepositoryUsername()}")
             }
         }
     }
-}
-
-signing {
-    sign(publishing.publications)
 }

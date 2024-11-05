@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kover) apply false
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.jreleaser) apply false
 }
 
 // allprojects {

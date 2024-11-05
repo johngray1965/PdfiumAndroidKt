@@ -1,10 +1,16 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jreleaser.model.Active
+import org.jreleaser.model.Http
+import org.jreleaser.model.Signing
+
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.jreleaser)
     `maven-publish`
     signing
 }
@@ -94,10 +100,18 @@ fun getSnapshotRepositoryUrl(): String =
 fun getRepositoryUrl(): String = if (isReleaseBuild()) getReleaseRepositoryUrl() else getSnapshotRepositoryUrl()
 
 fun getRepositoryUsername(): String =
-    if (rootProject.hasProperty("NEXUS_USERNAME")) rootProject.properties["NEXUS_USERNAME"] as String else ""
+    if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_USERNAME")) {
+        rootProject.properties["JRELEASER_MAVENCENTRAL_USERNAME"] as String
+    } else {
+        ""
+    }
 
 fun getRepositoryPassword(): String =
-    if (rootProject.hasProperty("NEXUS_PASSWORD")) rootProject.properties["NEXUS_PASSWORD"] as String else ""
+    if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_TOKEN")) {
+        rootProject.properties["JRELEASER_MAVENCENTRAL_TOKEN"] as String
+    } else {
+        ""
+    }
 
 publishing {
     publications {
@@ -108,7 +122,7 @@ publishing {
 
             pom {
                 name.set("pdfiumandroid")
-                packaging = rootProject.properties["POM_PACKAGING"] as String
+//                packaging = rootProject.properties["POM_PACKAGING"] as String
                 description = rootProject.properties["POM_DESCRIPTION"] as String
                 url.set(rootProject.properties["POM_URL"] as String)
                 licenses {
@@ -137,93 +151,64 @@ publishing {
     }
     repositories {
         maven {
-            url = uri(getRepositoryUrl())
-            credentials {
-                username = getRepositoryUsername()
-                password = getRepositoryPassword()
-            }
+            url =
+                uri(layout.buildDirectory.dir("target/staging-deploy"))
         }
     }
-}
-
-signing {
-    sign(publishing.publications)
-}
-
-// fun isReleaseBuild(): Boolean {
-//    val version = System.getenv("VERSION_NAME") ?: "1.0.0"
-//    return version.contains("SNAPSHOT")
-// }
-//
-// fun getReleaseRepositoryUrl(): String =
-//    System.getenv("RELEASE_REPOSITORY_URL") ?: "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-//
-// fun getSnapshotRepositoryUrl(): String =
-//    System.getenv("SNAPSHOT_REPOSITORY_URL") ?: "https://oss.sonatype.org/content/repositories/snapshots/"
-//
-// fun getRepositoryUrl(): String = if (isReleaseBuild()) getReleaseRepositoryUrl() else getSnapshotRepositoryUrl()
-//
-// fun getRepositoryUsername(): String = System.getenv("NEXUS_USERNAME") ?: ""
-//
-// fun getRepositoryPassword(): String = System.getenv("NEXUS_PASSWORD") ?: ""
-// publishing {
-//    publications {
-//        create<MavenPublication>("release") {
-//            groupId = System.getenv("GROUP")
-//            artifactId = System.getenv("POM_ARTIFACT_ID")
-//            version = System.getenv("VERSION_NAME")
-//            pom {
-//
-//                name = "pdfiumandroid"
-//                packaging = System.getenv("POM_PACKAGING")
-//                description = System.getenv("POM_DESCRIPTION")
-//                url = System.getenv("POM_URL")
-//
-//                licenses {
-//                    license {
-//                        name = System.getenv("POM_LICENCE_NAME")
-//                        url = System.getenv("POM_LICENCE_URL")
-//                        distribution = System.getenv("POM_LICENCE_DIST")
-//                    }
-//                }
-//                developers {
-//                    developer {
-//                        id = System.getenv("POM_DEVELOPER_ID")
-//                        name = System.getenv("POM_DEVELOPER_NAME")
-//                    }
-//                }
-//                scm {
-//                    url = System.getenv("POM_SCM_URL")
-//                    connection = System.getenv("POM_SCM_CONNECTION")
-//                    developerConnection = System.getenv("POM_SCM_DEV_CONNECTION")
-//                }
-//            }
-//
-//            afterEvaluate {
-//                from(components["release"])
-//            }
-//        }
-//    }
 //    repositories {
 //        maven {
 //            url = uri(getRepositoryUrl())
 //            credentials {
-//                username = getRepositoryUsername() // project.findProperty("gpr.user") ?: System.getenv("GITHUB_USER")
-//                password = getRepositoryPassword() // project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+//                username = getRepositoryUsername()
+//                password = getRepositoryPassword()
 //            }
 //        }
 //    }
-// }
+}
 // signing {
-//    sign(publishing.publications["release"])
+//    sign(publishing.publications)
 // }
-//
-// // afterEvaluate {
-// //    publishing {
-// //        publications {
-// //            mavenRelease(MavenPublication) {
-// //                from(components["release"])
-// //            }
-// //        }
-// //    }
-// // }
+
+jreleaser {
+    project {
+        inceptionYear = "2023"
+        author("@johngray1965")
+        description = rootProject.properties["POM_DESCRIPTION"] as String
+        version = rootProject.properties["VERSION_NAME"] as String
+    }
+    gitRootSearch = true
+    signing {
+        active = Active.ALWAYS
+        mode = Signing.Mode.COMMAND
+        armored = true
+        verify = false
+        command {
+            executable = "gpg"
+            keyName = "4BBF8FAB"
+            publicKeyring = "/Users/gray/.gnupg/secring.gpg"
+        }
+    }
+    release {
+        github {
+            skipRelease = true
+        }
+    }
+    deploy {
+        maven {
+            mavenCentral.create("sonatype") {
+                active = Active.ALWAYS
+                verifyPom = false
+                authorization = Http.Authorization.BASIC
+                url = "https://central.sonatype.com/api/v1/publisher"
+                stagingRepository(
+                    layout.buildDirectory
+                        .dir("target/staging-deploy")
+                        .get()
+                        .toString(),
+                )
+                username = getRepositoryUsername()
+                println("username: ${getRepositoryUsername()}")
+            }
+        }
+    }
+}
