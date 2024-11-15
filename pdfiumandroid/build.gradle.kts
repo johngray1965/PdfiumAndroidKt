@@ -23,7 +23,7 @@ kotlin {
 
 android {
     namespace = "io.legere.pdfiumandroid"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 23
@@ -155,19 +155,7 @@ publishing {
                 uri(layout.buildDirectory.dir("target/staging-deploy"))
         }
     }
-//    repositories {
-//        maven {
-//            url = uri(getRepositoryUrl())
-//            credentials {
-//                username = getRepositoryUsername()
-//                password = getRepositoryPassword()
-//            }
-//        }
-//    }
 }
-// signing {
-//    sign(publishing.publications)
-// }
 
 jreleaser {
     project {
@@ -207,7 +195,6 @@ jreleaser {
                         .toString(),
                 )
                 username = getRepositoryUsername()
-                println("username: ${getRepositoryUsername()}")
             }
         }
     }
