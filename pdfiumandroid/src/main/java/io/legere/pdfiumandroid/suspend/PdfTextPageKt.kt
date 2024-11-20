@@ -4,6 +4,7 @@ package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
 import androidx.annotation.Keep
+import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfTextPage
 import kotlinx.coroutines.CoroutineDispatcher
@@ -106,6 +107,17 @@ class PdfTextPageKt(
         withContext(dispatcher) {
             page.getFontSize(charIndex)
         }
+
+    suspend fun findStart(findWhat: String, flags: Set<FindFlags>, startIndex: Int): FindResultKt? {
+        return withContext(dispatcher) {
+           val findResult = page.findStart(findWhat, flags, startIndex)
+            if (findResult == null) {
+                null
+            } else {
+                FindResultKt(findResult, dispatcher)
+            }
+        }
+    }
 
     /**
      * Close the page and free all resources.

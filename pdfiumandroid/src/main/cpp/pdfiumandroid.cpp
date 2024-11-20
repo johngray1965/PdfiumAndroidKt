@@ -2125,6 +2125,173 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jo
     return nullptr;
 }
 
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jobject thiz,
+                                                         jlong text_page_ptr,
+                                                         jstring find_what,
+                                                         jint flags, jint start_index) {
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+
+        const jchar* raw = env->GetStringChars(find_what, nullptr);
+        if (raw == nullptr) {
+            // Handle error, possibly throw an exception
+            return 0;
+        }
+
+        jsize len = env->GetStringLength(find_what);
+        std::u16string result(raw, raw + len);
+
+        auto handle = FPDFText_FindStart(
+                textPage,
+                (FPDF_WIDESTRING) result.c_str(),
+                flags,
+                start_index
+        );
+
+        env->ReleaseStringChars(find_what, raw);
+
+
+        return (jlong) handle;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz,
+                                                        jlong find_handle) {
+    try {
+        auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
+
+
+        auto result = FPDFText_FindNext(findHandle);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz,
+                                                        jlong find_handle) {
+    try {
+        auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
+
+
+        auto result = FPDFText_FindPrev(findHandle);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, jobject thiz,
+                                                                 jlong find_handle) {
+    try {
+        auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
+
+
+        auto result = FPDFText_GetSchResultIndex(findHandle);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject thiz,
+                                                           jlong find_handle) {
+    try {
+        auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
+
+
+        auto result = FPDFText_GetSchCount(findHandle);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject thiz,
+                                                         jlong find_handle) {
+    try {
+        auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
+
+
+        FPDFText_FindClose(findHandle);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+}
+
 void raise_java_exception(JNIEnv *pEnv, std::exception &exception) {
     jclass exClass;
     char const *className = "java/lang/NoClassDefFoundError";

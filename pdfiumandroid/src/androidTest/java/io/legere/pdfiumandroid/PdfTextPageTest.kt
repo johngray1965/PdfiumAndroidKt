@@ -138,6 +138,42 @@ class PdfTextPageTest : BasePDFTest() {
         }
     }
 
+    @Test
+    fun findStart() {
+        pdfDocument.openPage(0).use { page ->
+            page.openTextPage().use { textPage ->
+                val findWhat = "children's"
+                val startIndex = 0
+                textPage.findStart(findWhat, emptySet(), startIndex)?.use { findHandle ->
+                    var result = findHandle.findNext()
+                    assertThat(result).isTrue()
+                    var index = findHandle.getSchResultIndex()
+                    var count = findHandle.getSchCount()
+                    var text = textPage.textPageGetText(index, count)
+                    assertThat(index).isEqualTo(1525)
+                    assertThat(count).isEqualTo(10)
+                    assertThat(text).isEqualTo(findWhat)
+                    result = findHandle.findNext()
+                    assertThat(result).isTrue()
+                    index = findHandle.getSchResultIndex()
+                    count = findHandle.getSchCount()
+                    text = textPage.textPageGetText(index, count)
+                    assertThat(index).isEqualTo(2761)
+                    assertThat(count).isEqualTo(10)
+                    assertThat(text).isEqualTo(findWhat)
+                    result = findHandle.findNext()
+                    assertThat(result).isFalse()
+                    index = findHandle.getSchResultIndex()
+                    count = findHandle.getSchCount()
+                    text = textPage.textPageGetText(index, count)
+                    assertThat(index).isEqualTo(2761)
+                    assertThat(count).isEqualTo(10)
+                    assertThat(text).isEqualTo(findWhat)
+                }
+            }
+        }
+    }
+
     @Test(expected = IllegalStateException::class)
     fun close() {
         var pageAfterClose: PdfTextPage?

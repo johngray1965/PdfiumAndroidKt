@@ -3,10 +3,11 @@ package io.legere.pdfiumandroid.arrow
 import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import arrow.core.raise.either
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import junit.framework.TestCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
@@ -41,7 +42,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val charCount = textPage.textPageCountChars().bind()
 
-                        Truth.assertThat(charCount).isEqualTo(3468)
+                        assertThat(charCount).isEqualTo(3468)
                     }
                 }
             }
@@ -55,7 +56,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val text = textPage.textPageGetText(0, 100).bind()
 
-                        Truth.assertThat(text?.length).isEqualTo(100)
+                        assertThat(text?.length).isEqualTo(100)
                     }
                 }
             }
@@ -69,7 +70,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val char = textPage.textPageGetUnicode(0).bind()
 
-                        Truth.assertThat(char).isEqualTo('T')
+                        assertThat(char).isEqualTo('T')
                     }
                 }
             }
@@ -83,8 +84,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val rect = textPage.textPageGetCharBox(0).bind()
 
-                        Truth
-                            .assertThat(rect)
+                        assertThat(rect)
                             .isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
                     }
                 }
@@ -110,7 +110,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                                     1.0,
                                 ).bind()
 
-                        Truth.assertThat(pos).isEqualTo(characterToLookup)
+                        assertThat(pos).isEqualTo(characterToLookup)
                     }
                 }
             }
@@ -124,7 +124,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val rectCount = textPage.textPageCountRects(0, 100).bind()
 
-                        Truth.assertThat(rectCount).isEqualTo(4)
+                        assertThat(rectCount).isEqualTo(4)
                     }
                 }
             }
@@ -138,7 +138,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val rect = textPage.textPageGetRect(0).bind()
 
-                        Truth.assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
+                        assertThat(rect).isEqualTo(RectF(0f, 0f, 0f, 0f))
                     }
                 }
             }
@@ -152,7 +152,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val text = textPage.textPageGetBoundedText(RectF(0f, 97f, 100f, 100f), 100).bind()
 
-                        Truth.assertThat(text).isEqualTo("Do")
+                        assertThat(text).isEqualTo("Do")
                     }
                 }
             }
@@ -166,7 +166,40 @@ class PdfTextPageKtTest : BasePDFTest() {
                     page.openTextPage().bind().use { textPage ->
                         val fontSize = textPage.getFontSize(0).bind()
 
-                        Truth.assertThat(fontSize).isEqualTo(22.559999465942383)
+                        assertThat(fontSize).isEqualTo(22.559999465942383)
+                    }
+                }
+            }
+        }
+
+    @Test
+    fun findStart(): TestResult =
+        runTest {
+            either {
+                pdfDocument.openPage(0).bind().use { page ->
+                    page.openTextPage().bind().use { textPage ->
+                        val findWhat = "children's"
+                        val startIndex = 0
+                        textPage.findStart(findWhat, emptySet(), startIndex).bind().use { findHandle ->
+                            var result = findHandle.findNext()
+                            assertThat(result.bind()).isTrue()
+                            var index = findHandle.getSchResultIndex().bind()
+                            var count = findHandle.getSchCount().bind()
+                            var text = textPage.textPageGetText(index, count).bind()
+                            assertThat(index).isEqualTo(1525)
+                            assertThat(count).isEqualTo(10)
+                            assertThat(text).isEqualTo(findWhat)
+                            result = findHandle.findNext()
+                            assertThat(result.bind()).isTrue()
+                            index = findHandle.getSchResultIndex().bind()
+                            count = findHandle.getSchCount().bind()
+                            text = textPage.textPageGetText(index, count).bind()
+                            assertThat(index).isEqualTo(2761)
+                            assertThat(count).isEqualTo(10)
+                            assertThat(text).isEqualTo(findWhat)
+                            result = findHandle.findNext()
+                            assertThat(result.bind()).isFalse()
+                        }
                     }
                 }
             }
@@ -183,7 +216,7 @@ class PdfTextPageKtTest : BasePDFTest() {
                 }
                 pageAfterClose!!.textPageCountChars()
             }.mapLeft {
-                Truth.assertThat(it).isInstanceOf(PdfiumKtFErrors.AlreadyClosed::class.java)
+                assertThat(it).isInstanceOf(PdfiumKtFErrors.AlreadyClosed::class.java)
             }
         }
 
@@ -193,7 +226,7 @@ class PdfTextPageKtTest : BasePDFTest() {
             either {
                 pdfDocument.openPage(0).bind().use { page ->
                     page.openTextPage().bind().use { textPage ->
-                        Truth.assertThat(textPage.page).isNotNull()
+                        assertThat(textPage.page).isNotNull()
                     }
                 }
             }

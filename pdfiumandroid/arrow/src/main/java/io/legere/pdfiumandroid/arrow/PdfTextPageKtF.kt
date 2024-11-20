@@ -4,6 +4,7 @@ package io.legere.pdfiumandroid.arrow
 
 import android.graphics.RectF
 import arrow.core.Either
+import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.PdfTextPage
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
@@ -102,6 +103,20 @@ class PdfTextPageKtF(
     suspend fun getFontSize(charIndex: Int): Either<PdfiumKtFErrors, Double> =
         wrapEither(dispatcher) {
             page.getFontSize(charIndex)
+        }
+
+    suspend fun findStart(
+        findWhat: String,
+        flags: Set<FindFlags>,
+        startIndex: Int
+    ): Either<PdfiumKtFErrors, FindResultKtF> =
+        wrapEither(dispatcher) {
+            val findResult = page.findStart(findWhat, flags, startIndex)
+            if (findResult == null) {
+                error("findResult is null")
+            } else {
+                FindResultKtF(findResult, dispatcher)
+            }
         }
 
     /**

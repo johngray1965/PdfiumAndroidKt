@@ -9,6 +9,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
 
+typealias FindHandle = Long
 /**
  * PdfTextPage is a wrapper around the native PdfiumCore text page
  * It is used to get text and other information about the text on a page
@@ -86,6 +87,14 @@ class PdfTextPage(
         bottom: Double,
         arr: ShortArray,
     ): Int
+
+    private external fun nativeFindStart(
+        textPagePtr: Long,
+        findWhat: String,
+        flags: Int,
+        startIndex: Int
+    ): Long
+
 
     /**
      * Get character count of the page
@@ -365,6 +374,14 @@ class PdfTextPage(
         }
     }
 
+    fun findStart(findWhat: String, flags: Set<FindFlags>, startIndex: Int): FindResult? {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
+        synchronized(PdfiumCore.lock) {
+            val apiFlags = flags.fold(0) { acc, flag -> acc or flag.value }
+            return FindResult(nativeFindStart(pagePtr, findWhat, apiFlags, startIndex))
+        }
+    }
+
     /**
      * Close the page and release all resources
      */
@@ -388,4 +405,11 @@ class PdfTextPage(
     companion object {
         private val TAG = PdfTextPage::class.java.name
     }
+}
+
+@Suppress("MagicNumber")
+enum class FindFlags(val value: Int) {
+    MatchCase(0x00000001),
+    MatchWholeWord( 0x00000002),
+    Consecutive(0x00000004)
 }
