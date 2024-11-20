@@ -108,7 +108,7 @@ class PdfTextPageKtF(
     suspend fun findStart(
         findWhat: String,
         flags: Set<FindFlags>,
-        startIndex: Int
+        startIndex: Int,
     ): Either<PdfiumKtFErrors, FindResultKtF> =
         wrapEither(dispatcher) {
             val findResult = page.findStart(findWhat, flags, startIndex)

@@ -268,6 +268,7 @@ class PdfPageKtF(
         wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }
+
     /**
      * Closes the page
      */

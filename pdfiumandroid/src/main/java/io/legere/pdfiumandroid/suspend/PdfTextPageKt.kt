@@ -108,16 +108,19 @@ class PdfTextPageKt(
             page.getFontSize(charIndex)
         }
 
-    suspend fun findStart(findWhat: String, flags: Set<FindFlags>, startIndex: Int): FindResultKt? {
-        return withContext(dispatcher) {
-           val findResult = page.findStart(findWhat, flags, startIndex)
+    suspend fun findStart(
+        findWhat: String,
+        flags: Set<FindFlags>,
+        startIndex: Int,
+    ): FindResultKt? =
+        withContext(dispatcher) {
+            val findResult = page.findStart(findWhat, flags, startIndex)
             if (findResult == null) {
                 null
             } else {
                 FindResultKt(findResult, dispatcher)
             }
         }
-    }
 
     /**
      * Close the page and free all resources.

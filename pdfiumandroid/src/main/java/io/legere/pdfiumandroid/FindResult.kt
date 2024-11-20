@@ -5,26 +5,16 @@ import java.io.Closeable
 @Suppress("TooManyFunctions")
 class FindResult(
     val handle: FindHandle,
-): Closeable {
-    private external fun nativeFindNext(
-        findHandle: Long
-    ): Boolean
+) : Closeable {
+    private external fun nativeFindNext(findHandle: Long): Boolean
 
-    private external fun nativeFindPrev(
-        findHandle: Long
-    ): Boolean
+    private external fun nativeFindPrev(findHandle: Long): Boolean
 
-    private external fun nativeGetSchResultIndex(
-        findHandle: Long
-    ): Int
+    private external fun nativeGetSchResultIndex(findHandle: Long): Int
 
-    private external fun nativeGetSchCount(
-        findHandle: Long
-    ): Int
+    private external fun nativeGetSchCount(findHandle: Long): Int
 
-    private external fun nativeCloseFind(
-        findHandle: Long
-    )
+    private external fun nativeCloseFind(findHandle: Long)
 
     fun findNext(): Boolean {
         synchronized(PdfiumCore.lock) {
