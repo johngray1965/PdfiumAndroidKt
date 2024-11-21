@@ -140,7 +140,7 @@ jreleaser {
         author("@johngray1965")
         description = "Arrow support for PdfiumAndroid"
         version = rootProject.properties["VERSION_NAME"] as String
-        license  = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        license = "http://www.apache.org/licenses/LICENSE-2.0.txt"
         links {
             homepage = "https://github.com/johngray1965/PdfiumAndroidKt"
             license = "http://www.apache.org/licenses/LICENSE-2.0.txt"
