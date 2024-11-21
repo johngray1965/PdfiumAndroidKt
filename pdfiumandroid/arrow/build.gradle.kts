@@ -96,7 +96,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
             artifactId = "pdfium-android-kt-arrow"
-            version = rootProject.properties["VERSION_NAME"] as String
+            version = "1.0.24"
 
             pom {
                 name.set("pdfiumandroid.arrow")
@@ -140,6 +140,11 @@ jreleaser {
         author("@johngray1965")
         description = "Arrow support for PdfiumAndroid"
         version = rootProject.properties["VERSION_NAME"] as String
+        license  = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        links {
+            homepage = "https://github.com/johngray1965/PdfiumAndroidKt"
+            license = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+        }
     }
     gitRootSearch = true
     signing {
@@ -158,6 +163,13 @@ jreleaser {
             skipRelease = true
         }
     }
+//    distributions {
+//        create("pdfiumandroid.arrow") {
+//            artifact {
+//                path = file("build/distributions/{{distributionName}}-{{projectVersion}}.zip")
+//            }
+//        }
+//    }
     deploy {
         maven {
             mavenCentral.create("sonatype") {

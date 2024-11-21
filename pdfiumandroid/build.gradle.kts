@@ -118,7 +118,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
             artifactId = "pdfiumandroid"
-            version = rootProject.properties["VERSION_NAME"] as String
+            version = "1.0.24"
 
             pom {
                 name.set("pdfiumandroid")
@@ -181,6 +181,19 @@ jreleaser {
             skipRelease = true
         }
     }
+//    distributions {
+//        create("zip") {
+//            artifacts {
+//                add(
+//                    layout.buildDirectory
+//                        .dir("libs")
+//                        .map {
+//                            it.file("pdfiumandroid.zip")
+//                        }
+//                )
+//            }
+//        }
+//    }
     deploy {
         maven {
             mavenCentral.create("sonatype") {

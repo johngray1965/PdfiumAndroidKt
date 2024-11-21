@@ -16,11 +16,11 @@ PdfDocument, PdfPage, PdfTextPage and Kt versions all uses Closable.
 
 To use it, add the following app's build.gradle:
 ```
-    implementation("io.legere:pdfiumandroid:1.0.23")
+    implementation("io.legere:pdfiumandroid:1.0.24")
 ```
 
 Additionally, there is a separate module that provides a functional interface via arrow-kt.  This is a separate module, and is not included in the main library.  To use it, add the following app's build.gradle:
 ```
-    implementation("io.legere:pdfium-android-kt-arrow:1.0.23")
+    implementation("io.legere:pdfium-android-kt-arrow:1.0.24")
 ```
 For more information on arrow-kt, see the https://arrow-kt.io/
