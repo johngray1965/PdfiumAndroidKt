@@ -58,12 +58,41 @@ struct rgb {
     uint8_t blue;
 };
 
+JavaVM* javaVm;
+
+bool jniAttachCurrentThread(JNIEnv **env, bool *attachedOut) {
+    JavaVMAttachArgs jvmArgs;
+    jvmArgs.version = JNI_VERSION_1_6;
+
+    bool attached = false;
+    if (javaVm->GetEnv((void **) env, JNI_VERSION_1_6) == JNI_EDETACHED) {
+        if (javaVm->AttachCurrentThread(env, &jvmArgs) != JNI_OK) {
+            LOGE("Cannot attach current thread");
+            return false;
+        }
+        attached = true;
+    } else {
+        attached = false;
+    }
+    *attachedOut = attached;
+    return true;
+}
+
+bool jniDetachCurrentThread(bool attached) {
+    if (attached && javaVm->DetachCurrentThread() != JNI_OK) {
+        LOGE("Cannot detach current thread");
+        return false;
+    }
+    return true;
+}
+
 class DocumentFile {
 
 public:
     FPDF_DOCUMENT pdfDocument = nullptr;
 
-    public:
+public:
+    jobject nativeSourceBridgeGlobalRef = nullptr;
     jbyte *cDataCopy = nullptr;
 
     DocumentFile() { initLibraryIfNeed(); }
@@ -78,6 +107,14 @@ DocumentFile::~DocumentFile(){
     if(cDataCopy != nullptr){
         free(cDataCopy);
         cDataCopy = nullptr;
+    }
+    if(nativeSourceBridgeGlobalRef != nullptr){
+        JNIEnv *env;
+        bool attached;
+        if(jniAttachCurrentThread(&env, &attached)){
+            env->DeleteGlobalRef(nativeSourceBridgeGlobalRef);
+            jniDetachCurrentThread(attached);
+        }
     }
     destroyLibraryIfNeed();
 }
@@ -211,9 +248,35 @@ jlong loadTextPageInternal(JNIEnv *env, DocumentFile *doc, jlong pagePtr) {
     }
 }
 
+jfieldID dataBuffer;
+jmethodID readMethod;
+
+extern "C"
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+    javaVm = vm;
+
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+
+    jclass pdfiumReaderClass = env->FindClass("io/legere/pdfiumandroid/util/PdfiumNativeSourceBridge");
+    if (pdfiumReaderClass == nullptr) return JNI_ERR;
+
+    if ((dataBuffer = env->GetFieldID(pdfiumReaderClass, "buffer", "[B")) == nullptr) {
+        return JNI_ERR;
+    }
+
+    if ((readMethod = env->GetMethodID(pdfiumReaderClass, "read", "(JJ)I")) == nullptr) {
+        return JNI_ERR;
+    }
+
+    return JNI_VERSION_1_6;
+}
+
 extern "C"
 int getBlock(void* param, unsigned long position, unsigned char* outBuffer,
-                    unsigned long size) {
+             unsigned long size) {
     const int fd = reinterpret_cast<intptr_t>(param);
     const int readCount = pread(fd, outBuffer, size, (long) position);
     if (readCount < 0) {
@@ -221,6 +284,35 @@ int getBlock(void* param, unsigned long position, unsigned char* outBuffer,
         return 0;
     }
     return 1;
+}
+
+extern "C"
+int getBlockFromCustomSource(void* param, unsigned long position, unsigned char* outBuffer,
+                             unsigned long size) {
+    JNIEnv *env = nullptr;
+    bool attached;
+    if (!jniAttachCurrentThread(&env, &attached)) {
+        return 0;
+    }
+
+    auto nativeSourceBridge = reinterpret_cast<jobject>(param);
+    jint bytesRead = env->CallIntMethod(nativeSourceBridge, readMethod, (jlong) position, (jlong) size);
+
+    if (bytesRead == 0) {
+        LOGE("Cannot read from custom source");
+        if (!jniDetachCurrentThread(attached)) {
+            // ignore. we're going to return anyway on the next line
+        }
+        return 0;
+    }
+
+    jbyteArray buffer = (jbyteArray) env->GetObjectField(nativeSourceBridge, dataBuffer);
+    env->GetByteArrayRegion(buffer, 0, bytesRead, (jbyte*) outBuffer);
+
+    if (!jniDetachCurrentThread(attached)) {
+        return 0;
+    }
+    return bytesRead;
 }
 
 extern "C"
@@ -316,6 +408,58 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
 
     docFile->pdfDocument = document;
     docFile->cDataCopy = cDataCopy;
+    return reinterpret_cast<jlong>(docFile);
+}
+
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenCustomDocument(JNIEnv *env, jobject thiz, jobject nativeSourceBridge, jstring password, jlong dataLength) {
+    if(dataLength <= 0) {
+        jniThrowException(env, "java/io/IOException",
+                          "File is empty");
+        return -1;
+    }
+
+    auto *docFile = new DocumentFile();
+    docFile->nativeSourceBridgeGlobalRef = env->NewGlobalRef(nativeSourceBridge);
+
+    FPDF_FILEACCESS loader;
+    loader.m_FileLen = dataLength;
+    loader.m_Param = reinterpret_cast<void*>(docFile->nativeSourceBridgeGlobalRef);
+    loader.m_GetBlock = &getBlockFromCustomSource;
+
+    const char *cpassword = nullptr;
+    if(password != nullptr) {
+        cpassword = env->GetStringUTFChars(password, nullptr);
+    }
+
+    FPDF_DOCUMENT document = FPDF_LoadCustomDocument(&loader, cpassword);
+
+    if(cpassword != nullptr) {
+        env->ReleaseStringUTFChars(password, cpassword);
+    }
+
+    if (!document) {
+        delete docFile;
+
+        const unsigned long errorNum = FPDF_GetLastError();
+        if(errorNum == FPDF_ERR_PASSWORD) {
+            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+                              "Password required or incorrect password.");
+        } else {
+            char* error = getErrorDescription(errorNum);
+            jniThrowExceptionFmt(env, "java/io/IOException",
+                                 "cannot create document: %s", error);
+
+            free(error);
+        }
+
+        return -1;
+    }
+
+    docFile->pdfDocument = document;
+
     return reinterpret_cast<jlong>(docFile);
 }
 
@@ -918,7 +1062,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobje
 extern "C"
 JNIEXPORT jdouble JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject thiz, jlong page_ptr,
-                                                       jint char_index) {
+                                                           jint char_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
         return (jdouble) FPDFText_GetFontSize(textPage, char_index);
@@ -1410,7 +1554,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
                                                                       jlong page_ptr,
                                                                       jobject bitmap,
                                                                       jfloatArray matrixValues,
-                                                                        jobject clip_rect,
+                                                                      jobject clip_rect,
                                                                       jboolean render_annot,
                                                                       jboolean text_mask) {
     try {
@@ -2172,7 +2316,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz,
-                                                        jlong find_handle) {
+                                                       jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2197,7 +2341,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz,
-                                                        jlong find_handle) {
+                                                       jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2222,7 +2366,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, jobject thiz,
-                                                                 jlong find_handle) {
+                                                                jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2247,7 +2391,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, job
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject thiz,
-                                                           jlong find_handle) {
+                                                          jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2272,7 +2416,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject t
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject thiz,
-                                                         jlong find_handle) {
+                                                        jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 

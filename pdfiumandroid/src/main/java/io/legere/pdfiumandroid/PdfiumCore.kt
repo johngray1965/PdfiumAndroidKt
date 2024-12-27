@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.Surface
 import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.InitLock
+import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.IOException
@@ -42,6 +43,12 @@ class PdfiumCore(
     private external fun nativeOpenMemDocument(
         data: ByteArray?,
         password: String?,
+    ): Long
+
+    private external fun nativeOpenCustomDocument(
+        data: PdfiumNativeSourceBridge,
+        password: String?,
+        size: Long,
     ): Long
 
     private external fun nativeGetLinkRect(linkPtr: Long): RectF?
@@ -93,6 +100,32 @@ class PdfiumCore(
     ): PdfDocument {
         synchronized(lock) {
             return PdfDocument(nativeOpenMemDocument(data, password)).also { document ->
+                document.parcelFileDescriptor = null
+            }
+        }
+    }
+    /**
+     * Create new document from custom data source
+     * @param data custom data source to read from
+     * @return PdfDocument
+     */
+    @Throws(IOException::class)
+    fun newDocument(data: PdfiumSource): PdfDocument = newDocument(data, null)
+
+    /**
+     * Create new document from custom data source with password
+     * @param data custom data source to read from
+     * @param password password for decryption
+     * @return PdfDocument
+     */
+    @Throws(IOException::class)
+    fun newDocument(
+        data: PdfiumSource,
+        password: String?,
+    ): PdfDocument {
+        synchronized(lock) {
+            val nativeSourceBridge = PdfiumNativeSourceBridge(data)
+            return PdfDocument(nativeOpenCustomDocument(nativeSourceBridge, password, data.length)).also { document ->
                 document.parcelFileDescriptor = null
             }
         }

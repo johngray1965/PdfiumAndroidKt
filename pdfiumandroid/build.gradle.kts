@@ -36,6 +36,9 @@ android {
             }
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
 
     buildTypes {
         release {
