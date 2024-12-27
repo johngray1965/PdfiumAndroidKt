@@ -38,13 +38,13 @@ android {
                 "proguard-rules.pro",
             )
         }
-        maybeCreate("qa")
-        getByName("qa") {
-            matchingFallbacks += listOf("release")
-            isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("debug")
-            matchingFallbacks += listOf("release")
-        }
+//        maybeCreate("qa")
+//        getByName("qa") {
+//            matchingFallbacks += listOf("release")
+//            isMinifyEnabled = true
+//            signingConfig = signingConfigs.getByName("debug")
+//            matchingFallbacks += listOf("release")
+//        }
     }
     compileOptions {
         sourceCompatibility(JavaVersion.VERSION_17)

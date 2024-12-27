@@ -44,12 +44,12 @@ android {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-        maybeCreate("qa")
-        getByName("qa") {
-            matchingFallbacks += listOf("release")
-            isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("debug")
-        }
+//        maybeCreate("qa")
+//        getByName("qa") {
+//            matchingFallbacks += listOf("release")
+//            isMinifyEnabled = true
+//            signingConfig = signingConfigs.getByName("debug")
+//        }
     }
     externalNativeBuild {
         cmake {
