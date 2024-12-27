@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jreleaser.model.Active
-import org.jreleaser.model.Http
 import org.jreleaser.model.Signing
 
 
@@ -96,7 +95,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
             artifactId = "pdfium-android-kt-arrow"
-            version = "1.0.24"
+            version = "1.0.25"
 
             pom {
                 name.set("pdfiumandroid.arrow")
@@ -175,7 +174,6 @@ jreleaser {
             mavenCentral.create("sonatype") {
                 active = Active.ALWAYS
                 verifyPom = false
-                authorization = Http.Authorization.BASIC
                 url = "https://central.sonatype.com/api/v1/publisher"
                 stagingRepository(
                     layout.buildDirectory

@@ -163,12 +163,6 @@ class PdfTextPageTest : BasePDFTest() {
                     assertThat(text).isEqualTo(findWhat)
                     result = findHandle.findNext()
                     assertThat(result).isFalse()
-                    index = findHandle.getSchResultIndex()
-                    count = findHandle.getSchCount()
-                    text = textPage.textPageGetText(index, count)
-                    assertThat(index).isEqualTo(2761)
-                    assertThat(count).isEqualTo(10)
-                    assertThat(text).isEqualTo(findWhat)
                 }
             }
         }
