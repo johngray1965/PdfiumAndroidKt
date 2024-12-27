@@ -276,7 +276,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
 extern "C"
 int getBlock(void* param, unsigned long position, unsigned char* outBuffer,
-             unsigned long size) {
+                    unsigned long size) {
     const int fd = reinterpret_cast<intptr_t>(param);
     const int readCount = pread(fd, outBuffer, size, (long) position);
     if (readCount < 0) {
@@ -1062,7 +1062,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobje
 extern "C"
 JNIEXPORT jdouble JNICALL
 Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject thiz, jlong page_ptr,
-                                                           jint char_index) {
+                                                       jint char_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
         return (jdouble) FPDFText_GetFontSize(textPage, char_index);
@@ -1554,7 +1554,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
                                                                       jlong page_ptr,
                                                                       jobject bitmap,
                                                                       jfloatArray matrixValues,
-                                                                      jobject clip_rect,
+                                                                        jobject clip_rect,
                                                                       jboolean render_annot,
                                                                       jboolean text_mask) {
     try {
@@ -2316,7 +2316,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jobject th
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz,
-                                                       jlong find_handle) {
+                                                        jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2341,7 +2341,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz,
-                                                       jlong find_handle) {
+                                                        jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2366,7 +2366,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, jobject thiz,
-                                                                jlong find_handle) {
+                                                                 jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2391,7 +2391,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, job
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject thiz,
-                                                          jlong find_handle) {
+                                                           jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
@@ -2416,7 +2416,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject t
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject thiz,
-                                                        jlong find_handle) {
+                                                         jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
