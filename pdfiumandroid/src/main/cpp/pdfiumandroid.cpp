@@ -260,14 +260,14 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
         return JNI_ERR;
     }
 
-    jclass pdfiumReaderClass = env->FindClass("io/legere/pdfiumandroid/util/PdfiumNativeSourceBridge");
-    if (pdfiumReaderClass == nullptr) return JNI_ERR;
+    jclass nativeSourceBridge = env->FindClass("io/legere/pdfiumandroid/util/PdfiumNativeSourceBridge");
+    if (nativeSourceBridge == nullptr) return JNI_ERR;
 
-    if ((dataBuffer = env->GetFieldID(pdfiumReaderClass, "buffer", "[B")) == nullptr) {
+    if ((dataBuffer = env->GetFieldID(nativeSourceBridge, "buffer", "[B")) == nullptr) {
         return JNI_ERR;
     }
 
-    if ((readMethod = env->GetMethodID(pdfiumReaderClass, "read", "(JJ)I")) == nullptr) {
+    if ((readMethod = env->GetMethodID(nativeSourceBridge, "read", "(JJ)I")) == nullptr) {
         return JNI_ERR;
     }
 
