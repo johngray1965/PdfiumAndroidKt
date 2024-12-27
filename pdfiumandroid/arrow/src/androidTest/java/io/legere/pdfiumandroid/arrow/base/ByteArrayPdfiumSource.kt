@@ -21,4 +21,8 @@ class ByteArrayPdfiumSource(
         )
         return size
     }
+
+    override fun close() {
+        // nothing to close
+    }
 }

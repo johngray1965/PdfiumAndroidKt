@@ -4,12 +4,15 @@ import io.legere.pdfiumandroid.PdfiumSource
 
 class ByteArrayPdfiumSource(
     private val array: ByteArray,
-): PdfiumSource {
-
+) : PdfiumSource {
     override val length: Long
         get() = array.size.toLong()
 
-    override fun read(position: Long, buffer: ByteArray, size: Int): Int {
+    override fun read(
+        position: Long,
+        buffer: ByteArray,
+        size: Int,
+    ): Int {
         array.copyInto(
             destination = buffer,
             destinationOffset = 0,
@@ -19,4 +22,7 @@ class ByteArrayPdfiumSource(
         return size
     }
 
+    override fun close() {
+        // nothing to close
+    }
 }

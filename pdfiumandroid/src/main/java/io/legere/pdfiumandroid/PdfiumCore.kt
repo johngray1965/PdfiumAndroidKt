@@ -75,6 +75,7 @@ class PdfiumCore(
         synchronized(lock) {
             return PdfDocument(nativeOpenDocument(parcelFileDescriptor.fd, password)).also { document ->
                 document.parcelFileDescriptor = parcelFileDescriptor
+                document.source = null
             }
         }
     }
@@ -101,9 +102,11 @@ class PdfiumCore(
         synchronized(lock) {
             return PdfDocument(nativeOpenMemDocument(data, password)).also { document ->
                 document.parcelFileDescriptor = null
+                document.source = null
             }
         }
     }
+
     /**
      * Create new document from custom data source
      * @param data custom data source to read from
@@ -127,6 +130,7 @@ class PdfiumCore(
             val nativeSourceBridge = PdfiumNativeSourceBridge(data)
             return PdfDocument(nativeOpenCustomDocument(nativeSourceBridge, password, data.length)).also { document ->
                 document.parcelFileDescriptor = null
+                document.source = data
             }
         }
     }

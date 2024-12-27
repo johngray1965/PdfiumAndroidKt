@@ -78,6 +78,7 @@ class PdfDocument(
     private external fun nativeGetPageCharCounts(docPtr: Long): IntArray
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
+    var source: PdfiumSource? = null
 
     /**
      *  Get the page count of the PDF document
@@ -301,6 +302,8 @@ class PdfDocument(
             nativeCloseDocument(mNativeDocPtr)
             parcelFileDescriptor?.close()
             parcelFileDescriptor = null
+            source?.close()
+            source = null
         }
     }
 

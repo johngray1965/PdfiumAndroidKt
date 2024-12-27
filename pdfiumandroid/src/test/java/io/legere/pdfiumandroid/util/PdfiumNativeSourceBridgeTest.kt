@@ -107,5 +107,9 @@ class PdfiumNativeSourceBridgeTest {
                 buffer: ByteArray,
                 size: Int,
             ): Int = read(position, buffer, size)
+
+            override fun close() {
+                // nothing to close
+            }
         }
 }

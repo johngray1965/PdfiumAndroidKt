@@ -3,7 +3,7 @@ package io.legere.pdfiumandroid
 /**
  * An interface for providing custom data source to Pdfium.
  */
-interface PdfiumSource {
+interface PdfiumSource : AutoCloseable {
     /**
      * Data length, in bytes
      */
