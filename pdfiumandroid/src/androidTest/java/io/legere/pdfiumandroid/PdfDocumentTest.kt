@@ -3,9 +3,7 @@ package io.legere.pdfiumandroid
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
-import junit.framework.TestCase.assertNotNull
 import org.junit.After
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,7 +17,7 @@ class PdfDocumentTest : BasePDFTest() {
     fun setUp() {
         pdfBytes = getPdfBytes("f01.pdf")
 
-        assertNotNull(pdfBytes)
+        assertThat(pdfBytes).isNotNull()
 
         pdfDocument = PdfiumCore().newDocument(pdfBytes)
     }
@@ -33,28 +31,28 @@ class PdfDocumentTest : BasePDFTest() {
     fun getPageCount() {
         val pageCount = pdfDocument.getPageCount()
 
-        assert(pageCount == 4) { "Page count should be 4" }
+        assertThat(pageCount).isEqualTo(4)
     }
 
     @Test
     fun openPage() {
         val page = pdfDocument.openPage(0)
 
-        assertNotNull(page)
+        assertThat(page).isNotNull()
     }
 
     @Test
     fun openPages() {
         val page = pdfDocument.openPages(0, 3)
 
-        assert(page.size == 4) { "Page count should be 4" }
+        assertThat(page.size).isEqualTo(4)
     }
 
     @Test
     fun getDocumentMeta() {
         val meta = pdfDocument.getDocumentMeta()
 
-        assertNotNull(meta)
+        assertThat(meta).isNotNull()
     }
 
     @Test
@@ -62,7 +60,7 @@ class PdfDocumentTest : BasePDFTest() {
         // I don't think this test document has a table of contents
         val toc = pdfDocument.getTableOfContents()
 
-        assertNotNull(toc)
+        assertThat(toc).isNotNull()
         assertThat(toc.size).isEqualTo(0)
     }
 
@@ -70,7 +68,7 @@ class PdfDocumentTest : BasePDFTest() {
     fun openTextPage() {
         val page = pdfDocument.openPage(0)
         val textPage = page.openTextPage()
-        assertNotNull(textPage)
+        assertThat(textPage).isNotNull()
     }
 
 //    @Test
@@ -96,7 +94,7 @@ class PdfDocumentTest : BasePDFTest() {
     fun closeDocument() {
         var shouldBeClosed: PdfDocument?
         PdfiumCore().newDocument(pdfBytes).use { pdfDocument ->
-            Assert.assertNotNull(pdfDocument)
+            assertThat(pdfDocument).isNotNull()
             shouldBeClosed = pdfDocument
         }
 

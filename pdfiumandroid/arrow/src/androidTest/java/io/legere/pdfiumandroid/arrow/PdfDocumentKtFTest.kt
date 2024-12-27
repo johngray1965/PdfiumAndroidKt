@@ -2,8 +2,9 @@ package io.legere.pdfiumandroid.arrow
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import arrow.core.raise.either
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.arrow.base.BasePDFTest
 import junit.framework.TestCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -23,7 +24,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
         runBlocking {
             pdfBytes = getPdfBytes("f01.pdf")
 
-            TestCase.assertNotNull(pdfBytes)
+            assertThat(pdfBytes).isNotNull()
 
             pdfDocument = PdfiumCoreKtF(Dispatchers.Unconfined).newDocument(pdfBytes).getOrNull()!!
         }
@@ -40,7 +41,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
             either {
                 val pageCount = pdfDocument.getPageCount().bind()
 
-                assert(pageCount == 4) { "Page count should be 4" }
+                assertThat(pageCount).isEqualTo(4)
             }
         }
 
@@ -50,7 +51,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
             either {
                 val page = pdfDocument.openPage(0).bind()
 
-                TestCase.assertNotNull(page)
+                assertThat(page).isNotNull()
             }
         }
 
@@ -60,7 +61,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
             either {
                 val page = pdfDocument.openPages(0, 3).bind()
 
-                assert(page.size == 4) { "Page count should be 4" }
+                assertThat(page.size).isEqualTo(4)
             }
         }
 
@@ -70,7 +71,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
             either {
                 val meta = pdfDocument.getDocumentMeta().bind()
 
-                TestCase.assertNotNull(meta)
+                assertThat(meta).isNotNull()
             }
         }
 
@@ -82,7 +83,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
                 val toc = pdfDocument.getTableOfContents().bind()
 
                 TestCase.assertNotNull(toc)
-                Truth.assertThat(toc.size).isEqualTo(0)
+                assertThat(toc.size).isEqualTo(0)
             }
         }
 
@@ -92,7 +93,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
             either {
                 val page = pdfDocument.openPage(0).bind()
                 val textPage = page.openTextPage().bind()
-                TestCase.assertNotNull(textPage)
+                assertThat(textPage).isNotNull()
             }
         }
 
@@ -101,7 +102,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
         runTest {
             either {
                 val textPages = pdfDocument.openTextPages(0, 3).bind()
-                Truth.assertThat(textPages.size).isEqualTo(4)
+                assertThat(textPages.size).isEqualTo(4)
             }
         }
 
@@ -128,7 +129,7 @@ class PdfDocumentKtFTest : BasePDFTest() {
                 }
                 documentAfterClose?.openPage(0)
             }.mapLeft {
-                Truth.assertThat(it).isInstanceOf(PdfiumKtFErrors.AlreadyClosed::class.java)
+                assertThat(it).isInstanceOf(PdfiumKtFErrors.AlreadyClosed::class.java)
             }
         }
 }

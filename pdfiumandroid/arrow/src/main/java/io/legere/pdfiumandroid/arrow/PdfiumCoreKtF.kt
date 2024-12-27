@@ -5,6 +5,7 @@ package io.legere.pdfiumandroid.arrow
 import android.os.ParcelFileDescriptor
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -51,6 +52,25 @@ class PdfiumCoreKtF(
      */
     suspend fun newDocument(
         data: ByteArray?,
+        password: String?,
+    ): Either<PdfiumKtFErrors, PdfDocumentKtF> =
+        wrapEither(dispatcher) {
+            PdfDocumentKtF(coreInternal.newDocument(data, password), dispatcher)
+        }
+
+    /**
+     * suspend version of [PdfiumCore.newDocument]
+     */
+    suspend fun newDocument(data: PdfiumSource): Either<PdfiumKtFErrors, PdfDocumentKtF> =
+        wrapEither(dispatcher) {
+            PdfDocumentKtF(coreInternal.newDocument(data), dispatcher)
+        }
+
+    /**
+     * suspend version of [PdfiumCore.newDocument]
+     */
+    suspend fun newDocument(
+        data: PdfiumSource,
         password: String?,
     ): Either<PdfiumKtFErrors, PdfDocumentKtF> =
         wrapEither(dispatcher) {

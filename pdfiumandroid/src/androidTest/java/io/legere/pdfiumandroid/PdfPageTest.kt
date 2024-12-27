@@ -9,7 +9,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.util.Size
-import junit.framework.TestCase
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -24,7 +23,7 @@ class PdfPageTest : BasePDFTest() {
     fun setUp() {
         pdfBytes = getPdfBytes("f01.pdf")
 
-        TestCase.assertNotNull(pdfBytes)
+        assertThat(pdfBytes).isNotNull()
 
         pdfDocument = PdfiumCore().newDocument(pdfBytes)
     }

@@ -8,8 +8,8 @@ import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import arrow.core.raise.either
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.arrow.base.BasePDFTest
 import io.legere.pdfiumandroid.util.Size
-import junit.framework.TestCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -28,7 +28,7 @@ class PdfPageKtFTest : BasePDFTest() {
         runBlocking {
             pdfBytes = getPdfBytes("f01.pdf")
 
-            TestCase.assertNotNull(pdfBytes)
+            assertThat(pdfBytes).isNotNull()
 
             pdfDocument = PdfiumCoreKtF(Dispatchers.Unconfined).newDocument(pdfBytes).getOrNull()!!
         }

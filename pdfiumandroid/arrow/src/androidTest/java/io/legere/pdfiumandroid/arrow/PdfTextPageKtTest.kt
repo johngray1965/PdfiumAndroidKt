@@ -4,6 +4,7 @@ import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import arrow.core.raise.either
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.arrow.base.BasePDFTest
 import junit.framework.TestCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
