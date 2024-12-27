@@ -2,6 +2,7 @@ package io.legere.pdfiumandroid.suspend
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.legere.pdfiumandroid.base.BasePDFTest
+import io.legere.pdfiumandroid.base.ByteArrayPdfiumSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert
@@ -19,6 +20,19 @@ class PdfiumCoreKtTest : BasePDFTest() {
 
             val pdfiumCore = PdfiumCoreKt(Dispatchers.Unconfined)
             val pdfDocument = pdfiumCore.newDocument(pdfBytes)
+
+            Assert.assertNotNull(pdfDocument)
+        }
+
+    @Test
+    fun newDocumentWitCustomSource() =
+        runTest {
+            val pdfBytes = getPdfBytes("f01.pdf")
+
+            Assert.assertNotNull(pdfBytes)
+
+            val pdfiumCore = PdfiumCoreKt(Dispatchers.Unconfined)
+            val pdfDocument = pdfiumCore.newDocument(ByteArrayPdfiumSource(pdfBytes!!))
 
             Assert.assertNotNull(pdfDocument)
         }
