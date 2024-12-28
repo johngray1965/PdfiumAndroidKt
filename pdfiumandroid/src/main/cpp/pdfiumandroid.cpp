@@ -306,7 +306,7 @@ int getBlockFromCustomSource(void* param, unsigned long position, unsigned char*
         return 0;
     }
 
-    jbyteArray buffer = (jbyteArray) env->GetObjectField(nativeSourceBridge, dataBuffer);
+    auto buffer = (jbyteArray) env->GetObjectField(nativeSourceBridge, dataBuffer);
     env->GetByteArrayRegion(buffer, 0, bytesRead, (jbyte*) outBuffer);
 
     if (!jniDetachCurrentThread(attached)) {
@@ -2435,7 +2435,235 @@ Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject thi
         raise_java_exception(env, e);
     }
 }
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink(JNIEnv *env, jobject thiz,
+                                                           jlong text_page_ptr) {
+    try {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
 
+        auto handle = FPDFLink_LoadWebLinks(textPage);
+
+        return (jlong) handle;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink(JNIEnv *env, jobject thiz,
+                                                             jlong page_link_ptr) {
+    try {
+        auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
+
+
+        FPDFLink_CloseWebLinks(pageLink);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks(JNIEnv *env, jobject thiz,
+                                                             jlong page_link_ptr) {
+    try {
+        auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
+
+
+        auto result =  FPDFLink_CountWebLinks(pageLink);
+        LOGE("CountWebLinks result %d", result);
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return -1;
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL(JNIEnv *env, jobject thiz,
+                                                      jlong page_link_ptr, jint index, jint count, jbyteArray result) {
+    try {
+        auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
+
+        jboolean isCopy = 0;
+        auto *arr = (jbyteArray) env->GetByteArrayElements(result, &isCopy);
+        unsigned short buffer[count];
+
+        jint output = (jint) FPDFLink_GetURL(pageLink, index, buffer, count);
+
+
+        memcpy(arr, buffer, count * sizeof(unsigned short));
+        if (isCopy) {
+            env->SetByteArrayRegion(result, 0, count * 2, (jbyte *) arr);
+            env->ReleaseByteArrayElements(result, (jbyte *) arr, JNI_ABORT);
+        }
+        return output;
+
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects(JNIEnv *env, jobject thiz,
+                                                          jlong page_link_ptr, jint index) {
+    try {
+        auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
+
+
+        auto result = FPDFLink_CountRects(pageLink, index);
+        LOGE("CountRect %d", result);
+
+        return result;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return 0;
+}
+extern "C"
+JNIEXPORT jfloatArray JNICALL
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jobject thiz,
+                                                       jlong page_link_ptr, jint linkIndex, jint rectIndex) {
+    try {
+        auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
+
+        double left;
+        double top;
+        double right;
+        double bottom;
+
+        if (FPDFLink_GetRect(pageLink, linkIndex, rectIndex, &left, &top, &right, &bottom )) {
+            jfloatArray result = env->NewFloatArray(4);
+            if (result == nullptr) {
+                return nullptr;
+            }
+            jfloat array[4];
+            array[0] = (float) left;
+            array[1] = (float) top;
+            array[2] = (float) right;
+            array[3] = (float) bottom;
+
+            env->SetFloatArrayRegion(result, 0, 4, array);
+            return result;
+        }
+
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return nullptr;
+}
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jobject thiz,
+                                                            jlong page_link_ptr, jint index) {
+    try {
+        auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
+
+        if (pageLink == nullptr) {
+            LOGE("PageLink is null");
+
+            jniThrowException(env, "java/lang/IllegalStateException",
+                              "Document is null");
+            return nullptr;
+        }
+
+        int start, count;
+        int result = FPDFLink_GetTextRange(pageLink, index, &start, &count);
+
+        if (result == 0) {
+            start = 0;
+            count = 0;
+        }
+
+        jclass clazz = env->FindClass("io/legere/pdfiumandroid/util/Size");
+        if (clazz == nullptr) {
+            LOGE("Size class not found");
+
+            jniThrowException(env, "java/lang/IllegalStateException",
+                              "Size class not found");
+            return nullptr;
+        }
+        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
+        if (constructorID == nullptr) {
+            LOGE("Size constructor not found");
+
+            jniThrowException(env, "java/lang/IllegalStateException",
+                              "Size constructor not found");
+            return nullptr;
+        }
+        return env->NewObject(clazz, constructorID, start, count);
+
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return nullptr;
+}
 void raise_java_exception(JNIEnv *pEnv, std::exception &exception) {
     jclass exClass;
     char const *className = "java/lang/NoClassDefFoundError";
@@ -2510,3 +2738,4 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jobject 
     }
     return -1;
 }
+

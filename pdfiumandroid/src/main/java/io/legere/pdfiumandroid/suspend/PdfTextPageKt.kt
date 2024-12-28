@@ -122,6 +122,11 @@ class PdfTextPageKt(
             }
         }
 
+    suspend fun loadWebLink(): PdfPageLinkKt =
+        withContext(dispatcher) {
+            PdfPageLinkKt(page.loadWebLink(), dispatcher)
+        }
+
     /**
      * Close the page and free all resources.
      */

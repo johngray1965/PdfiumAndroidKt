@@ -96,6 +96,8 @@ class PdfTextPage(
         startIndex: Int,
     ): Long
 
+    private external fun nativeLoadWebLink(textPagePtr: Long): Long
+
     /**
      * Get character count of the page
      * @return the number of characters on the page
@@ -384,6 +386,12 @@ class PdfTextPage(
             val apiFlags = flags.fold(0) { acc, flag -> acc or flag.value }
             return FindResult(nativeFindStart(pagePtr, findWhat, apiFlags, startIndex))
         }
+    }
+
+    fun loadWebLink(): PdfPageLink {
+        check(!isClosed && !doc.isClosed) { "Already closed" }
+        val linkPtr = nativeLoadWebLink(pagePtr)
+        return PdfPageLink(linkPtr)
     }
 
     /**

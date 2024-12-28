@@ -119,6 +119,11 @@ class PdfTextPageKtF(
             }
         }
 
+    suspend fun loadWebLink(): Either<PdfiumKtFErrors, PdfPageLinkKtF> =
+        wrapEither(dispatcher) {
+            PdfPageLinkKtF(page.loadWebLink(), dispatcher)
+        }
+
     /**
      * Close the page and free all resources.
      */

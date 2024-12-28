@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":pdfiumandroid"))
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.arrow.core)
+    implementation(libs.androidx.runner)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

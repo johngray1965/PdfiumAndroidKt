@@ -26,6 +26,7 @@ kotlin = "2.0.21"
 arrow = "1.2.1"
 annotation-jvm = "1.9.1"
 jreleaser = "1.15.0"
+runner = "1.6.2"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
@@ -56,6 +57,7 @@ truth = { module = "com.google.truth:truth", version.ref = "truth" }
 arrow-core = { module = "io.arrow-kt:arrow-core", version.ref = "arrow" }
 arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref = "arrow" }
 androidx-annotation-jvm = { group = "androidx.annotation", name = "annotation-jvm", version.ref = "annotation-jvm" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 
 [bundles]
 
