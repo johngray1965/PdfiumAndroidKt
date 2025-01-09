@@ -165,6 +165,22 @@ class PdfPageKtF(
             true
         }
 
+    /**
+     * suspend version of [PdfPage.renderPage]
+     */
+    @Suppress("LongParameterList")
+    suspend fun renderPage(
+        surface: Surface?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+    ): Either<PdfiumKtFErrors, Boolean> =
+        wrapEither(dispatcher) {
+            page.renderPage(surface, matrix, clipRect, renderAnnot, textMask)
+            true
+        }
+
     @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]

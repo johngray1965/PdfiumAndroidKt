@@ -27,121 +27,6 @@ class PdfPage(
 ) : Closeable {
     private var isClosed = false
 
-    private external fun nativeClosePage(pagePtr: Long)
-
-    private external fun nativeClosePages(pagesPtr: LongArray)
-
-    private external fun nativeGetPageWidthPixel(
-        pagePtr: Long,
-        dpi: Int,
-    ): Int
-
-    private external fun nativeGetPageHeightPixel(
-        pagePtr: Long,
-        dpi: Int,
-    ): Int
-
-    private external fun nativeGetPageWidthPoint(pagePtr: Long): Int
-
-    private external fun nativeGetPageHeightPoint(pagePtr: Long): Int
-
-    private external fun nativeGetPageRotation(pagePtr: Long): Int
-
-    private external fun nativeGetPageMediaBox(pagePtr: Long): FloatArray
-
-    private external fun nativeGetPageCropBox(pagePtr: Long): FloatArray
-
-    private external fun nativeGetPageBleedBox(pagePtr: Long): FloatArray
-
-    private external fun nativeGetPageTrimBox(pagePtr: Long): FloatArray
-
-    private external fun nativeGetPageArtBox(pagePtr: Long): FloatArray
-
-    private external fun nativeGetPageBoundingBox(pagePtr: Long): FloatArray
-
-    private external fun nativeGetPageMatrix(pagePtr: Long): FloatArray
-
-    private external fun nativeGetDestPageIndex(
-        docPtr: Long,
-        linkPtr: Long,
-    ): Int?
-
-    private external fun nativeGetLinkURI(
-        docPtr: Long,
-        linkPtr: Long,
-    ): String?
-
-    private external fun nativeGetLinkRect(
-        docPtr: Long,
-        linkPtr: Long,
-    ): RectF?
-
-    @Suppress("LongParameterList")
-    private external fun nativeRenderPage(
-        pagePtr: Long,
-        surface: Surface?,
-        startX: Int,
-        startY: Int,
-        drawSizeHor: Int,
-        drawSizeVer: Int,
-        renderAnnot: Boolean,
-    )
-
-    @Suppress("LongParameterList")
-    private external fun nativeRenderPageBitmap(
-        docPtr: Long,
-        pagePtr: Long,
-        bitmap: Bitmap?,
-        startX: Int,
-        startY: Int,
-        drawSizeHor: Int,
-        drawSizeVer: Int,
-        renderAnnot: Boolean,
-        textMask: Boolean,
-    )
-
-    @Suppress("LongParameterList")
-    private external fun nativeRenderPageBitmapWithMatrix(
-        pagePtr: Long,
-        bitmap: Bitmap?,
-        matrix: FloatArray,
-        clipRect: RectF,
-        renderAnnot: Boolean = false,
-        textMask: Boolean = false,
-    )
-
-    private external fun nativeGetPageSizeByIndex(
-        docPtr: Long,
-        pageIndex: Int,
-        dpi: Int,
-    ): Size
-
-    private external fun nativeGetPageLinks(pagePtr: Long): LongArray
-
-    @Suppress("LongParameterList")
-    private external fun nativePageCoordsToDevice(
-        pagePtr: Long,
-        startX: Int,
-        startY: Int,
-        sizeX: Int,
-        sizeY: Int,
-        rotate: Int,
-        pageX: Double,
-        pageY: Double,
-    ): Point
-
-    @Suppress("LongParameterList")
-    private external fun nativeDeviceCoordsToPage(
-        pagePtr: Long,
-        startX: Int,
-        startY: Int,
-        sizeX: Int,
-        sizeY: Int,
-        rotate: Int,
-        deviceX: Int,
-        deviceY: Int,
-    ): PointF
-
     /**
      * Open a text page
      * @return the opened [PdfTextPage]
@@ -427,6 +312,46 @@ class PdfPage(
     }
 
     /**
+     * Render page fragment on [Surface].<br></br>
+     * @param surface Surface on which to render page
+     * @param matrix The matrix to map the page to the surface
+     * @param clipRect The rectangle to clip the page to
+     * @param renderAnnot whether render annotation
+     * @throws IllegalStateException If the page or document is closed
+     */
+    fun renderPage(
+        surface: Surface?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+    ) {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
+        val matrixValues = FloatArray(THREE_BY_THREE)
+        matrix.getValues(matrixValues)
+        synchronized(PdfiumCore.lock) {
+            nativeRenderPageWithMatrix(
+                pagePtr,
+                surface,
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                floatArrayOf(
+                    clipRect.left,
+                    clipRect.top,
+                    clipRect.right,
+                    clipRect.bottom,
+                ),
+                renderAnnot,
+                textMask,
+            )
+        }
+    }
+
+    /**
      * Render page fragment on [Bitmap].<br></br>
      * @param bitmap Bitmap on which to render page
      * @param startX left position of the page in the bitmap
@@ -489,7 +414,12 @@ class PdfPage(
                     matrixValues[Matrix.MTRANS_X],
                     matrixValues[Matrix.MTRANS_Y],
                 ),
-                clipRect,
+                floatArrayOf(
+                    clipRect.left,
+                    clipRect.top,
+                    clipRect.right,
+                    clipRect.bottom,
+                ),
                 renderAnnot,
                 textMask,
             )
@@ -507,7 +437,7 @@ class PdfPage(
                 val index = nativeGetDestPageIndex(doc.mNativeDocPtr, linkPtr)
                 val uri = nativeGetLinkURI(doc.mNativeDocPtr, linkPtr)
                 val rect = nativeGetLinkRect(doc.mNativeDocPtr, linkPtr)
-                if (rect != null && (index != null || uri != null)) {
+                if (rect != null && (index != -1 || uri != null)) {
                     links.add(PdfDocument.Link(rect, index, uri))
                 }
             }
@@ -706,5 +636,155 @@ class PdfPage(
         const val TOP = 1
         const val RIGHT = 2
         const val BOTTOM = 3
+
+        @JvmStatic
+        private external fun nativeClosePage(pagePtr: Long)
+
+        @JvmStatic
+        private external fun nativeClosePages(pagesPtr: LongArray)
+
+        @JvmStatic
+        private external fun nativeGetDestPageIndex(
+            docPtr: Long,
+            linkPtr: Long,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeGetLinkURI(
+            docPtr: Long,
+            linkPtr: Long,
+        ): String?
+
+        @JvmStatic
+        private external fun nativeGetLinkRect(
+            docPtr: Long,
+            linkPtr: Long,
+        ): RectF?
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeRenderPage(
+            pagePtr: Long,
+            surface: Surface?,
+            startX: Int,
+            startY: Int,
+            drawSizeHor: Int,
+            drawSizeVer: Int,
+            renderAnnot: Boolean,
+        )
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeRenderPageWithMatrix(
+            pagePtr: Long,
+            surface: Surface?,
+            matrix: FloatArray,
+            clipRect: FloatArray,
+            renderAnnot: Boolean = false,
+            textMask: Boolean = false,
+        )
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeRenderPageBitmap(
+            docPtr: Long,
+            pagePtr: Long,
+            bitmap: Bitmap?,
+            startX: Int,
+            startY: Int,
+            drawSizeHor: Int,
+            drawSizeVer: Int,
+            renderAnnot: Boolean,
+            textMask: Boolean,
+        )
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeRenderPageBitmapWithMatrix(
+            pagePtr: Long,
+            bitmap: Bitmap?,
+            matrix: FloatArray,
+            clipRect: FloatArray,
+            renderAnnot: Boolean = false,
+            textMask: Boolean = false,
+        )
+
+        @JvmStatic
+        private external fun nativeGetPageSizeByIndex(
+            docPtr: Long,
+            pageIndex: Int,
+            dpi: Int,
+        ): Size
+
+        @JvmStatic
+        private external fun nativeGetPageLinks(pagePtr: Long): LongArray
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativePageCoordsToDevice(
+            pagePtr: Long,
+            startX: Int,
+            startY: Int,
+            sizeX: Int,
+            sizeY: Int,
+            rotate: Int,
+            pageX: Double,
+            pageY: Double,
+        ): Point
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeDeviceCoordsToPage(
+            pagePtr: Long,
+            startX: Int,
+            startY: Int,
+            sizeX: Int,
+            sizeY: Int,
+            rotate: Int,
+            deviceX: Int,
+            deviceY: Int,
+        ): PointF
+
+        @JvmStatic
+        private external fun nativeGetPageWidthPixel(
+            pagePtr: Long,
+            dpi: Int,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeGetPageHeightPixel(
+            pagePtr: Long,
+            dpi: Int,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeGetPageWidthPoint(pagePtr: Long): Int
+
+        @JvmStatic
+        private external fun nativeGetPageHeightPoint(pagePtr: Long): Int
+
+        @JvmStatic
+        private external fun nativeGetPageRotation(pagePtr: Long): Int
+
+        @JvmStatic
+        private external fun nativeGetPageMediaBox(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        private external fun nativeGetPageCropBox(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        private external fun nativeGetPageBleedBox(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        private external fun nativeGetPageTrimBox(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        private external fun nativeGetPageArtBox(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        private external fun nativeGetPageBoundingBox(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        private external fun nativeGetPageMatrix(pagePtr: Long): FloatArray
     }
 }

@@ -33,27 +33,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import coil.ComponentRegistry
-import coil.ImageLoader
-import coil.compose.AsyncImage
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import dagger.hilt.android.AndroidEntryPoint
-import io.legere.pdfiumandroidkt.ui.PdfiumFetcher
-import io.legere.pdfiumandroidkt.ui.PdfiumFetcherData
+import io.legere.pdfiumandroidkt.ui.PdfViewer
 import io.legere.pdfiumandroidkt.ui.theme.PdfiumAndroidKtTheme
 import timber.log.Timber
-import kotlin.math.roundToInt
-
-private const val MAX_MEMORY_CACHE_SIZE_PERCENTAGE = 0.25
-private const val MAX_DISK_CACHE_SIZE_PERCENTAGE = 0.1
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -70,27 +57,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val imageLoader =
-            ImageLoader
-                .Builder(this)
-                .components(
-                    fun ComponentRegistry.Builder.() {
-                        add(PdfiumFetcher.Factory())
-                    },
-                ).allowRgb565(true)
-                .memoryCache {
-                    MemoryCache
-                        .Builder(this)
-                        .maxSizePercent(MAX_MEMORY_CACHE_SIZE_PERCENTAGE)
-                        .build()
-                }.diskCache {
-                    DiskCache
-                        .Builder()
-                        .directory(cacheDir.resolve("image_cache"))
-                        .maxSizePercent(MAX_DISK_CACHE_SIZE_PERCENTAGE)
-                        .build()
-                }.build()
-
         setContent {
             PdfiumAndroidKtTheme {
                 // A surface container using the 'background' color from the theme
@@ -98,7 +64,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    MyUI(viewModel, openFileContract, imageLoader)
+                    MyUI(viewModel, openFileContract)
                 }
             }
         }
@@ -110,7 +76,6 @@ class MainActivity : ComponentActivity() {
 fun MyUI(
     viewModel: MainViewModel,
     openFileContract: ActivityResultLauncher<Array<String>>?,
-    imageLoader: ImageLoader,
 ) {
     Scaffold(
         topBar = {
@@ -132,21 +97,18 @@ fun MyUI(
         },
     ) { contentPadding ->
         Box(modifier = Modifier.padding(contentPadding)) {
-            MainContent(viewModel, imageLoader)
+            MainContent(viewModel)
         }
     }
 }
 
 @Suppress("ktlint:standard:function-naming")
 @Composable
-fun MainContent(
-    viewModel: MainViewModel,
-    imageLoader: ImageLoader,
-) {
+fun MainContent(viewModel: MainViewModel) {
     val state = viewModel.state.collectAsState()
     when (state.value.loadState) {
         MainViewModel.LoadStatus.Loading -> MaxSizeCenterBox { Message("Loading") }
-        MainViewModel.LoadStatus.Success -> MyPager(viewModel, imageLoader)
+        MainViewModel.LoadStatus.Success -> MyPager(viewModel)
         MainViewModel.LoadStatus.Error -> Message("Error")
         MainViewModel.LoadStatus.Init -> Message("Load PDF")
     }
@@ -173,10 +135,7 @@ private fun Message(text: String = "Error") {
 }
 
 @Composable
-fun MyPager(
-    viewModel: MainViewModel,
-    imageLoader: ImageLoader,
-) {
+fun MyPager(viewModel: MainViewModel) {
     val state = viewModel.state.collectAsState()
     val pagerState =
         rememberPagerState(
@@ -217,7 +176,6 @@ fun MyPager(
                     componentWidth,
                     componentHeight,
                     density,
-                    imageLoader,
                 )
             },
         )
@@ -232,7 +190,6 @@ fun PagerScope(
     componentWidth: Int,
     componentHeight: Int,
     density: Density,
-    imageLoader: ImageLoader,
 ) {
     if (componentWidth <= 0 || componentHeight <= 0) {
         return
@@ -244,28 +201,32 @@ fun PagerScope(
             "componentHeight: $componentHeight, " +
             "density: $density",
     )
-
-    AsyncImage(
-        model =
-            ImageRequest
-                .Builder(LocalContext.current)
-                .data(
-                    PdfiumFetcherData(
-                        page = page,
-                        width = componentWidth,
-                        height = componentHeight,
-                        density = density.density.roundToInt(),
-                        viewModel = viewModel,
-                    ),
-                ).memoryCacheKey("page_$page")
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .build(),
-        contentDescription = "Page $page",
-        imageLoader = imageLoader,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
+    PdfViewer(
+        pdfDocument = viewModel.pdfDocument!!,
+        pageNum = page,
     )
+
+//    AsyncImage(
+//        model =
+//            ImageRequest
+//                .Builder(LocalContext.current)
+//                .data(
+//                    PdfiumFetcherData(
+//                        page = page,
+//                        width = componentWidth,
+//                        height = componentHeight,
+//                        density = density.density.roundToInt(),
+//                        viewModel = viewModel,
+//                    ),
+//                ).memoryCacheKey("page_$page")
+//                .diskCachePolicy(CachePolicy.ENABLED)
+//                .memoryCachePolicy(CachePolicy.ENABLED)
+//                .build(),
+//        contentDescription = "Page $page",
+//        imageLoader = imageLoader,
+//        modifier =
+//            Modifier
+//                .fillMaxWidth()
+//                .fillMaxHeight(),
+//    )
 }

@@ -24,6 +24,8 @@ android {
     namespace = "io.legere.pdfiumandroid"
     compileSdk = 35
 
+    ndkVersion = "28.0.12674087"
+
     defaultConfig {
         minSdk = 23
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -127,7 +129,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
             artifactId = "pdfiumandroid"
-            version = "1.0.25"
+            version = "1.0.27"
 
             pom {
                 name.set("pdfiumandroid")

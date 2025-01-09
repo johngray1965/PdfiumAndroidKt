@@ -9,30 +9,6 @@ import java.nio.charset.StandardCharsets
 class PdfPageLink(
     private val pageLinkPtr: Long,
 ) : Closeable {
-    private external fun nativeClosePageLink(pageLinkPtr: Long)
-
-    private external fun nativeCountWebLinks(pageLinkPtr: Long): Int
-
-    private external fun nativeGetURL(
-        pageLinkPtr: Long,
-        index: Int,
-        count: Int,
-        result: ByteArray,
-    ): Int
-
-    private external fun nativeCountRects(
-        pageLinkPtr: Long,
-        index: Int,
-    ): Int
-
-    private external fun nativeGetRect(
-        pageLinkPtr: Long,
-        linkIndex: Int,
-        rectIndex: Int,
-    ): FloatArray
-
-    private external fun nativeGetTextRange(pageLinkPtr: Long, index: Int): Size // needs to return a start and an end
-
     fun countWebLinks(): Int {
         synchronized(PdfiumCore.lock) {
             return nativeCountWebLinks(pageLinkPtr)
@@ -100,5 +76,36 @@ class PdfPageLink(
 
     companion object {
         private val TAG = PdfPageLink::class.java.name
+
+        @JvmStatic
+        private external fun nativeClosePageLink(pageLinkPtr: Long)
+
+        @JvmStatic
+        private external fun nativeCountWebLinks(pageLinkPtr: Long): Int
+
+        @JvmStatic
+        private external fun nativeGetURL(
+            pageLinkPtr: Long,
+            index: Int,
+            count: Int,
+            result: ByteArray,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeCountRects(
+            pageLinkPtr: Long,
+            index: Int,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeGetRect(
+            pageLinkPtr: Long,
+            linkIndex: Int,
+            rectIndex: Int,
+        ): FloatArray
+
+        @JvmStatic
+        // needs to return a start and an end
+        private external fun nativeGetTextRange(pageLinkPtr: Long, index: Int): Size
     }
 }

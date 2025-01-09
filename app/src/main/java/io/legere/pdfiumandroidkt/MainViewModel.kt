@@ -57,7 +57,7 @@ class MainViewModel
                         },
                 ),
             )
-        private var pdfDocument: PdfDocumentKt? = null
+        var pdfDocument: PdfDocumentKt? = null
 
         init {
             val actionStateFlow = MutableStateFlow<UiAction>(UiAction.Init())

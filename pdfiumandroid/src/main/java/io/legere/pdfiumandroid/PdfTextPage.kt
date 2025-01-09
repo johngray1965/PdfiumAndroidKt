@@ -27,77 +27,6 @@ class PdfTextPage(
 ) : Closeable {
     private var isClosed = false
 
-    private external fun nativeCloseTextPage(pagePtr: Long)
-
-    private external fun nativeTextCountChars(textPagePtr: Long): Int
-
-    private external fun nativeTextGetText(
-        textPagePtr: Long,
-        startIndex: Int,
-        count: Int,
-        result: ShortArray,
-    ): Int
-
-    private external fun nativeTextGetTextByteArray(
-        textPagePtr: Long,
-        startIndex: Int,
-        count: Int,
-        result: ByteArray,
-    ): Int
-
-    private external fun nativeTextGetUnicode(
-        textPagePtr: Long,
-        index: Int,
-    ): Int
-
-    private external fun nativeTextGetCharBox(
-        textPagePtr: Long,
-        index: Int,
-    ): DoubleArray
-
-    private external fun nativeTextGetCharIndexAtPos(
-        textPagePtr: Long,
-        x: Double,
-        y: Double,
-        xTolerance: Double,
-        yTolerance: Double,
-    ): Int
-
-    private external fun nativeTextCountRects(
-        textPagePtr: Long,
-        startIndex: Int,
-        count: Int,
-    ): Int
-
-    private external fun nativeTextGetRect(
-        textPagePtr: Long,
-        rectIndex: Int,
-    ): DoubleArray
-
-    private external fun nativeGetFontSize(
-        pagePtr: Long,
-        charIndex: Int,
-    ): Double
-
-    @Suppress("LongParameterList")
-    private external fun nativeTextGetBoundedText(
-        textPagePtr: Long,
-        left: Double,
-        top: Double,
-        right: Double,
-        bottom: Double,
-        arr: ShortArray,
-    ): Int
-
-    private external fun nativeFindStart(
-        textPagePtr: Long,
-        findWhat: String,
-        flags: Int,
-        startIndex: Int,
-    ): Long
-
-    private external fun nativeLoadWebLink(textPagePtr: Long): Long
-
     /**
      * Get character count of the page
      * @return the number of characters on the page
@@ -416,6 +345,91 @@ class PdfTextPage(
 
     companion object {
         private val TAG = PdfTextPage::class.java.name
+
+        @JvmStatic
+        private external fun nativeCloseTextPage(pagePtr: Long)
+
+        @JvmStatic
+        private external fun nativeTextCountChars(textPagePtr: Long): Int
+
+        @JvmStatic
+        private external fun nativeTextGetCharBox(
+            textPagePtr: Long,
+            index: Int,
+        ): DoubleArray
+
+        @JvmStatic
+        private external fun nativeTextGetRect(
+            textPagePtr: Long,
+            rectIndex: Int,
+        ): DoubleArray
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeTextGetBoundedText(
+            textPagePtr: Long,
+            left: Double,
+            top: Double,
+            right: Double,
+            bottom: Double,
+            arr: ShortArray,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeFindStart(
+            textPagePtr: Long,
+            findWhat: String,
+            flags: Int,
+            startIndex: Int,
+        ): Long
+
+        @JvmStatic
+        private external fun nativeLoadWebLink(textPagePtr: Long): Long
+
+        @JvmStatic
+        private external fun nativeTextGetCharIndexAtPos(
+            textPagePtr: Long,
+            x: Double,
+            y: Double,
+            xTolerance: Double,
+            yTolerance: Double,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeTextGetText(
+            textPagePtr: Long,
+            startIndex: Int,
+            count: Int,
+            result: ShortArray,
+        ): Int
+
+//
+        @JvmStatic
+        private external fun nativeTextGetTextByteArray(
+            textPagePtr: Long,
+            startIndex: Int,
+            count: Int,
+            result: ByteArray,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeTextGetUnicode(
+            textPagePtr: Long,
+            index: Int,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeTextCountRects(
+            textPagePtr: Long,
+            startIndex: Int,
+            count: Int,
+        ): Int
+
+        @JvmStatic
+        private external fun nativeGetFontSize(
+            pagePtr: Long,
+            charIndex: Int,
+        ): Double
     }
 }
 

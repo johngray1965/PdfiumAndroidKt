@@ -45,27 +45,27 @@ class PdfPageTest : BasePDFTest() {
     @Test
     fun getPageHeight() {
         pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageHeight(72)
+            val pageHeight = page.getPageHeight(72)
 
-            assertThat(pageWidth).isEqualTo(792) // 11 inches * 72 dpi
+            assertThat(pageHeight).isEqualTo(792) // 11 inches * 72 dpi
         }
     }
 
     @Test
     fun getPageWidthPoint() {
         pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageWidthPoint()
+            val pageWidthPoint = page.getPageWidthPoint()
 
-            assertThat(pageWidth).isEqualTo(612) // 11 inches * 72 dpi
+            assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
         }
     }
 
     @Test
     fun getPageHeightPoint() {
         pdfDocument.openPage(0).use { page ->
-            val pageWidth = page.getPageHeightPoint()
+            val pageHeightPoint = page.getPageHeightPoint()
 
-            assertThat(pageWidth).isEqualTo(792) // 11 inches * 72 dpi
+            assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
         }
     }
 
@@ -117,10 +117,10 @@ class PdfPageTest : BasePDFTest() {
     @Test
     fun getPageBoundingBox() {
         pdfDocument.openPage(0).use { page ->
-            val artBox = page.getPageBoundingBox()
+            val boundingBox = page.getPageBoundingBox()
 
             // Note, that looks incorrect, but pdfs coordinate systems starts from bottom left corner
-            assertThat(artBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
+            assertThat(boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
         }
     }
 

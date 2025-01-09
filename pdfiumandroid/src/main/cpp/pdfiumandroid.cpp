@@ -193,17 +193,17 @@ int jniThrowExceptionFmt(JNIEnv* env, const char* className, const char* fmt, ..
 }
 
 
-jobject NewLong(JNIEnv* env, jlong value) {
-    jclass cls = env->FindClass("java/lang/Long");
-    jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
-    return env->NewObject(cls, methodID, value);
-}
-
-jobject NewInteger(JNIEnv* env, jint value) {
-    jclass cls = env->FindClass("java/lang/Integer");
-    jmethodID methodID = env->GetMethodID(cls, "<init>", "(I)V");
-    return env->NewObject(cls, methodID, value);
-}
+//jobject NewLong(JNIEnv* env, jlong value) {
+//    jclass cls = env->FindClass("java/lang/Long");
+//    jmethodID methodID = env->GetMethodID(cls, "<init>", "(J)V");
+//    return env->NewObject(cls, methodID, value);
+//}
+//
+//jobject NewInteger(JNIEnv* env, jint value) {
+//    jclass cls = env->FindClass("java/lang/Integer");
+//    jmethodID methodID = env->GetMethodID(cls, "<init>", "(I)V");
+//    return env->NewObject(cls, methodID, value);
+//}
 
 uint16_t rgbTo565(rgb *color) {
     return ((color->red >> 3) << 11) | ((color->green >> 2) << 5) | (color->blue >> 3);
@@ -252,7 +252,7 @@ jfieldID dataBuffer;
 jmethodID readMethod;
 
 extern "C"
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
     javaVm = vm;
 
     JNIEnv* env;
@@ -296,7 +296,7 @@ int getBlockFromCustomSource(void* param, unsigned long position, unsigned char*
     }
 
     auto nativeSourceBridge = reinterpret_cast<jobject>(param);
-    jint bytesRead = env->CallIntMethod(nativeSourceBridge, readMethod, (jlong) position, (jlong) size);
+    jint bytesRead = env->CallIntMethod(nativeSourceBridge, readMethod, position,  size);
 
     if (bytesRead == 0) {
         LOGE("Cannot read from custom source");
@@ -317,7 +317,7 @@ int getBlockFromCustomSource(void* param, unsigned long position, unsigned char*
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument(JNIEnv *env, jobject thiz, jint fd,
+Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument(JNIEnv *env, jobject, jint fd,
                                                            jstring password) {
     auto fileLength = (size_t)getFileSize(fd);
     if(fileLength <= 0) {
@@ -369,7 +369,7 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobject,
                                                               jbyteArray data, jstring password) {
     auto *docFile = new DocumentFile();
 
@@ -414,7 +414,7 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenCustomDocument(JNIEnv *env, jobject thiz, jobject nativeSourceBridge, jstring password, jlong dataLength) {
+Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject nativeSourceBridge, jstring password, jlong dataLength) {
     if(dataLength <= 0) {
         jniThrowException(env, "java/io/IOException",
                           "File is empty");
@@ -503,13 +503,6 @@ static void renderPageInternal( FPDF_PAGE page,
                                                  FPDFBitmap_BGRA,
                                                  windowBuffer->bits, (int)(windowBuffer->stride) * 4);
 
-    /*LOGD("Start X: %d", startX);
-    LOGD("Start Y: %d", startY);
-    LOGD("Canvas Hor: %d", canvasHorSize);
-    LOGD("Canvas Ver: %d", canvasVerSize);
-    LOGD("Draw Hor: %d", drawSizeHor);
-    LOGD("Draw Ver: %d", drawSizeVer);*/
-
     if(drawSizeHor < canvasHorSize || drawSizeVer < canvasVerSize){
         FPDFBitmap_FillRect( pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
                              0x848484FF); //Gray
@@ -536,7 +529,7 @@ static void renderPageInternal( FPDF_PAGE page,
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeGetLinkRect(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfiumCore_nativeGetLinkRect(JNIEnv *env, jobject,
                                                           jlong link_ptr) {
     try {
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
@@ -592,7 +585,7 @@ void handleUnexpected(JNIEnv *pEnv, char const *name);
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject,
                                                             jlong doc_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -613,7 +606,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject
 }
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject thiz, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject, jlong doc_ptr,
                                                         jint page_index) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -635,7 +628,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject thi
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jobject thiz, jlong page_ptr) {
+Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jclass , jlong page_ptr) {
     try {
         closePageInternal(page_ptr);
     } catch (std::bad_alloc &e) {
@@ -654,7 +647,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jobject thiz, 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage(JNIEnv *env, jobject thiz, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage(JNIEnv *env, jobject, jlong doc_ptr,
                                                           jint page_index) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -680,7 +673,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage(JNIEnv *env, jobject t
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobject,
                                                              jlong doc_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -703,7 +696,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject thiz, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject, jlong doc_ptr,
                                                          jint from_index, jint to_index) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -738,7 +731,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, jobject,
                                                                    jlong doc_ptr, jstring tag) {
     try {
         const char *ctag = env->GetStringUTFChars(tag, nullptr);
@@ -771,27 +764,23 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, 
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env, jobject thiz,
+JNIEXPORT jlong JNICALL
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env, jobject,
                                                                      jlong doc_ptr,
-                                                                     jobject bookmark_ptr) {
+                                                                     jlong bookmark_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         FPDF_BOOKMARK parent;
-        if(bookmark_ptr == nullptr) {
+        if(bookmark_ptr == 0) {
             parent = nullptr;
         } else {
-            jclass longClass = env->GetObjectClass(bookmark_ptr);
-            jmethodID longValueMethod = env->GetMethodID(longClass, "longValue", "()J");
-
-            jlong ptr = env->CallLongMethod(bookmark_ptr, longValueMethod);
-            parent = reinterpret_cast<FPDF_BOOKMARK>(ptr);
+            parent = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
         }
         FPDF_BOOKMARK bookmark = FPDFBookmark_GetFirstChild(doc->pdfDocument, parent);
         if (bookmark == nullptr) {
-            return nullptr;
+            return 0;
         }
-        return NewLong(env, reinterpret_cast<jlong>(bookmark));
+        return reinterpret_cast<jlong>(bookmark);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -804,12 +793,12 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
-    return nullptr;
+    return 0;
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, jobject thiz,
+JNIEXPORT jlong JNICALL
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, jobject,
                                                                   jlong doc_ptr,
                                                                   jlong bookmark_ptr) {
     try {
@@ -817,9 +806,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, j
         auto parent = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
         FPDF_BOOKMARK bookmark = FPDFBookmark_GetNextSibling(doc->pdfDocument, parent);
         if (bookmark == nullptr) {
-            return nullptr;
+            return 0;
         }
-        return NewLong(env, reinterpret_cast<jlong>(bookmark));
+        return reinterpret_cast<jlong>(bookmark);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -832,12 +821,12 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, j
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
-    return nullptr;
+    return 0;
 }
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject,
                                                             jlong doc_ptr, jlong page_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -859,7 +848,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, jobject,
                                                                 jlong bookmark_ptr) {
     try {
         auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
@@ -886,18 +875,18 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, job
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, jobject thiz,
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, jobject,
                                                                 jlong doc_ptr, jlong link_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
         FPDF_DEST dest = FPDFLink_GetDest(doc->pdfDocument, link);
         if (dest == nullptr) {
-            return nullptr;
+            return -1;
         }
         unsigned long index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
-        return NewInteger(env, (jint) index);
+        return (jint) index;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -910,12 +899,12 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, job
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
-    return nullptr;
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject thiz, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject, jlong doc_ptr,
                                                           jobject callback, jint flags) {
     try {
         jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/PdfWriteCallback");
@@ -949,7 +938,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject t
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jclass ,
                                                       jlongArray pages_ptr) {
     try {
         int length = (int) (env->GetArrayLength(pages_ptr));
@@ -973,7 +962,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jclass,
                                                              jlong page_ptr, jint dpi) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -995,7 +984,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint dpi) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1017,7 +1006,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jclass,
                                                              jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1039,7 +1028,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jclass,
                                                               jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1061,7 +1050,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jdouble JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject thiz, jlong page_ptr,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jclass, jlong page_ptr,
                                                        jint char_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
@@ -1083,7 +1072,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jclass ,
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1119,7 +1108,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jclass,
                                                           jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1155,7 +1144,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jobject t
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1191,7 +1180,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jclass,
                                                           jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1227,7 +1216,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jobject t
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jclass,
                                                          jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1263,7 +1252,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jclass,
                                                               jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1306,7 +1295,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jclass,
                                                          jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1314,8 +1303,8 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jobject th
         if (result == nullptr) {
             return nullptr;
         }
-        auto count = FPDFPage_CountObjects(page);
-        int index;
+//        auto count = FPDFPage_CountObjects(page);
+//        int index;
 //        for (index = 0; index < count; index++) {
 //            FPDF_PAGEOBJECT pageObject = FPDFPage_GetObject(page, index);
 //            auto objectType = FPDFPageObj_GetType(pageObject);
@@ -1371,7 +1360,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jobject th
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz, jlong page_ptr,
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong page_ptr,
                                                       jobject surface, jint start_x,
                                                       jint start_y, jint draw_size_hor,
                                                       jint draw_size_ver, jboolean render_annot) {
@@ -1404,7 +1393,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz,
         }
 
         renderPageInternal(page, &buffer,
-                           (int) start_y, (int) start_y,
+                           (int) start_x, (int) start_y,
                            buffer.width, buffer.height,
                            (int) draw_size_hor, (int) draw_size_ver,
                            (bool) render_annot);
@@ -1427,14 +1416,113 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jclass,
+                                                                jlong page_ptr, jobject surface,
+                                                                jfloatArray matrixValues,
+                                                                jfloatArray clipRect,
+                                                                jboolean render_annot,
+                                                                jboolean) {
+    try {
+        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+        if (nativeWindow == nullptr) {
+            LOGE("native window pointer null");
+            return;
+        }
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+
+        if (page == nullptr) {
+            LOGE("Render page pointers invalid");
+            return;
+        }
+
+        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
+            LOGD("Set format to RGBA_8888");
+            ANativeWindow_setBuffersGeometry(nativeWindow,
+                                             ANativeWindow_getWidth(nativeWindow),
+                                             ANativeWindow_getHeight(nativeWindow),
+                                             WINDOW_FORMAT_RGBA_8888);
+        }
+
+        ANativeWindow_Buffer buffer;
+        int ret;
+        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
+            LOGE("Locking native window failed: %s", strerror(ret * -1));
+            return;
+        }
+        jboolean isCopyClipRect;
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, &isCopyClipRect);
+        auto leftClip = clipRectFloats[0];
+        auto topClip = clipRectFloats[1];
+        auto rightClip = clipRectFloats[2];
+        auto bottomClip = clipRectFloats[3];
+
+        if (isCopyClipRect) {
+            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        }
+
+        auto canvasHorSize = rightClip - leftClip;
+        auto canvasVerSize = bottomClip - topClip;
+
+        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
+                                                    FPDFBitmap_BGRA,
+                                                    buffer.bits, (int)(buffer.stride) * 4);
+
+        int flags = FPDF_REVERSE_BYTE_ORDER;
+
+        if (render_annot) {
+            flags |= FPDF_ANNOT;
+        }
+
+        FPDFBitmap_FillRect(pdfBitmap, 0, 0, (int) canvasHorSize, (int) canvasVerSize,
+                            0xFFFFFFFF); //White
+
+
+        jboolean isCopy;
+        auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
+
+        auto matrix = FS_MATRIX();
+        matrix.a = matrixFloats[0];
+        matrix.b = 0;
+        matrix.c = 0;
+        matrix.d = matrixFloats[1];
+        matrix.e = matrixFloats[2];
+        matrix.f = matrixFloats[3];
+        auto clip = FS_RECTF();
+        clip.left = leftClip;
+        clip.top = topClip;
+        clip.right = rightClip;
+        clip.bottom = bottomClip;
+        if (isCopy) {
+            env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
+        }
+
+        FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+
+        ANativeWindow_unlockAndPost(nativeWindow);
+        ANativeWindow_release(nativeWindow);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jclass,
                                                             jlong doc_ptr,
                                                             jlong page_ptr,
                                                             jobject bitmap,
                                                             jint start_x, jint start_y,
                                                             jint draw_size_hor, jint draw_size_ver,
                                                             jboolean render_annot,
-                                                            jboolean text_mask) {
+                                                            jboolean) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1550,13 +1638,13 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jobject
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jclass,
                                                                       jlong page_ptr,
                                                                       jobject bitmap,
                                                                       jfloatArray matrixValues,
-                                                                        jobject clip_rect,
+                                                                      jfloatArray clipRect,
                                                                       jboolean render_annot,
-                                                                      jboolean text_mask) {
+                                                                      jboolean) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
@@ -1634,15 +1722,17 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
         FPDFBitmap_FillRect(pdfBitmap, 0, 0, (int) canvasHorSize, (int) canvasVerSize,
                             0xFFFFFFFF); //White
 
-        jclass clazz = env->FindClass("android/graphics/RectF");
-        jfieldID left = env->GetFieldID(clazz, "left", "F");
-        jfieldID top = env->GetFieldID(clazz, "top", "F");
-        jfieldID right = env->GetFieldID(clazz, "right", "F");
-        jfieldID bottom = env->GetFieldID(clazz, "bottom", "F");
-        jfloat leftClip = env->GetFloatField(clip_rect, left);
-        jfloat topClip = env->GetFloatField(clip_rect, top);
-        jfloat rightClip = env->GetFloatField(clip_rect, right);
-        jfloat bottomClip = env->GetFloatField(clip_rect, bottom);
+//        jclass clazz = env->FindClass("android/graphics/RectF");
+//        jfieldID left = env->GetFieldID(clazz, "left", "F");
+//        jfieldID top = env->GetFieldID(clazz, "top", "F");
+//        jfieldID right = env->GetFieldID(clazz, "right", "F");
+//        jfieldID bottom = env->GetFieldID(clazz, "bottom", "F");
+        jboolean isCopyClipRect;
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, &isCopyClipRect);
+        auto leftClip = clipRectFloats[0];
+        auto topClip = clipRectFloats[1];
+        auto rightClip = clipRectFloats[2];
+        auto bottomClip = clipRectFloats[3];
 
         jboolean isCopy;
         auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
@@ -1663,6 +1753,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
             env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
         }
 
+        if (isCopyClipRect) {
+            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        }
 
         FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
 
@@ -1687,7 +1780,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
 }
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jclass,
                                                               jlong doc_ptr, jint page_index,
                                                               jint dpi) {
     try {
@@ -1745,7 +1838,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jobject thiz, jlong page_ptr) {
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jclass, jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         int pos = 0;
@@ -1775,7 +1868,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jobject thi
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint start_x,
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
@@ -1807,7 +1900,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint start_x,
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
@@ -1841,7 +1934,7 @@ static void closeTextPageInternal(jlong textPagePtr) { FPDFText_ClosePage(reinte
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jclass,
                                                              jlong page_ptr) {
     try {
         closeTextPageInternal(page_ptr);
@@ -1861,7 +1954,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jclass,
                                                               jlong text_page_ptr) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -1883,7 +1976,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint start_index,
                                                            jint count, jshortArray result) {
     try {
@@ -1913,7 +2006,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray(JNIEnv *env, jclass,
                                                                     jlong text_page_ptr,
                                                                     jint start_index, jint count,
                                                                     jbyteArray result) {
@@ -1946,7 +2039,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -1968,7 +2061,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -1997,7 +2090,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env, jclass,
                                                                      jlong text_page_ptr, jdouble x,
                                                                      jdouble y, jdouble x_tolerance,
                                                                      jdouble y_tolerance) {
@@ -2022,7 +2115,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint start_index,
                                                               jint count) {
     try {
@@ -2045,7 +2138,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint rect_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -2074,7 +2167,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, jclass,
                                                                   jlong text_page_ptr, jdouble left,
                                                                   jdouble top, jdouble right,
                                                                   jdouble bottom, jshortArray arr) {
@@ -2111,8 +2204,8 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, j
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jobject thiz,
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jclass,
                                                             jlong doc_ptr, jlong link_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -2120,10 +2213,10 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jobject
 
         FPDF_DEST dest = FPDFBookmark_GetDest(doc->pdfDocument, bookmark);
         if (dest == nullptr) {
-            return nullptr;
+            return -1;
         }
         auto index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
-        return NewInteger(env, (jint) index);
+        return (jint) index;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -2136,12 +2229,12 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jobject
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
-    return nullptr;
+    return -1;
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jobject thiz, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jclass, jlong doc_ptr,
                                                       jlong link_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -2174,7 +2267,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jobject thiz,
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jobject thiz, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jclass, jlong,
                                                        jlong link_ptr) {
     try {
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
@@ -2205,7 +2298,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jobject thiz
 }
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env, jobject,
                                                                     jlong doc_ptr,
                                                                     jlong bookmark_ptr) {
     try {
@@ -2234,7 +2327,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jobject,
                                                                  jlong doc_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -2271,7 +2364,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jo
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jclass,
                                                          jlong text_page_ptr,
                                                          jstring find_what,
                                                          jint flags, jint start_index) {
@@ -2315,7 +2408,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jobject th
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject,
                                                         jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -2340,7 +2433,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject thiz
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject,
                                                         jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -2365,7 +2458,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject thiz
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, jobject,
                                                                  jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -2390,7 +2483,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, job
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject,
                                                            jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -2415,7 +2508,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject t
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject,
                                                          jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -2437,7 +2530,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject thi
 }
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink(JNIEnv *env, jclass,
                                                            jlong text_page_ptr) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -2462,7 +2555,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink(JNIEnv *env, jobject 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink(JNIEnv *env, jclass,
                                                              jlong page_link_ptr) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -2484,7 +2577,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks(JNIEnv *env, jclass,
                                                              jlong page_link_ptr) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -2509,7 +2602,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL(JNIEnv *env, jclass,
                                                       jlong page_link_ptr, jint index, jint count, jbyteArray result) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -2544,7 +2637,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL(JNIEnv *env, jobject thiz,
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects(JNIEnv *env, jclass,
                                                           jlong page_link_ptr, jint index) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -2570,7 +2663,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects(JNIEnv *env, jobject t
 }
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jclass,
                                                        jlong page_link_ptr, jint linkIndex, jint rectIndex) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -2611,7 +2704,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jobject thiz
 }
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
                                                             jlong page_link_ptr, jint index) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -2719,7 +2812,7 @@ void handleUnexpected(JNIEnv *pEnv, char const *name) {
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);

@@ -153,8 +153,23 @@ class PdfPageKt(
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
+        renderAnnot: Boolean = false,
     ) = withContext(dispatcher) {
-        page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
+        page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+    }
+
+    /**
+     * suspend version of [PdfPage.renderPage]
+     */
+    @Suppress("LongParameterList")
+    suspend fun renderPage(
+        surface: Surface?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+    ) = withContext(dispatcher) {
+        page.renderPage(surface, matrix, clipRect, renderAnnot, textMask)
     }
 
     @Suppress("LongParameterList")

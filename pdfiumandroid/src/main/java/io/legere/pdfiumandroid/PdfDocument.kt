@@ -49,13 +49,13 @@ class PdfDocument(
 
     private external fun nativeGetFirstChildBookmark(
         docPtr: Long,
-        bookmarkPtr: Long?,
-    ): Long?
+        bookmarkPtr: Long,
+    ): Long
 
     private external fun nativeGetSiblingBookmark(
         docPtr: Long,
         bookmarkPtr: Long,
-    ): Long?
+    ): Long
 
     private external fun nativeGetBookmarkDestIndex(
         docPtr: Long,
@@ -198,11 +198,11 @@ class PdfDocument(
         bookmark.pageIdx = nativeGetBookmarkDestIndex(mNativeDocPtr, bookmarkPtr)
         tree.add(bookmark)
         val child = nativeGetFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
-        if (child != null && levelMutable < MAX_RECURSION) {
+        if (child != 0L && levelMutable < MAX_RECURSION) {
             recursiveGetBookmark(bookmark.children, child, levelMutable++)
         }
         val sibling = nativeGetSiblingBookmark(mNativeDocPtr, bookmarkPtr)
-        if (sibling != null && levelMutable < MAX_RECURSION) {
+        if (sibling != 0L && levelMutable < MAX_RECURSION) {
             recursiveGetBookmark(tree, sibling, levelMutable)
         }
     }
@@ -217,8 +217,8 @@ class PdfDocument(
         synchronized(PdfiumCore.lock) {
             val topLevel: MutableList<Bookmark> =
                 ArrayList()
-            val first = nativeGetFirstChildBookmark(this.mNativeDocPtr, null)
-            if (first != null) {
+            val first = nativeGetFirstChildBookmark(this.mNativeDocPtr, 0)
+            if (first != 0L) {
                 recursiveGetBookmark(topLevel, first, 1)
             }
             return topLevel
