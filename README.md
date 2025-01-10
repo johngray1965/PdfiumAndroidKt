@@ -37,8 +37,8 @@ Rendering directly to a Surface is fast, and doesn't require the memory overhead
 
 ## What this project does
 
-We provide Android bindings for Pdfium.  Pdfium is library that Google produces.
+We provide Android bindings for Pdfium.  Pdfium is a library that Google produces.
 
 We don't do user interfaces.   We are open to helping integrate this with your UI on contract basis.
 
-We are open to Pull Requests (PRs), but only if they keep the to scope of providing Android binding for Pdfium.   And we don't accept PRs to customize the Pdfium libraries.
+We are open to Pull Requests (PRs), but only if they keep the to scope of providing Android binding for Pdfium.   And we don't accept PRs that customize the Pdfium libraries.

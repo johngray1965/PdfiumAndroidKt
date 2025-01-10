@@ -141,8 +141,7 @@ class PdfTextPage(
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             try {
-                val o =
-                    nativeTextGetCharBox(pagePtr, index)
+                val o = nativeTextGetCharBox(pagePtr, index)
                 // Note these are in an odd order left, right, bottom, top
                 // what what Pdfium native code returns
                 val r = RectF()
@@ -232,8 +231,7 @@ class PdfTextPage(
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
             return try {
-                val o =
-                    nativeTextGetRect(pagePtr, rectIndex)
+                val o = nativeTextGetRect(pagePtr, rectIndex)
                 val r = RectF()
                 r.left = o[0].toFloat()
                 r.top = o[1].toFloat()
@@ -403,7 +401,7 @@ class PdfTextPage(
             result: ShortArray,
         ): Int
 
-//
+        //
         @JvmStatic
         private external fun nativeTextGetTextByteArray(
             textPagePtr: Long,

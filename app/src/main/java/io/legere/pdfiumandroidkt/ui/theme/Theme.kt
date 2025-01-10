@@ -15,14 +15,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val _darkColorScheme =
+private val darkColorScheme =
     darkColorScheme(
         primary = Purple80,
         secondary = PurpleGrey80,
         tertiary = Pink80,
     )
 
-private val _lightColorScheme =
+private val lightColorScheme =
     lightColorScheme(
         primary = Purple40,
         secondary = PurpleGrey40,
@@ -44,8 +44,8 @@ fun PdfiumAndroidKtTheme(
                 if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
             }
 
-            darkTheme -> _darkColorScheme
-            else -> _lightColorScheme
+            darkTheme -> darkColorScheme
+            else -> lightColorScheme
         }
     val view = LocalView.current
     if (!view.isInEditMode) {
