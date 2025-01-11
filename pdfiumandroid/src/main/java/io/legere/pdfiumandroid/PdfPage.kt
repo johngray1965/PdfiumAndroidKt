@@ -9,6 +9,7 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
+import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
@@ -25,7 +26,7 @@ class PdfPage(
     val pagePtr: Long,
     private val pageMap: MutableMap<Int, PdfDocument.PageCount>,
 ) : Closeable {
-    private var isClosed = false
+    internal var isClosed = false
 
     /**
      * Open a text page
@@ -279,6 +280,9 @@ class PdfPage(
      * @param drawSizeX horizontal size of the page on the surface
      * @param drawSizeY vertical size of the page on the surface
      * @param renderAnnot whether render annotation
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     * You almost always want this to be white (the default)
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList", "TooGenericExceptionCaught")
@@ -289,6 +293,10 @@ class PdfPage(
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
+        @ColorInt
+        canvasColor: Int = 0xFF848484.toInt(),
+        @ColorInt
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
@@ -302,6 +310,8 @@ class PdfPage(
                     drawSizeX,
                     drawSizeY,
                     renderAnnot,
+                    canvasColor,
+                    pageBackgroundColor,
                 )
             } catch (e: NullPointerException) {
                 Logger.e(TAG, e, "mContext may be null")
@@ -317,14 +327,21 @@ class PdfPage(
      * @param matrix The matrix to map the page to the surface
      * @param clipRect The rectangle to clip the page to
      * @param renderAnnot whether render annotation
+     * @param textMask whether to render text as image mask - currently ignored
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     * You almost always want this to be white (the default)
      * @throws IllegalStateException If the page or document is closed
      */
+    @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface?,
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         val matrixValues = FloatArray(THREE_BY_THREE)
@@ -347,6 +364,8 @@ class PdfPage(
                 ),
                 renderAnnot,
                 textMask,
+                canvasColor,
+                pageBackgroundColor,
             )
         }
     }
@@ -359,13 +378,16 @@ class PdfPage(
      * @param drawSizeX horizontal size of the page on the bitmap
      * @param drawSizeY vertical size of the page on the bitmap
      * @param renderAnnot whether render annotation
-     * @param textMask whether to render text as image mask
+     * @param textMask whether to render text as image mask. Currently ignored
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     * You almost always want this to be white (the default)
      * @throws IllegalStateException If the page or document is closed
      *
      * Supported bitmap configurations:
      *
      *  * ARGB_8888 - best quality, high memory usage, higher possibility of OutOfMemoryError
-     *  * RGB_565 - little worse quality, 1/2 the memory usage
+     *  * RGB_565 - little worse quality, 1/2 the memory usage.  Much more expensive to render
      *
      */
     @Suppress("LongParameterList")
@@ -377,6 +399,8 @@ class PdfPage(
         drawSizeY: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         synchronized(PdfiumCore.lock) {
@@ -390,16 +414,39 @@ class PdfPage(
                 drawSizeY,
                 renderAnnot,
                 textMask,
+                canvasColor,
+                pageBackgroundColor,
             )
         }
     }
 
+    /**
+     * Render page fragment on [Bitmap].<br></br>
+     * @param bitmap Bitmap on which to render page
+     * @param matrix The matrix to map the page to the surface
+     * @param clipRect The rectangle to clip the page to
+     * @param renderAnnot whether render annotation
+     * @param textMask whether to render text as image mask. Currently ignored
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     * You almost always want this to be white (the default)
+     * @throws IllegalStateException If the page or document is closed
+     *
+     * Supported bitmap configurations:
+     *
+     *  * ARGB_8888 - best quality, high memory usage, higher possibility of OutOfMemoryError
+     *  * RGB_565 - little worse quality, 1/2 the memory usage.  Much more expensive to render
+     *
+     */
+    @Suppress("LongParameterList")
     fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
         val matrixValues = FloatArray(THREE_BY_THREE)
@@ -422,6 +469,8 @@ class PdfPage(
                 ),
                 renderAnnot,
                 textMask,
+                canvasColor,
+                pageBackgroundColor,
             )
         }
     }
@@ -671,6 +720,8 @@ class PdfPage(
             drawSizeHor: Int,
             drawSizeVer: Int,
             renderAnnot: Boolean,
+            canvasColor: Int,
+            pageBackgroundColor: Int,
         )
 
         @Suppress("LongParameterList")
@@ -682,6 +733,8 @@ class PdfPage(
             clipRect: FloatArray,
             renderAnnot: Boolean = false,
             textMask: Boolean = false,
+            canvasColor: Int,
+            pageBackgroundColor: Int,
         )
 
         @Suppress("LongParameterList")
@@ -696,6 +749,8 @@ class PdfPage(
             drawSizeVer: Int,
             renderAnnot: Boolean,
             textMask: Boolean,
+            canvasColor: Int,
+            pageBackgroundColor: Int,
         )
 
         @Suppress("LongParameterList")
@@ -707,6 +762,8 @@ class PdfPage(
             clipRect: FloatArray,
             renderAnnot: Boolean = false,
             textMask: Boolean = false,
+            canvasColor: Int,
+            pageBackgroundColor: Int,
         )
 
         @JvmStatic

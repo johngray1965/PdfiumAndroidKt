@@ -2,6 +2,9 @@
 
 package io.legere.pdfiumandroid.arrow
 
+import android.graphics.Matrix
+import android.graphics.RectF
+import android.view.Surface
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
@@ -54,6 +57,32 @@ class PdfDocumentKtF(
         wrapEither(dispatcher) {
             document.openPages(fromIndex, toIndex).map { PdfPageKtF(it, dispatcher) }
         }
+
+    /**
+     * suspend version of [PdfDocument.renderPages]
+     */
+    @Suppress("LongParameterList")
+    suspend fun renderPages(
+        surface: Surface?,
+        pages: List<PdfPageKtF>,
+        matrices: List<Matrix>,
+        clipRects: List<RectF>,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) = withContext(dispatcher) {
+        document.renderPages(
+            surface,
+            pages.map { it.page },
+            matrices,
+            clipRects,
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
+    }
 
     /**
      * suspend version of [PdfDocument.deletePage]

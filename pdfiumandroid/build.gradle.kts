@@ -129,7 +129,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
             artifactId = "pdfiumandroid"
-            version = "1.0.27"
+            version = project.property("VERSION_NAME") as String
 
             pom {
                 name.set("pdfiumandroid")

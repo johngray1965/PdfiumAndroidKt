@@ -14,6 +14,7 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -159,9 +160,19 @@ class PdfPageKtF(
         startY: Int,
         drawSizeX: Int,
         drawSizeY: Int,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Either<PdfiumKtFErrors, Boolean> =
-        wrapEither(dispatcher) {
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)
+        wrapEither(Dispatchers.Main) {
+            page.renderPage(
+                surface,
+                startX,
+                startY,
+                drawSizeX,
+                drawSizeY,
+                canvasColor = canvasColor,
+                pageBackgroundColor = pageBackgroundColor,
+            )
             true
         }
 
@@ -175,9 +186,11 @@ class PdfPageKtF(
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Either<PdfiumKtFErrors, Boolean> =
-        wrapEither(dispatcher) {
-            page.renderPage(surface, matrix, clipRect, renderAnnot, textMask)
+        wrapEither(Dispatchers.Main) {
+            page.renderPage(surface, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
             true
         }
 
@@ -193,21 +206,39 @@ class PdfPageKtF(
         drawSizeY: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Either<PdfiumKtFErrors, Boolean> =
         wrapEither(dispatcher) {
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+            page.renderPageBitmap(
+                bitmap,
+                startX,
+                startY,
+                drawSizeX,
+                drawSizeY,
+                renderAnnot,
+                textMask,
+                canvasColor,
+                pageBackgroundColor,
+            )
             true
         }
 
+    @Suppress("LongParameterList")
+    /**
+     * suspend version of [PdfPage.renderPageBitmap]
+     */
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Either<PdfiumKtFErrors, Boolean> =
         wrapEither(dispatcher) {
-            page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask)
+            page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
             true
         }
 

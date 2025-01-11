@@ -15,6 +15,7 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -154,8 +155,10 @@ class PdfPageKt(
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
-    ) = withContext(dispatcher) {
-        page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) = withContext(Dispatchers.Main) {
+        page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot, canvasColor, pageBackgroundColor)
     }
 
     /**
@@ -168,8 +171,10 @@ class PdfPageKt(
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
-    ) = withContext(dispatcher) {
-        page.renderPage(surface, matrix, clipRect, renderAnnot, textMask)
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) = withContext(Dispatchers.Main) {
+        page.renderPage(surface, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
     }
 
     @Suppress("LongParameterList")
@@ -184,20 +189,39 @@ class PdfPageKt(
         drawSizeY: Int,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) =
         withContext(dispatcher) {
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+            page.renderPageBitmap(
+                bitmap,
+                startX,
+                startY,
+                drawSizeX,
+                drawSizeY,
+                renderAnnot,
+                textMask,
+                canvasColor,
+                pageBackgroundColor,
+            )
         }
 
+    @Suppress("LongParameterList")
+    /**
+     * suspend version of [PdfPage.renderPageBitmap]
+     */
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
-    ) = withContext(dispatcher) {
-        page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask)
-    }
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) =
+        withContext(dispatcher) {
+            page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
+        }
 
     /**
      * suspend version of [PdfPage.getPageLinks]

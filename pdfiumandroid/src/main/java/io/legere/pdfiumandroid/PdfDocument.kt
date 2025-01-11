@@ -2,12 +2,15 @@
 
 package io.legere.pdfiumandroid
 
+import android.graphics.Matrix
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import android.view.Surface
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
+private const val THREE_BY_THREE = 9
 
 /**
  * PdfDocument represents a PDF file and allows you to load pages from it.
@@ -76,6 +79,18 @@ class PdfDocument(
     ): Boolean
 
     private external fun nativeGetPageCharCounts(docPtr: Long): IntArray
+
+    @Suppress("LongParameterList")
+    private external fun nativeRenderPagesWithMatrix(
+        pages: LongArray,
+        surface: Surface?,
+        matrixFloats: FloatArray,
+        clipFloats: FloatArray,
+        renderAnnot: Boolean,
+        textMask: Boolean,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    )
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
     var source: PdfiumSource? = null
@@ -161,6 +176,66 @@ class PdfDocument(
                 pageIndex++
             }
             return pagesPtr.map { PdfPage(this, pageIndex, it, pageMap) }
+        }
+    }
+
+    /**
+     * Render page fragment on [Surface].<br></br>
+     * @param surface Surface on which to render page
+     * @param pages The pages to render
+     * @param matrices The matrices to map the pages to the surface
+     * @param clipRects The rectangles to clip the pages to
+     * @param renderAnnot whether render annotation
+     * @param textMask whether to render text as image mask - currently ignored
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     * You almost always want this to be white (the default)
+     * @throws IllegalStateException If the page or document is closed
+     */
+    @Suppress("LongParameterList")
+    fun renderPages(
+        surface: Surface?,
+        pages: List<PdfPage>,
+        matrices: List<Matrix>,
+        clipRects: List<RectF>,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) {
+        if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return
+        val matrixFloats =
+            matrices
+                .flatMap { matrix ->
+                    val matrixValues = FloatArray(THREE_BY_THREE)
+                    matrix.getValues(matrixValues)
+                    listOf(
+                        matrixValues[Matrix.MSCALE_X],
+                        matrixValues[Matrix.MTRANS_X],
+                        matrixValues[Matrix.MTRANS_Y],
+                    )
+                }.toFloatArray()
+        val clipFloats =
+            clipRects
+                .flatMap { rect ->
+                    listOf(
+                        rect.left,
+                        rect.top,
+                        rect.right,
+                        rect.bottom,
+                    )
+                }.toFloatArray()
+        synchronized(PdfiumCore.lock) {
+            nativeRenderPagesWithMatrix(
+                pages.map { it.pagePtr }.toLongArray(),
+                surface,
+                matrixFloats,
+                clipFloats,
+                renderAnnot,
+                textMask,
+                canvasColor,
+                pageBackgroundColor,
+            )
         }
     }
 

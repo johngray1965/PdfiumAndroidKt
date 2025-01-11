@@ -96,7 +96,7 @@ publishing {
         create<MavenPublication>("maven") {
             groupId = "io.legere"
             artifactId = "pdfium-android-kt-arrow"
-            version = "1.0.27"
+            version = project.property("VERSION_NAME") as String
 
             pom {
                 name.set("pdfiumandroid.arrow")

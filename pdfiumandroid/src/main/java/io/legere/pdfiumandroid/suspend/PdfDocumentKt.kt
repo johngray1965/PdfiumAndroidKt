@@ -2,6 +2,9 @@
 
 package io.legere.pdfiumandroid.suspend
 
+import android.graphics.Matrix
+import android.graphics.RectF
+import android.view.Surface
 import androidx.annotation.Keep
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
@@ -64,6 +67,32 @@ class PdfDocumentKt(
         withContext(dispatcher) {
             document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
         }
+
+    /**
+     * suspend version of [PdfDocument.renderPages]
+     */
+    @Suppress("LongParameterList")
+    suspend fun renderPages(
+        surface: Surface?,
+        pages: List<PdfPageKt>,
+        matrices: List<Matrix>,
+        clipRects: List<RectF>,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) = withContext(dispatcher) {
+        document.renderPages(
+            surface,
+            pages.map { it.page },
+            matrices,
+            clipRects,
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
+    }
 
     /**
      * suspend version of [PdfDocument.getDocumentMeta]
