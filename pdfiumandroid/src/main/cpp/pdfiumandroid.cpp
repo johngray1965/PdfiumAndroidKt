@@ -1619,7 +1619,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env
             auto rightClip = clipRectFloats[2 + pageIndex * 4];
             auto bottomClip = clipRectFloats[3 + pageIndex * 4];
 
-            auto drawSizeHor = (int) (leftClip - rightClip);
+            auto drawSizeHor = (int) (rightClip - leftClip);
             auto drawSizeVer = (int) (bottomClip - topClip);
 
             auto startX = (int) leftClip;
