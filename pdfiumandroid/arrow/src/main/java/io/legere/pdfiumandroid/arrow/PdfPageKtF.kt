@@ -14,7 +14,6 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -163,7 +162,7 @@ class PdfPageKtF(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Either<PdfiumKtFErrors, Boolean> =
-        wrapEither(Dispatchers.Main) {
+        wrapEither(dispatcher) {
             page.renderPage(
                 surface,
                 startX,
@@ -189,7 +188,7 @@ class PdfPageKtF(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Either<PdfiumKtFErrors, Boolean> =
-        wrapEither(Dispatchers.Main) {
+        wrapEither(dispatcher) {
             page.renderPage(surface, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
             true
         }
