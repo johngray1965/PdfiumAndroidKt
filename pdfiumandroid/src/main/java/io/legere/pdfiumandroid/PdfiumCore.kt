@@ -15,6 +15,7 @@ import io.legere.pdfiumandroid.util.InitLock
 import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.pdfiumConfig
+import kotlinx.coroutines.sync.Mutex
 import java.io.IOException
 
 /**
@@ -449,7 +450,7 @@ class PdfiumCore(
         ),
         DeprecationLevel.WARNING,
     )
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "ComplexCondition")
     fun renderPage(
         pdfDocument: PdfDocument,
         surface: Surface?,
@@ -461,7 +462,25 @@ class PdfiumCore(
         renderAnnot: Boolean = false,
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, false)
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            surface
+                ?.let {
+                    PdfPage.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                return@use
+            }
+            page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+            surface?.let {
+                PdfPage.unlockSurface(pointers)
+            }
         }
     }
 
@@ -557,6 +576,8 @@ class PdfiumCore(
 
         // synchronize native methods
         val lock = Any()
+
+        val surfaceMutex = Mutex()
 
         val isReady = InitLock()
 

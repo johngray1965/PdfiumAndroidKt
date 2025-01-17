@@ -13,8 +13,11 @@ import androidx.annotation.Keep
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
+import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -146,7 +149,7 @@ class PdfPageKt(
     /**
      * suspend version of [PdfPage.renderPage]
      */
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "ComplexMethod", "ComplexCondition")
     suspend fun renderPage(
         surface: Surface?,
         startX: Int,
@@ -156,14 +159,46 @@ class PdfPageKt(
         renderAnnot: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = withContext(dispatcher) {
-        page.renderPage(surface, startX, startY, drawSizeX, drawSizeY, renderAnnot, canvasColor, pageBackgroundColor)
+    ) {
+        PdfiumCore.surfaceMutex.withLock {
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+            }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                return
+            }
+            withContext(dispatcher) {
+                page.renderPage(
+                    bufferPtr,
+                    startX,
+                    startY,
+                    drawSizeX,
+                    drawSizeY,
+                    renderAnnot,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
+            withContext(Dispatchers.Main) {
+                PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+            }
+        }
     }
 
     /**
      * suspend version of [PdfPage.renderPage]
      */
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "ComplexMethod", "ComplexCondition")
     suspend fun renderPage(
         surface: Surface?,
         matrix: Matrix,
@@ -172,8 +207,46 @@ class PdfPageKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = withContext(dispatcher) {
-        page.renderPage(surface, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
+    ) {
+        PdfiumCore.surfaceMutex.withLock {
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+            }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            val surfaceWidth = sizes[0]
+            val surfaceHeight = sizes[1]
+            Logger.d("PdfPageKt", "nativeWindow: $nativeWindow")
+            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                return
+            }
+            withContext(dispatcher) {
+                page.renderPage(
+                    bufferPtr,
+                    surfaceWidth,
+                    surfaceHeight,
+                    matrix,
+                    clipRect,
+                    renderAnnot,
+                    textMask,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                }
+            }
+        }
     }
 
     @Suppress("LongParameterList")

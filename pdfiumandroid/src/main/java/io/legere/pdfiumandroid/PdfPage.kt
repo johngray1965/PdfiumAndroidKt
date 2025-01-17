@@ -274,7 +274,7 @@ class PdfPage(
 
     /**
      * Render page fragment on [Surface].<br></br>
-     * @param surface Surface on which to render page
+     * @param bufferPtr Surface's buffer on which to render page
      * @param startX left position of the page in the surface
      * @param startY top position of the page in the surface
      * @param drawSizeX horizontal size of the page on the surface
@@ -287,7 +287,7 @@ class PdfPage(
      */
     @Suppress("LongParameterList", "TooGenericExceptionCaught")
     fun renderPage(
-        surface: Surface?,
+        bufferPtr: Long,
         startX: Int,
         startY: Int,
         drawSizeX: Int,
@@ -304,7 +304,7 @@ class PdfPage(
                 // nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
                 nativeRenderPage(
                     pagePtr,
-                    surface,
+                    bufferPtr,
                     startX,
                     startY,
                     drawSizeX,
@@ -323,7 +323,7 @@ class PdfPage(
 
     /**
      * Render page fragment on [Surface].<br></br>
-     * @param surface Surface on which to render page
+     * @param bufferPtr Surface's buffer on which to render page
      * @param matrix The matrix to map the page to the surface
      * @param clipRect The rectangle to clip the page to
      * @param renderAnnot whether render annotation
@@ -335,7 +335,9 @@ class PdfPage(
      */
     @Suppress("LongParameterList")
     fun renderPage(
-        surface: Surface?,
+        bufferPtr: Long,
+        drawSizeX: Int,
+        drawSizeY: Int,
         matrix: Matrix,
         clipRect: RectF,
         renderAnnot: Boolean = false,
@@ -349,7 +351,9 @@ class PdfPage(
         synchronized(PdfiumCore.lock) {
             nativeRenderPageWithMatrix(
                 pagePtr,
-                surface,
+                bufferPtr,
+                drawSizeX,
+                drawSizeY,
                 floatArrayOf(
                     matrixValues[Matrix.MSCALE_X],
                     matrixValues[Matrix.MSCALE_Y],
@@ -686,6 +690,20 @@ class PdfPage(
         const val RIGHT = 2
         const val BOTTOM = 3
 
+        fun lockSurface(
+            surface: Surface,
+            dimensions: IntArray,
+            ptrs: LongArray,
+        ): Boolean =
+            synchronized(PdfiumCore.lock) {
+                nativeLockSurface(surface, dimensions, ptrs)
+            }
+
+        fun unlockSurface(ptrs: LongArray) =
+            synchronized(PdfiumCore.lock) {
+                nativeUnlockSurface(ptrs)
+            }
+
         @JvmStatic
         private external fun nativeClosePage(pagePtr: Long)
 
@@ -710,11 +728,21 @@ class PdfPage(
             linkPtr: Long,
         ): RectF?
 
+        @JvmStatic
+        private external fun nativeLockSurface(
+            surface: Surface,
+            dimensions: IntArray,
+            ptrs: LongArray,
+        ): Boolean
+
+        @JvmStatic
+        private external fun nativeUnlockSurface(ptrs: LongArray)
+
         @Suppress("LongParameterList")
         @JvmStatic
         private external fun nativeRenderPage(
             pagePtr: Long,
-            surface: Surface?,
+            bufferPtr: Long,
             startX: Int,
             startY: Int,
             drawSizeHor: Int,
@@ -728,7 +756,9 @@ class PdfPage(
         @JvmStatic
         private external fun nativeRenderPageWithMatrix(
             pagePtr: Long,
-            surface: Surface?,
+            bufferPtr: Long,
+            drawSizeHor: Int,
+            drawSizeVer: Int,
             matrix: FloatArray,
             clipRect: FloatArray,
             renderAnnot: Boolean = false,

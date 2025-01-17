@@ -8,8 +8,12 @@ import android.view.Surface
 import androidx.annotation.Keep
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
+import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.PdfiumCore
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -71,7 +75,7 @@ class PdfDocumentKt(
     /**
      * suspend version of [PdfDocument.renderPages]
      */
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "ComplexMethod", "ComplexCondition")
     suspend fun renderPages(
         surface: Surface?,
         pages: List<PdfPageKt>,
@@ -81,17 +85,46 @@ class PdfDocumentKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = withContext(dispatcher) {
-        document.renderPages(
-            surface,
-            pages.map { it.page },
-            matrices,
-            clipRects,
-            renderAnnot,
-            textMask,
-            canvasColor,
-            pageBackgroundColor,
-        )
+    ) {
+        PdfiumCore.surfaceMutex.withLock {
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+            }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            val surfaceWidth = sizes[0]
+            val surfaceHeight = sizes[1]
+            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                return
+            }
+            withContext(dispatcher) {
+                document.renderPages(
+                    bufferPtr,
+                    surfaceWidth,
+                    surfaceHeight,
+                    pages.map { it.page },
+                    matrices,
+                    clipRects,
+                    renderAnnot,
+                    textMask,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                }
+            }
+        }
     }
 
     /**

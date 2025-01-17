@@ -10,10 +10,16 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
+import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -152,7 +158,7 @@ class PdfPageKtF(
     /**
      * suspend version of [PdfPage.renderPage]
      */
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "ComplexCondition")
     suspend fun renderPage(
         surface: Surface?,
         startX: Int,
@@ -161,19 +167,51 @@ class PdfPageKtF(
         drawSizeY: Int,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ): Either<PdfiumKtFErrors, Boolean> =
-        wrapEither(dispatcher) {
-            page.renderPage(
-                surface,
-                startX,
-                startY,
-                drawSizeX,
-                drawSizeY,
-                canvasColor = canvasColor,
-                pageBackgroundColor = pageBackgroundColor,
+    ): Either<Boolean, Boolean> {
+        PdfiumCore.surfaceMutex.withLock {
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+            }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            val surfaceWidth = sizes[0]
+            val surfaceHeight = sizes[1]
+            Logger.d(
+                "PdfPageKtF",
+                "page: ${page.pageIndex}, surfaceWidth: $surfaceWidth, " +
+                    "surfaceHeight: $surfaceHeight, nativeWindow: $nativeWindow, " +
+                    "bufferPtr: $bufferPtr, nativeWindow: $nativeWindow",
             )
-            true
+            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                return false.left()
+            }
+            withContext(dispatcher) {
+                page.renderPage(
+                    bufferPtr,
+                    startX,
+                    startY,
+                    drawSizeX,
+                    drawSizeY,
+                    canvasColor = canvasColor,
+                    pageBackgroundColor = pageBackgroundColor,
+                )
+            }
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                }
+            }
+            return true.right()
         }
+    }
 
     /**
      * suspend version of [PdfPage.renderPage]
@@ -187,11 +225,49 @@ class PdfPageKtF(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ): Either<PdfiumKtFErrors, Boolean> =
-        wrapEither(dispatcher) {
-            page.renderPage(surface, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
-            true
+    ): Either<PdfiumKtFErrors, Boolean> {
+        PdfiumCore.surfaceMutex.withLock {
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+            }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            val surfaceWidth = sizes[0]
+            val surfaceHeight = sizes[1]
+            if (bufferPtr == 0L || bufferPtr == -1L) {
+                return PdfiumKtFErrors
+                    .AlreadyLocked("Already locked")
+                    .left()
+            }
+            withContext(dispatcher) {
+                page.renderPage(
+                    bufferPtr,
+                    surfaceWidth,
+                    surfaceHeight,
+                    matrix,
+                    clipRect,
+                    renderAnnot,
+                    textMask,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                }
+            }
+            return true.right()
         }
+    }
 
     @Suppress("LongParameterList")
     /**

@@ -83,7 +83,9 @@ class PdfDocument(
     @Suppress("LongParameterList")
     private external fun nativeRenderPagesWithMatrix(
         pages: LongArray,
-        surface: Surface?,
+        bufferPtr: Long,
+        drawSizeHor: Int,
+        drawSizeVer: Int,
         matrixFloats: FloatArray,
         clipFloats: FloatArray,
         renderAnnot: Boolean,
@@ -181,7 +183,7 @@ class PdfDocument(
 
     /**
      * Render page fragment on [Surface].<br></br>
-     * @param surface Surface on which to render page
+     * @param bufferPtr Surface's buffer on which to render page
      * @param pages The pages to render
      * @param matrices The matrices to map the pages to the surface
      * @param clipRects The rectangles to clip the pages to
@@ -194,7 +196,9 @@ class PdfDocument(
      */
     @Suppress("LongParameterList")
     fun renderPages(
-        surface: Surface?,
+        bufferPtr: Long,
+        drawSizeX: Int,
+        drawSizeY: Int,
         pages: List<PdfPage>,
         matrices: List<Matrix>,
         clipRects: List<RectF>,
@@ -228,7 +232,9 @@ class PdfDocument(
         synchronized(PdfiumCore.lock) {
             nativeRenderPagesWithMatrix(
                 pages.map { it.pagePtr }.toLongArray(),
-                surface,
+                bufferPtr,
+                drawSizeX,
+                drawSizeY,
                 matrixFloats,
                 clipFloats,
                 renderAnnot,

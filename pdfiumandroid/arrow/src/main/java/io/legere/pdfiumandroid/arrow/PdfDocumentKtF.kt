@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "CanBeVal")
 
 package io.legere.pdfiumandroid.arrow
 
@@ -6,9 +6,14 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
+import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
+import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.PdfiumCore
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -18,7 +23,7 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  * @constructor create a [PdfDocumentKtF] from a [PdfDocument]
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "CanBeVal")
 class PdfDocumentKtF(
     val document: PdfDocument,
     private val dispatcher: CoroutineDispatcher,
@@ -61,7 +66,7 @@ class PdfDocumentKtF(
     /**
      * suspend version of [PdfDocument.renderPages]
      */
-    @Suppress("LongParameterList")
+    @Suppress("LongParameterList", "ComplexMethod", "ComplexCondition")
     suspend fun renderPages(
         surface: Surface?,
         pages: List<PdfPageKtF>,
@@ -71,17 +76,54 @@ class PdfDocumentKtF(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = withContext(dispatcher) {
-        document.renderPages(
-            surface,
-            pages.map { it.page },
-            matrices,
-            clipRects,
-            renderAnnot,
-            textMask,
-            canvasColor,
-            pageBackgroundColor,
-        )
+    ) {
+        PdfiumCore.surfaceMutex.withLock {
+            val sizes = IntArray(2)
+            val pointers = LongArray(2)
+            withContext(Dispatchers.Main) {
+                surface
+                    ?.let {
+                        PdfPage.lockSurface(
+                            it,
+                            sizes,
+                            pointers,
+                        )
+                    }
+            }
+            val nativeWindow = pointers[0]
+            val bufferPtr = pointers[1]
+            val surfaceWidth = sizes[0]
+            val surfaceHeight = sizes[1]
+            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                return
+            }
+            withContext(dispatcher) {
+                document.renderPages(
+                    bufferPtr,
+                    surfaceWidth,
+                    surfaceHeight,
+                    pages.map { page -> page.page },
+                    matrices,
+                    clipRects,
+                    renderAnnot,
+                    textMask,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
+            withContext(Dispatchers.Main) {
+                surface?.let {
+                    Logger.d(
+                        "PdfDocumentKtF",
+                        "releasing " +
+                            "pages: ${pages.map { it.page.pageIndex }.joinToString()}, " +
+                            " nativeWindow: $nativeWindow, " +
+                            "bufferPtr: $bufferPtr",
+                    )
+                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                }
+            }
+        }
     }
 
     /**

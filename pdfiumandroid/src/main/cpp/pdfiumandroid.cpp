@@ -1360,19 +1360,89 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jclass,
     }
     return nullptr;
 }
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject surface, jintArray intArray, jlongArray ptrsArray) {
+    LOGD("nativeLockSurface");
+    ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+    if (nativeWindow == nullptr) {
+        LOGE("native window pointer null");
+        return false;
+    }
+    auto intValues = env->GetIntArrayElements(intArray, nullptr);
+    if (intValues == nullptr) {
+        // Handle error
+        LOGE("intValues is null");
+        return false;
+    }
+    auto ptrValues = env->GetLongArrayElements(ptrsArray, nullptr);
+    if (ptrValues == nullptr) {
+        // Handle error
+        LOGE("ptrValues is null");
+        return static_cast<jlong>(0);
+    }
+
+    auto width = ANativeWindow_getWidth(nativeWindow);
+    auto height = ANativeWindow_getHeight(nativeWindow);
+
+    intValues[0] = width; // Modify the integer value
+    intValues[1] = height;
+
+    if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
+        LOGD("Set format to RGBA_8888");
+        ANativeWindow_setBuffersGeometry(nativeWindow,
+                                         width,
+                                         height,
+                                         WINDOW_FORMAT_RGBA_8888);
+    }
+    env->ReleaseIntArrayElements(intArray, intValues, JNI_OK);
+
+    auto *buffer = new ANativeWindow_Buffer();
+    int ret;
+    if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
+        LOGE("Locking native window failed: %s", strerror(ret * -1));
+        return false;
+    }
+    ptrValues[0] = reinterpret_cast<jlong>(nativeWindow);
+    ptrValues[1] = reinterpret_cast<jlong>(buffer);
+    env->ReleaseLongArrayElements(ptrsArray, ptrValues, JNI_OK);
+    return true;
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeUnlockSurface(JNIEnv *env, jclass clazz,
+                                                         jlongArray ptrsArray) {
+    LOGD("nativeUnlockSurface");
+    jboolean isCopyPtrs;
+    auto ptrValues = env->GetLongArrayElements(ptrsArray, &isCopyPtrs);
+    if (ptrValues == nullptr) {
+        // Handle error
+        return;
+    }
+    auto nativeWindow = reinterpret_cast<ANativeWindow*>(ptrValues[0]);
+
+    auto buffer = reinterpret_cast<ANativeWindow_Buffer*>(ptrValues[1]);
+
+    delete buffer;
+
+
+
+    ANativeWindow_unlockAndPost(nativeWindow);
+    ANativeWindow_release(nativeWindow);
+    if (isCopyPtrs) {
+        env->ReleaseLongArrayElements(ptrsArray, ptrValues, JNI_ABORT);
+    }
+
+}
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong page_ptr,
-                                                      jobject surface, jint start_x,
+                                                      jlong buffer_ptr, jint start_x,
                                                       jint start_y, jint draw_size_hor,
                                                       jint draw_size_ver, jboolean render_annot,
                                                       jint canvasColor, jint pageBackgroundColor) {
     try {
-        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
-        if (nativeWindow == nullptr) {
-            LOGE("native window pointer null");
-            return;
-        }
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr) {
@@ -1380,29 +1450,13 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong
             return;
         }
 
-        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
-            LOGD("Set format to RGBA_8888");
-            ANativeWindow_setBuffersGeometry(nativeWindow,
-                                             ANativeWindow_getWidth(nativeWindow),
-                                             ANativeWindow_getHeight(nativeWindow),
-                                             WINDOW_FORMAT_RGBA_8888);
-        }
+        auto buffer = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
 
-        ANativeWindow_Buffer buffer;
-        int ret;
-        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
-            LOGE("Locking native window failed: %s", strerror(ret * -1));
-            return;
-        }
-
-        renderPageInternal(page, &buffer,
+        renderPageInternal(page, buffer,
                            (int) start_x, (int) start_y,
-                           buffer.width, buffer.height,
+                           buffer->width, buffer->height,
                            (int) draw_size_hor, (int) draw_size_ver,
                            (bool) render_annot, canvasColor, pageBackgroundColor);
-
-        ANativeWindow_unlockAndPost(nativeWindow);
-        ANativeWindow_release(nativeWindow);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1420,40 +1474,25 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jclass,
-                                                                jlong page_ptr, jobject surface,
+                                                                jlong page_ptr, jlong buffer_ptr,
+                                                                jint draw_size_hor, jint draw_size_ver,
                                                                 jfloatArray matrixValues,
                                                                 jfloatArray clipRect,
                                                                 jboolean render_annot,
                                                                 jboolean,
                                                                 jint canvasColor, jint pageBackgroundColor) {
     try {
-        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
-        if (nativeWindow == nullptr) {
-            LOGE("native window pointer null");
-            return;
-        }
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            ANativeWindow_release(nativeWindow);
             return;
         }
 
-        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
-            LOGD("Set format to RGBA_8888");
-            ANativeWindow_setBuffersGeometry(nativeWindow,
-                                             ANativeWindow_getWidth(nativeWindow),
-                                             ANativeWindow_getHeight(nativeWindow),
-                                             WINDOW_FORMAT_RGBA_8888);
-        }
+        auto bufferPtr = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
+        auto buffer = *bufferPtr;
 
-        ANativeWindow_Buffer buffer;
-        int ret;
-        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
-            LOGE("Locking native window failed: %s", strerror(ret * -1));
-            return;
-        }
+
         jboolean isCopyClipRect;
         auto clipRectFloats = env->GetFloatArrayElements(clipRect, &isCopyClipRect);
         auto leftClip = clipRectFloats[0];
@@ -1461,24 +1500,16 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
         auto rightClip = clipRectFloats[2];
         auto bottomClip = clipRectFloats[3];
 
-        if (isCopyClipRect) {
-            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        }
-        int surfaceWidth = ANativeWindow_getWidth(nativeWindow);
-        int surfaceHeight = ANativeWindow_getHeight(nativeWindow);
+        auto canvasHorSize = draw_size_hor;
+        auto canvasVerSize = draw_size_ver;
 
-        auto canvasHorSize = surfaceWidth;
-        auto canvasVerSize = surfaceHeight;
-
-        auto drawSizeHor = (int) (leftClip - rightClip);
+        auto drawSizeHor = (int) (rightClip - leftClip);
         auto drawSizeVer = (int) (bottomClip - topClip);
 
         FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(canvasHorSize, canvasVerSize,
                                                     FPDFBitmap_BGRA,
                                                     buffer.bits, (int)(buffer.stride) * 4);
 
-        LOGD("canvasColor %d",  canvasColor);
-        LOGD("pageBackgroundColor %d",  pageBackgroundColor);
         if((drawSizeHor < canvasHorSize || drawSizeVer < canvasVerSize) && canvasColor != 0) {
             FPDFBitmap_FillRect( pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
                                  canvasColor); //Gray
@@ -1519,14 +1550,16 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
         clip.top = topClip;
         clip.right = rightClip;
         clip.bottom = bottomClip;
-        if (isCopy) {
-            env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
-        }
 
         FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
 
-        ANativeWindow_unlockAndPost(nativeWindow);
-        ANativeWindow_release(nativeWindow);
+
+        if (isCopyClipRect) {
+            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        }
+        if (isCopy) {
+            env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
+        }
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1544,7 +1577,8 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz,
-                                                                     jlongArray pages, jobject surface,
+                                                                     jlongArray pages, jlong buffer_ptr,
+                                                                     jint draw_size_hor, jint draw_size_ver,
                                                                      jfloatArray matrices,
                                                                      jfloatArray clipRect,
                                                                      jboolean render_annot,
@@ -1552,11 +1586,8 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env
                                                                      jint canvasColor,
                                                                      jint pageBackgroundColor) {
     try {
-        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
-        if (nativeWindow == nullptr) {
-            LOGE("native window pointer null");
-            return;
-        }
+        auto bufferPtr = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
+        auto buffer = *bufferPtr;
         jboolean isCopyPages;
         auto pagePtrs = env->GetLongArrayElements(pages, &isCopyPages);
         auto numPages = env->GetArrayLength(pages);
@@ -1567,25 +1598,9 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env
         jboolean isCopyMatrices;
         auto matrixFloats = env->GetFloatArrayElements(matrices, &isCopyMatrices);
 
-        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
-            LOGD("Set format to RGBA_8888");
-            ANativeWindow_setBuffersGeometry(nativeWindow,
-                                             ANativeWindow_getWidth(nativeWindow),
-                                             ANativeWindow_getHeight(nativeWindow),
-                                             WINDOW_FORMAT_RGBA_8888);
-        }
 
-        ANativeWindow_Buffer buffer;
-        int ret;
-        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
-            LOGE("Locking native window failed: %s", strerror(ret * -1));
-            return;
-        }
-        int surfaceWidth = ANativeWindow_getWidth(nativeWindow);
-        int surfaceHeight = ANativeWindow_getHeight(nativeWindow);
-
-        auto canvasHorSize = surfaceWidth;
-        auto canvasVerSize = surfaceHeight;
+        auto canvasHorSize = draw_size_hor;
+        auto canvasVerSize = draw_size_ver;
 
         FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(canvasHorSize, canvasVerSize,
                                                     FPDFBitmap_BGRA,
@@ -1609,7 +1624,6 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env
 
             if (page == nullptr) {
                 LOGE("Render page pointers invalid");
-                ANativeWindow_release(nativeWindow);
                 return;
             }
 
@@ -1667,9 +1681,6 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env
         if (isCopyClipRect) {
             env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
         }
-
-        ANativeWindow_unlockAndPost(nativeWindow);
-        ANativeWindow_release(nativeWindow);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {

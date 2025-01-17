@@ -8,6 +8,10 @@ sealed class PdfiumKtFErrors {
     data class AlreadyClosed(
         val message: String,
     ) : PdfiumKtFErrors()
+
+    data class AlreadyLocked(
+        val message: String,
+    ) : PdfiumKtFErrors()
 }
 
 fun exceptionToPdfiumKtFError(e: Throwable): PdfiumKtFErrors =
