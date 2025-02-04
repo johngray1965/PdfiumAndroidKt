@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.system.measureNanoTime
 import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.measureTime
 
 @RunWith(AndroidJUnit4::class)
 class FastNativeTest : BasePDFTest() {
@@ -40,31 +41,91 @@ class FastNativeTest : BasePDFTest() {
     @Test
     fun getPagAttributesOpenEveryPass() {
         val time =
-            measureNanoTime {
+            measureTime {
                 repeat(10_000) {
                     pdfDocument.openPage(0).use { page ->
                         testPageAttributes(page)
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / 10_000).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / 10_000)
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     @Test
     fun getPagAttributesSingleOpen() {
         val time =
-            measureNanoTime {
+            measureTime {
                 pdfDocument.openPage(0).use { page ->
                     repeat(10_000) {
                         testPageAttributes(page)
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / 10_000).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / 10_000)
+        println("Total Time: $time, Average Time: $averageDuration")
+    }
+
+    @Test
+    fun getPagAttributesTimeAttributesOnly() {
+        pdfDocument.openPage(0).use { page ->
+            val time =
+                measureTime {
+                    repeat(10_000) {
+                        testPageAttributes(page)
+                    }
+                }
+            val averageDuration = (time / 10_000)
+            println("Total Time: $time, Average Time: $averageDuration")
+        }
+    }
+
+    @Test
+    fun getTextPagAttributesOpenEveryPass() {
+        val time =
+            measureTime {
+                repeat(10_000) {
+                    pdfDocument.openPage(0).use { page ->
+                        page.openTextPage().use { textPage ->
+                            testTextPageAttributes(textPage)
+                        }
+                    }
+                }
+            }
+        val averageDuration = (time / 10_000)
+        println("Total Time: $time, Average Time: $averageDuration")
+    }
+
+    @Test
+    fun getPTextPagAttributesSingleOpen() {
+        val time =
+            measureTime {
+                pdfDocument.openPage(0).use { page ->
+                    page.openTextPage().use { textPage ->
+                        repeat(10_000) {
+                            testTextPageAttributes(textPage)
+                        }
+                    }
+                }
+            }
+        val averageDuration = (time / 10_000)
+        println("Total Time: $time, Average Time: $averageDuration")
+    }
+
+    @Test
+    fun getTextPagAttributesTimeAttributesOnly() {
+        pdfDocument.openPage(0).use { page ->
+            page.openTextPage().use { textPage ->
+                val time =
+                    measureTime {
+                        repeat(10_000) {
+                            testTextPageAttributes(textPage)
+                        }
+                    }
+                val averageDuration = (time / 10_000)
+                println("Total Time: $time, Average Time: $averageDuration")
+            }
+        }
     }
 
     @Test
@@ -72,7 +133,7 @@ class FastNativeTest : BasePDFTest() {
         val iterations = 1_000
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         val time =
-            measureNanoTime {
+            measureTime {
                 repeat(iterations) {
                     pdfDocument.openPage(0).use { page ->
                         page.renderPageBitmap(
@@ -85,9 +146,8 @@ class FastNativeTest : BasePDFTest() {
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / iterations).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = time / iterations
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     @Test
@@ -95,7 +155,7 @@ class FastNativeTest : BasePDFTest() {
         val iterations = 1_000
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         val time =
-            measureNanoTime {
+            measureTime {
                 pdfDocument.openPage(0).use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
@@ -108,9 +168,8 @@ class FastNativeTest : BasePDFTest() {
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / iterations).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / iterations)
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     @Test
@@ -143,7 +202,7 @@ class FastNativeTest : BasePDFTest() {
         val rect = RectF(0f, 0f, 612f, 792f)
         val matrix = Matrix()
         val time =
-            measureNanoTime {
+            measureTime {
                 pdfDocument.openPage(0).use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
@@ -154,9 +213,8 @@ class FastNativeTest : BasePDFTest() {
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / iterations).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / iterations)
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     @Test
@@ -164,7 +222,7 @@ class FastNativeTest : BasePDFTest() {
         val iterations = 100
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.RGB_565)
         val time =
-            measureNanoTime {
+            measureTime {
                 pdfDocument.openPage(0).use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
@@ -175,9 +233,8 @@ class FastNativeTest : BasePDFTest() {
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / iterations).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / iterations)
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     @Test
@@ -185,7 +242,7 @@ class FastNativeTest : BasePDFTest() {
         val iterations = 100
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
         val time =
-            measureNanoTime {
+            measureTime {
                 pdfDocument.openPage(0).use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
@@ -196,9 +253,8 @@ class FastNativeTest : BasePDFTest() {
                     }
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / iterations).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / iterations)
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     @Test
@@ -227,15 +283,14 @@ class FastNativeTest : BasePDFTest() {
                 inSampleSize = 1
             }
         val time =
-            measureNanoTime {
+            measureTime {
                 repeat(iterations) {
                     val bitmapFromDisk = BitmapFactory.decodeFile(targetCtx.filesDir.path + "/test.png", bitmapOptios)
                     assertThat(bitmapFromDisk).isNotNull()
                 }
             }
-        val totalDuration = time.nanoseconds
-        val averageDuration = (time / iterations).nanoseconds
-        println("Total Time: $totalDuration, Average Time: $averageDuration")
+        val averageDuration = (time / iterations)
+        println("Total Time: $time, Average Time: $averageDuration")
     }
 
     private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, RectF, Matrix> {
@@ -252,6 +307,22 @@ class FastNativeTest : BasePDFTest() {
         val matrix = Matrix()
         matrix.postScale(scaleFactor, scaleFactor)
         return Triple(bitmap, rect, matrix)
+    }
+
+    private fun testTextPageAttributes(page: PdfTextPage) {
+        val textPageCountChars = page.textPageCountChars()
+        val textPageCountRects = page.textPageCountRects(0, textPageCountChars)
+        assertThat(textPageCountChars).isEqualTo(3468)
+        val textPageGetText = page.textPageGetText(0, textPageCountChars)
+        assertThat(textPageGetText).startsWith("The 50 Best Videos For Kids")
+        val textPageGetUnicode = page.textPageGetUnicode(0)
+        assertThat(textPageGetUnicode).isEqualTo('T')
+        val textPageGetCharBox = page.textPageGetCharBox(0)
+        assertThat(textPageGetCharBox).isEqualTo(RectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
+
+        repeat(textPageCountRects) {
+            val textPageGetRect = page.textPageGetRect(it)
+        }
     }
 
     private fun testPageAttributes(page: PdfPage) {

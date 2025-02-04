@@ -1,7 +1,6 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.util.Size
 import java.io.Closeable
 import java.nio.charset.StandardCharsets
 
@@ -65,7 +64,7 @@ class PdfPageLink(
     fun getTextRange(index: Int): Pair<Int, Int> {
         synchronized(PdfiumCore.lock) {
             return nativeGetTextRange(pageLinkPtr, index).let {
-                Pair(it.width, it.height)
+                Pair(it[0], it[1])
             }
         }
     }
@@ -106,6 +105,6 @@ class PdfPageLink(
 
         @JvmStatic
         // needs to return a start and an end
-        private external fun nativeGetTextRange(pageLinkPtr: Long, index: Int): Size
+        private external fun nativeGetTextRange(pageLinkPtr: Long, index: Int): IntArray
     }
 }

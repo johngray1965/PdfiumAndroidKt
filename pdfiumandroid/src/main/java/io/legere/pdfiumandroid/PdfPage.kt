@@ -10,11 +10,19 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
+import dalvik.annotation.optimization.FastNative
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
 
 private const val THREE_BY_THREE = 9
+
+private const val LEFT = 0
+private const val TOP = 1
+private const val RIGHT = 2
+private const val BOTTOM = 3
+
+private const val RECT_SIZE = 4
 
 /**
  * Represents a single page in a [PdfDocument].
@@ -268,7 +276,9 @@ class PdfPage(
                 doc.mNativeDocPtr,
                 pageIndex,
                 screenDpi,
-            )
+            ).let {
+                Size(it[0], it[1])
+            }
         }
     }
 
@@ -285,7 +295,7 @@ class PdfPage(
      * You almost always want this to be white (the default)
      * @throws IllegalStateException If the page or document is closed
      */
-    @Suppress("LongParameterList", "TooGenericExceptionCaught")
+    @Suppress("LongParameterList", "TooGenericExceptionCaught", "ReturnCount")
     fun renderPage(
         bufferPtr: Long,
         startX: Int,
@@ -297,12 +307,12 @@ class PdfPage(
         canvasColor: Int = 0xFF848484.toInt(),
         @ColorInt
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
+    ): Boolean {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return false
         synchronized(PdfiumCore.lock) {
             try {
                 // nativeRenderPage(doc.mNativePagesPtr.get(pageIndex), surface, mCurrentDpi);
-                nativeRenderPage(
+                return nativeRenderPage(
                     pagePtr,
                     bufferPtr,
                     startX,
@@ -319,6 +329,7 @@ class PdfPage(
                 Logger.e(TAG, e, "Exception throw from native")
             }
         }
+        return false
     }
 
     /**
@@ -344,16 +355,53 @@ class PdfPage(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
+    ): Boolean {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return false
         val matrixValues = FloatArray(THREE_BY_THREE)
         matrix.getValues(matrixValues)
         synchronized(PdfiumCore.lock) {
-            nativeRenderPageWithMatrix(
+            return nativeRenderPageWithMatrix(
                 pagePtr,
                 bufferPtr,
                 drawSizeX,
                 drawSizeY,
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                floatArrayOf(
+                    clipRect.left,
+                    clipRect.top,
+                    clipRect.right,
+                    clipRect.bottom,
+                ),
+                renderAnnot,
+                textMask,
+                canvasColor,
+                pageBackgroundColor,
+            )
+        }
+    }
+
+    @Suppress("LongParameterList")
+    fun renderPage(
+        surface: Surface,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ): Boolean {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return false
+        val matrixValues = FloatArray(THREE_BY_THREE)
+        matrix.getValues(matrixValues)
+        synchronized(PdfiumCore.lock) {
+            return nativeRenderPageSurfaceWithMatrix(
+                pagePtr,
+                surface,
                 floatArrayOf(
                     matrixValues[Matrix.MSCALE_X],
                     matrixValues[Matrix.MSCALE_Y],
@@ -490,8 +538,21 @@ class PdfPage(
                 val index = nativeGetDestPageIndex(doc.mNativeDocPtr, linkPtr)
                 val uri = nativeGetLinkURI(doc.mNativeDocPtr, linkPtr)
                 val rect = nativeGetLinkRect(doc.mNativeDocPtr, linkPtr)
-                if (rect != null && (index != -1 || uri != null)) {
-                    links.add(PdfDocument.Link(rect, index, uri))
+                if (rect.size != RECT_SIZE && (index != -1 || uri != null)) {
+                    links.add(
+                        PdfDocument.Link(
+                            rect.let { rectFloats ->
+                                RectF(
+                                    rectFloats[LEFT],
+                                    rectFloats[TOP],
+                                    rectFloats[RIGHT],
+                                    rectFloats[BOTTOM],
+                                )
+                            },
+                            index,
+                            uri,
+                        ),
+                    )
                 }
             }
             return links
@@ -523,7 +584,9 @@ class PdfPage(
         pageY: Double,
     ): Point {
         check(!isClosed && !doc.isClosed) { "Already closed" }
-        return nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY)
+        return nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY).let {
+            Point(it[0], it[1])
+        }
     }
 
     /**
@@ -560,7 +623,9 @@ class PdfPage(
             rotate,
             deviceX,
             deviceY,
-        )
+        ).let {
+            PointF(it[0], it[1])
+        }
     }
 
     /**
@@ -726,7 +791,7 @@ class PdfPage(
         private external fun nativeGetLinkRect(
             docPtr: Long,
             linkPtr: Long,
-        ): RectF?
+        ): FloatArray
 
         @JvmStatic
         private external fun nativeLockSurface(
@@ -750,7 +815,7 @@ class PdfPage(
             renderAnnot: Boolean,
             canvasColor: Int,
             pageBackgroundColor: Int,
-        )
+        ): Boolean
 
         @Suppress("LongParameterList")
         @JvmStatic
@@ -765,7 +830,32 @@ class PdfPage(
             textMask: Boolean = false,
             canvasColor: Int,
             pageBackgroundColor: Int,
-        )
+        ): Boolean
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeRenderPageSurface(
+            pagePtr: Long,
+            surface: Surface,
+            startX: Int,
+            startY: Int,
+            renderAnnot: Boolean,
+            canvasColor: Int,
+            pageBackgroundColor: Int,
+        ): Boolean
+
+        @Suppress("LongParameterList")
+        @JvmStatic
+        private external fun nativeRenderPageSurfaceWithMatrix(
+            pagePtr: Long,
+            surface: Surface,
+            matrix: FloatArray,
+            clipRect: FloatArray,
+            renderAnnot: Boolean = false,
+            textMask: Boolean = false,
+            canvasColor: Int,
+            pageBackgroundColor: Int,
+        ): Boolean
 
         @Suppress("LongParameterList")
         @JvmStatic
@@ -801,13 +891,14 @@ class PdfPage(
             docPtr: Long,
             pageIndex: Int,
             dpi: Int,
-        ): Size
+        ): IntArray
 
         @JvmStatic
         private external fun nativeGetPageLinks(pagePtr: Long): LongArray
 
         @Suppress("LongParameterList")
         @JvmStatic
+        @FastNative
         private external fun nativePageCoordsToDevice(
             pagePtr: Long,
             startX: Int,
@@ -817,10 +908,11 @@ class PdfPage(
             rotate: Int,
             pageX: Double,
             pageY: Double,
-        ): Point
+        ): IntArray
 
         @Suppress("LongParameterList")
         @JvmStatic
+        @FastNative
         private external fun nativeDeviceCoordsToPage(
             pagePtr: Long,
             startX: Int,
@@ -830,48 +922,60 @@ class PdfPage(
             rotate: Int,
             deviceX: Int,
             deviceY: Int,
-        ): PointF
+        ): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageWidthPixel(
             pagePtr: Long,
             dpi: Int,
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageHeightPixel(
             pagePtr: Long,
             dpi: Int,
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageWidthPoint(pagePtr: Long): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageHeightPoint(pagePtr: Long): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageRotation(pagePtr: Long): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageMediaBox(pagePtr: Long): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageCropBox(pagePtr: Long): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageBleedBox(pagePtr: Long): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageTrimBox(pagePtr: Long): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageArtBox(pagePtr: Long): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageBoundingBox(pagePtr: Long): FloatArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetPageMatrix(pagePtr: Long): FloatArray
     }
 }

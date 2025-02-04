@@ -6,14 +6,9 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
-import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfWriteCallback
-import io.legere.pdfiumandroid.PdfiumCore
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -76,53 +71,22 @@ class PdfDocumentKtF(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) {
-        PdfiumCore.surfaceMutex.withLock {
-            val sizes = IntArray(2)
-            val pointers = LongArray(2)
-            withContext(Dispatchers.Main) {
-                surface
-                    ?.let {
-                        PdfPage.lockSurface(
-                            it,
-                            sizes,
-                            pointers,
-                        )
-                    }
-            }
-            val nativeWindow = pointers[0]
-            val bufferPtr = pointers[1]
-            val surfaceWidth = sizes[0]
-            val surfaceHeight = sizes[1]
-            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return
-            }
-            withContext(dispatcher) {
-                document.renderPages(
-                    bufferPtr,
-                    surfaceWidth,
-                    surfaceHeight,
-                    pages.map { page -> page.page },
-                    matrices,
-                    clipRects,
-                    renderAnnot,
-                    textMask,
-                    canvasColor,
-                    pageBackgroundColor,
-                )
-            }
-            withContext(Dispatchers.Main) {
-                surface?.let {
-                    Logger.d(
-                        "PdfDocumentKtF",
-                        "releasing " +
-                            "pages: ${pages.map { it.page.pageIndex }.joinToString()}, " +
-                            " nativeWindow: $nativeWindow, " +
-                            "bufferPtr: $bufferPtr",
+        renderCoroutinesDispatcher: CoroutineDispatcher,
+    ): Boolean {
+        return withContext(renderCoroutinesDispatcher) {
+            return@withContext surface
+                ?.let {
+                    document.renderPages(
+                        surface,
+                        pages.map { page -> page.page },
+                        matrices,
+                        clipRects,
+                        renderAnnot,
+                        textMask,
+                        canvasColor,
+                        pageBackgroundColor,
                     )
-                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
-                }
-            }
+                } ?: false
         }
     }
 

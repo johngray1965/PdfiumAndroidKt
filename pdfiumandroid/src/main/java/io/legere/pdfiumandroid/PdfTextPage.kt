@@ -3,6 +3,7 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
+import dalvik.annotation.optimization.FastNative
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
 import java.nio.ByteBuffer
@@ -348,15 +349,18 @@ class PdfTextPage(
         private external fun nativeCloseTextPage(pagePtr: Long)
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextCountChars(textPagePtr: Long): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetCharBox(
             textPagePtr: Long,
             index: Int,
         ): DoubleArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetRect(
             textPagePtr: Long,
             rectIndex: Int,
@@ -364,6 +368,7 @@ class PdfTextPage(
 
         @Suppress("LongParameterList")
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetBoundedText(
             textPagePtr: Long,
             left: Double,
@@ -411,12 +416,14 @@ class PdfTextPage(
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetUnicode(
             textPagePtr: Long,
             index: Int,
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextCountRects(
             textPagePtr: Long,
             startIndex: Int,
@@ -424,6 +431,7 @@ class PdfTextPage(
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeGetFontSize(
             pagePtr: Long,
             charIndex: Int,

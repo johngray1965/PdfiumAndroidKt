@@ -252,29 +252,6 @@ jfieldID dataBuffer;
 jmethodID readMethod;
 
 extern "C"
-JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
-    javaVm = vm;
-
-    JNIEnv* env;
-    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-        return JNI_ERR;
-    }
-
-    jclass nativeSourceBridge = env->FindClass("io/legere/pdfiumandroid/util/PdfiumNativeSourceBridge");
-    if (nativeSourceBridge == nullptr) return JNI_ERR;
-
-    if ((dataBuffer = env->GetFieldID(nativeSourceBridge, "buffer", "[B")) == nullptr) {
-        return JNI_ERR;
-    }
-
-    if ((readMethod = env->GetMethodID(nativeSourceBridge, "read", "(JJ)I")) == nullptr) {
-        return JNI_ERR;
-    }
-
-    return JNI_VERSION_1_6;
-}
-
-extern "C"
 int getBlock(void* param, unsigned long position, unsigned char* outBuffer,
                     unsigned long size) {
     const int fd = reinterpret_cast<intptr_t>(param);
@@ -296,7 +273,7 @@ int getBlockFromCustomSource(void* param, unsigned long position, unsigned char*
     }
 
     auto nativeSourceBridge = reinterpret_cast<jobject>(param);
-    jint bytesRead = env->CallIntMethod(nativeSourceBridge, readMethod, position,  size);
+    jint bytesRead = env->CallIntMethod(nativeSourceBridge, readMethod, (jlong) position, (jlong) size);
 
     if (bytesRead == 0) {
         LOGE("Cannot read from custom source");
@@ -513,6 +490,18 @@ static void renderPageInternal( FPDF_PAGE page,
     int baseX = (startX < 0)? 0 : startX;
     int baseY = (startY < 0)? 0 : startY;
     int flags = FPDF_REVERSE_BYTE_ORDER;
+    if (startX + baseHorSize > drawSizeHor) {
+        baseHorSize = drawSizeHor - startX;
+    }
+    if (startY + baseVerSize > drawSizeVer) {
+        baseVerSize = drawSizeVer - startY;
+    }
+    if (startX + drawSizeHor > canvasHorSize) {
+        drawSizeHor = canvasHorSize - startX;
+    }
+    if (startY + drawSizeVer > canvasVerSize) {
+        drawSizeVer = canvasVerSize - startY;
+    }
 
     if(renderAnnot) {
         flags |= FPDF_ANNOT;
@@ -530,22 +519,26 @@ static void renderPageInternal( FPDF_PAGE page,
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfiumCore_nativeGetLinkRect(JNIEnv *env, jobject,
                                                           jlong link_ptr) {
     try {
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
         FS_RECTF fsRectF;
-        FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
+        FPDF_BOOL retVal = FPDFLink_GetAnnotRect(link, &fsRectF);
 
-        if (!result) {
+        jfloatArray result = env->NewFloatArray(4);
+        if (result == nullptr) {
             return nullptr;
         }
+        jfloat array[4];
+        array[0] = fsRectF.left;
+        array[1] = fsRectF.top;
+        array[2] = fsRectF.right;
+        array[3] = fsRectF.bottom;
 
-        jclass clazz = env->FindClass("android/graphics/RectF");
-        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FFFF)V");
-        return env->NewObject(clazz, constructorID, fsRectF.left, fsRectF.top, fsRectF.right,
-                              fsRectF.bottom);
+        env->SetFloatArrayRegion(result, 0, 4, array);
+        return result;
     } catch (const char *msg) {
         LOGE("%s", msg);
 
@@ -1363,17 +1356,17 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject surface, jintArray intArray, jlongArray ptrsArray) {
+Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject surface, jintArray widthHeightArray, jlongArray ptrsArray) {
     LOGD("nativeLockSurface");
     ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
     if (nativeWindow == nullptr) {
         LOGE("native window pointer null");
         return false;
     }
-    auto intValues = env->GetIntArrayElements(intArray, nullptr);
-    if (intValues == nullptr) {
+    auto widthHeightValues = env->GetIntArrayElements(widthHeightArray, nullptr);
+    if (widthHeightValues == nullptr) {
         // Handle error
-        LOGE("intValues is null");
+        LOGE("widthHeightValues is null");
         return false;
     }
     auto ptrValues = env->GetLongArrayElements(ptrsArray, nullptr);
@@ -1386,8 +1379,8 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
 
-    intValues[0] = width; // Modify the integer value
-    intValues[1] = height;
+    widthHeightValues[0] = width; // Modify the integer value
+    widthHeightValues[1] = height;
 
     if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
         LOGD("Set format to RGBA_8888");
@@ -1396,7 +1389,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz
                                          height,
                                          WINDOW_FORMAT_RGBA_8888);
     }
-    env->ReleaseIntArrayElements(intArray, intValues, JNI_OK);
+    env->ReleaseIntArrayElements(widthHeightArray, widthHeightValues, JNI_OK);
 
     auto *buffer = new ANativeWindow_Buffer();
     int ret;
@@ -1435,8 +1428,9 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeUnlockSurface(JNIEnv *env, jclass cla
     }
 
 }
+
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong page_ptr,
                                                       jlong buffer_ptr, jint start_x,
                                                       jint start_y, jint draw_size_hor,
@@ -1447,7 +1441,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            return;
+            return false;
         }
 
         auto buffer = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
@@ -1457,6 +1451,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong
                            buffer->width, buffer->height,
                            (int) draw_size_hor, (int) draw_size_ver,
                            (bool) render_annot, canvasColor, pageBackgroundColor);
+        return true;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1469,10 +1464,11 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
+    return false;
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jclass,
                                                                 jlong page_ptr, jlong buffer_ptr,
                                                                 jint draw_size_hor, jint draw_size_ver,
@@ -1486,7 +1482,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            return;
+            return false;
         }
 
         auto bufferPtr = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
@@ -1521,6 +1517,12 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
         int baseVerSize = (canvasVerSize < drawSizeVer)? canvasVerSize : drawSizeVer;
         int baseX = (startX < 0)? 0 : startX;
         int baseY = (startY < 0)? 0 : startY;
+        if (startX + baseHorSize > canvasHorSize) {
+            baseHorSize = canvasHorSize - startX;
+        }
+        if (startY + baseVerSize > canvasVerSize) {
+            baseVerSize = canvasVerSize - startY;
+        }
 
         int flags = FPDF_REVERSE_BYTE_ORDER;
 
@@ -1560,6 +1562,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
         if (isCopy) {
             env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
         }
+        return true;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1572,6 +1575,376 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurface(JNIEnv *env, jclass, jlong page_ptr,
+                                                      jobject surface, jint start_x,
+                                                      jint start_y, jboolean render_annot,
+                                                      jint canvasColor, jint pageBackgroundColor) {
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+
+        if (page == nullptr) {
+            LOGE("Render page pointers invalid");
+            return false;
+        }
+        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+        if (nativeWindow == nullptr) {
+            LOGE("native window pointer null");
+            return false;
+        }
+        auto width = ANativeWindow_getWidth(nativeWindow);
+        auto height = ANativeWindow_getHeight(nativeWindow);
+
+        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
+            LOGD("Set format to RGBA_8888");
+            ANativeWindow_setBuffersGeometry(nativeWindow,
+                                             width,
+                                             height,
+                                             WINDOW_FORMAT_RGBA_8888);
+        }
+
+        auto *buffer = new ANativeWindow_Buffer();
+        int ret;
+        if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
+            LOGE("Locking native window failed: %s", strerror(ret * -1));
+            return false;
+        }
+
+        renderPageInternal(page, buffer,
+                           (int) start_x, (int) start_y,
+                           width, height,
+                           (int) width, (int) height,
+                           (bool) render_annot, canvasColor, pageBackgroundColor);
+        ANativeWindow_unlockAndPost(nativeWindow);
+        ANativeWindow_release(nativeWindow);
+
+        return true;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurfaceWithMatrix(JNIEnv *env, jclass,
+                                                                jlong page_ptr, jobject surface,
+                                                                jfloatArray matrixValues,
+                                                                jfloatArray clipRect,
+                                                                jboolean render_annot,
+                                                                jboolean,
+                                                                jint canvasColor, jint pageBackgroundColor) {
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+
+        if (page == nullptr) {
+            LOGE("Render page pointers invalid");
+            return false;
+        }
+
+        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+        if (nativeWindow == nullptr) {
+            LOGE("native window pointer null");
+            return false;
+        }
+        auto width = ANativeWindow_getWidth(nativeWindow);
+        auto height = ANativeWindow_getHeight(nativeWindow);
+
+        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
+            LOGD("Set format to RGBA_8888");
+            ANativeWindow_setBuffersGeometry(nativeWindow,
+                                             width,
+                                             height,
+                                             WINDOW_FORMAT_RGBA_8888);
+        }
+
+        auto *buffer = new ANativeWindow_Buffer();
+        int ret;
+        if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
+            LOGE("Locking native window failed: %s", strerror(ret * -1));
+            return false;
+        }
+
+
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
+        auto leftClip = clipRectFloats[0];
+        auto topClip = clipRectFloats[1];
+        auto rightClip = clipRectFloats[2];
+        auto bottomClip = clipRectFloats[3];
+
+        auto drawSizeHor = (int) (rightClip - leftClip);
+        auto drawSizeVer = (int) (bottomClip - topClip);
+        auto startX = (int) leftClip;
+        auto startY = (int) topClip;
+
+        int baseHorSize = (width < drawSizeHor)? width : drawSizeHor;
+        int baseVerSize = (height < drawSizeVer)? height : drawSizeVer;
+        int baseX = (startX < 0)? 0 : startX;
+        int baseY = (startY < 0)? 0 : startY;
+        if (startX + baseHorSize > width) {
+            baseHorSize = width - startX;
+        }
+        if (startY + baseVerSize > height) {
+            baseVerSize = height - startY;
+        }
+
+        if (leftClip < 0) {
+            leftClip = 0;
+        }
+        if (topClip < 0) {
+            topClip = 0;
+        }
+        auto fWidth = (float) width;
+        auto fHeight = (float) height;
+
+        if (rightClip > fWidth) {
+            rightClip = fWidth;
+            baseHorSize = width - startX;
+        }
+        if (bottomClip > fHeight) {
+            bottomClip = fHeight;
+            baseVerSize = height - startY;
+        }
+
+        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(width, height,
+                                                    FPDFBitmap_BGRA,
+                                                    buffer->bits, (int)(buffer->stride) * 4);
+
+        if((drawSizeHor < width || drawSizeVer < height) && canvasColor != 0) {
+            FPDFBitmap_FillRect( pdfBitmap, 0, 0, width, height,
+                                 canvasColor); //Gray
+        }
+
+        int flags = FPDF_REVERSE_BYTE_ORDER;
+
+        if (render_annot) {
+            flags |= FPDF_ANNOT;
+        }
+
+        if (pageBackgroundColor != 0) {
+            FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
+                                pageBackgroundColor); //White
+        }
+
+        auto matrixFloats = env->GetFloatArrayElements(matrixValues, nullptr);
+
+        auto matrix = FS_MATRIX();
+        matrix.a = matrixFloats[0];
+        matrix.b = 0;
+        matrix.c = 0;
+        matrix.d = matrixFloats[1];
+        matrix.e = matrixFloats[2];
+        matrix.f = matrixFloats[3];
+        auto clip = FS_RECTF();
+        clip.left = leftClip;
+        clip.top = topClip;
+        clip.right = rightClip;
+        clip.bottom = bottomClip;
+
+        LOGD("FPDF_RenderPageBitmapWithMatrix");
+        FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+
+        LOGD("ANativeWindow_unlockAndPost");
+        ANativeWindow_unlockAndPost(nativeWindow);
+        ANativeWindow_release(nativeWindow);
+
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
+        env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, 0);
+
+        return true;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return false;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
+                                                                            jobject thiz,
+                                                                            jlongArray pages,
+                                                                            jobject surface,
+                                                                            jfloatArray matrices,
+                                                                            jfloatArray clipRect,
+                                                                            jboolean render_annot,
+                                                                            jboolean text_mask,
+                                                                            jint canvasColor,
+                                                                            jint pageBackgroundColor) {
+    try {
+        ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
+        if (nativeWindow == nullptr) {
+            LOGE("native window pointer null");
+            return false;
+        }
+        auto width = ANativeWindow_getWidth(nativeWindow);
+        auto height = ANativeWindow_getHeight(nativeWindow);
+
+        if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
+            LOGD("Set format to RGBA_8888");
+            ANativeWindow_setBuffersGeometry(nativeWindow,
+                                             width,
+                                             height,
+                                             WINDOW_FORMAT_RGBA_8888);
+        }
+
+        LOGD("nativeRenderPagesSurfaceWithMatrix width %d, height %d", width, height);
+
+        auto *buffer = new ANativeWindow_Buffer();
+        int ret;
+        if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
+            LOGE("Locking native window failed: %s", strerror(ret * -1));
+            ANativeWindow_release(nativeWindow);
+            return false;
+        }
+
+        auto pagePtrs = env->GetLongArrayElements(pages, nullptr);
+        auto numPages = env->GetArrayLength(pages);
+
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
+
+        auto matrixFloats = env->GetFloatArrayElements(matrices, nullptr);
+
+
+        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(width, height,
+                                                    FPDFBitmap_BGRA,
+                                                    buffer->bits, (int)(buffer->stride) * 4);
+
+        if(canvasColor != 0) {
+            FPDFBitmap_FillRect( pdfBitmap, 0, 0, width, height,
+                                 canvasColor); //Gray
+        }
+
+        int flags = FPDF_REVERSE_BYTE_ORDER;
+
+        if (render_annot) {
+            flags |= FPDF_ANNOT;
+        }
+
+        /* from here we process each page */
+        for (int pageIndex = 0; pageIndex < numPages; ++pageIndex) {
+
+            auto page = reinterpret_cast<FPDF_PAGE>(pagePtrs[pageIndex]);
+
+            if (page == nullptr) {
+                LOGE("Render page pointers invalid");
+                ANativeWindow_release(nativeWindow);
+                return false;
+            }
+
+
+            auto leftClip = clipRectFloats[0 + pageIndex * 4];
+            auto topClip = clipRectFloats[1 + pageIndex * 4];
+            auto rightClip = clipRectFloats[2 + pageIndex * 4];
+            auto bottomClip = clipRectFloats[3 + pageIndex * 4];
+
+            auto drawSizeHor = (int) (rightClip - leftClip);
+            auto drawSizeVer = (int) (bottomClip - topClip);
+
+            auto startX = (int) leftClip;
+            auto startY = (int) topClip;
+
+//            if (drawSizeHor > width || drawSizeVer > height) {
+//                LOGE("Render page clipRect is larger than the surface: %d, %d, clipRect, %d, %d", width, height, drawSizeHor, drawSizeVer);
+//                ANativeWindow_unlockAndPost(nativeWindow);
+//                ANativeWindow_release(nativeWindow);
+//                return false;
+//            }
+            int baseHorSize = (width < drawSizeHor) ? width : drawSizeHor;
+            int baseVerSize = (height < drawSizeVer) ? height : drawSizeVer;
+            int baseX = (startX < 0) ? 0 : startX;
+            int baseY = (startY < 0) ? 0 : startY;
+            if (startX + drawSizeHor > width) {
+                drawSizeHor = width - startX;
+            }
+            if (startY + drawSizeVer > height) {
+                drawSizeVer = height - startY;
+            }
+            if (leftClip < 0) {
+                leftClip = 0;
+            }
+            if (topClip < 0) {
+                topClip = 0;
+            }
+            auto fWidth = (float) width;
+            auto fHeight = (float) height;
+            if (rightClip > fWidth) {
+                rightClip = fWidth;
+            }
+            if (bottomClip > fHeight) {
+                bottomClip = fHeight;
+            }
+
+
+            if (pageBackgroundColor != 0) {
+                FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
+                                    pageBackgroundColor); //White
+            }
+
+
+            auto scale = matrixFloats[0 + pageIndex * 3];
+            auto xTrans = matrixFloats[1 + pageIndex * 3];
+            auto yTrans = matrixFloats[2 + pageIndex * 3];
+            auto matrix = FS_MATRIX();
+            matrix.a = scale;
+            matrix.b = 0;
+            matrix.c = 0;
+            matrix.d = scale;
+            matrix.e = xTrans;
+            matrix.f = yTrans;
+            auto clip = FS_RECTF();
+            clip.left = leftClip;
+            clip.top = topClip;
+            clip.right = rightClip;
+            clip.bottom = bottomClip;
+
+            FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+            /* end process each page */
+        }
+
+        ANativeWindow_unlockAndPost(nativeWindow);
+        ANativeWindow_release(nativeWindow);
+
+
+        env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, 0);
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
+        env->ReleaseLongArrayElements(pages, pagePtrs, 0);
+
+        return true;
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return false;
 }
 
 extern "C"
@@ -1966,7 +2339,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
     }
 }
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jintArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jclass,
                                                               jlong doc_ptr, jint page_index,
                                                               jint dpi) {
@@ -1991,23 +2364,15 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jclas
         jint widthInt = (jint) (width * dpi / 72);
         jint heightInt = (jint) (height * dpi / 72);
 
-        jclass clazz = env->FindClass("io/legere/pdfiumandroid/util/Size");
-        if (clazz == nullptr) {
-            LOGE("Size class not found");
-
-            jniThrowException(env, "java/lang/IllegalStateException",
-                              "Size class not found");
+        jintArray retVal = env->NewIntArray(2);
+        if (retVal == nullptr) {
             return nullptr;
         }
-        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
-        if (constructorID == nullptr) {
-            LOGE("Size constructor not found");
 
-            jniThrowException(env, "java/lang/IllegalStateException",
-                              "Size constructor not found");
-            return nullptr;
-        }
-        return env->NewObject(clazz, constructorID, widthInt, heightInt);
+        jint buffer[] = {widthInt, heightInt};
+        env->SetIntArrayRegion(retVal, 0, 2, buffer);
+
+        return retVal;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -2054,7 +2419,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jclass, jlo
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jintArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint start_x,
                                                               jint start_y, jint size_x,
@@ -2066,10 +2431,14 @@ Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jclas
 
         FPDF_PageToDevice(page, start_x, start_y, size_x, size_y, rotate, page_x, page_y, &deviceX,
                           &deviceY);
+        jintArray retVal = env->NewIntArray(2);
+        if (retVal == nullptr) {
+            return nullptr;
+        }
 
-        jclass clazz = env->FindClass("android/graphics/Point");
-        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
-        return env->NewObject(clazz, constructorID, deviceX, deviceY);
+        jint buffer[] = {deviceX, deviceY};
+        env->SetIntArrayRegion(retVal, 0, 2, buffer);
+        return retVal;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -2086,7 +2455,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jclas
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint start_x,
                                                               jint start_y, jint size_x,
@@ -2096,12 +2465,23 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jclas
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         double pageX, pageY;
 
-        FPDF_DeviceToPage(page, start_x, start_y, size_x, size_y, rotate, device_x, device_y,
-                          &pageX, &pageY);
 
-        jclass clazz = env->FindClass("android/graphics/PointF");
-        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FF)V");
-        return env->NewObject(clazz, constructorID, (float) pageX, (float) pageY);
+        jfloatArray retVal = env->NewFloatArray(2);
+        if (retVal == nullptr) {
+            return nullptr;
+        }
+        float point[2];
+        if (!FPDF_DeviceToPage(page, start_x, start_y, size_x, size_y, rotate, device_x, device_y,
+                               &pageX, &pageY)) {
+            point[0] = -1.0f;
+            point[1] = -1.0f;
+        } else {
+            point[0] = (float) pageX;
+            point[1] = (float) pageY;
+        }
+
+        env->SetFloatArrayRegion(retVal, 0, 2, point);
+        return retVal;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -2453,7 +2833,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jclass, jlong
 }
 
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jclass, jlong,
                                                        jlong link_ptr) {
     try {
@@ -2464,11 +2844,20 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jclass, jlon
         if (!result) {
             return nullptr;
         }
+        jfloatArray retVal = env->NewFloatArray(4);
+        if (retVal == nullptr) {
+            return nullptr;
+        }
 
-        jclass clazz = env->FindClass("android/graphics/RectF");
-        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(FFFF)V");
-        return env->NewObject(clazz, constructorID, fsRectF.left, fsRectF.top, fsRectF.right,
-                              fsRectF.bottom);
+        float rect[4];
+        rect[0] = fsRectF.left;
+        rect[1] = fsRectF.top;
+        rect[2] = fsRectF.right;
+        rect[3] = fsRectF.bottom;
+
+        env->SetFloatArrayRegion(retVal, 0, 4, (jfloat *) rect);
+        return retVal;
+
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -2890,7 +3279,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jclass,
     return nullptr;
 }
 extern "C"
-JNIEXPORT jobject JNICALL
+JNIEXPORT jintArray JNICALL
 Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
                                                             jlong page_link_ptr, jint index) {
     try {
@@ -2912,24 +3301,15 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
             count = 0;
         }
 
-        jclass clazz = env->FindClass("io/legere/pdfiumandroid/util/Size");
-        if (clazz == nullptr) {
-            LOGE("Size class not found");
-
-            jniThrowException(env, "java/lang/IllegalStateException",
-                              "Size class not found");
+        jintArray retVal = env->NewIntArray(2);
+        if (retVal == nullptr) {
             return nullptr;
         }
-        jmethodID constructorID = env->GetMethodID(clazz, "<init>", "(II)V");
-        if (constructorID == nullptr) {
-            LOGE("Size constructor not found");
 
-            jniThrowException(env, "java/lang/IllegalStateException",
-                              "Size constructor not found");
-            return nullptr;
-        }
-        return env->NewObject(clazz, constructorID, start, count);
+        jint buffer[] = {start, count};
+        env->SetIntArrayRegion(retVal, 0, 2, buffer);
 
+        return retVal;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -2944,6 +3324,201 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
     }
     return nullptr;
 }
+
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jclass,
+                                                           jlong page_ptr) {
+    try {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+        return (jint)FPDFPage_GetRotation(page);
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch(std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch(std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch(std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+    return -1;
+}
+
+static const JNINativeMethod coreMethods[] = {
+        {"nativeOpenDocument",       "(ILjava/lang/String;)J",                                                        (void *) Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument},
+        {"nativeOpenMemDocument",    "([BLjava/lang/String;)J",                                                       (void *) Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument},
+        {"nativeOpenCustomDocument", "(Lio/legere/pdfiumandroid/util/PdfiumNativeSourceBridge;Ljava/lang/String;J)J", (void *) Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenCustomDocument},
+};
+
+
+static const JNINativeMethod pageMethods[] = {
+        {"nativeClosePage",                  "(J)V",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage},
+        {"nativeClosePages",                 "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages},
+        {"nativeGetDestPageIndex",           "(JJ)I",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex},
+        {"nativeGetLinkURI",                 "(JJ)Ljava/lang/String;",                 (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI},
+        {"nativeGetLinkRect",                "(JJ)[F",                                 (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect},
+        {"nativeLockSurface",                "(Landroid/view/Surface;[I[J)Z",          (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface},
+        {"nativeUnlockSurface",              "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeUnlockSurface},
+        {"nativeRenderPage",                 "(JJIIIIZII)Z",                           (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage},
+        {"nativeRenderPageSurface",                 "(JLandroid/view/Surface;IIZII)Z",      (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurface},
+        {"nativeRenderPageWithMatrix",       "(JJII[F[FZZII)Z",                        (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix},
+        {"nativeRenderPageSurfaceWithMatrix",       "(JLandroid/view/Surface;[F[FZZII)Z",   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurfaceWithMatrix},
+        {"nativeRenderPageBitmap",           "(JJLandroid/graphics/Bitmap;IIIIZZII)V", (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap},
+        {"nativeRenderPageBitmapWithMatrix", "(JLandroid/graphics/Bitmap;[F[FZZII)V",  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix},
+        {"nativeGetPageSizeByIndex",         "(JII)[I",                                (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex},
+        {"nativeGetPageLinks",               "(J)[J",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks},
+        {"nativePageCoordsToDevice",         "(JIIIIIDD)[I",                           (void *) Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice},
+        {"nativeDeviceCoordsToPage",         "(JIIIIIII)[F",                           (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage},
+        {"nativeGetPageWidthPixel",          "(JI)I",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel},
+        {"nativeGetPageHeightPixel",         "(JI)I",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel},
+        {"nativeGetPageWidthPoint",          "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint},
+        {"nativeGetPageHeightPoint",         "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint},
+        {"nativeGetPageRotation",            "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation},
+        {"nativeGetPageMediaBox",            "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox},
+        {"nativeGetPageCropBox",             "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox},
+        {"nativeGetPageBleedBox",            "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox},
+        {"nativeGetPageTrimBox",             "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox},
+        {"nativeGetPageArtBox",              "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox},
+        {"nativeGetPageBoundingBox",         "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox},
+        {"nativeGetPageMatrix",              "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix},
+};
+
+
+static const JNINativeMethod textPageMethods[] = {
+
+        {"nativeCloseTextPage",         "(J)V",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage},
+        {"nativeTextCountChars",        "(J)I",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars},
+        {"nativeTextGetCharBox",        "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox},
+        {"nativeTextGetRect",           "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect},
+        {"nativeTextGetBoundedText",    "(JDDDD[S)I",               (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText},
+        {"nativeFindStart",             "(JLjava/lang/String;II)J", (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart},
+        {"nativeLoadWebLink",           "(J)J",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink},
+        {"nativeTextGetCharIndexAtPos", "(JDDDD)I",                 (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos},
+        {"nativeTextGetText",           "(JII[S)I",                 (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText},
+        {"nativeTextGetTextByteArray",  "(JII[B)I",                 (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray},
+        {"nativeTextGetUnicode",        "(JI)I",                    (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode},
+        {"nativeTextCountRects",        "(JII)I",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects},
+        {"nativeGetFontSize",           "(JI)D",                    (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize},
+};
+
+static const JNINativeMethod documentMethods[] = {
+        {"nativeGetPageCount",          "(J)I",                                            (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount},
+        {"nativeLoadPage",              "(JI)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage},
+        {"nativeDeletePage",            "(JI)V",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage},
+        {"nativeCloseDocument",         "(J)V",                                            (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument},
+        {"nativeLoadPages",             "(JII)[J",                                         (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages},
+        {"nativeGetDocumentMetaText",   "(JLjava/lang/String;)Ljava/lang/String;",         (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText},
+        {"nativeGetFirstChildBookmark", "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark},
+        {"nativeGetSiblingBookmark",    "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark},
+        {"nativeGetBookmarkDestIndex",  "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex},
+        {"nativeLoadTextPage",          "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage},
+        {"nativeGetBookmarkTitle",      "(J)Ljava/lang/String;",                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle},
+        {"nativeSaveAsCopy",            "(JLio/legere/pdfiumandroid/PdfWriteCallback;I)Z", (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy},
+        {"nativeGetPageCharCounts",     "(J)[I",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts},
+        {"nativeRenderPagesWithMatrix", "([JJII[F[FZZII)V",                                (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix},
+        {"nativeRenderPagesSurfaceWithMatrix", "([JLandroid/view/Surface;[F[FZZII)Z",           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesSurfaceWithMatrix},
+};
+
+static const JNINativeMethod findResultMethods[] = {
+        {"nativeFindNext",          "(J)Z", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeFindNext},
+        {"nativeFindPrev",          "(J)Z", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev},
+        {"nativeGetSchResultIndex", "(J)I", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex},
+        {"nativeGetSchCount",       "(J)I", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount},
+        {"nativeCloseFind",         "(J)V", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind},
+
+};
+
+static const JNINativeMethod pageLinkMethods[] = {
+        {"nativeClosePageLink", "(J)V",     (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink},
+        {"nativeCountWebLinks", "(J)I",     (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks},
+        {"nativeGetURL",        "(JII[B)I", (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL},
+        {"nativeCountRects",    "(JI)I",    (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects},
+        {"nativeGetRect",       "(JII)[F",  (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect},
+        {"nativeGetTextRange",  "(JI)[I",   (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange},
+
+};
+
+extern "C"
+JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
+    javaVm = vm;
+
+    JNIEnv* env;
+    if (vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        return JNI_ERR;
+    }
+
+    jclass nativeSourceBridge = env->FindClass("io/legere/pdfiumandroid/util/PdfiumNativeSourceBridge");
+    if (nativeSourceBridge == nullptr) return JNI_ERR;
+
+    if ((dataBuffer = env->GetFieldID(nativeSourceBridge, "buffer", "[B")) == nullptr) {
+        return JNI_ERR;
+    }
+
+    if ((readMethod = env->GetMethodID(nativeSourceBridge, "read", "(JJ)I")) == nullptr) {
+        return JNI_ERR;
+    }
+
+    jclass clazz = env->FindClass("io/legere/pdfiumandroid/PdfiumCore"); // Replace with your class name
+    if (clazz == nullptr) {
+        return -1;
+    }
+
+    if (env->RegisterNatives(clazz, coreMethods, sizeof(coreMethods) / sizeof(coreMethods[0])) < 0) {
+        return -1;
+    }
+
+    clazz = env->FindClass("io/legere/pdfiumandroid/PdfPage"); // Replace with your class name
+    if (clazz == nullptr) {
+        return -1;
+    }
+
+    if (env->RegisterNatives(clazz, pageMethods, sizeof(pageMethods) / sizeof(pageMethods[0])) < 0) {
+        return -1;
+    }
+
+    clazz = env->FindClass("io/legere/pdfiumandroid/PdfTextPage"); // Replace with your class name
+    if (clazz == nullptr) {
+        return -1;
+    }
+
+    if (env->RegisterNatives(clazz, textPageMethods, sizeof(textPageMethods) / sizeof(textPageMethods[0])) < 0) {
+        return -1;
+    }
+
+    clazz = env->FindClass("io/legere/pdfiumandroid/PdfDocument"); // Replace with your class name
+    if (clazz == nullptr) {
+        return -1;
+    }
+
+    if (env->RegisterNatives(clazz, documentMethods, sizeof(documentMethods) / sizeof(documentMethods[0])) < 0) {
+        return -1;
+    }
+
+    clazz = env->FindClass("io/legere/pdfiumandroid/FindResult"); // Replace with your class name
+    if (clazz == nullptr) {
+        return -1;
+    }
+
+    if (env->RegisterNatives(clazz, findResultMethods, sizeof(findResultMethods) / sizeof(findResultMethods[0])) < 0) {
+        return -1;
+    }
+
+    clazz = env->FindClass("io/legere/pdfiumandroid/PdfPageLink"); // Replace with your class name
+    if (clazz == nullptr) {
+        return -1;
+    }
+
+    if (env->RegisterNatives(clazz, pageLinkMethods, sizeof(pageLinkMethods) / sizeof(pageLinkMethods[0])) < 0) {
+        return -1;
+    }
+
+    return JNI_VERSION_1_6;
+}
+
 void raise_java_exception(JNIEnv *pEnv, std::exception &exception) {
     jclass exClass;
     char const *className = "java/lang/NoClassDefFoundError";
@@ -2996,26 +3571,3 @@ void handleUnexpected(JNIEnv *pEnv, char const *name) {
     LOGE("Unable to find class %s", name);
     pEnv->ExceptionClear();
 }
-
-extern "C"
-JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jclass,
-                                                           jlong page_ptr) {
-    try {
-        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        return (jint)FPDFPage_GetRotation(page);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
-}
-

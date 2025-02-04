@@ -52,8 +52,6 @@ class PdfiumCore(
         size: Long,
     ): Long
 
-    private external fun nativeGetLinkRect(linkPtr: Long): RectF?
-
     /**
      * Create new document from file
      * @param fd opened file descriptor of file
@@ -460,7 +458,8 @@ class PdfiumCore(
         drawSizeX: Int,
         drawSizeY: Int,
         renderAnnot: Boolean = false,
-    ) {
+    ): Boolean {
+        var retValue = false
         pdfDocument.openPage(pageIndex).use { page ->
             val sizes = IntArray(2)
             val pointers = LongArray(2)
@@ -477,11 +476,12 @@ class PdfiumCore(
             if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
                 return@use
             }
-            page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+            retValue = page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
             surface?.let {
                 PdfPage.unlockSurface(pointers)
             }
         }
+        return retValue
     }
 
     @Deprecated(

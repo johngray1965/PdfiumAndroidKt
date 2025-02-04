@@ -159,7 +159,8 @@ class PdfPageKt(
         renderAnnot: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) {
+    ): Boolean {
+        var retValue: Boolean
         PdfiumCore.surfaceMutex.withLock {
             val sizes = IntArray(2)
             val pointers = LongArray(2)
@@ -175,24 +176,26 @@ class PdfPageKt(
             val nativeWindow = pointers[0]
             val bufferPtr = pointers[1]
             if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return
+                return false
             }
             withContext(dispatcher) {
-                page.renderPage(
-                    bufferPtr,
-                    startX,
-                    startY,
-                    drawSizeX,
-                    drawSizeY,
-                    renderAnnot,
-                    canvasColor,
-                    pageBackgroundColor,
-                )
+                retValue =
+                    page.renderPage(
+                        bufferPtr,
+                        startX,
+                        startY,
+                        drawSizeX,
+                        drawSizeY,
+                        renderAnnot,
+                        canvasColor,
+                        pageBackgroundColor,
+                    )
             }
             withContext(Dispatchers.Main) {
                 PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
             }
         }
+        return retValue
     }
 
     /**
@@ -207,7 +210,8 @@ class PdfPageKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) {
+    ): Boolean {
+        var retValue: Boolean
         PdfiumCore.surfaceMutex.withLock {
             val sizes = IntArray(2)
             val pointers = LongArray(2)
@@ -226,20 +230,21 @@ class PdfPageKt(
             val surfaceHeight = sizes[1]
             Logger.d("PdfPageKt", "nativeWindow: $nativeWindow")
             if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return
+                return false
             }
             withContext(dispatcher) {
-                page.renderPage(
-                    bufferPtr,
-                    surfaceWidth,
-                    surfaceHeight,
-                    matrix,
-                    clipRect,
-                    renderAnnot,
-                    textMask,
-                    canvasColor,
-                    pageBackgroundColor,
-                )
+                retValue =
+                    page.renderPage(
+                        bufferPtr,
+                        surfaceWidth,
+                        surfaceHeight,
+                        matrix,
+                        clipRect,
+                        renderAnnot,
+                        textMask,
+                        canvasColor,
+                        pageBackgroundColor,
+                    )
             }
             withContext(Dispatchers.Main) {
                 surface?.let {
@@ -247,6 +252,7 @@ class PdfPageKt(
                 }
             }
         }
+        return retValue
     }
 
     @Suppress("LongParameterList")

@@ -9,9 +9,7 @@ sealed class PdfiumKtFErrors {
         val message: String,
     ) : PdfiumKtFErrors()
 
-    data class AlreadyLocked(
-        val message: String,
-    ) : PdfiumKtFErrors()
+    data object ConstraintError : PdfiumKtFErrors()
 }
 
 fun exceptionToPdfiumKtFError(e: Throwable): PdfiumKtFErrors =

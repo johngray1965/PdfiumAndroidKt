@@ -94,6 +94,18 @@ class PdfDocument(
         pageBackgroundColor: Int,
     )
 
+    @Suppress("LongParameterList")
+    private external fun nativeRenderPagesSurfaceWithMatrix(
+        pages: LongArray,
+        surface: Surface,
+        matrixFloats: FloatArray,
+        clipFloats: FloatArray,
+        renderAnnot: Boolean,
+        textMask: Boolean,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    ): Boolean
+
     var parcelFileDescriptor: ParcelFileDescriptor? = null
     var source: PdfiumSource? = null
 
@@ -235,6 +247,53 @@ class PdfDocument(
                 bufferPtr,
                 drawSizeX,
                 drawSizeY,
+                matrixFloats,
+                clipFloats,
+                renderAnnot,
+                textMask,
+                canvasColor,
+                pageBackgroundColor,
+            )
+        }
+    }
+
+    @Suppress("LongParameterList")
+    fun renderPages(
+        surface: Surface,
+        pages: List<PdfPage>,
+        matrices: List<Matrix>,
+        clipRects: List<RectF>,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ): Boolean {
+        if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return false
+        val matrixFloats =
+            matrices
+                .flatMap { matrix ->
+                    val matrixValues = FloatArray(THREE_BY_THREE)
+                    matrix.getValues(matrixValues)
+                    listOf(
+                        matrixValues[Matrix.MSCALE_X],
+                        matrixValues[Matrix.MTRANS_X],
+                        matrixValues[Matrix.MTRANS_Y],
+                    )
+                }.toFloatArray()
+        val clipFloats =
+            clipRects
+                .flatMap { rect ->
+                    listOf(
+                        rect.left,
+                        rect.top,
+                        rect.right,
+                        rect.bottom,
+                    )
+                }.toFloatArray()
+        synchronized(PdfiumCore.lock) {
+            return nativeRenderPagesSurfaceWithMatrix(
+                pages.map { it.pagePtr }.toLongArray(),
+                surface,
                 matrixFloats,
                 clipFloats,
                 renderAnnot,
