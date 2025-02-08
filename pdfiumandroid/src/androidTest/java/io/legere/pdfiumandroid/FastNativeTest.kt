@@ -257,6 +257,85 @@ class FastNativeTest : BasePDFTest() {
         println("Total Time: $time, Average Time: $averageDuration")
     }
 
+    fun findWordRanges(text: String): List<Pair<Int, Int>> {
+        val boundaries = Regex("\\b").findAll(text).map { it.range.first }.toMutableList()
+        boundaries.add(text.length)
+        return boundaries.zipWithNext { start, end -> Pair(start, end - start) }.filter { it.first < text.length }
+    }
+
+    @Test
+    fun gettextPageGetRectsForRanges() {
+        pdfDocument.openPage(0).use { page ->
+            page.openTextPage().use { textPage ->
+                val textCharCount =
+                    textPage.textPageCountChars()
+                if (textCharCount > 0) {
+                    val pageText =
+                        textPage.textPageGetText(
+                            0,
+                            textCharCount,
+                        )
+                            ?: ""
+                    val wordBoundaries = findWordRanges(pageText)
+                    val wordRangesArray =
+                        wordBoundaries
+                            .flatMap { listOf(it.first, it.second) }
+                            .toIntArray()
+                    val iterations = 100
+                    val time =
+                        measureTime {
+                            repeat(iterations) {
+                                val result = textPage.textPageGetRectsForRanges(wordRangesArray)
+                                assertThat(result).isNotNull()
+                                assertThat(result?.size).isEqualTo(1238)
+                            }
+                        }
+                    val averageDuration = (time / iterations)
+                    println("Total Time: $time, Average Time: $averageDuration")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun gettextPageGetRects() {
+        val iterations = 100
+        pdfDocument.openPage(0).use { page ->
+            page.openTextPage().use { textPage ->
+                val textCharCount =
+                    textPage.textPageCountChars()
+                if (textCharCount > 0) {
+                    val pageText =
+                        textPage.textPageGetText(
+                            0,
+                            textCharCount,
+                        )
+                            ?: ""
+                    val wordBoundaries = findWordRanges(pageText)
+                    val time =
+                        measureTime {
+                            repeat(iterations) {
+                                val list = mutableListOf<RectF>()
+                                wordBoundaries.forEach {
+                                    val count = textPage.textPageCountRects(it.first, it.second)
+                                    repeat(count) {
+                                        textPage.textPageGetRect(it)?.let { rect ->
+                                            list.add(rect)
+                                        }
+                                    }
+//                                    println("list: ${it.first} ${it.second} $list")
+                                }
+                                assertThat(list).isNotNull()
+                                assertThat(list.size).isEqualTo(1238)
+                            }
+                        }
+                    val averageDuration = (time / iterations)
+                    println("Total Time: $time, Average Time: $averageDuration")
+                }
+            }
+        }
+    }
+
     @Test
     fun getPagBitmapViaMatrixSingleOpen8xARGB_8888ReadFromDisk() {
         val iterations = 100

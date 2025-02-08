@@ -7,6 +7,7 @@ import androidx.annotation.Keep
 import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfTextPage
+import io.legere.pdfiumandroid.WordRangeRect
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.Closeable
@@ -87,6 +88,14 @@ class PdfTextPageKt(
     suspend fun textPageGetRect(rectIndex: Int): RectF? =
         withContext(dispatcher) {
             page.textPageGetRect(rectIndex)
+        }
+
+    /**
+     * suspend version of [PdfTextPage.textPageGetRectsForRanges]
+     */
+    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
+        withContext(dispatcher) {
+            page.textPageGetRectsForRanges(wordRanges)
         }
 
     /**

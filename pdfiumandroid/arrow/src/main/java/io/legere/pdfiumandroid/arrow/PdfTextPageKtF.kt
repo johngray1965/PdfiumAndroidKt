@@ -6,6 +6,7 @@ import android.graphics.RectF
 import arrow.core.Either
 import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.PdfTextPage
+import io.legere.pdfiumandroid.WordRangeRect
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -84,6 +85,14 @@ class PdfTextPageKtF(
     suspend fun textPageGetRect(rectIndex: Int): Either<PdfiumKtFErrors, RectF?> =
         wrapEither(dispatcher) {
             page.textPageGetRect(rectIndex)
+        }
+
+    /**
+     * suspend version of [PdfTextPage.textPageGetRectsForRanges]
+     */
+    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Either<PdfiumKtFErrors, List<WordRangeRect>?> =
+        wrapEither(dispatcher) {
+            page.textPageGetRectsForRanges(wordRanges)
         }
 
     /**

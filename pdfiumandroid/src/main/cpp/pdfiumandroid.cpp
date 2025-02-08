@@ -3327,6 +3327,60 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
 
 
 extern "C"
+JNIEXPORT jdoubleArray JNICALL
+Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRects(JNIEnv *env, jclass clazz,
+                                                            jlong text_page_ptr,
+                                                            jintArray wordRanges) {
+    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+
+    jsize numRanges = env->GetArrayLength(wordRanges) / 2;
+
+    // Get the ranges array
+    jint *ranges = env->GetIntArrayElements(wordRanges, nullptr);
+
+    // Create a vector to store the data
+    std::vector<double> data;
+
+    // Iterate through the ranges
+    for (jsize i = 0; i < numRanges; ++i) {
+        // Get the start and length
+        jint start = ranges[i * 2];
+        jint length = ranges[i * 2 + 1];
+
+        // Get the number of rectangles in the range
+        int rectCount = FPDFText_CountRects(textPage, start, length);
+
+        // Get the rectangles
+        for (int j = 0; j < rectCount; ++j) {
+            double left, top, right, bottom;
+            FPDFText_GetRect(textPage, j, &left, &top, &right, &bottom);
+
+            // Add the rectangle to the data vector (left, top, right, bottom)
+            data.push_back(left);
+            data.push_back(top);
+            data.push_back(right);
+            data.push_back(bottom);
+
+            // Add the range to the data vector (start, length)
+            data.push_back(static_cast<double>(start));
+            data.push_back(static_cast<double>(length));
+        }
+    }
+
+    // Release the ranges array
+    env->ReleaseIntArrayElements(wordRanges, ranges, JNI_ABORT);
+
+    // Create a jdoubleArray and copy the data
+    jdoubleArray result = env->NewDoubleArray(data.size());
+    if (result == nullptr) {
+        return nullptr; // Out of memory error
+    }
+    env->SetDoubleArrayRegion(result, 0, data.size(), data.data());
+
+    return result;
+}
+
+extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
@@ -3394,6 +3448,7 @@ static const JNINativeMethod textPageMethods[] = {
         {"nativeTextCountChars",        "(J)I",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars},
         {"nativeTextGetCharBox",        "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox},
         {"nativeTextGetRect",           "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect},
+        {"nativeTextGetRects",           "(J[I)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRects},
         {"nativeTextGetBoundedText",    "(JDDDD[S)I",               (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText},
         {"nativeFindStart",             "(JLjava/lang/String;II)J", (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart},
         {"nativeLoadWebLink",           "(J)J",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink},

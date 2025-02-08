@@ -12,6 +12,15 @@ import java.nio.charset.StandardCharsets
 
 typealias FindHandle = Long
 
+private const val LEFT_OFFSET = 0
+private const val TOP_OFFSET = 1
+private const val RIGHT_OFFSET = 2
+private const val BOTTOM_OFFSET = 3
+private const val RANGE_START_OFFSET = 4
+private const val RANGE_LENGTH_OFFSET = 5
+
+private const val RANGE_RECT_DATA_SIZE = 6
+
 /**
  * PdfTextPage is a wrapper around the native PdfiumCore text page
  * It is used to get text and other information about the text on a page
@@ -194,7 +203,7 @@ class PdfTextPage(
     }
 
     /**
-     * Get the count of rectages that bound the text on the page in a given range
+     * Get the count of rectangles that bound the text on the page in a given range
      * @param startIndex the index of the first character to get
      * @param count the number of characters to get
      * @return the number of rectangles
@@ -234,10 +243,10 @@ class PdfTextPage(
             return try {
                 val o = nativeTextGetRect(pagePtr, rectIndex)
                 val r = RectF()
-                r.left = o[0].toFloat()
-                r.top = o[1].toFloat()
-                r.right = o[2].toFloat()
-                r.bottom = o[3].toFloat()
+                r.left = o[LEFT_OFFSET].toFloat()
+                r.top = o[TOP_OFFSET].toFloat()
+                r.right = o[RIGHT_OFFSET].toFloat()
+                r.bottom = o[BOTTOM_OFFSET].toFloat()
                 r
             } catch (e: NullPointerException) {
                 Logger.e(TAG, e, "mContext may be null")
@@ -247,6 +256,38 @@ class PdfTextPage(
                 null
             }
         }
+    }
+
+    /**
+     * Get the bounding box of a range of texts on the page
+     * @param wordRanges an array of word ranges to get the bounding boxes for.
+     * Even indices are the start index, odd indices are the length
+     * @return list of bounding boxes with their start and length
+     * @throws IllegalStateException if the page or document is closed
+     */
+    @Suppress("ReturnCount")
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
+        synchronized(PdfiumCore.lock) {
+            val data = nativeTextGetRects(pagePtr, wordRanges)
+            if (data != null) {
+                val wordRangeRects = mutableListOf<WordRangeRect>()
+                for (i in data.indices step RANGE_RECT_DATA_SIZE) {
+                    val r = RectF()
+                    r.left = data[i + LEFT_OFFSET].toFloat()
+                    r.top = data[i + TOP_OFFSET].toFloat()
+                    r.right = data[i + RIGHT_OFFSET].toFloat()
+                    r.bottom = data[i + BOTTOM_OFFSET].toFloat()
+                    val rangeStart = data[i + RANGE_START_OFFSET].toInt()
+                    val rangeLength = data[i + RANGE_LENGTH_OFFSET].toInt()
+                    WordRangeRect(rangeStart, rangeLength, r).let {
+                        wordRangeRects.add(it)
+                    }
+                }
+                return wordRangeRects
+            }
+        }
+        return null
     }
 
     /**
@@ -366,6 +407,13 @@ class PdfTextPage(
             rectIndex: Int,
         ): DoubleArray
 
+        @JvmStatic
+        @FastNative
+        private external fun nativeTextGetRects(
+            textPagePtr: Long,
+            wordRanges: IntArray,
+        ): DoubleArray?
+
         @Suppress("LongParameterList")
         @JvmStatic
         @FastNative
@@ -447,3 +495,9 @@ enum class FindFlags(
     MatchWholeWord(0x00000002),
     Consecutive(0x00000004),
 }
+
+data class WordRangeRect(
+    val rangeStart: Int,
+    val rangeLength: Int,
+    val rect: RectF,
+)
