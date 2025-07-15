@@ -538,7 +538,7 @@ class PdfPage(
                 val index = nativeGetDestPageIndex(doc.mNativeDocPtr, linkPtr)
                 val uri = nativeGetLinkURI(doc.mNativeDocPtr, linkPtr)
                 val rect = nativeGetLinkRect(doc.mNativeDocPtr, linkPtr)
-                if (rect.size != RECT_SIZE && (index != -1 || uri != null)) {
+                if (rect.size == RECT_SIZE && (index != -1 || uri != null)) {
                     links.add(
                         PdfDocument.Link(
                             rect.let { rectFloats ->
