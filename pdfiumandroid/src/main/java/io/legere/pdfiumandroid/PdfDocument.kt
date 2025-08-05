@@ -22,6 +22,7 @@ class PdfDocument(
     private val pageMap = mutableMapOf<Int, PageCount>()
     private val textPageMap = mutableMapOf<Int, PageCount>()
 
+    @Volatile
     var isClosed = false
         private set
 
@@ -114,8 +115,8 @@ class PdfDocument(
      *  @return the number of pages
      */
     fun getPageCount(): Int {
-        if (handleAlreadyClosed(isClosed)) return 0
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return 0
             return nativeGetPageCount(mNativeDocPtr)
         }
     }
@@ -125,9 +126,8 @@ class PdfDocument(
      *  @return an array of character counts
      */
     fun getPageCharCounts(): IntArray {
-        if (handleAlreadyClosed(isClosed)) return IntArray(0)
-
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return IntArray(0)
             return nativeGetPageCharCounts(mNativeDocPtr)
         }
     }
@@ -140,8 +140,8 @@ class PdfDocument(
      * RuntimeException if the page cannot be loaded
      */
     fun openPage(pageIndex: Int): PdfPage {
-        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
+            check(!isClosed) { "Already closed" }
             if (pageMap.containsKey(pageIndex)) {
                 pageMap[pageIndex]?.let {
                     it.count++
@@ -163,8 +163,8 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun deletePage(pageIndex: Int) {
-        if (handleAlreadyClosed(isClosed)) return
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return
             nativeDeletePage(this.mNativeDocPtr, pageIndex)
         }
     }
@@ -180,9 +180,9 @@ class PdfDocument(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfPage> {
-        if (handleAlreadyClosed(isClosed)) return emptyList()
-        var pagesPtr: LongArray
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return emptyList()
+            var pagesPtr: LongArray
             pagesPtr = nativeLoadPages(this.mNativeDocPtr, fromIndex, toIndex)
             var pageIndex = fromIndex
             for (page in pagesPtr) {
@@ -219,29 +219,29 @@ class PdfDocument(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
-        if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return
-        val matrixFloats =
-            matrices
-                .flatMap { matrix ->
-                    val matrixValues = FloatArray(THREE_BY_THREE)
-                    matrix.getValues(matrixValues)
-                    listOf(
-                        matrixValues[Matrix.MSCALE_X],
-                        matrixValues[Matrix.MTRANS_X],
-                        matrixValues[Matrix.MTRANS_Y],
-                    )
-                }.toFloatArray()
-        val clipFloats =
-            clipRects
-                .flatMap { rect ->
-                    listOf(
-                        rect.left,
-                        rect.top,
-                        rect.right,
-                        rect.bottom,
-                    )
-                }.toFloatArray()
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return
+            val matrixFloats =
+                matrices
+                    .flatMap { matrix ->
+                        val matrixValues = FloatArray(THREE_BY_THREE)
+                        matrix.getValues(matrixValues)
+                        listOf(
+                            matrixValues[Matrix.MSCALE_X],
+                            matrixValues[Matrix.MTRANS_X],
+                            matrixValues[Matrix.MTRANS_Y],
+                        )
+                    }.toFloatArray()
+            val clipFloats =
+                clipRects
+                    .flatMap { rect ->
+                        listOf(
+                            rect.left,
+                            rect.top,
+                            rect.right,
+                            rect.bottom,
+                        )
+                    }.toFloatArray()
             nativeRenderPagesWithMatrix(
                 pages.map { it.pagePtr }.toLongArray(),
                 bufferPtr,
@@ -268,29 +268,29 @@ class PdfDocument(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean {
-        if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return false
-        val matrixFloats =
-            matrices
-                .flatMap { matrix ->
-                    val matrixValues = FloatArray(THREE_BY_THREE)
-                    matrix.getValues(matrixValues)
-                    listOf(
-                        matrixValues[Matrix.MSCALE_X],
-                        matrixValues[Matrix.MTRANS_X],
-                        matrixValues[Matrix.MTRANS_Y],
-                    )
-                }.toFloatArray()
-        val clipFloats =
-            clipRects
-                .flatMap { rect ->
-                    listOf(
-                        rect.left,
-                        rect.top,
-                        rect.right,
-                        rect.bottom,
-                    )
-                }.toFloatArray()
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return false
+            val matrixFloats =
+                matrices
+                    .flatMap { matrix ->
+                        val matrixValues = FloatArray(THREE_BY_THREE)
+                        matrix.getValues(matrixValues)
+                        listOf(
+                            matrixValues[Matrix.MSCALE_X],
+                            matrixValues[Matrix.MTRANS_X],
+                            matrixValues[Matrix.MTRANS_Y],
+                        )
+                    }.toFloatArray()
+            val clipFloats =
+                clipRects
+                    .flatMap { rect ->
+                        listOf(
+                            rect.left,
+                            rect.top,
+                            rect.right,
+                            rect.bottom,
+                        )
+                    }.toFloatArray()
             return nativeRenderPagesSurfaceWithMatrix(
                 pages.map { it.pagePtr }.toLongArray(),
                 surface,
@@ -310,8 +310,8 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun getDocumentMeta(): Meta {
-        if (handleAlreadyClosed(isClosed)) return Meta()
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return Meta()
             val meta = Meta()
             meta.title = nativeGetDocumentMetaText(mNativeDocPtr, "Title")
             meta.author = nativeGetDocumentMetaText(mNativeDocPtr, "Author")
@@ -330,20 +330,22 @@ class PdfDocument(
         bookmarkPtr: Long,
         level: Long,
     ) {
-        if (handleAlreadyClosed(isClosed)) return
-        var levelMutable = level
-        val bookmark = Bookmark()
-        bookmark.mNativePtr = bookmarkPtr
-        bookmark.title = nativeGetBookmarkTitle(bookmarkPtr)
-        bookmark.pageIdx = nativeGetBookmarkDestIndex(mNativeDocPtr, bookmarkPtr)
-        tree.add(bookmark)
-        val child = nativeGetFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
-        if (child != 0L && levelMutable < MAX_RECURSION) {
-            recursiveGetBookmark(bookmark.children, child, levelMutable++)
-        }
-        val sibling = nativeGetSiblingBookmark(mNativeDocPtr, bookmarkPtr)
-        if (sibling != 0L && levelMutable < MAX_RECURSION) {
-            recursiveGetBookmark(tree, sibling, levelMutable)
+        synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return
+            var levelMutable = level
+            val bookmark = Bookmark()
+            bookmark.mNativePtr = bookmarkPtr
+            bookmark.title = nativeGetBookmarkTitle(bookmarkPtr)
+            bookmark.pageIdx = nativeGetBookmarkDestIndex(mNativeDocPtr, bookmarkPtr)
+            tree.add(bookmark)
+            val child = nativeGetFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
+            if (child != 0L && levelMutable < MAX_RECURSION) {
+                recursiveGetBookmark(bookmark.children, child, levelMutable++)
+            }
+            val sibling = nativeGetSiblingBookmark(mNativeDocPtr, bookmarkPtr)
+            if (sibling != 0L && levelMutable < MAX_RECURSION) {
+                recursiveGetBookmark(tree, sibling, levelMutable)
+            }
         }
     }
 
@@ -353,8 +355,8 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun getTableOfContents(): List<Bookmark> {
-        if (handleAlreadyClosed(isClosed)) return emptyList()
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return emptyList()
             val topLevel: MutableList<Bookmark> =
                 ArrayList()
             val first = nativeGetFirstChildBookmark(this.mNativeDocPtr, 0)
@@ -373,8 +375,8 @@ class PdfDocument(
      */
     @Deprecated("Use PdfPage.openTextPage instead", ReplaceWith("page.openTextPage()"))
     fun openTextPage(page: PdfPage): PdfTextPage {
-        check(!isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
+            check(!isClosed) { "Already closed" }
             if (textPageMap.containsKey(page.pageIndex)) {
                 textPageMap[page.pageIndex]?.let {
                     it.count++
@@ -400,9 +402,9 @@ class PdfDocument(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfTextPage> {
-        if (handleAlreadyClosed(isClosed)) return emptyList()
-        var textPagesPtr: LongArray
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return emptyList()
+            var textPagesPtr: LongArray
             textPagesPtr = nativeLoadPages(mNativeDocPtr, fromIndex, toIndex)
             return textPagesPtr.mapIndexed { index: Int, pagePtr: Long ->
                 PdfTextPage(
@@ -426,8 +428,10 @@ class PdfDocument(
         callback: PdfWriteCallback,
         flags: Int = FPDF_NO_INCREMENTAL,
     ): Boolean {
-        if (handleAlreadyClosed(isClosed)) return false
-        return nativeSaveAsCopy(mNativeDocPtr, callback, flags)
+        synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return false
+            return nativeSaveAsCopy(mNativeDocPtr, callback, flags)
+        }
     }
 
     /**
@@ -435,9 +439,9 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        if (handleAlreadyClosed(isClosed)) return
-        Logger.d(TAG, "PdfDocument.close")
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed)) return
+            Logger.d(TAG, "PdfDocument.close")
             isClosed = true
             nativeCloseDocument(mNativeDocPtr)
             parcelFileDescriptor?.close()
