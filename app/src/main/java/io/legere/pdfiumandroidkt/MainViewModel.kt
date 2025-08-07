@@ -3,6 +3,7 @@ package io.legere.pdfiumandroidkt
 import android.app.Application
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.core.graphics.createBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -111,7 +112,7 @@ class MainViewModel
             try {
                 val zoom = 1f // 2f
 //                val pan = 0f // -width.toFloat() / 2
-                val bitmap = Bitmap.createBitmap(width, height * zoom.roundToInt(), Bitmap.Config.RGB_565)
+                val bitmap = createBitmap(width, height * zoom.roundToInt(), Bitmap.Config.RGB_565)
                 pdfDocument?.openPage(pageNum)?.use { page ->
                     val size = page.getPageSize(1)
                     Timber.d("getPageSize: pageNum: $pageNum, width: ${size.width}, height: ${size.height}")

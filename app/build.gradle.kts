@@ -18,7 +18,7 @@ kotlin {
 
 android {
     namespace = "io.legere.pdfiumandroidkt"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "io.legere.pdfiumandroidkt"

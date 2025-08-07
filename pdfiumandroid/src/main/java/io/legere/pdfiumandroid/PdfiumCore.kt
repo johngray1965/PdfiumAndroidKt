@@ -135,9 +135,7 @@ class PdfiumCore(
     }
 
     @Deprecated("Use PdfDocument.getPageCount()", ReplaceWith("pdfDocument.getPageCount()"), DeprecationLevel.WARNING)
-    fun getPageCount(pdfDocument: PdfDocument): Int {
-        return pdfDocument.getPageCount()
-    }
+    fun getPageCount(pdfDocument: PdfDocument): Int = pdfDocument.getPageCount()
 
     @Deprecated("Use PdfDocument.closeDocument()", ReplaceWith("pdfDocument.close()"), DeprecationLevel.WARNING)
     fun closeDocument(pdfDocument: PdfDocument) {

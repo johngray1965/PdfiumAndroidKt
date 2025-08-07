@@ -92,34 +92,9 @@ dependencies {
     androidTestImplementation(libs.androidx.core.testing)
 }
 
-fun isReleaseBuild(): Boolean = !findProject("VERSION_NAME").toString().contains("SNAPSHOT")
-
-fun getReleaseRepositoryUrl(): String =
-    if (rootProject.hasProperty("RELEASE_REPOSITORY_URL")) {
-        rootProject.properties["RELEASE_REPOSITORY_URL"] as String
-    } else {
-        "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-    }
-
-fun getSnapshotRepositoryUrl(): String =
-    if (rootProject.hasProperty("SNAPSHOT_REPOSITORY_URL")) {
-        rootProject.properties["SNAPSHOT_REPOSITORY_URL"] as String
-    } else {
-        "https://oss.sonatype.org/content/repositories/snapshots/"
-    }
-
-fun getRepositoryUrl(): String = if (isReleaseBuild()) getReleaseRepositoryUrl() else getSnapshotRepositoryUrl()
-
 fun getRepositoryUsername(): String =
     if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_USERNAME")) {
         rootProject.properties["JRELEASER_MAVENCENTRAL_USERNAME"] as String
-    } else {
-        ""
-    }
-
-fun getRepositoryPassword(): String =
-    if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_TOKEN")) {
-        rootProject.properties["JRELEASER_MAVENCENTRAL_TOKEN"] as String
     } else {
         ""
     }
@@ -180,11 +155,10 @@ jreleaser {
         active = Active.ALWAYS
         mode = Signing.Mode.COMMAND
         armored = true
-        verify = false
+        verify = true
         command {
             executable = "gpg"
-            keyName = "4BBF8FAB"
-            publicKeyring = "/Users/gray/.gnupg/secring.gpg"
+            keyName = "AADE0D9F"
         }
     }
     release {

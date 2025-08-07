@@ -1,6 +1,6 @@
 package io.legere.pdfiumandroidkt.ui
 
-import android.graphics.drawable.BitmapDrawable
+import androidx.core.graphics.drawable.toDrawable
 import coil.ImageLoader
 import coil.decode.DataSource
 import coil.fetch.DrawableResult
@@ -22,7 +22,7 @@ class PdfiumFetcher(
             return null
         }
         return DrawableResult(
-            drawable = BitmapDrawable(options.context.resources, bitmap),
+            drawable = bitmap.toDrawable(options.context.resources),
             isSampled = false,
             dataSource = DataSource.MEMORY,
         )
