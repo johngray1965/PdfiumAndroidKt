@@ -22,9 +22,9 @@ kotlin {
 
 android {
     namespace = "io.legere.pdfiumandroid"
-    compileSdk = 35
+    compileSdk = 36
 
-    ndkVersion = "28.0.12674087"
+    ndkVersion = "29.0.13846066"
 
     defaultConfig {
         minSdk = 23
@@ -56,7 +56,7 @@ android {
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
+            version = "4.0.3"
         }
     }
     compileOptions {
