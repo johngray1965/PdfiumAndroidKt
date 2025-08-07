@@ -35,6 +35,7 @@ class PdfTextPage(
     val pagePtr: Long,
     val pageMap: MutableMap<Int, PdfDocument.PageCount>,
 ) : Closeable {
+    @Volatile
     private var isClosed = false
 
     /**
@@ -43,8 +44,8 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageCountChars(): Int {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
             return nativeTextCountChars(pagePtr)
         }
     }
@@ -61,8 +62,8 @@ class PdfTextPage(
         startIndex: Int,
         length: Int,
     ): String? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             try {
                 val buf = ShortArray(length + 1)
                 val r =
@@ -99,8 +100,8 @@ class PdfTextPage(
         startIndex: Int,
         length: Int,
     ): String? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             try {
                 val bytes = ByteArray(length * 2)
                 val r =
@@ -131,8 +132,8 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetUnicode(index: Int): Char {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
+            check(!isClosed && !doc.isClosed) { "Already closed" }
             return nativeTextGetUnicode(
                 pagePtr,
                 index,
@@ -148,8 +149,8 @@ class PdfTextPage(
      */
     @Suppress("ReturnCount", "MagicNumber")
     fun textPageGetCharBox(index: Int): RectF? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             try {
                 val o = nativeTextGetCharBox(pagePtr, index)
                 // Note these are in an odd order left, right, bottom, top
@@ -185,8 +186,8 @@ class PdfTextPage(
         xTolerance: Double,
         yTolerance: Double,
     ): Int {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
             try {
                 return nativeTextGetCharIndexAtPos(
                     pagePtr,
@@ -213,8 +214,8 @@ class PdfTextPage(
         startIndex: Int,
         count: Int,
     ): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
         synchronized(PdfiumCore.lock) {
+            check(!isClosed && !doc.isClosed) { "Already closed" }
             try {
                 return nativeTextCountRects(
                     pagePtr,
@@ -238,8 +239,8 @@ class PdfTextPage(
      */
     @Suppress("MagicNumber")
     fun textPageGetRect(rectIndex: Int): RectF? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             return try {
                 val o = nativeTextGetRect(pagePtr, rectIndex)
                 val r = RectF()
@@ -267,8 +268,8 @@ class PdfTextPage(
      */
     @Suppress("ReturnCount")
     fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             val data = nativeTextGetRects(pagePtr, wordRanges)
             if (data != null) {
                 val wordRangeRects = mutableListOf<WordRangeRect>()
@@ -301,8 +302,8 @@ class PdfTextPage(
         rect: RectF,
         length: Int,
     ): String? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             return try {
                 val buf = ShortArray(length + 1)
                 val r =
@@ -339,8 +340,8 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun getFontSize(charIndex: Int): Double {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return 0.0
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return 0.0
             return nativeGetFontSize(pagePtr, charIndex)
         }
     }
@@ -350,8 +351,8 @@ class PdfTextPage(
         flags: Set<FindFlags>,
         startIndex: Int,
     ): FindResult? {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
             val apiFlags = flags.fold(0) { acc, flag -> acc or flag.value }
             return FindResult(nativeFindStart(pagePtr, findWhat, apiFlags, startIndex))
         }
@@ -367,9 +368,9 @@ class PdfTextPage(
      * Close the page and release all resources
      */
     override fun close() {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return
-
         synchronized(PdfiumCore.lock) {
+            if (handleAlreadyClosed(isClosed || doc.isClosed)) return
+
             pageMap[pageIndex]?.let {
                 if (it.count > 1) {
                     it.count--
