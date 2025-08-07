@@ -23,7 +23,7 @@ jobs:
     - name: Set up CMake
       uses: lukka/get-cmake@v3.29.0 # Use the latest version of get-cmake, or a specific CMake version
       with:
-        cmakeVersion: "~4.0.3" # Or "4.0.3"
+        cmakeVersion: "4.0.3" # Or "4.0.3"
     - name: Setup Android SDK
       uses: android-actions/setup-android@v2
     - name: Grant execute permission for gradlew
