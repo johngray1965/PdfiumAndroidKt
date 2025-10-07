@@ -133,13 +133,9 @@ jreleaser {
     gitRootSearch = true
     signing {
         active = Active.ALWAYS
-        mode = Signing.Mode.COMMAND
+        mode = Signing.Mode.MEMORY
         armored = true
         verify = true
-        command {
-            executable = "gpg"
-            keyName = "AADE0D9F"
-        }
     }
     release {
         github {

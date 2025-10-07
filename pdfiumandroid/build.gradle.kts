@@ -11,7 +11,6 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.jreleaser)
     `maven-publish`
-    signing
 }
 kotlin {
     compilerOptions {
@@ -154,13 +153,9 @@ jreleaser {
     gitRootSearch = true
     signing {
         active = Active.ALWAYS
-        mode = Signing.Mode.COMMAND
+        mode = Signing.Mode.MEMORY
         armored = true
         verify = true
-        command {
-            executable = "gpg"
-            keyName = "AADE0D9F"
-        }
     }
     release {
         github {
