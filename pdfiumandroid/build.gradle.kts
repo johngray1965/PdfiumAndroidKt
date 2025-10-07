@@ -74,8 +74,9 @@ android {
 
 dependencies {
 
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.androidx.annotation.jvm)
+    compileOnly(libs.kotlinx.coroutines.android)
+    compileOnly(libs.androidx.annotation.jvm)
+    compileOnly(libs.kotlin.stdlib)
 
     testImplementation(libs.junit)
 
