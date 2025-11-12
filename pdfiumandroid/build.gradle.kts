@@ -76,7 +76,7 @@ dependencies {
     compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.androidx.annotation.jvm)
     compileOnly(libs.kotlin.stdlib)
-    compileOnly(libs.guava)
+    implementation(libs.guava)
 
     testImplementation(libs.junit)
 

@@ -6,9 +6,9 @@ import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
 import io.legere.pdfiumandroid.util.PdfPageCacheBase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -19,9 +19,11 @@ private const val CACHE_SIZE = 64L
  * This base class holds the core Guava LoadingCache logic.
  */
 abstract class PdfPageSuspendCacheBase<TPage : AutoCloseable, TTextPage : AutoCloseable>(
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO),
+    dispatcher: CoroutineDispatcher,
     maxSize: Long = CACHE_SIZE,
 ) : AutoCloseable {
+    private val scope: CoroutineScope = CoroutineScope(dispatcher)
+
     private val cache: Cache<Int, Deferred<PdfPageCacheBase.PageHolder<TPage, TTextPage>>>
 
     init {
