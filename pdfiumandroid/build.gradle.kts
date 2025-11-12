@@ -76,6 +76,7 @@ dependencies {
     compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.androidx.annotation.jvm)
     compileOnly(libs.kotlin.stdlib)
+    compileOnly(libs.guava)
 
     testImplementation(libs.junit)
 
@@ -159,7 +160,8 @@ jreleaser {
     }
     release {
         github {
-            skipRelease = true
+            repoOwner = "johngray1965"
+            overwrite = true
         }
     }
 //    distributions {

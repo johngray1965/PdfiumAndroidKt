@@ -54,9 +54,11 @@ android {
 
 dependencies {
     implementation(project(":pdfiumandroid"))
-    compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.arrow.core)
+    compileOnly(libs.kotlinx.coroutines.android)
+    compileOnly(libs.androidx.annotation.jvm)
     compileOnly(libs.kotlin.stdlib)
+    compileOnly(libs.guava)
 
     testImplementation(libs.androidx.runner)
     testImplementation(libs.junit)
