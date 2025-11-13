@@ -11,47 +11,34 @@ private const val CACHE_SIZE = 64L
  * A thread-safe, concurrent LRU cache for PDF page objects.
  * This base class holds the core Guava LoadingCache logic.
  */
-abstract class PdfPageCacheBase<TPage : AutoCloseable, TTextPage : AutoCloseable>(
+abstract class PdfPageCacheBase<H : AutoCloseable>(
     maxSize: Long = CACHE_SIZE,
 ) : AutoCloseable {
-    data class PageHolder<TPage : AutoCloseable, TTextPage : AutoCloseable>(
-        val page: TPage,
-        val textPage: TTextPage,
-    ) : AutoCloseable {
-        override fun close() {
-            try {
-                textPage.close()
-            } finally {
-                page.close()
-            }
-        }
-    }
-
     private val removalListener =
-        RemovalListener<Int, PageHolder<TPage, TTextPage>> {
+        RemovalListener<Int, H> {
             it.value?.close()
         }
 
-    private val pageCache: LoadingCache<Int, PageHolder<TPage, TTextPage>> =
+    private val pageCache: LoadingCache<Int, H> =
         CacheBuilder
             .newBuilder()
             .maximumSize(maxSize)
             .removalListener(removalListener)
             .build(
                 CacheLoader.from { pageIndex ->
-                    openPageAndText(pageIndex!!)
+                    openPageAndText(pageIndex)
                 },
             )
 
     /**
      * Abstract method to be implemented by subclasses to open a page and its text page.
      */
-    protected abstract fun openPageAndText(pageIndex: Int): PageHolder<TPage, TTextPage>
+    protected abstract fun openPageAndText(pageIndex: Int): H
 
     /**
      * Gets the page and text page holder from the cache, creating it if necessary.
      */
-    fun get(pageIndex: Int): PageHolder<TPage, TTextPage> = pageCache.get(pageIndex)
+    fun get(pageIndex: Int): H = pageCache.get(pageIndex)
 
     /**
      * Closes all currently cached pages.
