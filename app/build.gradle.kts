@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         applicationId = "io.legere.pdfiumandroidkt"
-        minSdk = 23
+        minSdk = 24
         versionCode = 1
         versionName = "1.0"
 
@@ -55,6 +55,7 @@ android {
         compose = true
     }
 
+    @Suppress("UnstableApiUsage")
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.8"
     }

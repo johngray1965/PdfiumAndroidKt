@@ -11,8 +11,3 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.jreleaser) apply false
 }
-
-// allprojects {
-//    version = findProperty('VERSION_NAME') ?: "1.0.0"
-//    group = findProperty('GROUP') ?: "io.legere"
-// }
