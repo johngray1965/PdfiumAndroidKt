@@ -1,7 +1,5 @@
 package io.legere.pdfiumandroid.suspend
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.RemovalListener
@@ -48,7 +46,6 @@ abstract class PdfPageSuspendCacheBase<H : AutoCloseable>(
 
     protected abstract suspend fun openPageAndText(pageIndex: Int): H
 
-    @RequiresApi(Build.VERSION_CODES.N)
     suspend fun get(pageIndex: Int): H {
         val deferred =
             cache.asMap().computeIfAbsent(pageIndex) { key ->

@@ -55,11 +55,6 @@ android {
         compose = true
     }
 
-    @Suppress("UnstableApiUsage")
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.8"
-    }
-
     packaging {
         resources {
             excludes +=

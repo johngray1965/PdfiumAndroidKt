@@ -33,14 +33,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.legere.pdfiumandroidkt.ui.PdfViewer
 import io.legere.pdfiumandroidkt.ui.theme.PdfiumAndroidKtTheme
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -147,9 +144,6 @@ fun MyPager(viewModel: MainViewModel) {
     var componentWidth by remember { mutableIntStateOf(0) }
     var componentHeight by remember { mutableIntStateOf(0) }
 
-    // get local density from composable
-    val density = LocalDensity.current
-
     Surface(
         modifier =
             Modifier
@@ -175,7 +169,6 @@ fun MyPager(viewModel: MainViewModel) {
                     viewModel = viewModel,
                     componentWidth,
                     componentHeight,
-                    density,
                 )
             },
         )
@@ -189,44 +182,13 @@ fun PagerScope(
     viewModel: MainViewModel,
     componentWidth: Int,
     componentHeight: Int,
-    density: Density,
 ) {
     if (componentWidth <= 0 || componentHeight <= 0) {
         return
     }
 
-    Timber.d(
-        "PagerScope: page: $page, " +
-            "componentWidth: $componentWidth, " +
-            "componentHeight: $componentHeight, " +
-            "density: $density",
-    )
     PdfViewer(
-        pdfDocument = viewModel.pdfDocument!!,
+        pageCache = viewModel.pageCache,
         pageNum = page,
     )
-
-//    AsyncImage(
-//        model =
-//            ImageRequest
-//                .Builder(LocalContext.current)
-//                .data(
-//                    PdfiumFetcherData(
-//                        page = page,
-//                        width = componentWidth,
-//                        height = componentHeight,
-//                        density = density.density.roundToInt(),
-//                        viewModel = viewModel,
-//                    ),
-//                ).memoryCacheKey("page_$page")
-//                .diskCachePolicy(CachePolicy.ENABLED)
-//                .memoryCachePolicy(CachePolicy.ENABLED)
-//                .build(),
-//        contentDescription = "Page $page",
-//        imageLoader = imageLoader,
-//        modifier =
-//            Modifier
-//                .fillMaxWidth()
-//                .fillMaxHeight(),
-//    )
 }

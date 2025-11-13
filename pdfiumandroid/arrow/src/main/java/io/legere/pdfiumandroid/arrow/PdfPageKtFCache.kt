@@ -2,8 +2,6 @@
 
 package io.legere.pdfiumandroid.arrow
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import arrow.core.Either
 import io.legere.pdfiumandroid.suspend.PdfPageSuspendCacheBase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -55,7 +53,7 @@ import kotlinx.coroutines.Dispatchers
 class PdfPageKtFCache<H : AutoCloseable>(
     private val pdfDocument: PdfDocumentKtF,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val pageHolderFactory: (PdfPageKtF, PdfTextPageKtF) -> H,
+    private val pageHolderFactory: suspend (PdfPageKtF, PdfTextPageKtF) -> H,
 ) : AutoCloseable {
     private val suspendCache =
         object : PdfPageSuspendCacheBase<H>(dispatcher) {
@@ -76,7 +74,6 @@ class PdfPageKtFCache<H : AutoCloseable>(
      * @param pageIndex The index of the page to get.
      * @return An [Either] with the page holder or an error.
      */
-    @RequiresApi(Build.VERSION_CODES.N)
     suspend fun getF(pageIndex: Int): Either<Throwable, H> =
         Either.catch {
             suspendCache.get(pageIndex)

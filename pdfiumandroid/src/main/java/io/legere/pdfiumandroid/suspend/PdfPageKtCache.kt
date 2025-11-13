@@ -51,7 +51,7 @@ import kotlinx.coroutines.Dispatchers
 class PdfPageKtCache<H : AutoCloseable>(
     private val pdfDocument: PdfDocumentKt,
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val pageHolderFactory: (PdfPageKt, PdfTextPageKt) -> H,
+    private val pageHolderFactory: suspend (PdfPageKt, PdfTextPageKt) -> H,
 ) : PdfPageSuspendCacheBase<H>(dispatcher) {
     override suspend fun openPageAndText(pageIndex: Int): H {
         val page = pdfDocument.openPage(pageIndex)
