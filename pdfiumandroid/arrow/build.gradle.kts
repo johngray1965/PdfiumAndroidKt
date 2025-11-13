@@ -141,7 +141,8 @@ jreleaser {
     }
     release {
         github {
-            skipRelease = true
+            repoOwner = "johngray1965"
+            overwrite = true
         }
     }
 //    distributions {

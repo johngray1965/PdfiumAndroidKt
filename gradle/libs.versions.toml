@@ -25,7 +25,7 @@ timber = "5.0.1"
 truth = "1.4.5"
 arrow = "2.2.0"
 annotation-jvm = "1.9.1"
-jreleaser = "1.21.0"
+jreleaser = "1.20.0"
 runner = "1.7.0"
 guava = "33.5.0-android"
 
