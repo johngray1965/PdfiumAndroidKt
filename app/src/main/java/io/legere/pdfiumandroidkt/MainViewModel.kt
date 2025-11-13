@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.legere.pdfiumandroid.LoggerInterface
 import io.legere.pdfiumandroid.suspend.PdfDocumentKt
+import io.legere.pdfiumandroid.suspend.PdfPageKt
+import io.legere.pdfiumandroid.suspend.PdfPageKtCache
+import io.legere.pdfiumandroid.suspend.PdfTextPageKt
 import io.legere.pdfiumandroid.suspend.PdfiumCoreKt
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +38,7 @@ class MainViewModel
         val state: StateFlow<UiState>
         val accept: (UiAction) -> Unit
 
+        lateinit var pageCache: PdfPageKtCache<PdfHolder>
         private val pdfiumCore =
             PdfiumCoreKt(
                 Dispatchers.Default,
@@ -75,6 +79,16 @@ class MainViewModel
                                     if (fd != null) {
                                         try {
                                             pdfDocument = pdfiumCore.newDocument(fd)
+                                            pageCache =
+                                                PdfPageKtCache<PdfHolder>(
+                                                    pdfDocument!!,
+                                                    Dispatchers.IO,
+                                                ) { page, textPage ->
+                                                    val pageWidth = page.getPageWidthPoint()
+                                                    val pageHeight = page.getPageHeightPoint()
+
+                                                    PdfHolder(page, textPage, pageWidth, pageHeight)
+                                                }
                                             val pageCount = pdfDocument?.getPageCount() ?: 0
                                             Timber.d("pageCount: $pageCount")
                                             emit(
@@ -182,3 +196,24 @@ class MainViewModel
             val pageCount: Int = 0,
         )
     }
+
+data class PdfHolder(
+    val page: PdfPageKt,
+    val textPage: PdfTextPageKt,
+    val pageWidth: Int,
+    val pageHeight: Int,
+) : AutoCloseable {
+    override fun close() {
+        try {
+            textPage.close()
+        } catch (e: IllegalStateException) {
+            Timber.e(e)
+        } finally {
+            try {
+                page.close()
+            } catch (e: IllegalStateException) {
+                Timber.e(e)
+            }
+        }
+    }
+}

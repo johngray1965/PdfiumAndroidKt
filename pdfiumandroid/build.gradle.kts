@@ -26,7 +26,7 @@ android {
     ndkVersion = "29.0.13846066"
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 24
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
         @Suppress("UnstableApiUsage")
@@ -76,6 +76,7 @@ dependencies {
     compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.androidx.annotation.jvm)
     compileOnly(libs.kotlin.stdlib)
+    implementation(libs.guava)
 
     testImplementation(libs.junit)
 
@@ -159,7 +160,8 @@ jreleaser {
     }
     release {
         github {
-            skipRelease = true
+            repoOwner = "johngray1965"
+            overwrite = true
         }
     }
 //    distributions {

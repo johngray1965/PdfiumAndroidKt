@@ -24,7 +24,7 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 24
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -54,9 +54,11 @@ android {
 
 dependencies {
     implementation(project(":pdfiumandroid"))
-    compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.arrow.core)
+    compileOnly(libs.kotlinx.coroutines.android)
+    compileOnly(libs.androidx.annotation.jvm)
     compileOnly(libs.kotlin.stdlib)
+    implementation(libs.guava)
 
     testImplementation(libs.androidx.runner)
     testImplementation(libs.junit)
