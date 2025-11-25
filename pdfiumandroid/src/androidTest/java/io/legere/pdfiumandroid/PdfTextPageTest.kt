@@ -182,7 +182,7 @@ class PdfTextPageTest : BasePDFTest() {
     fun getDoc() {
         pdfDocument.openPage(0).use { page ->
             page.openTextPage().use { textPage ->
-                assertThat(textPage.doc).isNotNull()
+                assertThat(textPage.page.doc).isNotNull()
             }
         }
     }
@@ -191,7 +191,7 @@ class PdfTextPageTest : BasePDFTest() {
     fun getPageIndex() {
         pdfDocument.openPage(0).use { page ->
             page.openTextPage().use { textPage ->
-                assertThat(textPage.pageIndex).isEqualTo(0)
+                assertThat(textPage.page.pageIndex).isEqualTo(0)
             }
         }
     }
@@ -200,7 +200,7 @@ class PdfTextPageTest : BasePDFTest() {
     fun getPagePtr() {
         pdfDocument.openPage(0).use { page ->
             page.openTextPage().use { textPage ->
-                assertThat(textPage.pagePtr).isNotNull()
+                assertThat(textPage.page.pagePtr).isNotNull()
             }
         }
     }

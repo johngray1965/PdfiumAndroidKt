@@ -7,6 +7,7 @@ import arrow.core.Either
 import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.unlocked.PdfTextPageU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -17,7 +18,7 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfTextPageKtF(
-    val page: PdfTextPage,
+    val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     /**

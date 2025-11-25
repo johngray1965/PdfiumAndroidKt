@@ -10,6 +10,7 @@ import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -24,39 +25,47 @@ import java.io.Closeable
 @Suppress("TooManyFunctions")
 @Keep
 class PdfDocumentKt(
-    val document: PdfDocument,
+    val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     /**
      *  suspend version of [PdfDocument.getPageCount]
      */
     suspend fun getPageCount(): Int =
-        withContext(dispatcher) {
-            document.getPageCount()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.getPageCount()
+            }
         }
 
     /**
      *  suspend version of [PdfDocument.getPageCharCounts]
      */
     suspend fun getPageCharCounts(): IntArray =
-        withContext(dispatcher) {
-            document.getPageCharCounts()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.getPageCharCounts()
+            }
         }
 
     /**
      * suspend version of [PdfDocument.openPage]
      */
     suspend fun openPage(pageIndex: Int): PdfPageKt =
-        withContext(dispatcher) {
-            PdfPageKt(document.openPage(pageIndex), dispatcher)
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                PdfPageKt(document.openPage(pageIndex), dispatcher)
+            }
         }
 
     /**
      * suspend version of [PdfDocument.deletePage]
      */
     suspend fun deletePage(pageIndex: Int): Unit =
-        withContext(dispatcher) {
-            document.deletePage(pageIndex)
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.deletePage(pageIndex)
+            }
         }
 
     /**
@@ -66,8 +75,10 @@ class PdfDocumentKt(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfPageKt> =
-        withContext(dispatcher) {
-            document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
+            }
         }
 
     /**
@@ -105,16 +116,20 @@ class PdfDocumentKt(
      * suspend version of [PdfDocument.getDocumentMeta]
      */
     suspend fun getDocumentMeta(): PdfDocument.Meta =
-        withContext(dispatcher) {
-            document.getDocumentMeta()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.getDocumentMeta()
+            }
         }
 
     /**
      * suspend version of [PdfDocument.getTableOfContents]
      */
     suspend fun getTableOfContents(): List<PdfDocument.Bookmark> =
-        withContext(dispatcher) {
-            document.getTableOfContents()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.getTableOfContents()
+            }
         }
 
     /**
@@ -123,8 +138,10 @@ class PdfDocumentKt(
     @Deprecated("use PdfPageKt.openTextPage", ReplaceWith("page.openTextPage()"))
     @Suppress("DEPRECATION")
     suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt =
-        withContext(dispatcher) {
-            PdfTextPageKt(document.openTextPage(page.page), dispatcher)
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                PdfTextPageKt(document.openTextPage(page.page), dispatcher)
+            }
         }
 
     /**
@@ -134,16 +151,20 @@ class PdfDocumentKt(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfTextPageKt> =
-        withContext(dispatcher) {
-            document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
+            }
         }
 
     /**
      * suspend version of [PdfDocument.saveAsCopy]
      */
     suspend fun saveAsCopy(callback: PdfWriteCallback): Boolean =
-        withContext(dispatcher) {
-            document.saveAsCopy(callback)
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                document.saveAsCopy(callback)
+            }
         }
 
     /**

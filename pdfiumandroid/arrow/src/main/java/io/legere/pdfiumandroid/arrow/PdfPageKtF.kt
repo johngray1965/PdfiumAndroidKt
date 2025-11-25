@@ -16,6 +16,7 @@ import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
@@ -29,7 +30,7 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfPageKtF(
-    val page: PdfPage,
+    val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     /**
@@ -172,7 +173,7 @@ class PdfPageKtF(
         val pointers = LongArray(2)
         return withContext(renderCoroutinesDispatcher) {
             surface?.let {
-                PdfPage.lockSurface(
+                PdfPageU.lockSurface(
                     it,
                     sizes,
                     pointers,
@@ -200,7 +201,7 @@ class PdfPageKtF(
                         canvasColor = canvasColor,
                         pageBackgroundColor = pageBackgroundColor,
                     )
-                PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                PdfPageU.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
                 if (!result) {
                     PdfiumKtFErrors.ConstraintError.left()
                 }

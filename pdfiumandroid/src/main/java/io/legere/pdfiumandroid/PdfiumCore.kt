@@ -10,11 +10,11 @@ import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.Surface
+import io.legere.pdfiumandroid.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.unlocked.PdfPageU
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.InitLock
-import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
-import io.legere.pdfiumandroid.util.Size
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.sync.Mutex
 import java.io.IOException
 
@@ -26,31 +26,7 @@ class PdfiumCore(
     context: Context? = null,
     val config: Config = Config(),
 ) {
-    private val mCurrentDpi: Int
-
-    init {
-        pdfiumConfig = config
-        Logger.setLogger(config.logger)
-        Logger.d(TAG, "Starting PdfiumAndroid ")
-        mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
-        isReady.waitForReady()
-    }
-
-    private external fun nativeOpenDocument(
-        fd: Int,
-        password: String?,
-    ): Long
-
-    private external fun nativeOpenMemDocument(
-        data: ByteArray?,
-        password: String?,
-    ): Long
-
-    private external fun nativeOpenCustomDocument(
-        data: PdfiumNativeSourceBridge,
-        password: String?,
-        size: Long,
-    ): Long
+    private val coreInternal = PdfiumCoreU(config = config)
 
     /**
      * Create new document from file
@@ -58,7 +34,7 @@ class PdfiumCore(
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(fd: ParcelFileDescriptor): PdfDocument = newDocument(fd, null)
+    fun newDocument(fd: ParcelFileDescriptor): PdfDocumentU = coreInternal.newDocument(fd, null)
 
     /**
      * Create new document from file with password
@@ -72,10 +48,7 @@ class PdfiumCore(
         password: String?,
     ): PdfDocument {
         synchronized(lock) {
-            return PdfDocument(nativeOpenDocument(parcelFileDescriptor.fd, password)).also { document ->
-                document.parcelFileDescriptor = parcelFileDescriptor
-                document.source = null
-            }
+            return PdfDocument(coreInternal.newDocument(parcelFileDescriptor, password))
         }
     }
 
@@ -99,10 +72,7 @@ class PdfiumCore(
         password: String?,
     ): PdfDocument {
         synchronized(lock) {
-            return PdfDocument(nativeOpenMemDocument(data, password)).also { document ->
-                document.parcelFileDescriptor = null
-                document.source = null
-            }
+            return PdfDocument(coreInternal.newDocument(data, password))
         }
     }
 
@@ -126,11 +96,7 @@ class PdfiumCore(
         password: String?,
     ): PdfDocument {
         synchronized(lock) {
-            val nativeSourceBridge = PdfiumNativeSourceBridge(data)
-            return PdfDocument(nativeOpenCustomDocument(nativeSourceBridge, password, data.length)).also { document ->
-                document.parcelFileDescriptor = null
-                document.source = data
-            }
+            return PdfDocument(coreInternal.newDocument(data, password))
         }
     }
 
@@ -391,53 +357,54 @@ class PdfiumCore(
         toIndex: Int,
     ): Array<Long> = (fromIndex.toLong()..toIndex.toLong()).toList().toTypedArray()
 
-    @Deprecated(
-        "Use PdfPage.getPageWidth()",
-        ReplaceWith(
-            "page.getPageWidth()",
-        ),
-        DeprecationLevel.WARNING,
-    )
-    fun getPageWidth(
-        pdfDocument: PdfDocument,
-        index: Int,
-    ): Int {
-        pdfDocument.openPage(index).use { page ->
-            return page.getPageWidth(mCurrentDpi)
-        }
-    }
-
-    @Deprecated(
-        "Use PdfPage.getPageHeight()",
-        ReplaceWith(
-            "page.getPageHeight()",
-        ),
-        DeprecationLevel.WARNING,
-    )
-    fun getPageHeight(
-        pdfDocument: PdfDocument,
-        index: Int,
-    ): Int {
-        pdfDocument.openPage(index).use { page ->
-            return page.getPageHeight(mCurrentDpi)
-        }
-    }
-
-    @Deprecated(
-        "Use PdfPage.getPageSize()",
-        ReplaceWith(
-            "page.getPageSize()",
-        ),
-        DeprecationLevel.WARNING,
-    )
-    fun getPageSize(
-        pdfDocument: PdfDocument,
-        index: Int,
-    ): Size {
-        pdfDocument.openPage(index).use { page ->
-            return page.getPageSize(mCurrentDpi)
-        }
-    }
+//    @Deprecated(
+//        "Use PdfPage.getPageWidth()",
+//        ReplaceWith(
+//            "page.getPageWidth()",
+//        ),
+//        DeprecationLevel.WARNING,
+//    )
+//    fun getPageWidth(
+//        pdfDocument: PdfDocument,
+//        index: Int,
+//    ): Int {
+//        pdfDocument.openPage(index).use { page ->
+//            return page.getPageWidth(pdfDocument, index)
+//        }
+//    }
+//
+//    @Deprecated(
+//        "Use PdfPage.getPageHeight()",
+//        ReplaceWith(
+//            "page.getPageHeight()",
+//        ),
+//        DeprecationLevel.WARNING,
+//    )
+//    fun getPageHeight(
+//        pdfDocument: PdfDocument,
+//        index: Int,
+//    ): Int {
+//        coreInternal.get
+//        pdfDocument.openPage(index).use { page ->
+//            return page.getPageHeight(mCurrentDpi)
+//        }
+//    }
+//
+//    @Deprecated(
+//        "Use PdfPage.getPageSize()",
+//        ReplaceWith(
+//            "page.getPageSize()",
+//        ),
+//        DeprecationLevel.WARNING,
+//    )
+//    fun getPageSize(
+//        pdfDocument: PdfDocument,
+//        index: Int,
+//    ): Size {
+//        pdfDocument.openPage(index).use { page ->
+//            return page.getPageSize(mCurrentDpi)
+//        }
+//    }
 
     @Deprecated(
         "Use PdfPage.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
@@ -463,7 +430,7 @@ class PdfiumCore(
             val pointers = LongArray(2)
             surface
                 ?.let {
-                    PdfPage.lockSurface(
+                    PdfPageU.lockSurface(
                         it,
                         sizes,
                         pointers,
@@ -476,7 +443,7 @@ class PdfiumCore(
             }
             retValue = page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
             surface?.let {
-                PdfPage.unlockSurface(pointers)
+                PdfPageU.unlockSurface(pointers)
             }
         }
         return retValue

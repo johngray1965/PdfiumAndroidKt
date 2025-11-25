@@ -6,6 +6,7 @@ import android.os.ParcelFileDescriptor
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.PdfiumSource
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -18,7 +19,7 @@ class PdfiumCoreKtF(
     private val dispatcher: CoroutineDispatcher,
     config: Config = Config(),
 ) {
-    private val coreInternal = PdfiumCore(config = config)
+    private val coreInternal = PdfiumCoreU(config = config)
 
     /**
      * suspend version of [PdfiumCore.newDocument]

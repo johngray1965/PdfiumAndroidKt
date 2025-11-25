@@ -10,6 +10,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
+import io.legere.pdfiumandroid.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.unlocked.PdfPageU
+import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Size
 import org.junit.After
 import org.junit.Before
@@ -21,7 +25,7 @@ import kotlin.time.measureTime
 
 @RunWith(AndroidJUnit4::class)
 class FastNativeTest : BasePDFTest() {
-    private lateinit var pdfDocument: PdfDocument
+    private lateinit var pdfDocument: PdfDocumentU
     private var pdfBytes: ByteArray? = null
 
     @Before
@@ -30,7 +34,7 @@ class FastNativeTest : BasePDFTest() {
 
         assertThat(pdfBytes).isNotNull()
 
-        pdfDocument = PdfiumCore().newDocument(pdfBytes)
+        pdfDocument = PdfiumCoreU().newDocument(pdfBytes)
     }
 
     @After
@@ -388,7 +392,7 @@ class FastNativeTest : BasePDFTest() {
         return Triple(bitmap, rect, matrix)
     }
 
-    private fun testTextPageAttributes(page: PdfTextPage) {
+    private fun testTextPageAttributes(page: PdfTextPageU) {
         val textPageCountChars = page.textPageCountChars()
         val textPageCountRects = page.textPageCountRects(0, textPageCountChars)
         assertThat(textPageCountChars).isEqualTo(3468)
@@ -404,7 +408,7 @@ class FastNativeTest : BasePDFTest() {
         }
     }
 
-    private fun testPageAttributes(page: PdfPage) {
+    private fun testPageAttributes(page: PdfPageU) {
         val pageWidth = page.getPageWidth(72)
         val pageHeight = page.getPageHeight(72)
         val pageWidthPoint = page.getPageWidthPoint()

@@ -294,7 +294,7 @@ int getBlockFromCustomSource(void* param, unsigned long position, unsigned char*
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument(JNIEnv *env, jobject, jint fd,
+Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeOpenDocument(JNIEnv *env, jobject, jint fd,
                                                            jstring password) {
     auto fileLength = (size_t)getFileSize(fd);
     if(fileLength <= 0) {
@@ -346,7 +346,7 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument(JNIEnv *env, jobject,
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeOpenMemDocument(JNIEnv *env, jobject,
                                                               jbyteArray data, jstring password) {
     auto *docFile = new DocumentFile();
 
@@ -391,7 +391,7 @@ Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument(JNIEnv *env, jobje
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject nativeSourceBridge, jstring password, jlong dataLength) {
+Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject nativeSourceBridge, jstring password, jlong dataLength) {
     if(dataLength <= 0) {
         jniThrowException(env, "java/io/IOException",
                           "File is empty");
@@ -520,7 +520,7 @@ static void renderPageInternal( FPDF_PAGE page,
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfiumCore_nativeGetLinkRect(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeGetLinkRect(JNIEnv *env, jobject,
                                                           jlong link_ptr) {
     try {
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
@@ -580,7 +580,7 @@ void handleUnexpected(JNIEnv *pEnv, char const *name);
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetPageCount(JNIEnv *env, jobject,
                                                             jlong doc_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -601,7 +601,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount(JNIEnv *env, jobject
 }
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeLoadPage(JNIEnv *env, jobject, jlong doc_ptr,
                                                         jint page_index) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -623,7 +623,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage(JNIEnv *env, jobject, jl
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jclass , jlong page_ptr) {
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeClosePage(JNIEnv *env, jclass , jlong page_ptr) {
     try {
         closePageInternal(page_ptr);
     } catch (std::bad_alloc &e) {
@@ -642,7 +642,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage(JNIEnv *env, jclass , jlong
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage(JNIEnv *env, jobject, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeDeletePage(JNIEnv *env, jobject, jlong doc_ptr,
                                                           jint page_index) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -668,7 +668,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage(JNIEnv *env, jobject, 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeCloseDocument(JNIEnv *env, jobject,
                                                              jlong doc_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -691,7 +691,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument(JNIEnv *env, jobjec
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeLoadPages(JNIEnv *env, jobject, jlong doc_ptr,
                                                          jint from_index, jint to_index) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -726,7 +726,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages(JNIEnv *env, jobject, j
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetDocumentMetaText(JNIEnv *env, jobject,
                                                                    jlong doc_ptr, jstring tag) {
     try {
         const char *ctag = env->GetStringUTFChars(tag, nullptr);
@@ -760,7 +760,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText(JNIEnv *env, 
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetFirstChildBookmark(JNIEnv *env, jobject,
                                                                      jlong doc_ptr,
                                                                      jlong bookmark_ptr) {
     try {
@@ -793,7 +793,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark(JNIEnv *env
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetSiblingBookmark(JNIEnv *env, jobject,
                                                                   jlong doc_ptr,
                                                                   jlong bookmark_ptr) {
     try {
@@ -821,7 +821,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark(JNIEnv *env, j
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeLoadTextPage(JNIEnv *env, jobject,
                                                             jlong doc_ptr, jlong page_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
@@ -843,7 +843,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage(JNIEnv *env, jobject
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetBookmarkTitle(JNIEnv *env, jobject,
                                                                 jlong bookmark_ptr) {
     try {
         auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
@@ -871,7 +871,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle(JNIEnv *env, job
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetDestPageIndex(JNIEnv *env, jobject,
                                                                 jlong doc_ptr, jlong link_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -899,7 +899,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDestPageIndex(JNIEnv *env, job
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeSaveAsCopy(JNIEnv *env, jobject, jlong doc_ptr,
                                                           jobject callback, jint flags) {
     try {
         jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/PdfWriteCallback");
@@ -933,7 +933,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy(JNIEnv *env, jobject, 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jclass ,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeClosePages(JNIEnv *env, jclass ,
                                                       jlongArray pages_ptr) {
     try {
         int length = (int) (env->GetArrayLength(pages_ptr));
@@ -957,7 +957,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages(JNIEnv *env, jclass ,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageWidthPixel(JNIEnv *env, jclass,
                                                              jlong page_ptr, jint dpi) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -979,7 +979,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageHeightPixel(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint dpi) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1001,7 +1001,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageWidthPoint(JNIEnv *env, jclass,
                                                              jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1023,7 +1023,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageHeightPoint(JNIEnv *env, jclass,
                                                               jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1045,7 +1045,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jdouble JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jclass, jlong page_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeGetFontSize(JNIEnv *env, jclass, jlong page_ptr,
                                                        jint char_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
@@ -1067,7 +1067,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize(JNIEnv *env, jclass, 
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jclass ,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageMediaBox(JNIEnv *env, jclass ,
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1103,7 +1103,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox(JNIEnv *env, jclass ,
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageCropBox(JNIEnv *env, jclass,
                                                           jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1139,7 +1139,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageBleedBox(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1175,7 +1175,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageTrimBox(JNIEnv *env, jclass,
                                                           jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1211,7 +1211,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageArtBox(JNIEnv *env, jclass,
                                                          jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1247,7 +1247,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageBoundingBox(JNIEnv *env, jclass,
                                                               jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1290,7 +1290,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageMatrix(JNIEnv *env, jclass,
                                                          jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -1356,7 +1356,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject surface, jintArray widthHeightArray, jlongArray ptrsArray) {
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeLockSurface(JNIEnv *env, jclass clazz, jobject surface, jintArray widthHeightArray, jlongArray ptrsArray) {
     LOGD("nativeLockSurface");
     ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
     if (nativeWindow == nullptr) {
@@ -1404,7 +1404,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface(JNIEnv *env, jclass clazz
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeUnlockSurface(JNIEnv *env, jclass clazz,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeUnlockSurface(JNIEnv *env, jclass clazz,
                                                          jlongArray ptrsArray) {
     LOGD("nativeUnlockSurface");
     jboolean isCopyPtrs;
@@ -1431,7 +1431,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeUnlockSurface(JNIEnv *env, jclass cla
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong page_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPage(JNIEnv *env, jclass, jlong page_ptr,
                                                       jlong buffer_ptr, jint start_x,
                                                       jint start_y, jint draw_size_hor,
                                                       jint draw_size_ver, jboolean render_annot,
@@ -1469,7 +1469,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage(JNIEnv *env, jclass, jlong
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageWithMatrix(JNIEnv *env, jclass,
                                                                 jlong page_ptr, jlong buffer_ptr,
                                                                 jint draw_size_hor, jint draw_size_ver,
                                                                 jfloatArray matrixValues,
@@ -1580,7 +1580,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix(JNIEnv *env, jcl
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurface(JNIEnv *env, jclass, jlong page_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageSurface(JNIEnv *env, jclass, jlong page_ptr,
                                                       jobject surface, jint start_x,
                                                       jint start_y, jboolean render_annot,
                                                       jint canvasColor, jint pageBackgroundColor) {
@@ -1640,7 +1640,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurface(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurfaceWithMatrix(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageSurfaceWithMatrix(JNIEnv *env, jclass,
                                                                 jlong page_ptr, jobject surface,
                                                                 jfloatArray matrixValues,
                                                                 jfloatArray clipRect,
@@ -1782,7 +1782,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurfaceWithMatrix(JNIEnv *e
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
                                                                             jobject thiz,
                                                                             jlongArray pages,
                                                                             jobject surface,
@@ -1949,7 +1949,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesSurfaceWithMatrix(JNIE
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz,
                                                                      jlongArray pages, jlong buffer_ptr,
                                                                      jint draw_size_hor, jint draw_size_ver,
                                                                      jfloatArray matrices,
@@ -2069,7 +2069,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix(JNIEnv *env
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageBitmap(JNIEnv *env, jclass,
                                                             jlong doc_ptr,
                                                             jlong page_ptr,
                                                             jobject bitmap,
@@ -2195,7 +2195,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jclass,
                                                                       jlong page_ptr,
                                                                       jobject bitmap,
                                                                       jfloatArray matrixValues,
@@ -2340,7 +2340,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix(JNIEnv *en
 }
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageSizeByIndex(JNIEnv *env, jclass,
                                                               jlong doc_ptr, jint page_index,
                                                               jint dpi) {
     try {
@@ -2390,7 +2390,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jclass, jlong page_ptr) {
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageLinks(JNIEnv *env, jclass, jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         int pos = 0;
@@ -2420,7 +2420,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks(JNIEnv *env, jclass, jlo
 
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativePageCoordsToDevice(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint start_x,
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
@@ -2456,7 +2456,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeDeviceCoordsToPage(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint start_x,
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
@@ -2501,7 +2501,7 @@ static void closeTextPageInternal(jlong textPagePtr) { FPDFText_ClosePage(reinte
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeCloseTextPage(JNIEnv *env, jclass,
                                                              jlong page_ptr) {
     try {
         closeTextPageInternal(page_ptr);
@@ -2521,7 +2521,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextCountChars(JNIEnv *env, jclass,
                                                               jlong text_page_ptr) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -2543,7 +2543,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetText(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint start_index,
                                                            jint count, jshortArray result) {
     try {
@@ -2573,7 +2573,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetTextByteArray(JNIEnv *env, jclass,
                                                                     jlong text_page_ptr,
                                                                     jint start_index, jint count,
                                                                     jbyteArray result) {
@@ -2606,7 +2606,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetUnicode(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -2628,7 +2628,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetCharBox(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -2657,7 +2657,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetCharIndexAtPos(JNIEnv *env, jclass,
                                                                      jlong text_page_ptr, jdouble x,
                                                                      jdouble y, jdouble x_tolerance,
                                                                      jdouble y_tolerance) {
@@ -2682,7 +2682,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos(JNIEnv *env
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextCountRects(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint start_index,
                                                               jint count) {
     try {
@@ -2705,7 +2705,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects(JNIEnv *env, jclas
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetRect(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint rect_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -2734,7 +2734,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetBoundedText(JNIEnv *env, jclass,
                                                                   jlong text_page_ptr, jdouble left,
                                                                   jdouble top, jdouble right,
                                                                   jdouble bottom, jshortArray arr) {
@@ -2772,7 +2772,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText(JNIEnv *env, j
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetDestPageIndex(JNIEnv *env, jclass,
                                                             jlong doc_ptr, jlong link_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -2801,7 +2801,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jclass, jlong doc_ptr,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetLinkURI(JNIEnv *env, jclass, jlong doc_ptr,
                                                       jlong link_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -2834,7 +2834,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI(JNIEnv *env, jclass, jlong
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jclass, jlong,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetLinkRect(JNIEnv *env, jclass, jlong,
                                                        jlong link_ptr) {
     try {
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
@@ -2874,7 +2874,7 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect(JNIEnv *env, jclass, jlon
 }
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetBookmarkDestIndex(JNIEnv *env, jobject,
                                                                     jlong doc_ptr,
                                                                     jlong bookmark_ptr) {
     try {
@@ -2903,7 +2903,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex(JNIEnv *env,
 
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetPageCharCounts(JNIEnv *env, jobject,
                                                                  jlong doc_ptr) {
     try {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
@@ -2940,7 +2940,7 @@ Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts(JNIEnv *env, jo
 
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeFindStart(JNIEnv *env, jclass,
                                                          jlong text_page_ptr,
                                                          jstring find_what,
                                                          jint flags, jint start_index) {
@@ -2984,7 +2984,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeFindNext(JNIEnv *env, jobject,
                                                         jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -3009,7 +3009,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindNext(JNIEnv *env, jobject,
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeFindPrev(JNIEnv *env, jobject,
                                                         jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -3034,7 +3034,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev(JNIEnv *env, jobject,
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeGetSchResultIndex(JNIEnv *env, jobject,
                                                                  jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -3059,7 +3059,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex(JNIEnv *env, job
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeGetSchCount(JNIEnv *env, jobject,
                                                            jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -3084,7 +3084,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount(JNIEnv *env, jobject,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject,
+Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeCloseFind(JNIEnv *env, jobject,
                                                          jlong find_handle) {
     try {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
@@ -3106,7 +3106,7 @@ Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind(JNIEnv *env, jobject,
 }
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeLoadWebLink(JNIEnv *env, jclass,
                                                            jlong text_page_ptr) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -3131,7 +3131,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeClosePageLink(JNIEnv *env, jclass,
                                                              jlong page_link_ptr) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -3153,7 +3153,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink(JNIEnv *env, jclass
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeCountWebLinks(JNIEnv *env, jclass,
                                                              jlong page_link_ptr) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -3178,7 +3178,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks(JNIEnv *env, jclass
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeGetURL(JNIEnv *env, jclass,
                                                       jlong page_link_ptr, jint index, jint count, jbyteArray result) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -3213,7 +3213,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL(JNIEnv *env, jclass,
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeCountRects(JNIEnv *env, jclass,
                                                           jlong page_link_ptr, jint index) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -3239,7 +3239,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects(JNIEnv *env, jclass,
 }
 extern "C"
 JNIEXPORT jfloatArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeGetRect(JNIEnv *env, jclass,
                                                        jlong page_link_ptr, jint linkIndex, jint rectIndex) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -3280,7 +3280,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect(JNIEnv *env, jclass,
 }
 extern "C"
 JNIEXPORT jintArray JNICALL
-Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeGetTextRange(JNIEnv *env, jclass,
                                                             jlong page_link_ptr, jint index) {
     try {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
@@ -3328,7 +3328,7 @@ Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange(JNIEnv *env, jclass,
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
-Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRects(JNIEnv *env, jclass clazz,
+Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetRects(JNIEnv *env, jclass clazz,
                                                             jlong text_page_ptr,
                                                             jintArray wordRanges) {
     auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
@@ -3382,7 +3382,7 @@ Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRects(JNIEnv *env, jclass 
 
 extern "C"
 JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jclass,
+Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageRotation(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
@@ -3403,97 +3403,97 @@ Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation(JNIEnv *env, jclass,
 }
 
 static const JNINativeMethod coreMethods[] = {
-        {"nativeOpenDocument",       "(ILjava/lang/String;)J",                                                        (void *) Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenDocument},
-        {"nativeOpenMemDocument",    "([BLjava/lang/String;)J",                                                       (void *) Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenMemDocument},
-        {"nativeOpenCustomDocument", "(Lio/legere/pdfiumandroid/util/PdfiumNativeSourceBridge;Ljava/lang/String;J)J", (void *) Java_io_legere_pdfiumandroid_PdfiumCore_nativeOpenCustomDocument},
+        {"nativeOpenDocument",       "(ILjava/lang/String;)J",                                                        (void *) Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeOpenDocument},
+        {"nativeOpenMemDocument",    "([BLjava/lang/String;)J",                                                       (void *) Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeOpenMemDocument},
+        {"nativeOpenCustomDocument", "(Lio/legere/pdfiumandroid/util/PdfiumNativeSourceBridge;Ljava/lang/String;J)J", (void *) Java_io_legere_pdfiumandroid_unlocked_PdfiumCoreU_nativeOpenCustomDocument},
 };
 
 
 static const JNINativeMethod pageMethods[] = {
-        {"nativeClosePage",                  "(J)V",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeClosePage},
-        {"nativeClosePages",                 "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeClosePages},
-        {"nativeGetDestPageIndex",           "(JJ)I",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetDestPageIndex},
-        {"nativeGetLinkURI",                 "(JJ)Ljava/lang/String;",                 (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkURI},
-        {"nativeGetLinkRect",                "(JJ)[F",                                 (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetLinkRect},
-        {"nativeLockSurface",                "(Landroid/view/Surface;[I[J)Z",          (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeLockSurface},
-        {"nativeUnlockSurface",              "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeUnlockSurface},
-        {"nativeRenderPage",                 "(JJIIIIZII)Z",                           (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPage},
-        {"nativeRenderPageSurface",                 "(JLandroid/view/Surface;IIZII)Z",      (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurface},
-        {"nativeRenderPageWithMatrix",       "(JJII[F[FZZII)Z",                        (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageWithMatrix},
-        {"nativeRenderPageSurfaceWithMatrix",       "(JLandroid/view/Surface;[F[FZZII)Z",   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageSurfaceWithMatrix},
-        {"nativeRenderPageBitmap",           "(JJLandroid/graphics/Bitmap;IIIIZZII)V", (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmap},
-        {"nativeRenderPageBitmapWithMatrix", "(JLandroid/graphics/Bitmap;[F[FZZII)V",  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeRenderPageBitmapWithMatrix},
-        {"nativeGetPageSizeByIndex",         "(JII)[I",                                (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageSizeByIndex},
-        {"nativeGetPageLinks",               "(J)[J",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageLinks},
-        {"nativePageCoordsToDevice",         "(JIIIIIDD)[I",                           (void *) Java_io_legere_pdfiumandroid_PdfPage_nativePageCoordsToDevice},
-        {"nativeDeviceCoordsToPage",         "(JIIIIIII)[F",                           (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeDeviceCoordsToPage},
-        {"nativeGetPageWidthPixel",          "(JI)I",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPixel},
-        {"nativeGetPageHeightPixel",         "(JI)I",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPixel},
-        {"nativeGetPageWidthPoint",          "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageWidthPoint},
-        {"nativeGetPageHeightPoint",         "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageHeightPoint},
-        {"nativeGetPageRotation",            "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageRotation},
-        {"nativeGetPageMediaBox",            "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMediaBox},
-        {"nativeGetPageCropBox",             "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageCropBox},
-        {"nativeGetPageBleedBox",            "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBleedBox},
-        {"nativeGetPageTrimBox",             "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageTrimBox},
-        {"nativeGetPageArtBox",              "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageArtBox},
-        {"nativeGetPageBoundingBox",         "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageBoundingBox},
-        {"nativeGetPageMatrix",              "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_PdfPage_nativeGetPageMatrix},
+        {"nativeClosePage",                  "(J)V",                                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeClosePage},
+        {"nativeClosePages",                 "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeClosePages},
+        {"nativeGetDestPageIndex",           "(JJ)I",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetDestPageIndex},
+        {"nativeGetLinkURI",                 "(JJ)Ljava/lang/String;",                 (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetLinkURI},
+        {"nativeGetLinkRect",                "(JJ)[F",                                 (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetLinkRect},
+        {"nativeLockSurface",                "(Landroid/view/Surface;[I[J)Z",          (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeLockSurface},
+        {"nativeUnlockSurface",              "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeUnlockSurface},
+        {"nativeRenderPage",                 "(JJIIIIZII)Z",                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPage},
+        {"nativeRenderPageSurface",                 "(JLandroid/view/Surface;IIZII)Z",      (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageSurface},
+        {"nativeRenderPageWithMatrix",       "(JJII[F[FZZII)Z",                        (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageWithMatrix},
+        {"nativeRenderPageSurfaceWithMatrix",       "(JLandroid/view/Surface;[F[FZZII)Z",   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageSurfaceWithMatrix},
+        {"nativeRenderPageBitmap",           "(JJLandroid/graphics/Bitmap;IIIIZZII)V", (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageBitmap},
+        {"nativeRenderPageBitmapWithMatrix", "(JLandroid/graphics/Bitmap;[F[FZZII)V",  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeRenderPageBitmapWithMatrix},
+        {"nativeGetPageSizeByIndex",         "(JII)[I",                                (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageSizeByIndex},
+        {"nativeGetPageLinks",               "(J)[J",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageLinks},
+        {"nativePageCoordsToDevice",         "(JIIIIIDD)[I",                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativePageCoordsToDevice},
+        {"nativeDeviceCoordsToPage",         "(JIIIIIII)[F",                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeDeviceCoordsToPage},
+        {"nativeGetPageWidthPixel",          "(JI)I",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageWidthPixel},
+        {"nativeGetPageHeightPixel",         "(JI)I",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageHeightPixel},
+        {"nativeGetPageWidthPoint",          "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageWidthPoint},
+        {"nativeGetPageHeightPoint",         "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageHeightPoint},
+        {"nativeGetPageRotation",            "(J)I",                                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageRotation},
+        {"nativeGetPageMediaBox",            "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageMediaBox},
+        {"nativeGetPageCropBox",             "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageCropBox},
+        {"nativeGetPageBleedBox",            "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageBleedBox},
+        {"nativeGetPageTrimBox",             "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageTrimBox},
+        {"nativeGetPageArtBox",              "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageArtBox},
+        {"nativeGetPageBoundingBox",         "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageBoundingBox},
+        {"nativeGetPageMatrix",              "(J)[F",                                  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageU_nativeGetPageMatrix},
 };
 
 
 static const JNINativeMethod textPageMethods[] = {
 
-        {"nativeCloseTextPage",         "(J)V",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeCloseTextPage},
-        {"nativeTextCountChars",        "(J)I",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountChars},
-        {"nativeTextGetCharBox",        "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharBox},
-        {"nativeTextGetRect",           "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRect},
-        {"nativeTextGetRects",           "(J[I)[D",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetRects},
-        {"nativeTextGetBoundedText",    "(JDDDD[S)I",               (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetBoundedText},
-        {"nativeFindStart",             "(JLjava/lang/String;II)J", (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeFindStart},
-        {"nativeLoadWebLink",           "(J)J",                     (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeLoadWebLink},
-        {"nativeTextGetCharIndexAtPos", "(JDDDD)I",                 (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetCharIndexAtPos},
-        {"nativeTextGetText",           "(JII[S)I",                 (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetText},
-        {"nativeTextGetTextByteArray",  "(JII[B)I",                 (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetTextByteArray},
-        {"nativeTextGetUnicode",        "(JI)I",                    (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextGetUnicode},
-        {"nativeTextCountRects",        "(JII)I",                   (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeTextCountRects},
-        {"nativeGetFontSize",           "(JI)D",                    (void *) Java_io_legere_pdfiumandroid_PdfTextPage_nativeGetFontSize},
+        {"nativeCloseTextPage",         "(J)V",                     (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeCloseTextPage},
+        {"nativeTextCountChars",        "(J)I",                     (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextCountChars},
+        {"nativeTextGetCharBox",        "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetCharBox},
+        {"nativeTextGetRect",           "(JI)[D",                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetRect},
+        {"nativeTextGetRects",           "(J[I)[D",                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetRects},
+        {"nativeTextGetBoundedText",    "(JDDDD[S)I",               (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetBoundedText},
+        {"nativeFindStart",             "(JLjava/lang/String;II)J", (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeFindStart},
+        {"nativeLoadWebLink",           "(J)J",                     (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeLoadWebLink},
+        {"nativeTextGetCharIndexAtPos", "(JDDDD)I",                 (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetCharIndexAtPos},
+        {"nativeTextGetText",           "(JII[S)I",                 (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetText},
+        {"nativeTextGetTextByteArray",  "(JII[B)I",                 (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetTextByteArray},
+        {"nativeTextGetUnicode",        "(JI)I",                    (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextGetUnicode},
+        {"nativeTextCountRects",        "(JII)I",                   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeTextCountRects},
+        {"nativeGetFontSize",           "(JI)D",                    (void *) Java_io_legere_pdfiumandroid_unlocked_PdfTextPageU_nativeGetFontSize},
 };
 
 static const JNINativeMethod documentMethods[] = {
-        {"nativeGetPageCount",          "(J)I",                                            (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCount},
-        {"nativeLoadPage",              "(JI)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPage},
-        {"nativeDeletePage",            "(JI)V",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeDeletePage},
-        {"nativeCloseDocument",         "(J)V",                                            (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeCloseDocument},
-        {"nativeLoadPages",             "(JII)[J",                                         (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadPages},
-        {"nativeGetDocumentMetaText",   "(JLjava/lang/String;)Ljava/lang/String;",         (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetDocumentMetaText},
-        {"nativeGetFirstChildBookmark", "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetFirstChildBookmark},
-        {"nativeGetSiblingBookmark",    "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetSiblingBookmark},
-        {"nativeGetBookmarkDestIndex",  "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkDestIndex},
-        {"nativeLoadTextPage",          "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeLoadTextPage},
-        {"nativeGetBookmarkTitle",      "(J)Ljava/lang/String;",                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetBookmarkTitle},
-        {"nativeSaveAsCopy",            "(JLio/legere/pdfiumandroid/PdfWriteCallback;I)Z", (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeSaveAsCopy},
-        {"nativeGetPageCharCounts",     "(J)[I",                                           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeGetPageCharCounts},
-        {"nativeRenderPagesWithMatrix", "([JJII[F[FZZII)V",                                (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesWithMatrix},
-        {"nativeRenderPagesSurfaceWithMatrix", "([JLandroid/view/Surface;[F[FZZII)Z",           (void *) Java_io_legere_pdfiumandroid_PdfDocument_nativeRenderPagesSurfaceWithMatrix},
+        {"nativeGetPageCount",          "(J)I",                                            (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetPageCount},
+        {"nativeLoadPage",              "(JI)J",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeLoadPage},
+        {"nativeDeletePage",            "(JI)V",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeDeletePage},
+        {"nativeCloseDocument",         "(J)V",                                            (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeCloseDocument},
+        {"nativeLoadPages",             "(JII)[J",                                         (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeLoadPages},
+        {"nativeGetDocumentMetaText",   "(JLjava/lang/String;)Ljava/lang/String;",         (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetDocumentMetaText},
+        {"nativeGetFirstChildBookmark", "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetFirstChildBookmark},
+        {"nativeGetSiblingBookmark",    "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetSiblingBookmark},
+        {"nativeGetBookmarkDestIndex",  "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetBookmarkDestIndex},
+        {"nativeLoadTextPage",          "(JJ)J",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeLoadTextPage},
+        {"nativeGetBookmarkTitle",      "(J)Ljava/lang/String;",                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetBookmarkTitle},
+        {"nativeSaveAsCopy",            "(JLio/legere/pdfiumandroid/PdfWriteCallback;I)Z", (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeSaveAsCopy},
+        {"nativeGetPageCharCounts",     "(J)[I",                                           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeGetPageCharCounts},
+        {"nativeRenderPagesWithMatrix", "([JJII[F[FZZII)V",                                (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeRenderPagesWithMatrix},
+        {"nativeRenderPagesSurfaceWithMatrix", "([JLandroid/view/Surface;[F[FZZII)Z",           (void *) Java_io_legere_pdfiumandroid_unlocked_PdfDocumentU_nativeRenderPagesSurfaceWithMatrix},
 };
 
 static const JNINativeMethod findResultMethods[] = {
-        {"nativeFindNext",          "(J)Z", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeFindNext},
-        {"nativeFindPrev",          "(J)Z", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeFindPrev},
-        {"nativeGetSchResultIndex", "(J)I", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeGetSchResultIndex},
-        {"nativeGetSchCount",       "(J)I", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeGetSchCount},
-        {"nativeCloseFind",         "(J)V", (void *) Java_io_legere_pdfiumandroid_FindResult_nativeCloseFind},
+        {"nativeFindNext",          "(J)Z", (void *) Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeFindNext},
+        {"nativeFindPrev",          "(J)Z", (void *) Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeFindPrev},
+        {"nativeGetSchResultIndex", "(J)I", (void *) Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeGetSchResultIndex},
+        {"nativeGetSchCount",       "(J)I", (void *) Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeGetSchCount},
+        {"nativeCloseFind",         "(J)V", (void *) Java_io_legere_pdfiumandroid_unlocked_FindResultU_nativeCloseFind},
 
 };
 
 static const JNINativeMethod pageLinkMethods[] = {
-        {"nativeClosePageLink", "(J)V",     (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeClosePageLink},
-        {"nativeCountWebLinks", "(J)I",     (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountWebLinks},
-        {"nativeGetURL",        "(JII[B)I", (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetURL},
-        {"nativeCountRects",    "(JI)I",    (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeCountRects},
-        {"nativeGetRect",       "(JII)[F",  (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetRect},
-        {"nativeGetTextRange",  "(JI)[I",   (void *) Java_io_legere_pdfiumandroid_PdfPageLink_nativeGetTextRange},
+        {"nativeClosePageLink", "(J)V",     (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeClosePageLink},
+        {"nativeCountWebLinks", "(J)I",     (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeCountWebLinks},
+        {"nativeGetURL",        "(JII[B)I", (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeGetURL},
+        {"nativeCountRects",    "(JI)I",    (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeCountRects},
+        {"nativeGetRect",       "(JII)[F",  (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeGetRect},
+        {"nativeGetTextRange",  "(JI)[I",   (void *) Java_io_legere_pdfiumandroid_unlocked_PdfPageLinkU_nativeGetTextRange},
 
 };
 
@@ -3517,7 +3517,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
         return JNI_ERR;
     }
 
-    jclass clazz = env->FindClass("io/legere/pdfiumandroid/PdfiumCore"); // Replace with your class name
+    jclass clazz = env->FindClass("io/legere/pdfiumandroid/unlocked/PdfiumCoreU"); // Replace with your class name
     if (clazz == nullptr) {
         return -1;
     }
@@ -3526,7 +3526,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
         return -1;
     }
 
-    clazz = env->FindClass("io/legere/pdfiumandroid/PdfPage"); // Replace with your class name
+    clazz = env->FindClass("io/legere/pdfiumandroid/unlocked/PdfPageU"); // Replace with your class name
     if (clazz == nullptr) {
         return -1;
     }
@@ -3535,7 +3535,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
         return -1;
     }
 
-    clazz = env->FindClass("io/legere/pdfiumandroid/PdfTextPage"); // Replace with your class name
+    clazz = env->FindClass("io/legere/pdfiumandroid/unlocked/PdfTextPageU"); // Replace with your class name
     if (clazz == nullptr) {
         return -1;
     }
@@ -3544,7 +3544,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
         return -1;
     }
 
-    clazz = env->FindClass("io/legere/pdfiumandroid/PdfDocument"); // Replace with your class name
+    clazz = env->FindClass("io/legere/pdfiumandroid/unlocked/PdfDocumentU"); // Replace with your class name
     if (clazz == nullptr) {
         return -1;
     }
@@ -3553,7 +3553,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
         return -1;
     }
 
-    clazz = env->FindClass("io/legere/pdfiumandroid/FindResult"); // Replace with your class name
+    clazz = env->FindClass("io/legere/pdfiumandroid/unlocked/FindResultU"); // Replace with your class name
     if (clazz == nullptr) {
         return -1;
     }
@@ -3562,7 +3562,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM* vm, void*) {
         return -1;
     }
 
-    clazz = env->FindClass("io/legere/pdfiumandroid/PdfPageLink"); // Replace with your class name
+    clazz = env->FindClass("io/legere/pdfiumandroid/unlocked/PdfPageLinkU"); // Replace with your class name
     if (clazz == nullptr) {
         return -1;
     }

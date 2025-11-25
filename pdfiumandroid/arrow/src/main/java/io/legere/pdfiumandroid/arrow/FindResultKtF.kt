@@ -1,13 +1,13 @@
 package io.legere.pdfiumandroid.arrow
 
 import arrow.core.Either
-import io.legere.pdfiumandroid.FindResult
+import io.legere.pdfiumandroid.unlocked.FindResultU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
 @Suppress("unused")
 class FindResultKtF(
-    private val findResult: FindResult,
+    private val findResult: FindResultU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun findNext(): Either<PdfiumKtFErrors, Boolean> =

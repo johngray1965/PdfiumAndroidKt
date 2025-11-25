@@ -2,12 +2,12 @@ package io.legere.pdfiumandroid.arrow
 
 import android.graphics.RectF
 import arrow.core.Either
-import io.legere.pdfiumandroid.PdfPageLink
+import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
 class PdfPageLinkKtF(
-    val pageLink: PdfPageLink,
+    val pageLink: PdfPageLinkU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun countWebLinks(): Either<PdfiumKtFErrors, Int> =

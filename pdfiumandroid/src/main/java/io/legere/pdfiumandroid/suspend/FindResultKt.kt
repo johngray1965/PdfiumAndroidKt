@@ -1,38 +1,49 @@
 package io.legere.pdfiumandroid.suspend
 
-import io.legere.pdfiumandroid.FindResult
+import io.legere.pdfiumandroid.unlocked.FindResultU
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 @Suppress("unused")
 class FindResultKt(
-    private val findResult: FindResult,
+    private val findResult: FindResultU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun findNext(): Boolean =
-        withContext(dispatcher) {
-            findResult.findNext()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                findResult.findNext()
+            }
         }
 
     suspend fun findPrev(): Boolean =
-        withContext(dispatcher) {
-            findResult.findPrev()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                findResult.findPrev()
+            }
         }
 
     suspend fun getSchResultIndex(): Int =
-        withContext(dispatcher) {
-            findResult.getSchResultIndex()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                findResult.getSchResultIndex()
+            }
         }
 
     suspend fun getSchCount(): Int =
-        withContext(dispatcher) {
-            findResult.getSchCount()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                findResult.getSchCount()
+            }
         }
 
     suspend fun closeFind() {
-        withContext(dispatcher) {
-            findResult.closeFind()
+        PdfiumCoreKt.mutex.withLock {
+            withContext(dispatcher) {
+                findResult.closeFind()
+            }
         }
     }
 
