@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
+import org.gradle.kotlin.dsl.create
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jreleaser.model.Active
 import org.jreleaser.model.Signing
@@ -7,9 +9,9 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.jreleaser)
+    jacoco
     `maven-publish`
 }
 kotlin {
@@ -17,6 +19,18 @@ kotlin {
         jvmTarget.set(JvmTarget.JVM_17)
         freeCompilerArgs.add("-Xstring-concat=inline")
     }
+}
+
+jacoco {
+    toolVersion = "0.8.13"
+}
+
+val numShards: String = System.getenv("CIRCLE_NODE_TOTAL") ?: "0"
+val shardIndex: String = System.getenv("CIRCLE_NODE_INDEX") ?: "0"
+
+fun isHostArm(): Boolean {
+    val osArch = System.getProperty("os.arch")
+    return osArch.contains("aarch64") || osArch.contains("arm64")
 }
 
 android {
@@ -35,6 +49,96 @@ android {
                 cppFlags("")
             }
         }
+        testOptions {
+            execution = "ANDROIDX_TEST_ORCHESTRATOR"
+            animationsDisabled = true
+            unitTests {
+                isIncludeAndroidResources = true
+                isReturnDefaultValues = true
+            }
+            @Suppress("UnstableApiUsage")
+            managedDevices {
+                allDevices {
+                    create("pixel2Aosp", ManagedVirtualDevice::class) {
+                        device = "Pixel 2"
+                        apiLevel = 34
+//                        systemImageSource = "google-atd"
+                        systemImageSource = "aosp-atd"
+                    }
+                    create("pixel7GoogleApis", ManagedVirtualDevice::class) {
+                        device = "Pixel 7"
+                        apiLevel = 32
+                        systemImageSource = "google-atd"
+//                        systemImageSource = "google-atd"
+//                        systemImageSource = "aosp-atd"
+                        if (isHostArm()) {
+                            // On ARM hosts, prefer arm64-v8a for this device if your app supports it
+                            testedAbi = "arm64-v8a"
+                        } else {
+                            // On x86_64 hosts, use x86_64 to avoid translation warning
+                            testedAbi = "x86_64"
+                        }
+                    }
+                    create("pixelPhone", ManagedVirtualDevice::class) {
+                        device = "Pixel 7"
+                        apiLevel = 34
+                        systemImageSource = "google-atd"
+                    }
+                    // 7" Tablet
+                    create("pixelTablet7", ManagedVirtualDevice::class) {
+                        device = "Pixel Tablet" // Or a specific 7" tablet definition like "Nexus 7"
+                        apiLevel = 34
+                        systemImageSource = "google-atd"
+                    }
+                    // 10" Tablet
+                    create("pixelTablet10", ManagedVirtualDevice::class) {
+                        device = "Pixel C" // A good 10" tablet example
+                        apiLevel = 34
+                        systemImageSource = "google-atd"
+                    }
+                    // Chromebook
+//                    create("pixelbook", ManagedVirtualDevice::class) {
+//                        device = "Desktop" // A good 10" tablet example
+//                        apiLevel = 34
+//                        systemImageSource = "google-atd"
+//                    }
+                }
+                groups {
+                    // Group all the devices needed for screenshots
+                    create("screenshotDevices") {
+                        targetDevices.add(allDevices.getByName("pixelPhone"))
+                        targetDevices.add(allDevices.getByName("pixelTablet7"))
+                        targetDevices.add(allDevices.getByName("pixelTablet10"))
+//                        targetDevices.add(allDevices.getByName("pixelbook"))
+                    }
+                }
+            }
+        }
+
+        packaging {
+            resources {
+                excludes +=
+                    listOf(
+                        "META-INF/LICENSE.md",
+                        "META-INF/LICENSE-notice.md",
+                        "META-INF/NOTICE.md",
+                        "META-INF/AL2.0",
+                        "META-INF/LGPL2.1",
+                    )
+            }
+        }
+
+        testInstrumentationRunnerArguments.putAll(
+            mapOf(
+                "grant_permission_rule" to "true",
+                "clearPackageData" to "true",
+                "coverage" to "true",
+                "disableAnalytics" to "true",
+                "useTestStorageService" to "true",
+                "numShards" to numShards,
+                "shardIndex" to shardIndex,
+            ),
+        )
     }
     buildFeatures {
         buildConfig = true
@@ -44,6 +148,9 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+        debug {
+            enableAndroidTestCoverage = true
         }
 //        maybeCreate("qa")
 //        getByName("qa") {
@@ -91,6 +198,9 @@ dependencies {
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.bundles.instrumented.non.ui.test)
+    androidTestUtil(libs.androidx.orchestrator)
+    androidTestUtil(libs.androidx.test.services)
 }
 
 fun getRepositoryUsername(): String =
@@ -193,4 +303,36 @@ jreleaser {
             }
         }
     }
+}
+tasks.register<JacocoReport>("jacocoAndroidTestReport") {
+    group = "Reporting"
+    description = "Generates JaCoCo coverage report for Android instrumentation tests."
+
+    // Set the execution data file from the Android instrumentation tests
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.dir("intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest")) {
+            include("**/*.ec") // Adjust based on your Android Gradle Plugin version/setup
+        },
+    )
+
+    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+
+    // Set the class directories to analyze
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+            // Adjust path if needed
+            exclude("**/R.class", "**/R\$*.class", "**/BuildConfig.class", "**/Manifest*.class") // Exclude generated classes
+        },
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+            // For Kotlin classes
+            exclude("**/R.class", "**/R\$*.class", "**/BuildConfig.class", "**/Manifest*.class")
+        },
+    )
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+
+    dependsOn("pixelPhoneDebugAndroidTest") // Ensure instrumentation tests run before report generation
 }

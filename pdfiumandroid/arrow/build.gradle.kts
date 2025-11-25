@@ -7,12 +7,16 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.jreleaser)
     `maven-publish`
+    jacoco
     signing
 }
+jacoco {
+    toolVersion = "0.8.13"
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
@@ -37,6 +41,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+        debug {
+            enableAndroidTestCoverage = true
         }
     }
     compileOptions {

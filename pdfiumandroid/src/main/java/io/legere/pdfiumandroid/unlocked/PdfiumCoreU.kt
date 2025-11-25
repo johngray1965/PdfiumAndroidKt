@@ -11,7 +11,6 @@ import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.InitLock
 import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
 import io.legere.pdfiumandroid.util.pdfiumConfig
-import kotlinx.coroutines.sync.Mutex
 import java.io.IOException
 
 /**
@@ -138,8 +137,6 @@ class PdfiumCoreU(
 
         // synchronize native methods
         val lock = Any()
-
-        val surfaceMutex = Mutex()
 
         val isReady = InitLock()
 

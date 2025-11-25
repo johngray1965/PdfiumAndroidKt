@@ -153,7 +153,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageCropBox(): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val o = nativeGetPageCropBox(pagePtr)
         val r = RectF()
         r.left = o[LEFT]
@@ -169,7 +169,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageMediaBox(): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val o = nativeGetPageMediaBox(pagePtr)
         val r = RectF()
         r.left = o[LEFT]
@@ -185,7 +185,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBleedBox(): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val o = nativeGetPageBleedBox(pagePtr)
         val r = RectF()
         r.left = o[LEFT]
@@ -201,7 +201,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageTrimBox(): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val o = nativeGetPageTrimBox(pagePtr)
         val r = RectF()
         r.left = o[LEFT]
@@ -217,7 +217,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageArtBox(): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val o = nativeGetPageArtBox(pagePtr)
         val r = RectF()
         r.left = o[LEFT]
@@ -233,7 +233,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBoundingBox(): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val o = nativeGetPageBoundingBox(pagePtr)
         val r = RectF()
         r.left = o[LEFT]
@@ -249,7 +249,7 @@ class PdfPageU(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageSize(screenDpi: Int): Size {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return Size(-1, -1)
         return nativeGetPageSizeByIndex(
             doc.mNativeDocPtr,
             pageIndex,
@@ -548,7 +548,7 @@ class PdfPageU(
         pageX: Double,
         pageY: Double,
     ): Point {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return Point(-1, -1)
         return nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY).let {
             Point(it[0], it[1])
         }
@@ -578,7 +578,7 @@ class PdfPageU(
         deviceX: Int,
         deviceY: Int,
     ): PointF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PointF(-1f, -1f)
         return nativeDeviceCoordsToPage(
             pagePtr,
             startX,
@@ -617,7 +617,7 @@ class PdfPageU(
         rotate: Int,
         coords: RectF,
     ): Rect {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return Rect(-1, -1, -1, -1)
         val leftTop =
             mapPageCoordsToDevice(
                 startX,
@@ -667,7 +667,7 @@ class PdfPageU(
         rotate: Int,
         coords: Rect,
     ): RectF {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
         val leftTop =
             mapDeviceCoordsToPage(
                 startX,

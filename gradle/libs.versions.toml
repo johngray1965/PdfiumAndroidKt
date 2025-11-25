@@ -28,6 +28,9 @@ annotation-jvm = "1.9.1"
 jreleaser = "1.20.0"
 runner = "1.7.0"
 guava = "33.5.0-android"
+orchestrator_version = "1.6.1"
+testServices = "1.6.0"
+mockk = "1.14.6"
 
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
@@ -61,8 +64,14 @@ arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref 
 androidx-annotation-jvm = { group = "androidx.annotation", name = "annotation-jvm", version.ref = "annotation-jvm" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+androidx-orchestrator = { module = "androidx.test:orchestrator", version.ref = "orchestrator_version" }
+androidx-test-services = { module = "androidx.test.services:test-services", version.ref = "testServices" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
 
 [bundles]
+instrumented-non-ui-test = ["junit",  "mockk", "mockk-android", "mockk-agent", ]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradleplugin" }
