@@ -192,7 +192,7 @@ class PdfPageKt(
             val pointers = LongArray(2)
             withContext(Dispatchers.Main) {
                 surface?.let {
-                    PdfPageU.lockSurface(
+                    page.lockSurface(
                         it,
                         sizes,
                         pointers,
@@ -218,7 +218,7 @@ class PdfPageKt(
                     )
             }
             withContext(Dispatchers.Main) {
-                PdfPageU.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
             }
         }
         return retValue
@@ -243,7 +243,7 @@ class PdfPageKt(
             val pointers = LongArray(2)
             withContext(Dispatchers.Main) {
                 surface?.let {
-                    PdfPageU.lockSurface(
+                    page.lockSurface(
                         it,
                         sizes,
                         pointers,
@@ -274,7 +274,7 @@ class PdfPageKt(
             }
             withContext(Dispatchers.Main) {
                 surface?.let {
-                    PdfPageU.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                    page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
                 }
             }
         }

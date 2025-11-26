@@ -14,6 +14,8 @@ import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.PdfiumSource
+import io.legere.pdfiumandroid.jni.NativeFactory
+import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU.Companion.FPDF_REMOVE_SECURITY
@@ -29,94 +31,16 @@ private const val THREE_BY_THREE = 9
 @Suppress("TooManyFunctions")
 class PdfDocumentU(
     val mNativeDocPtr: Long,
+    val nativeFactory: NativeFactory = defaultNativeFactory,
 ) : Closeable {
     private val pageMap = mutableMapOf<Int, PageCount>()
     private val textPageMap = mutableMapOf<Int, PageCount>()
 
+    private val nativeDocument = nativeFactory.getNativeDocument()
+
     @Volatile
     var isClosed = false
         private set
-
-    private external fun nativeGetPageCount(docPtr: Long): Int
-
-    private external fun nativeLoadPage(
-        docPtr: Long,
-        pageIndex: Int,
-    ): Long
-
-    private external fun nativeDeletePage(
-        docPtr: Long,
-        pageIndex: Int,
-    )
-
-    private external fun nativeCloseDocument(docPtr: Long)
-
-    private external fun nativeLoadPages(
-        docPtr: Long,
-        fromIndex: Int,
-        toIndex: Int,
-    ): LongArray
-
-    private external fun nativeGetDocumentMetaText(
-        docPtr: Long,
-        tag: String,
-    ): String
-
-    private external fun nativeGetFirstChildBookmark(
-        docPtr: Long,
-        bookmarkPtr: Long,
-    ): Long
-
-    private external fun nativeGetSiblingBookmark(
-        docPtr: Long,
-        bookmarkPtr: Long,
-    ): Long
-
-    private external fun nativeGetBookmarkDestIndex(
-        docPtr: Long,
-        bookmarkPtr: Long,
-    ): Long
-
-    private external fun nativeLoadTextPage(
-        docPtr: Long,
-        pagePtr: Long,
-    ): Long
-
-    private external fun nativeGetBookmarkTitle(bookmarkPtr: Long): String
-
-    private external fun nativeSaveAsCopy(
-        docPtr: Long,
-        callback: PdfWriteCallback,
-        flags: Int,
-    ): Boolean
-
-    private external fun nativeGetPageCharCounts(docPtr: Long): IntArray
-
-    @Suppress("LongParameterList")
-    private external fun nativeRenderPagesWithMatrix(
-        pages: LongArray,
-        bufferPtr: Long,
-        drawSizeHor: Int,
-        drawSizeVer: Int,
-        matrixFloats: FloatArray,
-        clipFloats: FloatArray,
-        renderAnnot: Boolean,
-        textMask: Boolean,
-        canvasColor: Int,
-        pageBackgroundColor: Int,
-    )
-
-    @Suppress("LongParameterList")
-    private external fun nativeRenderPagesSurfaceWithMatrix(
-        pages: LongArray,
-        surface: Surface,
-        matrixFloats: FloatArray,
-        clipFloats: FloatArray,
-        renderAnnot: Boolean,
-        textMask: Boolean,
-        canvasColor: Int,
-        pageBackgroundColor: Int,
-    ): Boolean
 
     var parcelFileDescriptor: ParcelFileDescriptor? = null
     var source: PdfiumSource? = null
@@ -127,7 +51,7 @@ class PdfDocumentU(
      */
     fun getPageCount(): Int {
         if (handleAlreadyClosed(isClosed)) return 0
-        return nativeGetPageCount(mNativeDocPtr)
+        return nativeDocument.getPageCount(mNativeDocPtr)
     }
 
     /**
@@ -136,7 +60,7 @@ class PdfDocumentU(
      */
     fun getPageCharCounts(): IntArray {
         if (handleAlreadyClosed(isClosed)) return IntArray(0)
-        return nativeGetPageCharCounts(mNativeDocPtr)
+        return nativeDocument.getPageCharCounts(mNativeDocPtr)
     }
 
     /**
@@ -157,7 +81,7 @@ class PdfDocumentU(
         }
 //            Timber.d("openPage: pageIndex: $pageIndex")
 
-        val pagePtr = nativeLoadPage(this.mNativeDocPtr, pageIndex)
+        val pagePtr = nativeDocument.loadPage(this.mNativeDocPtr, pageIndex)
         pageMap[pageIndex] = PageCount(pagePtr, 1)
         return PdfPageU(this, pageIndex, pagePtr, pageMap)
     }
@@ -169,7 +93,7 @@ class PdfDocumentU(
      */
     fun deletePage(pageIndex: Int) {
         if (handleAlreadyClosed(isClosed)) return
-        nativeDeletePage(this.mNativeDocPtr, pageIndex)
+        nativeDocument.deletePage(this.mNativeDocPtr, pageIndex)
     }
 
     /**
@@ -184,7 +108,7 @@ class PdfDocumentU(
         toIndex: Int,
     ): List<PdfPageU> {
         if (handleAlreadyClosed(isClosed)) return emptyList()
-        val pagesPtr: LongArray = nativeLoadPages(this.mNativeDocPtr, fromIndex, toIndex)
+        val pagesPtr: LongArray = nativeDocument.loadPages(this.mNativeDocPtr, fromIndex, toIndex)
         var pageIndex = fromIndex
         for (page in pagesPtr) {
             if (pageIndex > toIndex) break
@@ -241,7 +165,7 @@ class PdfDocumentU(
                         rect.bottom,
                     )
                 }.toFloatArray()
-        nativeRenderPagesWithMatrix(
+        nativeDocument.renderPagesWithMatrix(
             pages.map { it.pagePtr }.toLongArray(),
             bufferPtr,
             drawSizeX,
@@ -288,7 +212,7 @@ class PdfDocumentU(
                         rect.bottom,
                     )
                 }.toFloatArray()
-        return nativeRenderPagesSurfaceWithMatrix(
+        return nativeDocument.renderPagesSurfaceWithMatrix(
             pages.map { it.pagePtr }.toLongArray(),
             surface,
             matrixFloats,
@@ -308,14 +232,14 @@ class PdfDocumentU(
     fun getDocumentMeta(): Meta {
         if (handleAlreadyClosed(isClosed)) return Meta()
         val meta = Meta()
-        meta.title = nativeGetDocumentMetaText(mNativeDocPtr, "Title")
-        meta.author = nativeGetDocumentMetaText(mNativeDocPtr, "Author")
-        meta.subject = nativeGetDocumentMetaText(mNativeDocPtr, "Subject")
-        meta.keywords = nativeGetDocumentMetaText(mNativeDocPtr, "Keywords")
-        meta.creator = nativeGetDocumentMetaText(mNativeDocPtr, "Creator")
-        meta.producer = nativeGetDocumentMetaText(mNativeDocPtr, "Producer")
-        meta.creationDate = nativeGetDocumentMetaText(mNativeDocPtr, "CreationDate")
-        meta.modDate = nativeGetDocumentMetaText(mNativeDocPtr, "ModDate")
+        meta.title = nativeDocument.getDocumentMetaText(mNativeDocPtr, "Title")
+        meta.author = nativeDocument.getDocumentMetaText(mNativeDocPtr, "Author")
+        meta.subject = nativeDocument.getDocumentMetaText(mNativeDocPtr, "Subject")
+        meta.keywords = nativeDocument.getDocumentMetaText(mNativeDocPtr, "Keywords")
+        meta.creator = nativeDocument.getDocumentMetaText(mNativeDocPtr, "Creator")
+        meta.producer = nativeDocument.getDocumentMetaText(mNativeDocPtr, "Producer")
+        meta.creationDate = nativeDocument.getDocumentMetaText(mNativeDocPtr, "CreationDate")
+        meta.modDate = nativeDocument.getDocumentMetaText(mNativeDocPtr, "ModDate")
         return meta
     }
 
@@ -328,14 +252,14 @@ class PdfDocumentU(
         var levelMutable = level
         val bookmark = Bookmark()
         bookmark.mNativePtr = bookmarkPtr
-        bookmark.title = nativeGetBookmarkTitle(bookmarkPtr)
-        bookmark.pageIdx = nativeGetBookmarkDestIndex(mNativeDocPtr, bookmarkPtr)
+        bookmark.title = nativeDocument.getBookmarkTitle(bookmarkPtr)
+        bookmark.pageIdx = nativeDocument.getBookmarkDestIndex(mNativeDocPtr, bookmarkPtr)
         tree.add(bookmark)
-        val child = nativeGetFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
+        val child = nativeDocument.getFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
         if (child != 0L && levelMutable < MAX_RECURSION) {
             recursiveGetBookmark(bookmark.children, child, levelMutable++)
         }
-        val sibling = nativeGetSiblingBookmark(mNativeDocPtr, bookmarkPtr)
+        val sibling = nativeDocument.getSiblingBookmark(mNativeDocPtr, bookmarkPtr)
         if (sibling != 0L && levelMutable < MAX_RECURSION) {
             recursiveGetBookmark(tree, sibling, levelMutable)
         }
@@ -350,7 +274,7 @@ class PdfDocumentU(
         if (handleAlreadyClosed(isClosed)) return emptyList()
         val topLevel: MutableList<Bookmark> =
             ArrayList()
-        val first = nativeGetFirstChildBookmark(this.mNativeDocPtr, 0)
+        val first = nativeDocument.getFirstChildBookmark(this.mNativeDocPtr, 0)
         if (first != 0L) {
             recursiveGetBookmark(topLevel, first, 1)
         }
@@ -370,13 +294,13 @@ class PdfDocumentU(
             textPageMap[page.pageIndex]?.let {
                 it.count++
 //                    Timber.d("from cache openTextPage: pageIndex: ${page.pageIndex}, count: ${it.count}")
-                return PdfTextPageU(this, page.pageIndex, it.pagePtr, textPageMap)
+                return PdfTextPageU(this, page.pageIndex, it.pagePtr, textPageMap, nativeFactory)
             }
         }
 //            Timber.d("openTextPage: pageIndex: ${page.pageIndex}")
-        val textPagePtr = nativeLoadTextPage(this.mNativeDocPtr, page.pagePtr)
+        val textPagePtr = nativeDocument.loadTextPage(this.mNativeDocPtr, page.pagePtr)
         textPageMap[page.pageIndex] = PageCount(textPagePtr, 1)
-        return PdfTextPageU(this, page.pageIndex, textPagePtr, textPageMap)
+        return PdfTextPageU(this, page.pageIndex, textPagePtr, textPageMap, nativeFactory)
     }
 
     /**
@@ -391,13 +315,14 @@ class PdfDocumentU(
         toIndex: Int,
     ): List<PdfTextPageU> {
         if (handleAlreadyClosed(isClosed)) return emptyList()
-        val textPagesPtr: LongArray = nativeLoadPages(mNativeDocPtr, fromIndex, toIndex)
+        val textPagesPtr: LongArray = nativeDocument.loadPages(mNativeDocPtr, fromIndex, toIndex)
         return textPagesPtr.mapIndexed { index: Int, pagePtr: Long ->
             PdfTextPageU(
                 this,
                 fromIndex + index,
                 pagePtr,
                 textPageMap,
+                nativeFactory,
             )
         }
     }
@@ -414,7 +339,7 @@ class PdfDocumentU(
         flags: Int = FPDF_NO_INCREMENTAL,
     ): Boolean {
         if (handleAlreadyClosed(isClosed)) return false
-        return nativeSaveAsCopy(mNativeDocPtr, callback, flags)
+        return nativeDocument.saveAsCopy(mNativeDocPtr, callback, flags)
     }
 
     /**
@@ -425,7 +350,7 @@ class PdfDocumentU(
         if (handleAlreadyClosed(isClosed)) return
         Logger.d(TAG, "PdfDocument.close")
         isClosed = true
-        nativeCloseDocument(mNativeDocPtr)
+        nativeDocument.closeDocument(mNativeDocPtr)
         parcelFileDescriptor?.close()
         parcelFileDescriptor = null
         source?.close()

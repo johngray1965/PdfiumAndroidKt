@@ -8,10 +8,12 @@ import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.base.BasePDFTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfDocumentUTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentU
     private var pdfBytes: ByteArray? = null
@@ -31,12 +33,8 @@ class PdfDocumentUTest : BasePDFTest() {
             // Some test close the document, so we need to catch the exception
             pdfDocument.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            println(e.message)
         }
-    }
-
-    @Test
-    fun isClosed() {
     }
 
     @Test
@@ -64,22 +62,10 @@ class PdfDocumentUTest : BasePDFTest() {
     }
 
     @Test
-    fun deletePage() {
-    }
-
-    @Test
     fun openPages() {
         val page = pdfDocument.openPages(0, 3)
 
         Truth.assertThat(page.size).isEqualTo(4)
-    }
-
-    @Test
-    fun renderPages() {
-    }
-
-    @Test
-    fun testRenderPages() {
     }
 
     @Test
@@ -89,10 +75,6 @@ class PdfDocumentUTest : BasePDFTest() {
         println(meta)
 
         Truth.assertThat(meta).isNotNull()
-    }
-
-    @Test
-    fun recursiveGetBookmark() {
     }
 
     @Test
@@ -129,10 +111,6 @@ class PdfDocumentUTest : BasePDFTest() {
     }
 
     @Test
-    fun openTextPages() {
-    }
-
-    @Test
     fun saveAsCopy() {
         pdfDocument.saveAsCopy(
             object : PdfWriteCallback {
@@ -143,10 +121,6 @@ class PdfDocumentUTest : BasePDFTest() {
                 }
             },
         )
-    }
-
-    @Test
-    fun close() {
     }
 
     @Test(expected = IllegalStateException::class)

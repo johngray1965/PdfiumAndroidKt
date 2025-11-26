@@ -178,6 +178,11 @@ android {
         sourceCompatibility(JavaVersion.VERSION_17)
         targetCompatibility(JavaVersion.VERSION_17)
     }
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
     publishing {
         singleVariant("release") {
             // if you don't want sources/javadoc, remove these lines
@@ -194,13 +199,19 @@ dependencies {
     compileOnly(libs.kotlin.stdlib)
     implementation(libs.guava)
 
-    testImplementation(libs.junit)
-
     testImplementation(libs.androidx.junit)
     testImplementation(libs.androidx.espresso.core)
-    testImplementation(libs.truth)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.bundles.test)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly(libs.junit.vintage.engine)
+
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -319,7 +330,11 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
 
     // Set the execution data file from the Android instrumentation tests
     executionData.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest")) {
+        fileTree(
+            layout.buildDirectory.dir(
+                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
+            ),
+        ) {
             include("**/*.ec") // Adjust based on your Android Gradle Plugin version/setup
         },
     )
@@ -330,7 +345,12 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
     classDirectories.setFrom(
         fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
             // Adjust path if needed
-            exclude("**/R.class", "**/R\$*.class", "**/BuildConfig.class", "**/Manifest*.class") // Exclude generated classes
+            exclude(
+                "**/R.class",
+                "**/R\$*.class",
+                "**/BuildConfig.class",
+                "**/Manifest*.class",
+            ) // Exclude generated classes
         },
         fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
             // For Kotlin classes

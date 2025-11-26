@@ -1,35 +1,31 @@
 package io.legere.pdfiumandroid.unlocked
 
 import io.legere.pdfiumandroid.FindHandle
+import io.legere.pdfiumandroid.jni.NativeFactory
+import io.legere.pdfiumandroid.jni.NativeFindResult
+import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import java.io.Closeable
 
 @Suppress("TooManyFunctions")
 class FindResultU(
     val handle: FindHandle,
+    nativeFactory: NativeFactory = defaultNativeFactory,
 ) : Closeable {
-    private external fun nativeFindNext(findHandle: Long): Boolean
+    val nativeFindResult: NativeFindResult = nativeFactory.getNativeFindResult()
 
-    private external fun nativeFindPrev(findHandle: Long): Boolean
+    fun findNext(): Boolean = nativeFindResult.findNext(handle)
 
-    private external fun nativeGetSchResultIndex(findHandle: Long): Int
+    fun findPrev(): Boolean = nativeFindResult.findPrev(handle)
 
-    private external fun nativeGetSchCount(findHandle: Long): Int
+    fun getSchResultIndex(): Int = nativeFindResult.getSchResultIndex(handle)
 
-    private external fun nativeCloseFind(findHandle: Long)
-
-    fun findNext(): Boolean = nativeFindNext(handle)
-
-    fun findPrev(): Boolean = nativeFindPrev(handle)
-
-    fun getSchResultIndex(): Int = nativeGetSchResultIndex(handle)
-
-    fun getSchCount(): Int = nativeGetSchCount(handle)
+    fun getSchCount(): Int = nativeFindResult.getSchCount(handle)
 
     fun closeFind() {
-        nativeCloseFind(handle)
+        nativeFindResult.closeFind(handle)
     }
 
     override fun close() {
-        nativeCloseFind(handle)
+        nativeFindResult.closeFind(handle)
     }
 }

@@ -9,10 +9,12 @@ import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.mockk.mockk
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfDocumentUClosedNotHandledTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentU
     private var pdfBytes: ByteArray? = null

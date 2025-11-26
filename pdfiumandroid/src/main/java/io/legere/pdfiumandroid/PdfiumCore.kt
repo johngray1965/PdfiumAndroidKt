@@ -9,9 +9,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import android.view.Surface
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.InitLock
@@ -406,48 +404,48 @@ class PdfiumCore(
 //        }
 //    }
 
-    @Deprecated(
-        "Use PdfPage.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
-        ReplaceWith(
-            "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
-        ),
-        DeprecationLevel.WARNING,
-    )
-    @Suppress("LongParameterList", "ComplexCondition")
-    fun renderPage(
-        pdfDocument: PdfDocument,
-        surface: Surface?,
-        pageIndex: Int,
-        startX: Int,
-        startY: Int,
-        drawSizeX: Int,
-        drawSizeY: Int,
-        renderAnnot: Boolean = false,
-    ): Boolean {
-        var retValue = false
-        pdfDocument.openPage(pageIndex).use { page ->
-            val sizes = IntArray(2)
-            val pointers = LongArray(2)
-            surface
-                ?.let {
-                    PdfPageU.lockSurface(
-                        it,
-                        sizes,
-                        pointers,
-                    )
-                }
-            val nativeWindow = pointers[0]
-            val bufferPtr = pointers[1]
-            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return@use
-            }
-            retValue = page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
-            surface?.let {
-                PdfPageU.unlockSurface(pointers)
-            }
-        }
-        return retValue
-    }
+//    @Deprecated(
+//        "Use PdfPage.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
+//        ReplaceWith(
+//            "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
+//        ),
+//        DeprecationLevel.WARNING,
+//    )
+//    @Suppress("LongParameterList", "ComplexCondition")
+//    fun renderPage(
+//        pdfDocument: PdfDocument,
+//        surface: Surface?,
+//        pageIndex: Int,
+//        startX: Int,
+//        startY: Int,
+//        drawSizeX: Int,
+//        drawSizeY: Int,
+//        renderAnnot: Boolean = false,
+//    ): Boolean {
+//        var retValue = false
+//        pdfDocument.openPage(pageIndex).use { page ->
+//            val sizes = IntArray(2)
+//            val pointers = LongArray(2)
+//            surface
+//                ?.let {
+//                    PdfPageU.lockSurface(
+//                        it,
+//                        sizes,
+//                        pointers,
+//                    )
+//                }
+//            val nativeWindow = pointers[0]
+//            val bufferPtr = pointers[1]
+//            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+//                return@use
+//            }
+//            retValue = page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+//            surface?.let {
+//                PdfPageU.unlockSurface(pointers)
+//            }
+//        }
+//        return retValue
+//    }
 
     @Deprecated(
         "Use PdfPage.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY)",

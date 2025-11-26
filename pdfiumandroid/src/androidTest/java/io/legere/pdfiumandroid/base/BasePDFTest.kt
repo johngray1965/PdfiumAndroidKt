@@ -12,6 +12,7 @@ open class BasePDFTest {
     val notImplementedAssetValue = false
 
     val noResultRect = RectF(-1f, -1f, -1f, -1f)
+    val noResultFloatArray = floatArrayOf(-1f, -1f, -1f, -1f)
 
     fun getPdfBytes(filename: String): ByteArray? {
         val appContext = InstrumentationRegistry.getInstrumentation().context

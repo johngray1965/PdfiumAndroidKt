@@ -2,14 +2,20 @@ package io.legere.pdfiumandroid.unlocked
 
 import android.graphics.RectF
 import io.legere.pdfiumandroid.Logger
+import io.legere.pdfiumandroid.jni.NativeFactory
+import io.legere.pdfiumandroid.jni.NativePageLink
+import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import java.io.Closeable
 import java.nio.charset.StandardCharsets
 
 @Suppress("TooManyFunctions")
 class PdfPageLinkU(
     private val pageLinkPtr: Long,
+    nativeFactory: NativeFactory = defaultNativeFactory,
 ) : Closeable {
-    fun countWebLinks(): Int = nativeCountWebLinks(pageLinkPtr)
+    private val nativePageLink: NativePageLink = nativeFactory.getNativePageLink()
+
+    fun countWebLinks(): Int = nativePageLink.countWebLinks(pageLinkPtr)
 
     @Suppress("TooGenericExceptionCaught", "ReturnCount")
     fun getURL(
@@ -19,7 +25,7 @@ class PdfPageLinkU(
         try {
             val bytes = ByteArray(length * 2)
             val r =
-                nativeGetURL(
+                nativePageLink.getURL(
                     pageLinkPtr,
                     index,
                     length,
@@ -38,58 +44,27 @@ class PdfPageLinkU(
         return null
     }
 
-    fun countRects(index: Int): Int = nativeCountRects(pageLinkPtr, index)
+    fun countRects(index: Int): Int = nativePageLink.countRects(pageLinkPtr, index)
 
     @Suppress("MagicNumber")
     fun getRect(
         linkIndex: Int,
         rectIndex: Int,
     ): RectF =
-        nativeGetRect(pageLinkPtr, linkIndex, rectIndex).let {
+        nativePageLink.getRect(pageLinkPtr, linkIndex, rectIndex).let {
             RectF(it[0], it[1], it[2], it[3])
         }
 
     fun getTextRange(index: Int): Pair<Int, Int> =
-        nativeGetTextRange(pageLinkPtr, index).let {
+        nativePageLink.getTextRange(pageLinkPtr, index).let {
             Pair(it[0], it[1])
         }
 
     override fun close() {
-        nativeClosePageLink(pageLinkPtr)
+        nativePageLink.closePageLink(pageLinkPtr)
     }
 
     companion object {
         private val TAG = PdfPageLinkU::class.java.name
-
-        @JvmStatic
-        private external fun nativeClosePageLink(pageLinkPtr: Long)
-
-        @JvmStatic
-        private external fun nativeCountWebLinks(pageLinkPtr: Long): Int
-
-        @JvmStatic
-        private external fun nativeGetURL(
-            pageLinkPtr: Long,
-            index: Int,
-            count: Int,
-            result: ByteArray,
-        ): Int
-
-        @JvmStatic
-        private external fun nativeCountRects(
-            pageLinkPtr: Long,
-            index: Int,
-        ): Int
-
-        @JvmStatic
-        private external fun nativeGetRect(
-            pageLinkPtr: Long,
-            linkIndex: Int,
-            rectIndex: Int,
-        ): FloatArray
-
-        @JvmStatic
-        // needs to return a start and an end
-        private external fun nativeGetTextRange(pageLinkPtr: Long, index: Int): IntArray
     }
 }

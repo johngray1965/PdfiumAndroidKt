@@ -3,11 +3,13 @@
 package io.legere.pdfiumandroid.unlocked
 
 import android.graphics.RectF
-import dalvik.annotation.optimization.FastNative
 import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.jni.NativeFactory
+import io.legere.pdfiumandroid.jni.NativeTextPage
+import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
 import java.nio.ByteBuffer
@@ -38,9 +40,12 @@ class PdfTextPageU(
     val pageIndex: Int,
     val pagePtr: Long,
     val pageMap: MutableMap<Int, PdfDocument.PageCount>,
+    nativeFactory: NativeFactory = defaultNativeFactory,
 ) : Closeable {
     @Volatile
     private var isClosed = false
+
+    val nativeTextPage: NativeTextPage = nativeFactory.getNativeTextPage()
 
     /**
      * Get character count of the page
@@ -49,7 +54,7 @@ class PdfTextPageU(
      */
     fun textPageCountChars(): Int {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
-        return nativeTextCountChars(pagePtr)
+        return nativeTextPage.textCountChars(pagePtr)
     }
 
     /**
@@ -68,7 +73,7 @@ class PdfTextPageU(
         try {
             val buf = ShortArray(length + 1)
             val r =
-                nativeTextGetText(
+                nativeTextPage.textGetText(
                     pagePtr,
                     startIndex,
                     length,
@@ -104,7 +109,7 @@ class PdfTextPageU(
         try {
             val bytes = ByteArray(length * 2)
             val r =
-                nativeTextGetTextByteArray(
+                nativeTextPage.textGetTextByteArray(
                     pagePtr,
                     startIndex,
                     length,
@@ -130,11 +135,12 @@ class PdfTextPageU(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetUnicode(index: Int): Char {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
-        return nativeTextGetUnicode(
-            pagePtr,
-            index,
-        ).toChar()
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return Char.MIN_VALUE
+        return nativeTextPage
+            .textGetUnicode(
+                pagePtr,
+                index,
+            ).toChar()
     }
 
     /**
@@ -147,7 +153,7 @@ class PdfTextPageU(
     fun textPageGetCharBox(index: Int): RectF? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         try {
-            val o = nativeTextGetCharBox(pagePtr, index)
+            val o = nativeTextPage.textGetCharBox(pagePtr, index)
             // Note these are in an odd order left, right, bottom, top
             // what what Pdfium native code returns
             val r = RectF()
@@ -182,7 +188,7 @@ class PdfTextPageU(
     ): Int {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         try {
-            return nativeTextGetCharIndexAtPos(
+            return nativeTextPage.textGetCharIndexAtPos(
                 pagePtr,
                 x,
                 y,
@@ -202,13 +208,14 @@ class PdfTextPageU(
      * @return the number of rectangles
      * @throws IllegalStateException if the page or document is closed
      */
+    @Suppress("ReturnCount")
     fun textPageCountRects(
         startIndex: Int,
         count: Int,
     ): Int {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return -1
         try {
-            return nativeTextCountRects(
+            return nativeTextPage.textCountRects(
                 pagePtr,
                 startIndex,
                 count,
@@ -231,7 +238,7 @@ class PdfTextPageU(
     fun textPageGetRect(rectIndex: Int): RectF? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         return try {
-            val o = nativeTextGetRect(pagePtr, rectIndex)
+            val o = nativeTextPage.textGetRect(pagePtr, rectIndex)
             val r = RectF()
             r.left = o[LEFT_OFFSET].toFloat()
             r.top = o[TOP_OFFSET].toFloat()
@@ -257,7 +264,7 @@ class PdfTextPageU(
     @Suppress("ReturnCount")
     fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
-        val data = nativeTextGetRects(pagePtr, wordRanges)
+        val data = nativeTextPage.textGetRects(pagePtr, wordRanges)
         if (data != null) {
             val wordRangeRects = mutableListOf<WordRangeRect>()
             for (i in data.indices step RANGE_RECT_DATA_SIZE) {
@@ -292,7 +299,7 @@ class PdfTextPageU(
         return try {
             val buf = ShortArray(length + 1)
             val r =
-                nativeTextGetBoundedText(
+                nativeTextPage.textGetBoundedText(
                     pagePtr,
                     rect.left.toDouble(),
                     rect.top.toDouble(),
@@ -325,7 +332,7 @@ class PdfTextPageU(
      */
     fun getFontSize(charIndex: Int): Double {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return 0.0
-        return nativeGetFontSize(pagePtr, charIndex)
+        return nativeTextPage.getFontSize(pagePtr, charIndex)
     }
 
     fun findStart(
@@ -335,12 +342,12 @@ class PdfTextPageU(
     ): FindResultU? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         val apiFlags = flags.fold(0) { acc, flag -> acc or flag.value }
-        return FindResultU(nativeFindStart(pagePtr, findWhat, apiFlags, startIndex))
+        return FindResultU(nativeTextPage.findStart(pagePtr, findWhat, apiFlags, startIndex))
     }
 
     fun loadWebLink(): PdfPageLinkU {
         check(!isClosed && !doc.isClosed) { "Already closed" }
-        val linkPtr = nativeLoadWebLink(pagePtr)
+        val linkPtr = nativeTextPage.loadWebLink(pagePtr)
         return PdfPageLinkU(linkPtr)
     }
 
@@ -358,110 +365,11 @@ class PdfTextPageU(
             pageMap.remove(pageIndex)
 
             isClosed = true
-            nativeCloseTextPage(pagePtr)
+            nativeTextPage.closeTextPage(pagePtr)
         }
     }
 
     companion object {
         private val TAG = PdfTextPageU::class.java.name
-
-        @JvmStatic
-        private external fun nativeCloseTextPage(pagePtr: Long)
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextCountChars(textPagePtr: Long): Int
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextGetCharBox(
-            textPagePtr: Long,
-            index: Int,
-        ): DoubleArray
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextGetRect(
-            textPagePtr: Long,
-            rectIndex: Int,
-        ): DoubleArray
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextGetRects(
-            textPagePtr: Long,
-            wordRanges: IntArray,
-        ): DoubleArray?
-
-        @Suppress("LongParameterList")
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextGetBoundedText(
-            textPagePtr: Long,
-            left: Double,
-            top: Double,
-            right: Double,
-            bottom: Double,
-            arr: ShortArray,
-        ): Int
-
-        @JvmStatic
-        private external fun nativeFindStart(
-            textPagePtr: Long,
-            findWhat: String,
-            flags: Int,
-            startIndex: Int,
-        ): Long
-
-        @JvmStatic
-        private external fun nativeLoadWebLink(textPagePtr: Long): Long
-
-        @JvmStatic
-        private external fun nativeTextGetCharIndexAtPos(
-            textPagePtr: Long,
-            x: Double,
-            y: Double,
-            xTolerance: Double,
-            yTolerance: Double,
-        ): Int
-
-        @JvmStatic
-        private external fun nativeTextGetText(
-            textPagePtr: Long,
-            startIndex: Int,
-            count: Int,
-            result: ShortArray,
-        ): Int
-
-        //
-        @JvmStatic
-        private external fun nativeTextGetTextByteArray(
-            textPagePtr: Long,
-            startIndex: Int,
-            count: Int,
-            result: ByteArray,
-        ): Int
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextGetUnicode(
-            textPagePtr: Long,
-            index: Int,
-        ): Int
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeTextCountRects(
-            textPagePtr: Long,
-            startIndex: Int,
-            count: Int,
-        ): Int
-
-        @JvmStatic
-        @FastNative
-        private external fun nativeGetFontSize(
-            pagePtr: Long,
-            charIndex: Int,
-        ): Double
     }
 }

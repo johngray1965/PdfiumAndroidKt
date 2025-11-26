@@ -246,12 +246,12 @@ class PdfDocument(
         var modDate: String? = null
     }
 
-    class Bookmark {
-        val children: MutableList<Bookmark> = ArrayList()
-        var title: String? = null
-        var pageIdx: Long = 0
-        var mNativePtr: Long = 0
-    }
+    data class Bookmark(
+        val children: MutableList<Bookmark> = ArrayList(),
+        var title: String? = null,
+        var pageIdx: Long = 0,
+        var mNativePtr: Long = 0,
+    )
 
     class Link(
         val bounds: RectF,

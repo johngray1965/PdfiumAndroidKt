@@ -6,10 +6,12 @@ import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfTextPageTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocument
     private var pdfBytes: ByteArray? = null

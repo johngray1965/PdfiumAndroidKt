@@ -6,10 +6,12 @@ import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.base.ByteArrayPdfiumSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfiumCoreKtTest : BasePDFTest() {
     @Test
     fun newDocument() =

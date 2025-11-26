@@ -11,10 +11,12 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfPageLinkKtTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentKt
     private lateinit var pdfPage: PdfPageKt

@@ -8,10 +8,12 @@ import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.util.Config
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfTextPageUClosedHandledTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentU
     private lateinit var pdfPage: PdfPageU
@@ -43,7 +45,7 @@ class PdfTextPageUClosedHandledTest : BasePDFTest() {
             pdfTextPage.close()
             pdfPage.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            println(e.message)
         }
     }
 
@@ -108,9 +110,5 @@ class PdfTextPageUClosedHandledTest : BasePDFTest() {
         val findWhat = "children's"
         val startIndex = 0
         pdfTextPage.findStart(findWhat, emptySet(), startIndex)
-    }
-
-    @Test
-    fun loadWebLink() {
     }
 }

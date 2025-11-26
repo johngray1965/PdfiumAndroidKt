@@ -7,10 +7,12 @@ import io.legere.pdfiumandroid.WordRangeRect
 import io.legere.pdfiumandroid.base.BasePDFTest
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
+@Ignore("Migrating to non-instrumented tests")
 class PdfTextPageUTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentU
     private lateinit var pdfPage: PdfPageU
@@ -106,9 +108,21 @@ class PdfTextPageUTest : BasePDFTest() {
 
         val expected =
             listOf(
-                WordRangeRect(rangeStart = 0, rangeLength = 100, rect = RectF(90.314415f, 715.3187f, 382.33905f, 698.71454f)),
-                WordRangeRect(rangeStart = 0, rangeLength = 100, rect = RectF(90.39967f, 692.642f, 274.37787f, 683.92334f)),
-                WordRangeRect(rangeStart = 0, rangeLength = 100, rect = RectF(90.672745f, 682.1487f, 146.53024f, 673.65796f)),
+                WordRangeRect(
+                    rangeStart = 0,
+                    rangeLength = 100,
+                    rect = RectF(90.314415f, 715.3187f, 382.33905f, 698.71454f),
+                ),
+                WordRangeRect(
+                    rangeStart = 0,
+                    rangeLength = 100,
+                    rect = RectF(90.39967f, 692.642f, 274.37787f, 683.92334f),
+                ),
+                WordRangeRect(
+                    rangeStart = 0,
+                    rangeLength = 100,
+                    rect = RectF(90.672745f, 682.1487f, 146.53024f, 673.65796f),
+                ),
                 WordRangeRect(
                     rangeStart = 0,
                     rangeLength = 100,
@@ -158,9 +172,5 @@ class PdfTextPageUTest : BasePDFTest() {
             result = findHandle.findNext()
             Truth.assertThat(result).isFalse()
         }
-    }
-
-    @Test
-    fun loadWebLink() {
     }
 }

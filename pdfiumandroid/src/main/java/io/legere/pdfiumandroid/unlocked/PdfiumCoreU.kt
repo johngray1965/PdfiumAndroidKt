@@ -7,6 +7,9 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfiumSource
+import io.legere.pdfiumandroid.jni.NativeCore
+import io.legere.pdfiumandroid.jni.NativeFactory
+import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.InitLock
 import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
@@ -20,7 +23,10 @@ import java.io.IOException
 class PdfiumCoreU(
     context: Context? = null,
     val config: Config = Config(),
+    val nativeFactory: NativeFactory = defaultNativeFactory,
 ) {
+    val nativeCore: NativeCore = nativeFactory.getNativeCore()
+
     private val mCurrentDpi: Int
 
     init {
@@ -30,22 +36,6 @@ class PdfiumCoreU(
         mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
         isReady.waitForReady()
     }
-
-    private external fun nativeOpenDocument(
-        fd: Int,
-        password: String?,
-    ): Long
-
-    private external fun nativeOpenMemDocument(
-        data: ByteArray?,
-        password: String?,
-    ): Long
-
-    private external fun nativeOpenCustomDocument(
-        data: PdfiumNativeSourceBridge,
-        password: String?,
-        size: Long,
-    ): Long
 
     /**
      * Create new document from file
@@ -67,10 +57,11 @@ class PdfiumCoreU(
         password: String?,
     ): PdfDocumentU =
         PdfDocumentU(
-            nativeOpenDocument(
+            nativeCore.openDocument(
                 parcelFileDescriptor.fd,
                 password,
             ),
+            nativeFactory,
         ).also { document ->
             document.parcelFileDescriptor = parcelFileDescriptor
             document.source = null
@@ -95,7 +86,7 @@ class PdfiumCoreU(
         data: ByteArray?,
         password: String?,
     ): PdfDocumentU =
-        PdfDocumentU(nativeOpenMemDocument(data, password)).also { document ->
+        PdfDocumentU(nativeCore.openMemDocument(data, password), nativeFactory).also { document ->
             document.parcelFileDescriptor = null
             document.source = null
         }
@@ -121,11 +112,12 @@ class PdfiumCoreU(
     ): PdfDocumentU {
         val nativeSourceBridge = PdfiumNativeSourceBridge(data)
         return PdfDocumentU(
-            nativeOpenCustomDocument(
+            nativeCore.openCustomDocument(
                 nativeSourceBridge,
                 password,
                 data.length,
             ),
+            nativeFactory,
         ).also { document ->
             document.parcelFileDescriptor = null
             document.source = data

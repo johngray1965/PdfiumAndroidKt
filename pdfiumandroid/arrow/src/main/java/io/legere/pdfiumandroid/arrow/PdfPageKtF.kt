@@ -173,7 +173,7 @@ class PdfPageKtF(
         val pointers = LongArray(2)
         return withContext(renderCoroutinesDispatcher) {
             surface?.let {
-                PdfPageU.lockSurface(
+                page.lockSurface(
                     it,
                     sizes,
                     pointers,
@@ -201,7 +201,7 @@ class PdfPageKtF(
                         canvasColor = canvasColor,
                         pageBackgroundColor = pageBackgroundColor,
                     )
-                PdfPageU.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
                 if (!result) {
                     PdfiumKtFErrors.ConstraintError.left()
                 }
