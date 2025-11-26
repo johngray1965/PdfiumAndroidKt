@@ -71,18 +71,27 @@ android {
                         systemImageSource = "google-atd"
 //                        systemImageSource = "google-atd"
 //                        systemImageSource = "aosp-atd"
-                        if (isHostArm()) {
-                            // On ARM hosts, prefer arm64-v8a for this device if your app supports it
-                            testedAbi = "arm64-v8a"
-                        } else {
-                            // On x86_64 hosts, use x86_64 to avoid translation warning
-                            testedAbi = "x86_64"
-                        }
+                        testedAbi =
+                            if (isHostArm()) {
+                                // On ARM hosts, prefer arm64-v8a for this device if your app supports it
+                                "arm64-v8a"
+                            } else {
+                                // On x86_64 hosts, use x86_64 to avoid translation warning
+                                "x86_64"
+                            }
                     }
                     create("pixelPhone", ManagedVirtualDevice::class) {
                         device = "Pixel 7"
                         apiLevel = 34
                         systemImageSource = "google-atd"
+                        testedAbi =
+                            if (isHostArm()) {
+                                // On ARM hosts, prefer arm64-v8a for this device if your app supports it
+                                "arm64-v8a"
+                            } else {
+                                // On x86_64 hosts, use x86_64 to avoid translation warning
+                                "x86_64"
+                            }
                     }
                     // 7" Tablet
                     create("pixelTablet7", ManagedVirtualDevice::class) {
