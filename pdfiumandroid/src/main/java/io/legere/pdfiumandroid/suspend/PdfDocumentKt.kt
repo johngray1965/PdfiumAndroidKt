@@ -51,10 +51,10 @@ class PdfDocumentKt(
     /**
      * suspend version of [PdfDocument.openPage]
      */
-    suspend fun openPage(pageIndex: Int): PdfPageKt =
+    suspend fun openPage(pageIndex: Int): PdfPageKt? =
         PdfiumCoreKt.mutex.withLock {
             withContext(dispatcher) {
-                PdfPageKt(document.openPage(pageIndex), dispatcher)
+                document.openPage(pageIndex)?.let { PdfPageKt(it, dispatcher) }
             }
         }
 

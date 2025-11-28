@@ -48,9 +48,9 @@ class PdfDocument(
      * @throws IllegalArgumentException if  document is closed or the page cannot be loaded,
      * RuntimeException if the page cannot be loaded
      */
-    fun openPage(pageIndex: Int): PdfPage {
+    fun openPage(pageIndex: Int): PdfPage? {
         synchronized(PdfiumCore.lock) {
-            return PdfPage(document.openPage(pageIndex))
+            return document.openPage(pageIndex)?.let { PdfPage(it) }
         }
     }
 
@@ -181,35 +181,6 @@ class PdfDocument(
     }
 
     /**
-     * Open a text page
-     * @param page the [PdfPage]
-     * @return the opened [PdfTextPage]
-     * @throws IllegalArgumentException if document is closed or the page cannot be loaded
-     */
-    @Deprecated("Use PdfPage.openTextPage instead", ReplaceWith("page.openTextPage()"))
-    fun openTextPage(page: PdfPage): PdfTextPage {
-        synchronized(PdfiumCore.lock) {
-            return PdfTextPage(document.openTextPage(page.page))
-        }
-    }
-
-    /**
-     * Open a range of text pages
-     * @param fromIndex the start index of the range
-     * @param toIndex the end index of the range
-     * @return the opened [PdfTextPage] list
-     * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
-     */
-    fun openTextPages(
-        fromIndex: Int,
-        toIndex: Int,
-    ): List<PdfTextPage> {
-        synchronized(PdfiumCore.lock) {
-            return document.openTextPages(fromIndex, toIndex).map { PdfTextPage(it) }
-        }
-    }
-
-    /**
      * Save document as a copy
      * @param callback the [PdfWriteCallback] to be called with the data
      * @param flags must be one of [FPDF_INCREMENTAL], [FPDF_NO_INCREMENTAL] or [FPDF_REMOVE_SECURITY]
@@ -235,16 +206,16 @@ class PdfDocument(
         }
     }
 
-    class Meta {
-        var title: String? = null
-        var author: String? = null
-        var subject: String? = null
-        var keywords: String? = null
-        var creator: String? = null
-        var producer: String? = null
-        var creationDate: String? = null
-        var modDate: String? = null
-    }
+    data class Meta(
+        var title: String? = null,
+        var author: String? = null,
+        var subject: String? = null,
+        var keywords: String? = null,
+        var creator: String? = null,
+        var producer: String? = null,
+        var creationDate: String? = null,
+        var modDate: String? = null,
+    )
 
     data class Bookmark(
         val children: MutableList<Bookmark> = ArrayList(),

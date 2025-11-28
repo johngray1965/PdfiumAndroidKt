@@ -50,8 +50,8 @@ class PdfPageCache<H : AutoCloseable>(
     private val pdfDocument: PdfDocument,
     private val pageHolderFactory: (PdfPage, PdfTextPage) -> H,
 ) : PdfPageCacheBase<H>() {
-    override fun openPageAndText(pageIndex: Int): H {
-        val page = pdfDocument.openPage(pageIndex)
+    override fun openPageAndText(pageIndex: Int): H? {
+        val page = pdfDocument.openPage(pageIndex) ?: return null
         val textPage = page.openTextPage()
         return pageHolderFactory(page, textPage)
     }

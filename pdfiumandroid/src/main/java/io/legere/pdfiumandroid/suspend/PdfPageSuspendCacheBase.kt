@@ -44,13 +44,13 @@ abstract class PdfPageSuspendCacheBase<H : AutoCloseable>(
                 .build()
     }
 
-    protected abstract suspend fun openPageAndText(pageIndex: Int): H
+    protected abstract suspend fun openPageAndText(pageIndex: Int): H?
 
     suspend fun get(pageIndex: Int): H {
         val deferred =
             cache.asMap().computeIfAbsent(pageIndex) { key ->
                 scope.async {
-                    openPageAndText(key)
+                    openPageAndText(key) ?: error("Page $key not found")
                 }
             }
         return deferred.await()

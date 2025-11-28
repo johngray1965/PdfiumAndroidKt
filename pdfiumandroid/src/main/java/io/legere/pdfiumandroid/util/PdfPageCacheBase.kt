@@ -26,14 +26,14 @@ abstract class PdfPageCacheBase<H : AutoCloseable>(
             .removalListener(removalListener)
             .build(
                 CacheLoader.from { pageIndex ->
-                    openPageAndText(pageIndex)
+                    openPageAndText(pageIndex) ?: error("Page $pageIndex not found")
                 },
             )
 
     /**
      * Abstract method to be implemented by subclasses to open a page and its text page.
      */
-    protected abstract fun openPageAndText(pageIndex: Int): H
+    protected abstract fun openPageAndText(pageIndex: Int): H?
 
     /**
      * Gets the page and text page holder from the cache, creating it if necessary.

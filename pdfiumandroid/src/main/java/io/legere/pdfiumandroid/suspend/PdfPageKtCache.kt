@@ -53,8 +53,8 @@ class PdfPageKtCache<H : AutoCloseable>(
     dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val pageHolderFactory: suspend (PdfPageKt, PdfTextPageKt) -> H,
 ) : PdfPageSuspendCacheBase<H>(dispatcher) {
-    override suspend fun openPageAndText(pageIndex: Int): H {
-        val page = pdfDocument.openPage(pageIndex)
+    override suspend fun openPageAndText(pageIndex: Int): H? {
+        val page = pdfDocument.openPage(pageIndex) ?: return null
         val textPage = page.openTextPage()
         return pageHolderFactory(page, textPage)
     }

@@ -139,7 +139,7 @@ class PdfiumCore(
         pageIndex: Int,
     ): RectF {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.getPageMediaBox()
+            return page?.getPageMediaBox() ?: RectF(-1f, -1f, -1f, -1f)
         }
     }
 
@@ -176,9 +176,11 @@ class PdfiumCore(
         pageIndex: Int,
     ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.openTextPage().use { textPage ->
-                return textPage.textPageCountChars()
-            }
+            val ret =
+                page?.openTextPage()?.use { textPage ->
+                    return textPage.textPageCountChars()
+                }
+            return ret ?: -1
         }
     }
 
@@ -194,8 +196,8 @@ class PdfiumCore(
         count: Int,
     ): String? {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.openTextPage().use { textPage ->
-                return textPage.textPageGetText(start, count)
+            return page?.openTextPage()?.use { textPage ->
+                textPage.textPageGetText(start, count)
             }
         }
     }
@@ -217,7 +219,7 @@ class PdfiumCore(
         pageIndex: Int,
     ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.getPageWidthPoint()
+            return page?.getPageWidthPoint() ?: -1
         }
     }
 
@@ -231,7 +233,7 @@ class PdfiumCore(
         pageIndex: Int,
     ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.getPageHeightPoint()
+            return page?.getPageHeightPoint() ?: -1
         }
     }
 
@@ -255,7 +257,7 @@ class PdfiumCore(
         textMask: Boolean = false,
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+            page?.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
         }
     }
 
@@ -272,8 +274,8 @@ class PdfiumCore(
         index: Int,
     ): RectF? {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.openTextPage().use { textPage ->
-                return textPage.textPageGetRect(index)
+            return page?.openTextPage()?.use { textPage ->
+                textPage.textPageGetRect(index)
             }
         }
     }
@@ -292,8 +294,8 @@ class PdfiumCore(
         size: Int,
     ): String? {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.openTextPage().use { textPage ->
-                return textPage.textPageGetBoundedText(sourceRect, size)
+            return page?.openTextPage()?.use { textPage ->
+                textPage.textPageGetBoundedText(sourceRect, size)
             }
         }
     }
@@ -317,7 +319,7 @@ class PdfiumCore(
         coords: Rect,
     ): RectF {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
+            return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: RectF()
         }
     }
 
@@ -335,8 +337,8 @@ class PdfiumCore(
         count: Int,
     ): Int {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.openTextPage().use { textPage ->
-                return textPage.textPageCountRects(startIndex, count)
+            page?.openTextPage().use { textPage ->
+                return textPage?.textPageCountRects(startIndex, count) ?: -1
             }
         }
     }
@@ -466,7 +468,7 @@ class PdfiumCore(
         renderAnnot: Boolean = false,
     ) {
         pdfDocument.openPage(pageIndex).use { page ->
-            page.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+            page?.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)
         }
     }
 
@@ -483,7 +485,7 @@ class PdfiumCore(
         pageIndex: Int,
     ): List<PdfDocument.Link> {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.getPageLinks()
+            return page?.getPageLinks() ?: emptyList()
         }
     }
 
@@ -507,7 +509,7 @@ class PdfiumCore(
         pageY: Double,
     ): Point {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
+            return page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: Point(-1, -1)
         }
     }
 
@@ -530,7 +532,7 @@ class PdfiumCore(
         coords: RectF,
     ): Rect {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
+            return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: Rect(-1, -1, -1, -1)
         }
     }
 
