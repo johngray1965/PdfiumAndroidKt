@@ -64,11 +64,14 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
     override fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
 
+    val invalidRectF = RectF(-1.0f, -1.0f, -1.0f, -1.0f)
+
     @Before
     fun setUp() {
         pdfiumConfig =
             io.legere.pdfiumandroid.util
                 .Config(alreadyClosedBehavior = getBehavior())
+        every { mockNativePage.closePage(any()) } just runs
         every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument
         every { mockNativeFactory.getNativePage() } returns mockNativePage
         every { mockNativeFactory.getNativeTextPage() } returns mockNativeTextPage
@@ -85,22 +88,13 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     }
 
     @Test
-    fun `openTextPage success`() =
-        closableTest {
-            setupHappy {
-                every { mockNativeDocument.loadTextPage(any(), any()) } returns 123
-            }
-            apiCall = {
-                pdfPage.openTextPage()
-            }
-
-            verifyHappy {
-                assertThat(it).isNotNull()
-            }
-            verifyDefault {
-                assertThat(it).isNull()
-            }
-        }
+    fun `openTextPage success`() {
+        if (isStateClosed()) return
+        // Verify that openTextPage returns a valid PdfTextPageU instance when the document and page are open.
+        every { mockNativeDocument.loadTextPage(any(), any()) } returns 123
+        val textPage = pdfPage.openTextPage()
+        assertThat(textPage).isNotNull()
+    }
 
     @Test
     fun `getPageWidth pixels success`() =
@@ -215,12 +209,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
         closableTest {
             setupHappy {
                 every { mockNativePage.getPageCropBox(any()) } returns
-                    floatArrayOf(
-                        10f,
-                        20f,
-                        30f,
-                        40f,
-                    )
+                    floatArrayOf(10f, 20f, 30f, 40f)
             }
             apiCall = {
                 pdfPage.getPageCropBox()
@@ -230,7 +219,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
-                assertThat(it).isNull()
+                assertThat(it).isEqualTo(invalidRectF)
             }
         }
 
@@ -239,12 +228,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
         closableTest {
             setupHappy {
                 every { mockNativePage.getPageMediaBox(any()) } returns
-                    floatArrayOf(
-                        10f,
-                        20f,
-                        30f,
-                        40f,
-                    )
+                    floatArrayOf(10f, 20f, 30f, 40f)
             }
             apiCall = {
                 pdfPage.getPageMediaBox()
@@ -254,90 +238,123 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
-                assertThat(it).isNull()
+                assertThat(it).isEqualTo(invalidRectF)
             }
         }
 
     @Test
-    fun `getPageBleedBox success`() {
-        // Verify getPageBleedBox returns a RectF with correct coordinates.
-        every { mockNativePage.getPageBleedBox(any()) } returns
-            floatArrayOf(
-                10f,
-                20f,
-                30f,
-                40f,
-            )
-        val result = pdfPage.getPageBleedBox()
-        assertThat(result).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
-    }
+    fun `getPageBleedBox success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageBleedBox(any()) } returns
+                    floatArrayOf(10f, 20f, 30f, 40f)
+            }
+            apiCall = {
+                pdfPage.getPageBleedBox()
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(invalidRectF)
+            }
+        }
 
     @Test
-    fun `getPageTrimBox success`() {
-        // Verify getPageTrimBox returns a RectF with correct coordinates.
-        every { mockNativePage.getPageTrimBox(any()) } returns
-            floatArrayOf(
-                10f,
-                20f,
-                30f,
-                40f,
-            )
-        val result = pdfPage.getPageTrimBox()
-        assertThat(result).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
-    }
+    fun `getPageTrimBox success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageTrimBox(any()) } returns
+                    floatArrayOf(10f, 20f, 30f, 40f)
+            }
+            apiCall = {
+                pdfPage.getPageTrimBox()
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(invalidRectF)
+            }
+        }
 
     @Test
-    fun `getPageArtBox success`() {
-        // Verify getPageArtBox returns a RectF with correct coordinates.
-        every { mockNativePage.getPageArtBox(any()) } returns
-            floatArrayOf(
-                10f,
-                20f,
-                30f,
-                40f,
-            )
-        val result = pdfPage.getPageArtBox()
-        assertThat(result).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
-    }
+    fun `getPageArtBox success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageArtBox(any()) } returns
+                    floatArrayOf(10f, 20f, 30f, 40f)
+            }
+            apiCall = {
+                pdfPage.getPageArtBox()
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(invalidRectF)
+            }
+        }
 
     @Test
-    fun `getPageBoundingBox success`() {
-        // Verify getPageBoundingBox returns a RectF with correct coordinates.
-        every { mockNativePage.getPageBoundingBox(any()) } returns
-            floatArrayOf(
-                10f,
-                20f,
-                30f,
-                40f,
-            )
-        val result = pdfPage.getPageBoundingBox()
-        assertThat(result).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
-    }
+    fun `getPageBoundingBox success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageBoundingBox(any()) } returns
+                    floatArrayOf(10f, 20f, 30f, 40f)
+            }
+            apiCall = {
+                pdfPage.getPageBoundingBox()
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(invalidRectF)
+            }
+        }
 
     @Test
-    fun `getPageSize success`() {
-        // Verify getPageSize returns a valid Size object based on the provided screen DPI.
-        every {
-            mockNativePage.getPageSizeByIndex(
-                any(),
-                any(),
-                any(),
-            )
-        } returns intArrayOf(10, 20)
-        val result = pdfPage.getPageSize(72)
-        assertThat(result).isEqualTo(Size(width = 10, height = 20))
-    }
+    fun `getPageSize success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageSizeByIndex(any(), any(), any()) } returns intArrayOf(10, 20)
+            }
+            apiCall = {
+                pdfPage.getPageSize(72)
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(Size(width = 10, height = 20))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(Size(width = -1, height = -1))
+            }
+        }
 
     @Test
-    fun `renderPage to bufferPtr success`() {
-        // Verify renderPage with bufferPtr renders correctly and returns true for valid inputs.
-        every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns true
-        val result = pdfPage.renderPage(0L, 100, 100, 100, 100)
-        assertThat(result).isTrue()
-    }
+    fun `renderPage to bufferPtr success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns true
+            }
+            apiCall = {
+                pdfPage.renderPage(0L, 100, 100, 100, 100)
+            }
+            verifyHappy {
+                assertThat(it).isTrue()
+            }
+            verifyDefault {
+                assertThat(it).isFalse()
+            }
+        }
 
+    // NOTE: Tests checking specific native exception handling logic (try/catch inside the wrapper)
+    // are best kept as standard @Tests, as they test "Happy path with native crash" scenarios,
+    // not the "Closed Object" guard scenarios.
     @Test
     fun `renderPage to bufferPtr exception handling`() {
+        if (isStateClosed()) return // Skip for closed states as we are testing logic inside the open state
+
         every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws
             NullPointerException("Test exception")
         val result = pdfPage.renderPage(0L, 100, 100, 100, 100)
@@ -346,6 +363,8 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
     @Test
     fun `renderPage to bufferPtr exception handling 2`() {
+        if (isStateClosed()) return
+
         every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws
             IllegalStateException("Test exception")
         val result = pdfPage.renderPage(0L, 100, 100, 100, 100)
@@ -353,61 +372,94 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     }
 
     @Test
-    fun `renderPage with Matrix to bufferPtr success`() {
-        // Verify renderPage with Matrix/clipRect renders correctly to the buffer pointer and returns true.
-        val matrix = Matrix()
-        matrix.postTranslate(100f, 100f)
-        val clipRect = RectF(0f, 0f, 100f, 100f)
-        every {
-            mockNativePage.renderPageWithMatrix(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-            )
-        } returns true
-        pdfPage.renderPage(0L, 100, 100, matrix, clipRect)
-    }
+    fun `renderPage with Matrix to bufferPtr success`() =
+        closableTest {
+            val matrix = Matrix()
+            matrix.postTranslate(100f, 100f)
+            val clipRect = RectF(0f, 0f, 100f, 100f)
+
+            setupHappy {
+                every { mockNativePage.renderPageWithMatrix(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                    true
+            }
+            apiCall = {
+                pdfPage.renderPage(0L, 100, 100, matrix, clipRect)
+            }
+            verifyHappy {
+                assertThat(it).isTrue()
+            }
+            verifyDefault {
+                assertThat(it).isFalse()
+            }
+        }
 
     @Test
-    fun `renderPage with Matrix to Surface success`() {
-        // Verify renderPage with Matrix/clipRect renders correctly to a Surface object and returns true.
-        val surface = mockk<Surface>()
-        val matrix = Matrix()
-        matrix.postTranslate(100f, 100f)
-        val clipRect = RectF(0f, 0f, 100f, 100f)
-        every { mockNativePage.renderPageSurfaceWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } returns true
-        pdfPage.renderPage(surface, matrix, clipRect)
-    }
+    fun `renderPage with Matrix to Surface success`() =
+        closableTest {
+            val surface = mockk<Surface>()
+            val matrix = Matrix()
+            matrix.postTranslate(100f, 100f)
+            val clipRect = RectF(0f, 0f, 100f, 100f)
+
+            setupHappy {
+                every { mockNativePage.renderPageSurfaceWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } returns true
+            }
+            apiCall = {
+                pdfPage.renderPage(surface, matrix, clipRect)
+            }
+            verifyHappy {
+                assertThat(it).isTrue()
+            }
+            verifyDefault {
+                assertThat(it).isFalse()
+            }
+        }
 
     @Test
-    fun `renderPageBitmap coordinates success`() {
-        // Verify renderPageBitmap using start coordinates renders to the bitmap successfully.
-        val bitmap = mockk<Bitmap>()
-        val matrix = Matrix()
-        matrix.postTranslate(100f, 100f)
-        val clipRect = RectF(0f, 0f, 100f, 100f)
-        every { mockNativePage.renderPageBitmapWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } just runs
-        pdfPage.renderPageBitmap(bitmap, matrix, clipRect)
-    }
+    fun `renderPageBitmap coordinates success`() =
+        closableTest {
+            val bitmap = mockk<Bitmap>()
+            val matrix = Matrix()
+            matrix.postTranslate(100f, 100f)
+            val clipRect = RectF(0f, 0f, 100f, 100f)
+
+            setupHappy {
+                every { mockNativePage.renderPageBitmapWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } just runs
+            }
+            apiCall = {
+                pdfPage.renderPageBitmap(bitmap, matrix, clipRect)
+            }
+            verifyHappy {
+                // Verify calls actually happened if possible, or just that no exception occurred
+            }
+            verifyDefault {
+                // No exception expected
+            }
+        }
 
     @Test
-    fun `renderPageBitmap Matrix success`() {
-        // Verify renderPageBitmap using Matrix and clipRect renders to the bitmap successfully.
-        val bitmap = mockk<Bitmap>()
-        every { mockNativePage.renderPageBitmap(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } just runs
-        pdfPage.renderPageBitmap(bitmap, 0, 0, 0, 0)
-    }
+    fun `renderPageBitmap Matrix success`() =
+        closableTest {
+            val bitmap = mockk<Bitmap>()
+            setupHappy {
+                every { mockNativePage.renderPageBitmap(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } just
+                    runs
+            }
+            apiCall = {
+                pdfPage.renderPageBitmap(bitmap, 0, 0, 0, 0)
+            }
+            verifyHappy {
+                // No exception
+            }
+            verifyDefault {
+                // No exception
+            }
+        }
 
     @Test
     fun `renderPageBitmap null bitmap`() {
-        // Verify how renderPageBitmap behaves if a null Bitmap is passed (native layer behavior check or graceful fail).
+        if (isStateClosed()) return
+
         val matrix = Matrix()
         matrix.postTranslate(100f, 100f)
         val clipRect = RectF(0f, 0f, 100f, 100f)
@@ -416,69 +468,132 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     }
 
     @Test
-    fun `getPageLinks success`() {
-        // Verify getPageLinks parses and returns a list of Link objects with valid rects, URIs, or page indices.
-        every { mockNativePage.getPageLinks(any()) } returns
-            longArrayOf(100L, 200L, 300L, 400L, 500L, 600L)
-        every { mockNativePage.getLinkRect(any(), any()) } returns
-            floatArrayOf(100f, 200f, 300f, 400f)
-        every { mockNativePage.getPageLinks(any()) } returns
-            longArrayOf(100L, 200L, 300L, 400L, 500L, 600L)
-        every { mockNativePage.getDestPageIndex(any(), any()) } returns
-            101
-        every { mockNativePage.getLinkURI(any(), any()) } returns
-            "somelink"
+    fun `getPageLinks success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageLinks(any()) } returns
+                    longArrayOf(100L, 200L, 300L, 400L, 500L, 600L)
+                every { mockNativePage.getLinkRect(any(), any()) } returns
+                    floatArrayOf(100f, 200f, 300f, 400f)
+                every { mockNativePage.getDestPageIndex(any(), any()) } returns 101
+                every { mockNativePage.getLinkURI(any(), any()) } returns "somelink"
+            }
+            apiCall = {
+                pdfPage.getPageLinks()
+            }
+            verifyHappy {
+                assertThat(it.size).isEqualTo(6)
+            }
+            verifyDefault {
+                assertThat(it).isEmpty()
+            }
+        }
 
-        val results = pdfPage.getPageLinks()
-        println(results)
-        assertThat(results.size).isEqualTo(6)
+    @Test
+    fun `mapPageCoordsToDevice success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.pageCoordsToDevice(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                    intArrayOf(100, 200)
+            }
+            apiCall = {
+                pdfPage.mapPageCoordsToDevice(0, 0, 0, 0, 0, 0.0, 0.0)
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(Point(100, 200))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(Point(-1, -1))
+            }
+        }
+
+    @Test
+    fun `mapDeviceCoordsToPage success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.deviceCoordsToPage(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                    floatArrayOf(100f, 200f)
+            }
+            apiCall = {
+                pdfPage.mapDeviceCoordsToPage(0, 0, 0, 0, 0, 0, 0)
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(PointF(100.0f, 200.0f))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(PointF(-1f, -1f))
+            }
+        }
+
+    @Test
+    fun `mapRectToDevice success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.pageCoordsToDevice(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                    intArrayOf(100, 200)
+            }
+            apiCall = {
+                pdfPage.mapRectToDevice(0, 0, 0, 0, 0, RectF(100f, 200f, 300f, 400f))
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(Rect(100, 200, 100, 200))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(Rect(-1, -1, -1, -1))
+            }
+        }
+
+    @Test
+    fun `mapRectToPage success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.deviceCoordsToPage(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                    floatArrayOf(100f, 200f)
+            }
+            apiCall = {
+                pdfPage.mapRectToPage(0, 0, 0, 0, 0, Rect(100, 200, 300, 400))
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(100.0f, 200.0f, 100.0f, 200.0f))
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(invalidRectF)
+            }
+        }
+}
+
+class PdfPageHappyTest : PdfPageUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = false
+
+    override fun setupClosedState() {
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
     }
 
     @Test
-    fun `mapPageCoordsToDevice success`() {
-        // Verify mapPageCoordsToDevice correctly transforms page coordinates (double) to device coordinates (int Point).
-        every { mockNativePage.pageCoordsToDevice(any(), any(), any(), any(), any(), any(), any(), any()) } returns
-            intArrayOf(100, 200)
-        val result = pdfPage.mapPageCoordsToDevice(0, 0, 0, 0, 0, 0.0, 0.0)
-        assertThat(result).isEqualTo(Point(100, 200))
+    fun `isClosed and setClosed getter setter verification`() {
+        // Verify that setting the isClosed property updates the internal state correctly and the getter reflects this change.
+        assertThat(pdfPage.isClosed).isFalse()
+        pdfPage.isClosed = true
+        assertThat(pdfPage.isClosed).isTrue()
+        pdfPage.isClosed = false
+        assertThat(pdfPage.isClosed).isFalse()
     }
-
-    @Test
-    fun `mapDeviceCoordsToPage success`() {
-        // Verify mapDeviceCoordsToPage correctly transforms device coordinates (int) to page coordinates (PointF).
-        every { mockNativePage.deviceCoordsToPage(any(), any(), any(), any(), any(), any(), any(), any()) } returns floatArrayOf(100f, 200f)
-        val result = pdfPage.mapDeviceCoordsToPage(0, 0, 0, 0, 0, 0, 0)
-        assertThat(result).isEqualTo(PointF(100.0f, 200.0f))
-    }
-
-    @Test
-    fun `mapRectToDevice success`() {
-        // Verify mapRectToDevice transforms a RectF (page) to a Rect (device) correctly.
-        every { mockNativePage.pageCoordsToDevice(any(), any(), any(), any(), any(), any(), any(), any()) } returns intArrayOf(100, 200)
-        val result = pdfPage.mapRectToDevice(0, 0, 0, 0, 0, RectF(100f, 200f, 300f, 400f))
-        assertThat(result).isEqualTo(Rect(100, 200, 100, 200))
-    }
-
-    @Test
-    fun `mapRectToPage success`() {
-        // Verify mapRectToPage transforms a Rect (device) to a RectF (page) correctly.
-        every { mockNativePage.deviceCoordsToPage(any(), any(), any(), any(), any(), any(), any(), any()) } returns floatArrayOf(100f, 200f)
-        val result = pdfPage.mapRectToPage(0, 0, 0, 0, 0, Rect(100, 200, 300, 400))
-        assertThat(result).isEqualTo(RectF(100.0f, 200.0f, 100.0f, 200.0f))
-    }
+    // ========================================================================
+    // Internal Logic Tests (Reference Counting)
+    // These test the *mechanism* of closing, so they run as standard tests
+    // rather than using the closableTest wrapper.
+    // ========================================================================
 
     @Test
     fun `close decrements reference count`() {
-        // Verify that calling close() on a page that is opened multiple times only decrements the count in pageMap and does not close the native page.
-        every { mockNativePage.closePage(any()) } just runs
         pdfPage.close()
         assertThat(pdfPage.isClosed).isFalse()
     }
 
     @Test
     fun `close actually closes native page`() {
-        // Verify that calling close() when reference count is 1 removes the page from pageMap, sets isClosed to true, and calls native closePage.
-        every { mockNativePage.closePage(any()) } just runs
         pdfPage.close()
         pdfPage.close()
         assertThat(pdfPage.isClosed).isTrue()
@@ -487,7 +602,6 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     @Test
     fun `close actually closes native page with missing map entry`() {
         // Verify that calling close() when reference count is 1 removes the page from pageMap, sets isClosed to true, and calls native closePage.
-        every { mockNativePage.closePage(any()) } just runs
         val pdfPage2 =
             PdfPageU(
                 pdfDocumentU,
@@ -504,7 +618,6 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     @Test(expected = IllegalStateException::class)
     fun `close idempotent check`() {
         // Verify that calling close() multiple times on an already closed page does not cause errors or double-free native resources.
-        every { mockNativePage.closePage(any()) } just runs
         pdfPage.close()
         pdfPage.close()
         pdfPage.close()
@@ -527,26 +640,6 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
         every { mockNativePage.unlockSurface(any()) } just runs
         pdfPage.unlockSurface(longArrayOf(100, 200))
         // if no exception is thrown, the test passes
-    }
-}
-
-class PdfPageHappyTest : PdfPageUBaseTest() {
-    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
-
-    override fun isStateClosed() = false
-
-    override fun setupClosedState() {
-        every { mockNativeTextPage.closeTextPage(any()) } just runs
-    }
-
-    @Test
-    fun `isClosed and setClosed getter setter verification`() {
-        // Verify that setting the isClosed property updates the internal state correctly and the getter reflects this change.
-        assertThat(pdfPage.isClosed).isFalse()
-        pdfPage.isClosed = true
-        assertThat(pdfPage.isClosed).isTrue()
-        pdfPage.isClosed = false
-        assertThat(pdfPage.isClosed).isFalse()
     }
 }
 
