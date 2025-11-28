@@ -156,10 +156,12 @@ class PdfTextPageKt(
             }
         }
 
-    suspend fun loadWebLink(): PdfPageLinkKt =
+    suspend fun loadWebLink(): PdfPageLinkKt? =
         mutex.withLock {
             withContext(dispatcher) {
-                PdfPageLinkKt(page.loadWebLink(), dispatcher)
+                page.loadWebLink()?.let {
+                    PdfPageLinkKt(it, dispatcher)
+                }
             }
         }
 

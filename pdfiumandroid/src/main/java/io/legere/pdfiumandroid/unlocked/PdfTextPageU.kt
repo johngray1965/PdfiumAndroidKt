@@ -352,8 +352,8 @@ class PdfTextPageU(
         return FindResultU(nativeTextPage.findStart(pagePtr, findWhat, apiFlags, startIndex))
     }
 
-    fun loadWebLink(): PdfPageLinkU {
-        check(!isClosed && !doc.isClosed) { "Already closed" }
+    fun loadWebLink(): PdfPageLinkU? {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         val linkPtr = nativeTextPage.loadWebLink(pagePtr)
         return PdfPageLinkU(linkPtr)
     }

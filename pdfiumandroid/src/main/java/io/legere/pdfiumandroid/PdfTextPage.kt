@@ -192,9 +192,9 @@ class PdfTextPage(
         }
     }
 
-    fun loadWebLink(): PdfPageLink {
+    fun loadWebLink(): PdfPageLink? {
         synchronized(PdfiumCore.lock) {
-            return PdfPageLink(page.loadWebLink())
+            return page.loadWebLink()?.let { PdfPageLink(it) }
         }
     }
 
