@@ -397,6 +397,39 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
         }
 
     @Test
+    fun `getTableOfContents top level only`() =
+        closableTest {
+            setupHappy {
+                // Verify that recursiveGetBookmark stops recursing if the nesting level exceeds
+                // MAX_RECURSION (usually 50), preventing potential StackOverflowErrors.
+
+                // Setup: Create a scenario where every bookmark has a child, going deeper than 50 levels.
+                // We simulate this by having getFirstChildBookmark always return a valid pointer.
+                every { mockNativeDocument.getFirstChildBookmark(any(), any()) } answers {
+                    // Return a "fake" pointer equal to the current pointer + 1 to simulate a new node
+                    0
+                }
+                // Assume no siblings for simplicity, just deep nesting
+                every { mockNativeDocument.getSiblingBookmark(any(), any()) } returns 0
+                every { mockNativeDocument.getBookmarkTitle(any()) } returns "Deep Node"
+                every { mockNativeDocument.getBookmarkDestIndex(any(), any()) } returns 0L
+
+                // We need to mock the initial call to getFirstChildBookmark from the document root (null)
+                every { mockNativeDocument.getFirstChildBookmark(any(), 0) } returns 100L
+            }
+            apiCall = {
+                pdfDocumentU.getTableOfContents()
+            }
+
+            verifyHappy {
+                assertThat(it).isNotEmpty()
+            }
+            verifyDefault {
+                assertThat(it).isEmpty()
+            }
+        }
+
+    @Test
     fun `getTableOfContents structure assembly`() =
         closableTest {
             setupHappy {

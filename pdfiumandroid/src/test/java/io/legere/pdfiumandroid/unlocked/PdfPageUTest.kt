@@ -14,6 +14,8 @@ import io.legere.pdfiumandroid.jni.NativeDocument
 import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.jni.NativePage
 import io.legere.pdfiumandroid.jni.NativeTextPage
+import io.legere.pdfiumandroid.unlocked.testing.ClosableTestContext
+import io.legere.pdfiumandroid.unlocked.testing.closableTest
 import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.pdfiumConfig
@@ -32,7 +34,7 @@ import java.lang.NullPointerException
 
 @RunWith(AndroidJUnit4::class)
 @Config(manifest = Config.NONE)
-class PdfPageUTest {
+abstract class PdfPageUBaseTest : ClosableTestContext {
     @get:Rule
     val mockkRule: MockKRule = MockKRule(this)
 
@@ -52,11 +54,21 @@ class PdfPageUTest {
 
     lateinit var pdfPage: PdfPageU
 
+    abstract fun getBehavior(): AlreadyClosedBehavior
+
+    abstract fun setupClosedState()
+
+    abstract fun isStateClosed(): Boolean
+
+    override fun shouldThrowException() = getBehavior() == AlreadyClosedBehavior.EXCEPTION && isStateClosed()
+
+    override fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
+
     @Before
     fun setUp() {
         pdfiumConfig =
             io.legere.pdfiumandroid.util
-                .Config(alreadyClosedBehavior = AlreadyClosedBehavior.EXCEPTION)
+                .Config(alreadyClosedBehavior = getBehavior())
         every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument
         every { mockNativeFactory.getNativePage() } returns mockNativePage
         every { mockNativeFactory.getNativeTextPage() } returns mockNativeTextPage
@@ -69,103 +81,182 @@ class PdfPageUTest {
                 pageMap = mutableMapOf(0 to PdfDocument.PageCount(0, 2)),
                 nativeFactory = mockNativeFactory,
             )
+        setupClosedState()
     }
 
     @Test
-    fun `isClosed and setClosed getter setter verification`() {
-        // Verify that setting the isClosed property updates the internal state correctly and the getter reflects this change.
-        assertThat(pdfPage.isClosed).isFalse()
-        pdfPage.isClosed = true
-        assertThat(pdfPage.isClosed).isTrue()
-        pdfPage.isClosed = false
-        assertThat(pdfPage.isClosed).isFalse()
-    }
+    fun `openTextPage success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativeDocument.loadTextPage(any(), any()) } returns 123
+            }
+            apiCall = {
+                pdfPage.openTextPage()
+            }
+
+            verifyHappy {
+                assertThat(it).isNotNull()
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun `openTextPage success`() {
-        // Verify that openTextPage returns a valid PdfTextPageU instance when the document and page are open.
-        every { mockNativeDocument.loadTextPage(any(), any()) } returns 123
-        val textPage = pdfPage.openTextPage()
-        assertThat(textPage).isNotNull()
-    }
+    fun `getPageWidth pixels success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageWidthPixel(any(), any()) } returns 100
+            }
+            apiCall = {
+                pdfPage.getPageWidth(100)
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(100)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun `getPageWidth pixels success`() {
-        // Verify getPageWidth returns the correct pixel width for a given valid screen DPI.
-        every { mockNativePage.getPageWidthPixel(any(), any()) } returns 100
-        val width = pdfPage.getPageWidth(100)
-        assertThat(width).isEqualTo(100)
-    }
+    fun `getPageHeight pixels success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageHeightPixel(any(), any()) } returns 100
+            }
+            apiCall = {
+                pdfPage.getPageHeight(100)
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(100)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun `getPageHeight pixels success`() {
-        // Verify getPageHeight returns the correct pixel height for a given valid screen DPI.
-        every { mockNativePage.getPageHeightPixel(any(), any()) } returns 100
-        val width = pdfPage.getPageHeight(100)
-        assertThat(width).isEqualTo(100)
-    }
+    fun `getPageWidthPoint success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageWidthPoint(any()) } returns 100
+            }
+            apiCall = {
+                pdfPage.getPageWidthPoint()
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(100)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun `getPageWidthPoint success`() {
-        // Verify getPageWidthPoint returns the correct width in PostScript points.
-        every { mockNativePage.getPageWidthPoint(any()) } returns 100
-        val width = pdfPage.getPageWidthPoint()
-        assertThat(width).isEqualTo(100)
-    }
+    fun `getPageHeightPoint success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageHeightPoint(any()) } returns 100
+            }
+            apiCall = {
+                pdfPage.getPageHeightPoint()
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(100)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun `getPageHeightPoint success`() {
-        // Verify getPageHeightPoint returns the correct height in PostScript points.
-        every { mockNativePage.getPageHeightPoint(any()) } returns 100
-        val width = pdfPage.getPageHeightPoint()
-        assertThat(width).isEqualTo(100)
-    }
+    fun `getPageMatrix success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageMatrix(any()) } returns floatArrayOf(1f, 2f, 3f, 4f, 5f, 6f)
+            }
+            apiCall = {
+                pdfPage.getPageMatrix()
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(Matrix().apply { setValues(floatArrayOf(1.0f, 2.0f, 5.0f, 3.0f, 4.0f, 6.0f, 0.0f, 0.0f, 1.0f)) })
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun `getPageMatrix success`() {
-        // Verify getPageMatrix returns a Matrix populated with correct scale, skew, and translation values derived from the native array.
-        every { mockNativePage.getPageMatrix(any()) } returns floatArrayOf(1f, 2f, 3f, 4f, 5f, 6f)
-        val result = pdfPage.getPageMatrix()
-        val expected =
-            Matrix().apply { setValues(floatArrayOf(1.0f, 2.0f, 5.0f, 3.0f, 4.0f, 6.0f, 0.0f, 0.0f, 1.0f)) }
-        assertThat(result).isEqualTo(expected)
-    }
+    fun `getPageRotation valid values`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageRotation(any()) } returns 90
+            }
+            apiCall = {
+                pdfPage.getPageRotation()
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(90)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun `getPageRotation valid values`() {
-        // Verify getPageRotation returns valid rotation constants (0, 1, 2, 3) corresponding to 0, 90, 180, 270 degrees.
-        every { mockNativePage.getPageRotation(any()) } returns 90
-        val result = pdfPage.getPageRotation()
-        assertThat(result).isEqualTo(90)
-    }
+    fun `getPageCropBox success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageCropBox(any()) } returns
+                    floatArrayOf(
+                        10f,
+                        20f,
+                        30f,
+                        40f,
+                    )
+            }
+            apiCall = {
+                pdfPage.getPageCropBox()
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun `getPageCropBox success`() {
-        // Verify getPageCropBox returns a RectF with correct coordinates.
-        every { mockNativePage.getPageCropBox(any()) } returns
-            floatArrayOf(
-                10f,
-                20f,
-                30f,
-                40f,
-            )
-        val result = pdfPage.getPageCropBox()
-        assertThat(result).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
-    }
+    fun `getPageMediaBox success`() =
+        closableTest {
+            setupHappy {
+                every { mockNativePage.getPageMediaBox(any()) } returns
+                    floatArrayOf(
+                        10f,
+                        20f,
+                        30f,
+                        40f,
+                    )
+            }
+            apiCall = {
+                pdfPage.getPageMediaBox()
+            }
 
-    @Test
-    fun `getPageMediaBox success`() {
-        // Verify getPageMediaBox returns a RectF with correct coordinates.
-        every { mockNativePage.getPageMediaBox(any()) } returns
-            floatArrayOf(
-                10f,
-                20f,
-                30f,
-                40f,
-            )
-        val result = pdfPage.getPageMediaBox()
-        assertThat(result).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
-    }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(10.0f, 20.0f, 30.0f, 40.0f))
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
     fun `getPageBleedBox success`() {
@@ -436,5 +527,71 @@ class PdfPageUTest {
         every { mockNativePage.unlockSurface(any()) } just runs
         pdfPage.unlockSurface(longArrayOf(100, 200))
         // if no exception is thrown, the test passes
+    }
+}
+
+class PdfPageHappyTest : PdfPageUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = false
+
+    override fun setupClosedState() {
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+    }
+
+    @Test
+    fun `isClosed and setClosed getter setter verification`() {
+        // Verify that setting the isClosed property updates the internal state correctly and the getter reflects this change.
+        assertThat(pdfPage.isClosed).isFalse()
+        pdfPage.isClosed = true
+        assertThat(pdfPage.isClosed).isTrue()
+        pdfPage.isClosed = false
+        assertThat(pdfPage.isClosed).isFalse()
+    }
+}
+
+class PdfPageClosedExceptionTest : PdfPageUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+        pdfPage.close() // 2->1
+        pdfPage.close() // 1->0 (Closed)
+    }
+}
+
+class PdfPageClosedIgnoreTest : PdfPageUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.IGNORE
+
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+        pdfPage.close()
+        pdfPage.close()
+    }
+}
+
+class PdfPageDocClosedTest : PdfPageUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+        pdfDocumentU.close()
+    }
+}
+
+class PdfPageDocClosedIgnoreTest : PdfPageUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.IGNORE
+
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+        pdfDocumentU.close()
     }
 }

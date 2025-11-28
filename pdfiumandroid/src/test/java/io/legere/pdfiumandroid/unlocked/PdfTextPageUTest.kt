@@ -8,6 +8,8 @@ import io.legere.pdfiumandroid.jni.NativeDocument
 import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.jni.NativePage
 import io.legere.pdfiumandroid.jni.NativeTextPage
+import io.legere.pdfiumandroid.unlocked.testing.ClosableTestContext
+import io.legere.pdfiumandroid.unlocked.testing.closableTest
 import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.pdfiumConfig
@@ -17,7 +19,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -29,7 +30,7 @@ import org.robolectric.annotation.Config as RoboConfig
 
 @RunWith(AndroidJUnit4::class)
 @RoboConfig(manifest = RoboConfig.NONE)
-abstract class PdfTextPageBaseTest {
+abstract class PdfTextPageBaseTest : ClosableTestContext {
     @MockK lateinit var mockNativeFactory: NativeFactory
 
     @MockK lateinit var mockNativeDocument: NativeDocument
@@ -49,9 +50,9 @@ abstract class PdfTextPageBaseTest {
 
     abstract fun isStateClosed(): Boolean
 
-    private fun shouldThrowException() = getBehavior() == AlreadyClosedBehavior.EXCEPTION && isStateClosed()
+    override fun shouldThrowException() = getBehavior() == AlreadyClosedBehavior.EXCEPTION && isStateClosed()
 
-    private fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
+    override fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
 
     @Before
     fun setUp() {
@@ -76,246 +77,287 @@ abstract class PdfTextPageBaseTest {
         setupClosedState()
     }
 
-    // Helper for JUnit 4 Exception assertions
-    private fun assertThrows(block: () -> Unit) {
-        try {
-            block()
-            fail("Expected an Exception to be thrown, but nothing was thrown.")
-        } catch (e: Exception) {
-            // Success (Check type if needed, e.g., IllegalStateException)
-            assertThat(e).isInstanceOf(IllegalStateException::class.java)
-        }
-    }
-
     // =============================================================================================
     // TESTS
     // =============================================================================================
 
     @Test
-    fun textPageCountChars_behavior() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageCountChars() }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageCountChars()).isEqualTo(-1)
-            return
-        }
-
-        val result = pdfTextPage.textPageCountChars()
-        assertThat(result).isEqualTo(10)
-    }
-
-    @Test
-    fun textPageGetTextLegacy_validRange() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetTextLegacy(0, 10) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetTextLegacy(0, 10)).isNull()
-            return
-        }
-
-        val expectedString = "Hello World"
-        val length = expectedString.length
-
-        every { mockNativeTextPage.textGetText(any(), any(), any(), any()) } answers {
-            val buffer = arg<ShortArray>(3)
-            for (i in expectedString.indices) {
-                if (i < buffer.size) buffer[i] = expectedString[i].code.toShort()
+    fun textPageCountChars_behavior() =
+        closableTest {
+            apiCall = {
+                pdfTextPage.textPageCountChars()
             }
-            length + 1
+
+            verifyHappy {
+                assertThat(it).isEqualTo(10)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
         }
-        val result = pdfTextPage.textPageGetTextLegacy(0, length)
-        assertThat(result).isEqualTo(expectedString)
-    }
 
     @Test
-    fun textPageGetText_validRange() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetText(0, 10) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetText(0, 10)).isNull()
-            return
-        }
+    fun textPageGetTextLegacy_validRange() =
+        closableTest {
+            val expectedString = "Hello World"
+            val length = expectedString.length
+            setupHappy {
+                every { mockNativeTextPage.textGetText(any(), any(), any(), any()) } answers {
+                    val buffer = arg<ShortArray>(3)
+                    for (i in expectedString.indices) {
+                        if (i < buffer.size) buffer[i] = expectedString[i].code.toShort()
+                    }
+                    length + 1
+                }
+            }
+            apiCall = {
+                pdfTextPage.textPageGetTextLegacy(0, length)
+            }
 
-        val expectedString = "Hello World"
-        val length = expectedString.length
-
-        every { mockNativeTextPage.textGetTextByteArray(any(), any(), any(), any()) } answers {
-            val buffer = arg<ByteArray>(3)
-            val count = thirdArg<Int>()
-            val bytes = expectedString.toByteArray(Charsets.UTF_16LE)
-            bytes.copyInto(buffer, endIndex = minOf(bytes.size, count * 2))
-            count + 1
+            verifyHappy {
+                assertThat(it).isEqualTo(expectedString)
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
         }
-        val result = pdfTextPage.textPageGetText(0, length)
-        assertThat(result).isEqualTo(expectedString)
-    }
 
     @Test
-    fun textPageGetUnicode_validIndex() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetUnicode(0) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetUnicode(0)).isEqualTo(Char.MIN_VALUE)
-            return
-        }
+    fun textPageGetText_validRange() =
+        closableTest {
+            val expectedString = "Hello World"
+            val length = expectedString.length
+            setupHappy {
+                every { mockNativeTextPage.textGetTextByteArray(any(), any(), any(), any()) } answers {
+                    val buffer = arg<ByteArray>(3)
+                    val count = thirdArg<Int>()
+                    val bytes = expectedString.toByteArray(Charsets.UTF_16LE)
+                    bytes.copyInto(buffer, endIndex = minOf(bytes.size, count * 2))
+                    count + 1
+                }
+            }
+            apiCall = {
+                pdfTextPage.textPageGetText(0, length)
+            }
 
-        val expectedChar = 'H'
-        every { mockNativeTextPage.textGetUnicode(any(), any()) } returns expectedChar.code
-        val result = pdfTextPage.textPageGetUnicode(0)
-        assertThat(result).isEqualTo(expectedChar)
-    }
+            verifyHappy {
+                assertThat(it).isEqualTo(expectedString)
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun textPageGetCharBox_validIndex() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetCharBox(0) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetCharBox(0)).isNull()
-            return
+    fun textPageGetUnicode_validIndex() =
+        closableTest {
+            val expectedChar = 'H'
+            setupHappy {
+                every { mockNativeTextPage.textGetUnicode(any(), any()) } returns expectedChar.code
+            }
+            apiCall = {
+                pdfTextPage.textPageGetUnicode(0)
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(expectedChar)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(Char.MIN_VALUE)
+            }
         }
-
-        // PDFium returns L, R, B, T in doubles usually
-        every { mockNativeTextPage.textGetCharBox(any(), any()) } returns
-            doubleArrayOf(90.0, 100.0, 600.0, 700.0)
-
-        val rect = pdfTextPage.textPageGetCharBox(0)
-        // Ensure your mapping logic matches this expectation (L, T, R, B)
-        assertThat(rect).isEqualTo(RectF(90.0f, 700.0f, 100.0f, 600.0f))
-    }
 
     @Test
-    fun textPageGetCharIndexAtPos_validCoordinates() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetCharIndexAtPos(0.0, 0.0, 0.0, 0.0) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetCharIndexAtPos(0.0, 0.0, 0.0, 0.0)).isEqualTo(-1)
-            return
-        }
+    fun textPageGetCharBox_validIndex() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.textGetCharBox(any(), any()) } returns
+                    doubleArrayOf(90.0, 100.0, 600.0, 700.0)
+            }
+            apiCall = {
+                pdfTextPage.textPageGetCharBox(0)
+            }
 
-        every { mockNativeTextPage.textGetCharIndexAtPos(any(), any(), any(), any(), any()) } returns 10
-        val result = pdfTextPage.textPageGetCharIndexAtPos(50.0, 50.0, 50.0, 50.0)
-        assertThat(result).isEqualTo(10)
-    }
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(90.0f, 700.0f, 100.0f, 600.0f))
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun textPageCountRects_validRange() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageCountRects(0, 100) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageCountRects(0, 100)).isEqualTo(-1)
-            return
-        }
+    fun textPageGetCharIndexAtPos_validCoordinates() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.textGetCharIndexAtPos(any(), any(), any(), any(), any()) } returns 10
+            }
+            apiCall = {
+                pdfTextPage.textPageGetCharIndexAtPos(50.0, 50.0, 50.0, 50.0)
+            }
 
-        every { mockNativeTextPage.textCountRects(any(), any(), any()) } returns 4
-        val result = pdfTextPage.textPageCountRects(0, 100)
-        assertThat(result).isEqualTo(4)
-    }
+            verifyHappy {
+                assertThat(it).isEqualTo(10)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun textPageGetRect_validIndex() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetRect(0) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetRect(0)).isNull()
-            return
-        }
+    fun textPageCountRects_validRange() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.textCountRects(any(), any(), any()) } returns 4
+            }
+            apiCall = {
+                pdfTextPage.textPageCountRects(0, 100)
+            }
 
-        every { mockNativeTextPage.textGetRect(any(), any()) } returns doubleArrayOf(90.0, 700.0, 100.0, 600.0)
-        val result = pdfTextPage.textPageGetRect(0)
-        assertThat(result).isEqualTo(RectF(90.0f, 700.0f, 100.0f, 600.0f))
-    }
+            verifyHappy {
+                assertThat(it).isEqualTo(4)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+            }
+        }
 
     @Test
-    fun textPageGetRectsForRanges_validInput() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetRectsForRanges(intArrayOf()) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetRectsForRanges(intArrayOf())).isNull()
-            return
+    fun textPageGetRect_validIndex() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.textGetRect(any(), any()) } returns doubleArrayOf(90.0, 700.0, 100.0, 600.0)
+            }
+            apiCall = {
+                pdfTextPage.textPageGetRect(0)
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(RectF(90.0f, 700.0f, 100.0f, 600.0f))
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
         }
-
-        val mockRects = doubleArrayOf(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
-        val mockInts = intArrayOf(5, 0)
-        every { mockNativeTextPage.textGetRects(any(), any()) } returns mockRects
-
-        val result = pdfTextPage.textPageGetRectsForRanges(intArrayOf(0))
-        assertThat(result).hasSize(1)
-        assertThat(result!![0].rect).isEqualTo(RectF(10f, 20f, 30f, 40f))
-    }
 
     @Test
-    fun textPageGetBoundedText_validRect() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.textPageGetBoundedText(RectF(), 10) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.textPageGetBoundedText(RectF(), 10)).isNull()
-            return
-        }
+    fun textPageGetRectsForRanges_validInput() =
+        closableTest {
+            setupHappy {
+                val mockRects = doubleArrayOf(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
+                every { mockNativeTextPage.textGetRects(any(), any()) } returns mockRects
+            }
+            apiCall = {
+                pdfTextPage.textPageGetRectsForRanges(intArrayOf(0))
+            }
 
-        val expected = "Bounded"
-        every { mockNativeTextPage.textGetBoundedText(any(), any(), any(), any(), any(), any()) } answers {
-            val buffer = arg<ShortArray>(5)
-            expected.forEachIndexed { i, c -> buffer[i] = c.code.toShort() }
-            expected.length + 1
+            verifyHappy {
+                assertThat(it).hasSize(1)
+                assertThat(it!![0].rect).isEqualTo(RectF(10f, 20f, 30f, 40f))
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
         }
-
-        val result = pdfTextPage.textPageGetBoundedText(RectF(0f, 0f, 100f, 100f), 10)
-        assertThat(result).isEqualTo(expected)
-    }
 
     @Test
-    fun getFontSize_validIndex() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.getFontSize(5) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.getFontSize(5)).isEqualTo(0.0)
-            return
-        }
+    fun textPageGetRectsForRanges_invalidInput() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.textGetRects(any(), any()) } returns null
+            }
+            apiCall = {
+                pdfTextPage.textPageGetRectsForRanges(intArrayOf(0))
+            }
 
-        every { mockNativeTextPage.getFontSize(any(), 5) } returns 12.5
-        assertThat(pdfTextPage.getFontSize(5)).isEqualTo(12.5)
-    }
+            verifyHappy {
+                assertThat(it).isNull()
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun findStart_validSearch() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.findStart("q", emptySet(), 0) }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.findStart("q", emptySet(), 0)).isNull()
-            return
-        }
+    fun textPageGetBoundedText_validRect() =
+        closableTest {
+            val expected = "Bounded"
+            setupHappy {
+                every { mockNativeTextPage.textGetBoundedText(any(), any(), any(), any(), any(), any()) } answers {
+                    val buffer = arg<ShortArray>(5)
+                    expected.forEachIndexed { i, c -> buffer[i] = c.code.toShort() }
+                    expected.length + 1
+                }
+            }
+            apiCall = {
+                pdfTextPage.textPageGetBoundedText(RectF(0f, 0f, 100f, 100f), 10)
+            }
 
-        every { mockNativeTextPage.findStart(any(), any(), any(), any()) } returns 999L
-        val result = pdfTextPage.findStart("query", emptySet(), 0)
-//        assertThat(result.searchHandle).isEqualTo(999L) the FindResultU tests will really test this
-    }
+            verifyHappy {
+                assertThat(it).isEqualTo(expected)
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+            }
+        }
 
     @Test
-    fun loadWebLink_execution() {
-        if (shouldThrowException()) {
-            assertThrows { pdfTextPage.loadWebLink() }
-            return
-        } else if (shouldReturnDefault()) {
-            assertThat(pdfTextPage.loadWebLink()).isNull()
-            return
+    fun getFontSize_validIndex() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.getFontSize(any(), 5) } returns 12.5
+            }
+            apiCall = {
+                pdfTextPage.getFontSize(5)
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(12.5)
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(0.0)
+            }
         }
 
-        every { mockNativeTextPage.loadWebLink(any()) } returns 888L
-        val result = pdfTextPage.loadWebLink()
-//        assertThat(result.pageLinkPtr).isEqualTo(888L) the PdfPageLinkU tests will really test this
-    }
+    @Test
+    fun findStart_validSearch() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.findStart(any(), any(), any(), any()) } returns 999L
+            }
+            apiCall = {
+                pdfTextPage.findStart("query", emptySet(), 0)
+            }
+
+            verifyHappy {
+                assertThat(it).isNotNull()
+                verify(exactly = 1) { mockNativeTextPage.findStart(any(), any(), any(), any()) }
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+                verify(exactly = 0) { mockNativeTextPage.findStart(any(), any(), any(), any()) }
+            }
+        }
+
+    @Test
+    fun loadWebLink_execution() =
+        closableTest {
+            setupHappy {
+                every { mockNativeTextPage.loadWebLink(any()) } returns 888L
+            }
+            apiCall = {
+                pdfTextPage.loadWebLink()
+            }
+
+            verifyHappy {
+                assertThat(it).isNotNull()
+                verify(exactly = 1) { mockNativeTextPage.loadWebLink(any()) }
+            }
+            verifyDefault {
+                assertThat(it).isNull()
+                verify(exactly = 0) { mockNativeTextPage.loadWebLink(any()) }
+            }
+        }
 
     @Test
     fun close_referenceCounting() {
@@ -354,16 +396,6 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
         val length = 0
 
         every { mockNativeTextPage.textGetText(any(), any(), any(), any()) } answers {
-            val buffer = arg<ShortArray>(3) // Get the ShortArray passed to the function
-
-            // Fill buffer with char codes from the expected string
-            // PDFium fills the buffer with UTF-16LE values
-            for (i in expectedString.indices) {
-                if (i < buffer.size) {
-                    buffer[i] = expectedString[i].code.toShort()
-                }
-            }
-
             // Return the number of characters written (including null terminator if applicable,
             // but typical PDFium logic returns count of chars written)
             length + 1
@@ -483,6 +515,16 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
     }
 }
 
+class PdfTextPageHappyTest : PdfTextPageBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = false
+
+    override fun setupClosedState() {
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+    }
+}
+
 class PdfTextPageClosedExceptionTest : PdfTextPageBaseTest() {
     override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
 
@@ -509,6 +551,17 @@ class PdfTextPageClosedIgnoreTest : PdfTextPageBaseTest() {
 
 class PdfTextPageDocClosedTest : PdfTextPageBaseTest() {
     override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+        pdfDocumentU.close()
+    }
+}
+
+class PdfTextDocClosedIgnoreTest : PdfTextPageBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.IGNORE
 
     override fun isStateClosed() = true
 
