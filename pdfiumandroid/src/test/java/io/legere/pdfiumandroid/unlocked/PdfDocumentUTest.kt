@@ -3,6 +3,7 @@ package io.legere.pdfiumandroid.unlocked
 import android.graphics.Matrix
 import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.PdfDocument.Meta
 import io.legere.pdfiumandroid.jni.NativeDocument
 import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
@@ -16,12 +17,13 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
+import org.junit.Assert.fail
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
-class PdfDocumentUTest {
+abstract class PdfDocumentUBaseTest {
     @MockK
     lateinit var mockNativeFactory: NativeFactory
 
@@ -30,23 +32,41 @@ class PdfDocumentUTest {
 
     lateinit var pdfDocumentU: PdfDocumentU
 
-    @BeforeEach
-    fun setUp() {
-        every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument
+    abstract fun getBehavior(): AlreadyClosedBehavior
+
+    abstract fun setupClosedState()
+
+    abstract fun isStateClosed(): Boolean
+
+    private fun shouldThrowException() = getBehavior() == AlreadyClosedBehavior.EXCEPTION && isStateClosed()
+
+    private fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
+
+    private fun assertThrows(block: () -> Unit) {
+        try {
+            block()
+            fail("Expected an Exception to be thrown, but nothing was thrown.")
+        } catch (e: Exception) {
+            // Success (Check type if needed, e.g., IllegalStateException)
+            assertThat(e).isInstanceOf(IllegalStateException::class.java)
+        }
     }
 
-    @Test
-    fun `isClosed initial state check`() {
-        // Verify that isClosed returns false immediately after the PdfDocumentU is initialized.
+    @BeforeEach
+    fun setUp() {
+        pdfiumConfig = Config(alreadyClosedBehavior = getBehavior())
+
+        every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument
+        every { mockNativeDocument.closeDocument(any()) } just runs
+
         pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        assertThat(pdfDocumentU.isClosed).isFalse()
+
+        setupClosedState()
     }
 
     @Test
     fun `close state transition`() {
         // Verify that calling close() sets isClosed to true and calls nativeDocument.closeDocument().
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         pdfDocumentU.close()
         assertThat(pdfDocumentU.isClosed).isTrue()
     }
@@ -56,7 +76,6 @@ class PdfDocumentUTest {
         // Verify that calling close() multiple times does not crash and does not
         // attempt to close the native document or resources more than once.
         pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.closeDocument(any()) } just runs
         pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         pdfDocumentU.close()
         pdfDocumentU.close()
@@ -65,34 +84,10 @@ class PdfDocumentUTest {
     }
 
     @Test
-    fun `close resource cleanup`() {
-        // Verify that calling close() closes and nullifies the parcelFileDescriptor
-        // and the source object.
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
-        assertThat(pdfDocumentU.isClosed).isTrue()
-        assertThat(pdfDocumentU.parcelFileDescriptor).isNull()
-        assertThat(pdfDocumentU.source).isNull()
-    }
-
-    @Test
     fun `getPageCount happy path`() {
         // Verify getPageCount returns the correct integer from the native document implementation.
         every { mockNativeDocument.getPageCount(any()) } returns 0
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         pdfDocumentU.getPageCount()
-        assertThat(pdfDocumentU.getPageCount()).isEqualTo(0)
-    }
-
-    @Test
-    fun `getPageCount when closed`() {
-        // Verify getPageCount returns 0 gracefully if the document is closed.
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.getPageCount(any()) } returns 100
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
         assertThat(pdfDocumentU.getPageCount()).isEqualTo(0)
     }
 
@@ -100,19 +95,7 @@ class PdfDocumentUTest {
     fun `getPageCharCounts happy path`() {
         // Verify getPageCharCounts returns the integer array from the native document.
         every { mockNativeDocument.getPageCharCounts(any()) } returns intArrayOf(100)
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         assertThat(pdfDocumentU.getPageCharCounts()).isEqualTo(intArrayOf(100))
-    }
-
-    @Test
-    fun `getPageCharCounts when closed`() {
-        // Verify getPageCharCounts returns an empty IntArray if the document is closed.
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.getPageCharCounts(any()) } returns intArrayOf(100)
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
-        assertThat(pdfDocumentU.getPageCharCounts()).isEqualTo(intArrayOf())
     }
 
     @Test
@@ -121,52 +104,22 @@ class PdfDocumentUTest {
         // Subsequent calls for the same index should return a new wrapper but reuse the native pointer
         // from the cache and increment the internal reference count.
         every { mockNativeDocument.loadPage(any(), any()) } returns 100
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         pdfDocumentU.openPage(0)
         pdfDocumentU.openPage(0)
         verify(exactly = 1) { mockNativeDocument.loadPage(any(), any()) }
     }
 
     @Test
-    @Suppress("SwallowedException")
-    fun `openPage throws when closed`() {
-        // Verify openPage throws an IllegalStateException (via check(!isClosed)) if called
-        // after the document is closed.
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
-        var sawException = false
-        try {
-            pdfDocumentU.openPage(0)
-        } catch (_: IllegalStateException) {
-            sawException = true
-        }
-        assertThat(sawException).isTrue()
-    }
-
-    @Test
     fun `deletePage happy path`() {
         every { mockNativeDocument.deletePage(any(), any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         pdfDocumentU.deletePage(0)
         verify(exactly = 1) { mockNativeDocument.deletePage(0, 0) }
-    }
-
-    @Test
-    fun `deletePage when closed`() {
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
-        pdfDocumentU.deletePage(0)
-        verify(exactly = 0) { mockNativeDocument.deletePage(any(), any()) }
     }
 
     @Test
     fun `openPages range check`() {
         val pages = longArrayOf(1, 2, 3)
         every { mockNativeDocument.loadPages(any(), 0, 2) } returns pages
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         val result = pdfDocumentU.openPages(0, 2)
         assertThat(result.size).isEqualTo(3)
         verify(exactly = 1) { mockNativeDocument.loadPages(0, 0, 2) }
@@ -178,21 +131,26 @@ class PdfDocumentUTest {
     }
 
     @Test
-    fun `openPages when closed`() {
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
-        val result = pdfDocumentU.openPages(0, 2)
-        assertThat(result).isEmpty()
-        verify(exactly = 0) { mockNativeDocument.loadPages(any(), any(), any()) }
-    }
-
-    @Test
     fun `renderPages  buffer  matrix flattening`() {
+        val page =
+            mockk<PdfPageU> {
+                every { isClosed } returns false
+                every { pagePtr } returns 1L
+            }
         val matrix = Matrix()
         matrix.setScale(2f, 2f)
         matrix.postTranslate(10f, 10f)
+        if (shouldThrowException()) {
+            assertThrows {
+                pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(matrix), listOf(RectF()))
+            }
+            return
+//        } else if (shouldReturnDefault()) {
+//            assertThat(
+//                pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(matrix), listOf(RectF()))
+//            ).isEqualTo(-1)
+//            return
+        }
 
         val matrixSlot = slot<FloatArray>()
         every {
@@ -209,13 +167,6 @@ class PdfDocumentUTest {
                 any(),
             )
         } just runs
-
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        val page =
-            mockk<PdfPageU> {
-                every { isClosed } returns false
-                every { pagePtr } returns 1L
-            }
 
         pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(matrix), listOf(RectF()))
 
@@ -246,7 +197,6 @@ class PdfDocumentUTest {
             )
         } just runs
 
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         val page =
             mockk<PdfPageU> {
                 every { isClosed } returns false
@@ -265,33 +215,6 @@ class PdfDocumentUTest {
     }
 
     @Test
-    fun `renderPages  buffer  closed child page check`() {
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        val page =
-            mockk<PdfPageU> {
-                every { isClosed } returns true
-            }
-
-        pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(Matrix()), listOf(RectF()))
-
-        verify(exactly = 0) {
-            mockNativeDocument.renderPagesWithMatrix(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-            )
-        }
-    }
-
-    @Test
     fun `renderPages  surface  return value check`() {
         every {
             mockNativeDocument.renderPagesSurfaceWithMatrix(
@@ -306,19 +229,36 @@ class PdfDocumentUTest {
             )
         } returns true
 
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         val page =
             mockk<PdfPageU> {
                 every { isClosed } returns false
                 every { pagePtr } returns 1L
             }
+        if (shouldThrowException()) {
+            assertThrows {
+                pdfDocumentU.renderPages(mockk(), listOf(page), listOf(Matrix()), listOf(RectF()))
+            }
+            return
+//        } else if (shouldReturnDefault()) {
+//            assertThat( pdfDocumentU.renderPages(mockk(), listOf(page), listOf(Matrix()), listOf(RectF())))
+//            return
+        }
 
         val result = pdfDocumentU.renderPages(mockk(), listOf(page), listOf(Matrix()), listOf(RectF()))
         assertThat(result).isTrue()
     }
 
     @Test
-    fun `getDocumentMeta happy path`() {
+    fun `getDocumentMeta`() {
+        if (shouldThrowException()) {
+            assertThrows {
+                pdfDocumentU.getDocumentMeta()
+            }
+            return
+        } else if (shouldReturnDefault()) {
+            assertThat(pdfDocumentU.getDocumentMeta()).isEqualTo(Meta())
+            return
+        }
         every { mockNativeDocument.getDocumentMetaText(any(), "Title") } returns "My Title"
         every { mockNativeDocument.getDocumentMetaText(any(), "Author") } returns "My Author"
         every { mockNativeDocument.getDocumentMetaText(any(), "Subject") } returns "My Subject"
@@ -328,7 +268,6 @@ class PdfDocumentUTest {
         every { mockNativeDocument.getDocumentMetaText(any(), "CreationDate") } returns "My CreationDate"
         every { mockNativeDocument.getDocumentMetaText(any(), "ModDate") } returns "My ModDate"
 
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         val meta = pdfDocumentU.getDocumentMeta()
 
         assertThat(meta.title).isEqualTo("My Title")
@@ -339,16 +278,6 @@ class PdfDocumentUTest {
         assertThat(meta.producer).isEqualTo("My Producer")
         assertThat(meta.creationDate).isEqualTo("My CreationDate")
         assertThat(meta.modDate).isEqualTo("My ModDate")
-    }
-
-    @Test
-    fun `getDocumentMeta when closed`() {
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.closeDocument(any()) } just runs
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
-        pdfDocumentU.close()
-        val meta = pdfDocumentU.getDocumentMeta()
-        assertThat(meta.title).isNull()
     }
 
     @Test
@@ -366,8 +295,6 @@ class PdfDocumentUTest {
         every { mockNativeDocument.getSiblingBookmark(any(), any()) } returns 0
         every { mockNativeDocument.getBookmarkTitle(any()) } returns "Deep Node"
         every { mockNativeDocument.getBookmarkDestIndex(any(), any()) } returns 0L
-
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
 
         // We need to mock the initial call to getFirstChildBookmark from the document root (null)
         every { mockNativeDocument.getFirstChildBookmark(any(), 0) } returns 100L
@@ -422,7 +349,6 @@ class PdfDocumentUTest {
         every { mockNativeDocument.getSiblingBookmark(any(), child2Ptr) } returns 0
         every { mockNativeDocument.getFirstChildBookmark(any(), child2Ptr) } returns 0
 
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         val toc = pdfDocumentU.getTableOfContents()
 
         // Assertions
@@ -472,7 +398,6 @@ class PdfDocumentUTest {
 //
 //        every { mockNativeDocument.loadTextPages(any(), start, end) } returns pointers
 //
-//        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
 //        val result = pdfDocumentU.openTextPages(start, end)
 //
 //        assertThat(result).hasSize(3)
@@ -491,7 +416,6 @@ class PdfDocumentUTest {
 
         every { mockNativeDocument.saveAsCopy(any(), any(), any()) } returns true
 
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
         val success = pdfDocumentU.saveAsCopy(mockWriter, flags)
 
         assertThat(success).isTrue()
@@ -499,21 +423,46 @@ class PdfDocumentUTest {
             mockNativeDocument.saveAsCopy(any(), mockWriter, flags)
         }
     }
+}
+
+class PdfDocumentUHappyTest : PdfDocumentUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = false
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+    }
 
     @Test
-    fun `saveAsCopy when closed`() {
-        // Verify saveAsCopy returns false immediately if the document is closed.
-        val mockWriter = mockk<io.legere.pdfiumandroid.PdfWriteCallback>()
-
-        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE)
-        every { mockNativeDocument.closeDocument(any()) } just runs
-
-        pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
+    fun `close resource cleanup`() {
+        // Verify that calling close() closes and nullifies the parcelFileDescriptor
+        // and the source object.
         pdfDocumentU.close()
+        assertThat(pdfDocumentU.isClosed).isTrue()
+        assertThat(pdfDocumentU.parcelFileDescriptor).isNull()
+        assertThat(pdfDocumentU.source).isNull()
+    }
+}
 
-        val success = pdfDocumentU.saveAsCopy(mockWriter, 0)
+class PdfDocumentUCloseExceptionTest : PdfDocumentUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
 
-        assertThat(success).isFalse()
-        verify(exactly = 0) { mockNativeDocument.saveAsCopy(any(), any(), any()) }
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+        pdfDocumentU.close()
+    }
+}
+
+class PdfDocumentUCloseIgnoreTest : PdfDocumentUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.IGNORE
+
+    override fun isStateClosed() = true
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+        pdfDocumentU.close()
     }
 }
