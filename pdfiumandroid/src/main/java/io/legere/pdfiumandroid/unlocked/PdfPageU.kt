@@ -714,6 +714,9 @@ class PdfPageU(
 
             isClosed = true
             nativePage.closePage(pagePtr)
+        } ?: run {
+            isClosed = true
+            nativePage.closePage(pagePtr)
         }
     }
 

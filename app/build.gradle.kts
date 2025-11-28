@@ -7,7 +7,6 @@ plugins {
     id("com.google.devtools.ksp")
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
     alias(libs.plugins.ktlint)
 }
 kotlin {

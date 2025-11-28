@@ -1,22 +1,18 @@
 package io.legere.pdfiumandroid.util
 
-import java.util.concurrent.Semaphore
+import java.util.concurrent.CountDownLatch
 
 class InitLock {
-    private val semaphore = Semaphore(0)
-    private var isInitialized = false
+    private val latch = CountDownLatch(1)
 
     fun markReady() {
-        isInitialized = true
-        semaphore.release()
+        latch.countDown() // Decrements count to 0, releasing all waiting threads
     }
 
     // We use a mutex to make sure only the
     // first thread waits on the semaphore
     @Synchronized
     fun waitForReady() {
-        if (!isInitialized) {
-            semaphore.acquire()
-        }
+        latch.await() // Blocks until count is 0. If already 0, returns immediately.
     }
 }

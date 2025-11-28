@@ -19,6 +19,7 @@ espresso-core = "3.7.0"
 hilt-android = "2.57.2"
 junit = "4.13.2"
 junitBom = "6.0.1"
+robolectric = "4.16"
 
 kotlinx-coroutines-android = "1.10.2"
 lifecycle-runtime-ktx = "2.10.0"
@@ -79,9 +80,10 @@ junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-platform-launcher = { group = "org.junit.platform",  name="junit-platform-launcher" }
 junit-vintage-engine = { group = "org.junit.vintage",  name="junit-vintage-engine" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 
 [bundles]
-test = ["junit",  "truth",    "mockk-android",  "mockk-agent",  "kotlinx-coroutines-test"]
+test = ["junit","truth","mockk-android",  "mockk-agent",  "kotlinx-coroutines-test", "robolectric"]
 
 instrumented-non-ui-test = ["junit",  "mockk", "mockk-android", "mockk-agent", ]
 

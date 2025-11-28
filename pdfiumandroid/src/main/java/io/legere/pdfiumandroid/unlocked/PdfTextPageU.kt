@@ -71,6 +71,7 @@ class PdfTextPageU(
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         try {
+            println("textPageGetTextLegacy $startIndex $length")
             val buf = ShortArray(length + 1)
             val r =
                 nativeTextPage.textGetText(
@@ -80,6 +81,7 @@ class PdfTextPageU(
                     buf,
                 )
 
+            println("textPageGetTextLegacy $r")
             if (r <= 0) {
                 return ""
             }
@@ -93,10 +95,13 @@ class PdfTextPageU(
             }
             return String(bytes, StandardCharsets.UTF_16LE)
         } catch (e: NullPointerException) {
+            println("textPageGetTextLegacy $e")
             Logger.e(TAG, e, "mContext may be null")
         } catch (e: Exception) {
+            println("textPageGetTextLegacy $e")
             Logger.e(TAG, e, "Exception throw from native")
         }
+        println("textPageGetTextLegacy null")
         return null
     }
 
@@ -121,8 +126,10 @@ class PdfTextPageU(
             }
             return String(bytes, StandardCharsets.UTF_16LE)
         } catch (e: NullPointerException) {
+            println("textPageGetText $e")
             Logger.e(TAG, e, "mContext may be null")
         } catch (e: Exception) {
+            println("textPageGetText $e")
             Logger.e(TAG, e, "Exception throw from native")
         }
         return null

@@ -257,10 +257,12 @@ class PdfDocumentU(
         tree.add(bookmark)
         val child = nativeDocument.getFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
         if (child != 0L && levelMutable < MAX_RECURSION) {
-            recursiveGetBookmark(bookmark.children, child, levelMutable++)
+            println("child: $child, level: $levelMutable")
+            recursiveGetBookmark(bookmark.children, child, ++levelMutable)
         }
         val sibling = nativeDocument.getSiblingBookmark(mNativeDocPtr, bookmarkPtr)
         if (sibling != 0L && levelMutable < MAX_RECURSION) {
+            println("sibling: $sibling, level: $levelMutable")
             recursiveGetBookmark(tree, sibling, levelMutable)
         }
     }

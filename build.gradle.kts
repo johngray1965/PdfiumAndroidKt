@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.ksp) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.kover) apply false
     alias(libs.plugins.ktlint)
     alias(libs.plugins.jreleaser) apply false
 }

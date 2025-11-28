@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.kover)
     alias(libs.plugins.jreleaser)
     jacoco
     `maven-publish`
@@ -222,6 +223,45 @@ dependencies {
     androidTestUtil(libs.androidx.orchestrator)
     androidTestUtil(libs.androidx.test.services)
 }
+kover {
+    reports {
+        // filters for all report types of all build variants
+        filters {
+            excludes {
+//                androidGeneratedClasses()
+                packages(
+                    "io.legere.pdfiumandroid.jni",
+                )
+//                annotatedBy(
+                // compose preview
+//                    "androidx.compose.ui.tooling.preview.Preview",
+//                    // begin Hilt classes
+//                    "javax.annotation.processing.Generated",
+//                    "dagger.internal.DaggerGenerated",
+//                    "dagger.hilt.android.internal.lifecycle.HiltViewModelMap\$KeySet",
+//                    // end Hilt classes
+//                    "kotlinx.serialization.SerialName",
+//                )
+                classes(
+                    // begin excludes generated classes
+                    "*.R",
+                    "*.R$*",
+                    "*.BuildConfig",
+                    "*.Manifest",
+                    "*.Manifest$*",
+                )
+            }
+        }
+        variant("debug") {
+            xml {
+                onCheck = true
+            }
+            html {
+                onCheck = true
+            }
+        }
+    }
+}
 
 fun getRepositoryUsername(): String =
     if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_USERNAME")) {
@@ -324,6 +364,7 @@ jreleaser {
         }
     }
 }
+
 tasks.register<JacocoReport>("jacocoAndroidTestReport") {
     group = "Reporting"
     description = "Generates JaCoCo coverage report for Android instrumentation tests."
