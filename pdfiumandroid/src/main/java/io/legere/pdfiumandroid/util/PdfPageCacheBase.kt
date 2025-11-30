@@ -5,7 +5,7 @@ import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
 import com.google.common.cache.RemovalListener
 
-private const val CACHE_SIZE = 64L
+const val CACHE_SIZE = 64L
 
 /**
  * A thread-safe, concurrent LRU cache for PDF page objects.

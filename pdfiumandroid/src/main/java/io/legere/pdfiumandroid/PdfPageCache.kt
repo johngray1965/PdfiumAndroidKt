@@ -2,6 +2,7 @@
 
 package io.legere.pdfiumandroid
 
+import io.legere.pdfiumandroid.util.CACHE_SIZE
 import io.legere.pdfiumandroid.util.PdfPageCacheBase
 
 /**
@@ -48,8 +49,11 @@ import io.legere.pdfiumandroid.util.PdfPageCacheBase
  */
 class PdfPageCache<H : AutoCloseable>(
     private val pdfDocument: PdfDocument,
+    maxSize: Long = CACHE_SIZE,
     private val pageHolderFactory: (PdfPage, PdfTextPage) -> H,
-) : PdfPageCacheBase<H>() {
+) : PdfPageCacheBase<H>(
+        maxSize = maxSize,
+    ) {
     override fun openPageAndText(pageIndex: Int): H? {
         val page = pdfDocument.openPage(pageIndex) ?: return null
         val textPage = page.openTextPage()
