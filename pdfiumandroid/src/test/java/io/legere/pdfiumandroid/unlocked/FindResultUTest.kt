@@ -23,6 +23,7 @@ class FindResultUTest {
 
     @BeforeEach
     fun setup() {
+        PdfiumCoreU.resetForTesting()
         every { mockNativeFactory.getNativeFindResult() } returns nativeFindResult
         findResult = FindResultU(124L, mockNativeFactory)
     }

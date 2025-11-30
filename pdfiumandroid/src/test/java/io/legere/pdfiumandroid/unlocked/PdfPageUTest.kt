@@ -68,6 +68,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
     @Before
     fun setUp() {
+        PdfiumCoreU.resetForTesting()
         pdfiumConfig =
             io.legere.pdfiumandroid.util
                 .Config(alreadyClosedBehavior = getBehavior())

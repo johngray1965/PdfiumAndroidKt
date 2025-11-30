@@ -33,6 +33,7 @@ class PdfPageLinkUTest {
 
     @Before
     fun setUp() {
+        PdfiumCoreU.resetForTesting()
         every { mockNativeFactory.getNativePageLink() } returns mockNativePageLink
         pdfPageLink = PdfPageLinkU(124L, mockNativeFactory)
     }

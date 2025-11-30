@@ -46,6 +46,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
 
     @BeforeEach
     fun setUp() {
+        PdfiumCoreU.resetForTesting()
         pdfiumConfig = Config(alreadyClosedBehavior = getBehavior())
 
         every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument

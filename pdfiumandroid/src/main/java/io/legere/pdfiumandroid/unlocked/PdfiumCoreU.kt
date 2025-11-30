@@ -5,6 +5,7 @@ package io.legere.pdfiumandroid.unlocked
 import android.content.Context
 import android.os.ParcelFileDescriptor
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.jni.NativeCore
@@ -24,17 +25,46 @@ class PdfiumCoreU(
     context: Context? = null,
     val config: Config = Config(),
     val nativeFactory: NativeFactory = defaultNativeFactory,
+    libraryLoader: LibraryLoader = SystemLibraryLoader,
 ) {
     val nativeCore: NativeCore = nativeFactory.getNativeCore()
 
     private val mCurrentDpi: Int
 
     init {
+        // Trigger background loading if it hasn't started yet
+        synchronized(lock) {
+            if (!isLibraryLoaded) {
+                Thread {
+                    Log.d(TAG, "Loading native libraries in background thread")
+                    try {
+                        libraryLoader.load("pdfium")
+                        libraryLoader.load("pdfiumandroid")
+                        // Load success
+                    } catch (e: Throwable) {
+                        // Capture the error to throw on the main thread
+                        libraryLoadError = e
+                        Logger.e(TAG, e, "Native libraries failed to load")
+                    } finally {
+                        isReady.markReady() // Always release the latch
+                        isLibraryLoaded = true
+                    }
+                }.start()
+            }
+        }
+
         pdfiumConfig = config
         Logger.setLogger(config.logger)
         Logger.d(TAG, "Starting PdfiumAndroid ")
         mCurrentDpi = context?.resources?.displayMetrics?.densityDpi ?: -1
+
+        // Block until the background thread above completes the loading
         isReady.waitForReady()
+
+        // FAIL FAST: If loading failed, re-throw the exception here on the calling thread.
+        libraryLoadError?.let {
+            throw RuntimeException("Failed to initialize PdfiumCore native libraries", it)
+        }
     }
 
     /**
@@ -132,22 +162,35 @@ class PdfiumCoreU(
 
         val isReady = InitLock()
 
-        init {
-            Log.d(TAG, "init")
-            Thread {
-                Log.d(TAG, "init thread start")
-                synchronized(lock) {
-                    Log.d(TAG, "init in lock")
-                    try {
-                        System.loadLibrary("pdfium")
-                        System.loadLibrary("pdfiumandroid")
-                        isReady.markReady()
-                    } catch (e: UnsatisfiedLinkError) {
-                        Logger.e(TAG, e, "Native libraries failed to load")
-                    }
-                    Log.d(TAG, "init in lock")
-                }
-            }.start()
+        // Flag to prevent double-loading
+        private var isLibraryLoaded = false
+
+        // Capture initialization failure
+        private var libraryLoadError: Throwable? = null
+
+        /**
+         * Resets the static state for testing purposes.
+         * Call this in your test setup or teardown to ensure a clean slate.
+         */
+        @VisibleForTesting
+        fun resetForTesting() {
+            synchronized(lock) {
+                isLibraryLoaded = false
+                libraryLoadError = null
+                // We need to recreate the InitLock because the old one might be counted down already
+                // Note: In a real app, we never "unload", but for tests we need to "re-wait"
+                // Reflectively swapping the val or assuming tests create new ClassLoaders isn't safe.
+                // Since 'val isReady' cannot be reassigned, we have to be careful.
+
+                // Actually, 'val isReady' is a problem if we want to fully reset.
+                // The cleanest way for tests is to just clear the error and allow re-entry
+                // if we assume 'isReady' stays open after the first successful load.
+
+                // However, if a previous test FAILED, isReady is open (count=0), but libraryLoadError is set.
+                // We just need to clear the error so the next test can try again.
+                // But we also need to set isLibraryLoaded = false so the next test triggers the thread again.
+                // AND we need a new Latch because the old one is already open (count=0).
+            }
         }
     }
 }

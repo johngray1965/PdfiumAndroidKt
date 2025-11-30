@@ -249,6 +249,7 @@ kover {
                     "*.BuildConfig",
                     "*.Manifest",
                     "*.Manifest$*",
+                    "io.legere.pdfiumandroid.unlocked.SystemLibraryLoader",
                 )
             }
         }

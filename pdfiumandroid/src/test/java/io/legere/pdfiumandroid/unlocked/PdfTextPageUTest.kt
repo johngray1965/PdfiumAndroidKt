@@ -57,6 +57,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+        PdfiumCoreU.resetForTesting()
 
         // Global Config
         pdfiumConfig = Config(alreadyClosedBehavior = getBehavior())
