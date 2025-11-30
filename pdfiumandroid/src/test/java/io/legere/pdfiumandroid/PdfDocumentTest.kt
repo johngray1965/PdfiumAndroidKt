@@ -60,9 +60,9 @@ class PdfDocumentTest {
 
     @Test
     fun openPages() {
-//        val expected = intArrayOf(10, 20)
-//        every { document.openPages(any(), any()) } returns expected
-//        assertThat(pdfDocument.openPages(0, 1)).isEqualTo(expected)
+        val expected = listOf(mockk<PdfPageU>(), mockk<PdfPageU>())
+        every { document.openPages(any(), any()) } returns expected
+        assertThat(pdfDocument.openPages(0, 1).map { it.page }).isEqualTo(expected)
     }
 
     @Test
@@ -73,8 +73,9 @@ class PdfDocumentTest {
 
     @Test
     fun testRenderPages() {
-        every { document.renderPages(any(), any(), any(), any()) } returns true
-        assertThat(pdfDocument.renderPages(mockk(), emptyList(), emptyList(), emptyList())).isTrue()
+        every { document.renderPages(any(), any(), any(), any(), any(), any(), any(), any(), any()) } just runs
+        pdfDocument.renderPages(1234L, 100, 100, emptyList(), emptyList(), emptyList())
+        verify { document.renderPages(any(), any(), any(), any(), any(), any(), any(), any(), any()) }
     }
 
     @Test

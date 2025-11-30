@@ -8,11 +8,9 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import android.util.Log
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
-import io.legere.pdfiumandroid.util.InitLock
 import kotlinx.coroutines.sync.Mutex
 import java.io.IOException
 
@@ -23,9 +21,8 @@ import java.io.IOException
 class PdfiumCore(
     context: Context? = null,
     val config: Config = Config(),
+    private val coreInternal: PdfiumCoreU = PdfiumCoreU(config = config),
 ) {
-    private val coreInternal = PdfiumCoreU(config = config)
-
     /**
      * Create new document from file
      * @param fd opened file descriptor of file
@@ -357,98 +354,6 @@ class PdfiumCore(
         toIndex: Int,
     ): Array<Long> = (fromIndex.toLong()..toIndex.toLong()).toList().toTypedArray()
 
-//    @Deprecated(
-//        "Use PdfPage.getPageWidth()",
-//        ReplaceWith(
-//            "page.getPageWidth()",
-//        ),
-//        DeprecationLevel.WARNING,
-//    )
-//    fun getPageWidth(
-//        pdfDocument: PdfDocument,
-//        index: Int,
-//    ): Int {
-//        pdfDocument.openPage(index).use { page ->
-//            return page.getPageWidth(pdfDocument, index)
-//        }
-//    }
-//
-//    @Deprecated(
-//        "Use PdfPage.getPageHeight()",
-//        ReplaceWith(
-//            "page.getPageHeight()",
-//        ),
-//        DeprecationLevel.WARNING,
-//    )
-//    fun getPageHeight(
-//        pdfDocument: PdfDocument,
-//        index: Int,
-//    ): Int {
-//        coreInternal.get
-//        pdfDocument.openPage(index).use { page ->
-//            return page.getPageHeight(mCurrentDpi)
-//        }
-//    }
-//
-//    @Deprecated(
-//        "Use PdfPage.getPageSize()",
-//        ReplaceWith(
-//            "page.getPageSize()",
-//        ),
-//        DeprecationLevel.WARNING,
-//    )
-//    fun getPageSize(
-//        pdfDocument: PdfDocument,
-//        index: Int,
-//    ): Size {
-//        pdfDocument.openPage(index).use { page ->
-//            return page.getPageSize(mCurrentDpi)
-//        }
-//    }
-
-//    @Deprecated(
-//        "Use PdfPage.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
-//        ReplaceWith(
-//            "page.renderPage(surface, startX, startY, drawSizeX, drawSizeY)",
-//        ),
-//        DeprecationLevel.WARNING,
-//    )
-//    @Suppress("LongParameterList", "ComplexCondition")
-//    fun renderPage(
-//        pdfDocument: PdfDocument,
-//        surface: Surface?,
-//        pageIndex: Int,
-//        startX: Int,
-//        startY: Int,
-//        drawSizeX: Int,
-//        drawSizeY: Int,
-//        renderAnnot: Boolean = false,
-//    ): Boolean {
-//        var retValue = false
-//        pdfDocument.openPage(pageIndex).use { page ->
-//            val sizes = IntArray(2)
-//            val pointers = LongArray(2)
-//            surface
-//                ?.let {
-//                    PdfPageU.lockSurface(
-//                        it,
-//                        sizes,
-//                        pointers,
-//                    )
-//                }
-//            val nativeWindow = pointers[0]
-//            val bufferPtr = pointers[1]
-//            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-//                return@use
-//            }
-//            retValue = page.renderPage(bufferPtr, startX, startY, drawSizeX, drawSizeY, renderAnnot)
-//            surface?.let {
-//                PdfPageU.unlockSurface(pointers)
-//            }
-//        }
-//        return retValue
-//    }
-
     @Deprecated(
         "Use PdfPage.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY)",
         ReplaceWith(
@@ -543,25 +448,5 @@ class PdfiumCore(
         val lock = Any()
 
         val surfaceMutex = Mutex()
-
-        val isReady = InitLock()
-
-        init {
-            Log.d(TAG, "init")
-            Thread {
-                Log.d(TAG, "init thread start")
-                synchronized(lock) {
-                    Log.d(TAG, "init in lock")
-                    try {
-                        System.loadLibrary("pdfium")
-                        System.loadLibrary("pdfiumandroid")
-                        isReady.markReady()
-                    } catch (e: UnsatisfiedLinkError) {
-                        Logger.e(TAG, e, "Native libraries failed to load")
-                    }
-                    Log.d(TAG, "init in lock")
-                }
-            }.start()
-        }
     }
 }

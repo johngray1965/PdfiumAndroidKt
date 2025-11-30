@@ -159,16 +159,6 @@ class PdfDocument(
         }
     }
 
-    private fun recursiveGetBookmark(
-        tree: MutableList<Bookmark>,
-        bookmarkPtr: Long,
-        level: Long,
-    ) {
-        synchronized(PdfiumCore.lock) {
-            return document.recursiveGetBookmark(tree, bookmarkPtr, level)
-        }
-    }
-
     /**
      * Get table of contents (bookmarks) for given document
      * @return the [Bookmark] list
