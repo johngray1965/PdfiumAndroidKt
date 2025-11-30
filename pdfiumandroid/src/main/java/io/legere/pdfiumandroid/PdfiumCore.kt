@@ -8,7 +8,6 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.sync.Mutex
@@ -25,11 +24,11 @@ class PdfiumCore(
 ) {
     /**
      * Create new document from file
-     * @param fd opened file descriptor of file
+     * @param parcelFileDescriptor opened file descriptor of file
      * @return PdfDocument
      */
     @Throws(IOException::class)
-    fun newDocument(fd: ParcelFileDescriptor): PdfDocumentU = coreInternal.newDocument(fd, null)
+    fun newDocument(parcelFileDescriptor: ParcelFileDescriptor): PdfDocument = newDocument(parcelFileDescriptor, null)
 
     /**
      * Create new document from file with password
@@ -316,7 +315,7 @@ class PdfiumCore(
         coords: Rect,
     ): RectF {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: RectF()
+            return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: RectF(-1f, -1f, -1f, -1f)
         }
     }
 

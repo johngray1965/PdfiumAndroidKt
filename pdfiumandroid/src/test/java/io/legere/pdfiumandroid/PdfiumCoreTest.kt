@@ -5,35 +5,41 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.testing.ClosableTestContext
+import io.legere.pdfiumandroid.testing.nullableTest
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit5.MockKExtension
+import io.mockk.junit4.MockKRule
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
 
 @Suppress("DEPRECATION")
-@ExtendWith(MockKExtension::class)
-class PdfiumCoreTest {
+@RunWith(AndroidJUnit4::class)
+@Config(manifest = Config.NONE)
+class PdfiumCoreBasicTest {
+    @get:Rule
+    val mockkRule: MockKRule = MockKRule(this)
+
     lateinit var pdfiumCore: PdfiumCore
 
     @MockK
     lateinit var pdfiumCoreU: PdfiumCoreU
 
-    @MockK lateinit var document: PdfDocument
+    @MockK
+    lateinit var document: PdfDocument
 
-    @MockK lateinit var page: PdfPage
-
-    @MockK lateinit var textPage: PdfTextPage
-
-    @BeforeEach
+    @Before
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
     }
@@ -43,12 +49,8 @@ class PdfiumCoreTest {
         val document = mockk<PdfDocumentU>()
         every { pdfiumCoreU.newDocument(any() as ParcelFileDescriptor, any()) } returns document
         val result = pdfiumCore.newDocument(mockk<ParcelFileDescriptor>())
-        assertThat(result).isEqualTo(document)
+        assertThat(result.document).isEqualTo(document)
         verify { pdfiumCoreU.newDocument(any() as ParcelFileDescriptor, any()) }
-    }
-
-    @Test
-    fun testNewDocument() {
     }
 
     @Test
@@ -62,20 +64,12 @@ class PdfiumCoreTest {
     }
 
     @Test
-    fun testNewDocument2() {
-    }
-
-    @Test
     fun testNewDocument3() {
         val document = mockk<PdfDocumentU>()
         every { pdfiumCoreU.newDocument(any() as PdfiumSource, any()) } returns document
         val result = pdfiumCore.newDocument(mockk<PdfiumSource>())
         assertThat(result.document).isEqualTo(document)
         verify { pdfiumCoreU.newDocument(any() as PdfiumSource, any()) }
-    }
-
-    @Test
-    fun testNewDocument4() {
     }
 
     @Test
@@ -118,61 +112,6 @@ class PdfiumCoreTest {
     }
 
     @Test
-    fun getPageMediaBox() {
-        val mediaBox = mockk<RectF>()
-        every { document.openPage(any()) } returns page
-        every { page.getPageMediaBox() } returns mediaBox
-        every { page.close() } just runs
-        val result = pdfiumCore.getPageMediaBox(document, 0)
-        assertThat(result).isEqualTo(mediaBox)
-        verify { page.getPageMediaBox() }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
-
-//    @Test
-//    fun closePage() {
-//        pdfiumCore.closePage(mockk(), 0)
-//    }
-//
-//    @Test
-//    fun closeTextPage() {
-//        pdfiumCore.closeTextPage(mockk(), 0)
-//    }
-
-    @Test
-    fun textPageCountChars() {
-        every { document.openPage(any()) } returns page
-        every { page.openTextPage() } returns textPage
-        every { textPage.textPageCountChars() } returns 1234
-        every { page.close() } just runs
-        every { textPage.close() } just runs
-        val result = pdfiumCore.textPageCountChars(document, 0)
-        assertThat(result).isEqualTo(1234)
-        verify { document.openPage(any()) }
-        verify { page.openTextPage() }
-        verify { textPage.textPageCountChars() }
-        verify { page.close() }
-        verify { textPage.close() }
-    }
-
-    @Test
-    fun textPageGetText() {
-        every { document.openPage(any()) } returns page
-        every { page.openTextPage() } returns textPage
-        every { textPage.textPageGetText(any(), any()) } returns "Yo"
-        every { page.close() } just runs
-        every { textPage.close() } just runs
-        val result = pdfiumCore.textPageGetText(document, 0, 0, 0)
-        assertThat(result).isEqualTo("Yo")
-        verify { document.openPage(any()) }
-        verify { page.openTextPage() }
-        verify { textPage.textPageGetText(any(), any()) }
-        verify { page.close() }
-        verify { textPage.close() }
-    }
-
-    @Test
     fun getDocumentMeta() {
         val meta = mockk<PdfDocument.Meta>()
         every { pdfiumCore.getDocumentMeta(document) } returns meta
@@ -180,151 +119,461 @@ class PdfiumCoreTest {
         assertThat(results).isEqualTo(meta)
         verify { pdfiumCore.getDocumentMeta(document) }
     }
+}
 
-    @Test
-    fun getPageWidthPoint() {
-        every { document.openPage(any()) } returns page
-        every { page.getPageWidthPoint() } returns 123
-        every { page.close() } just runs
-        val result = pdfiumCore.getPageWidthPoint(document, 0)
-        assertThat(result).isEqualTo(123)
-        verify { page.getPageWidthPoint() }
-        verify { page.close() }
-        verify { document.openPage(any()) }
+@Suppress("DEPRECATION")
+abstract class PdfiumCoreBaseTest : ClosableTestContext {
+    @get:Rule
+    val mockkRule: MockKRule = MockKRule(this)
+
+    lateinit var pdfiumCore: PdfiumCore
+
+    @MockK
+    lateinit var pdfiumCoreU: PdfiumCoreU
+
+    @MockK
+    lateinit var document: PdfDocument
+
+    @MockK
+    lateinit var page: PdfPage
+
+    @MockK
+    lateinit var textPage: PdfTextPage
+
+    @Before
+    fun setUp() {
+        pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
+        setupRules()
     }
 
     @Test
-    fun getPageHeightPoint() {
-        every { document.openPage(any()) } returns page
-        every { page.getPageHeightPoint() } returns 123
-        every { page.close() } just runs
-        val result = pdfiumCore.getPageHeightPoint(document, 0)
-        assertThat(result).isEqualTo(123)
-        verify { page.getPageHeightPoint() }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
+    fun getPageMediaBox() =
+        nullableTest {
+            val mediaBox = mockk<RectF>()
+            setup {
+                every { page.getPageMediaBox() } returns mediaBox
+                every { page.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.getPageMediaBox(document, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(mediaBox)
+                verify { page.getPageMediaBox() }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(RectF(-1f, -1f, -1f, -1f))
+                verify { document.openPage(any()) }
+            }
+        }
 
     @Test
-    fun renderPageBitmap() {
-        every { document.openPage(any()) } returns page
-        every { page.renderPageBitmap(any<Bitmap>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any<Boolean>()) } just runs
-        every { page.close() } just runs
-        pdfiumCore.renderPageBitmap(document, mockk(), 0, 0, 0, 0, 0)
-        verify { page.renderPageBitmap(any<Bitmap>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any<Boolean>()) }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
+    fun textPageCountChars() =
+        nullableTest {
+            setup {
+                every { textPage.textPageCountChars() } returns 1234
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.textPageCountChars(document, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(1234)
+                verify { document.openPage(any()) }
+                verify { page.openTextPage() }
+                verify { textPage.textPageCountChars() }
+                verify { page.close() }
+                verify { textPage.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+                verify { document.openPage(any()) }
+            }
+        }
 
     @Test
-    fun testRenderPageBitmap() {
-        every { document.openPage(any()) } returns page
-        every { page.renderPageBitmap(any<Bitmap>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any<Boolean>()) } just runs
-        every { page.close() } just runs
-        pdfiumCore.renderPageBitmap(document, mockk(), 0, 0, 0, 0, 0)
-        verify { page.renderPageBitmap(any<Bitmap>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any<Boolean>()) }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
+    fun textPageGetText() =
+        nullableTest {
+            setup {
+                every { textPage.textPageGetText(any(), any()) } returns "Yo"
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.textPageGetText(document, 0, 0, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo("Yo")
+                verify { document.openPage(any()) }
+                verify { page.openTextPage() }
+                verify { textPage.textPageGetText(any(), any()) }
+                verify { page.close() }
+                verify { textPage.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isNull()
+                verify { document.openPage(any()) }
+            }
+        }
 
     @Test
-    fun textPageGetRect() {
-        val rect = mockk<RectF>()
+    fun getPageWidthPoint() =
+        nullableTest {
+            setup {
+                every { page.getPageWidthPoint() } returns 123
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.getPageWidthPoint(document, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(123)
+                verify { document.openPage(any()) }
+                verify { page.getPageWidthPoint() }
+                verify { page.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun getPageHeightPoint() =
+        nullableTest {
+            setup {
+                every { page.getPageHeightPoint() } returns 123
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.getPageHeightPoint(document, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(123)
+                verify { document.openPage(any()) }
+                verify { page.getPageHeightPoint() }
+                verify { page.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun renderPageBitmap() =
+        nullableTest {
+            setup {
+                every {
+                    page.renderPageBitmap(
+                        any<Bitmap>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Boolean>(),
+                    )
+                } just runs
+                every { page.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.renderPageBitmap(document, mockk(), 0, 0, 0, 0, 0) }
+
+            verifyHappy {
+                verify {
+                    page.renderPageBitmap(
+                        any<Bitmap>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Boolean>(),
+                    )
+                }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun testRenderPageBitmap() =
+        nullableTest {
+            setup {
+                every {
+                    page.renderPageBitmap(
+                        any<Bitmap>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Boolean>(),
+                        any<Boolean>(),
+                    )
+                } just runs
+                every { page.close() } just runs
+            }
+
+            apiCall = {
+                listOf(false, true).forEach { renderAnnot ->
+                    listOf(false, true).forEach { textMask ->
+                        pdfiumCore.renderPageBitmap(
+                            document,
+                            mockk<Bitmap>(),
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            renderAnnot = renderAnnot,
+                            textMask = textMask,
+                        )
+                    }
+                }
+            }
+
+            verifyHappy {
+                verify {
+                    page.renderPageBitmap(
+                        any<Bitmap>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Int>(),
+                        any<Boolean>(),
+                        any<Boolean>(),
+                    )
+                }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun textPageGetRect() =
+        nullableTest {
+            val rect = mockk<RectF>()
+            setup {
+                every { page.openTextPage() } returns textPage
+                every { textPage.textPageGetRect(any()) } returns rect
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.textPageGetRect(document, 0, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(rect)
+                verify { document.openPage(any()) }
+                verify { page.openTextPage() }
+                verify { textPage.textPageGetRect(any()) }
+                verify { page.close() }
+                verify { textPage.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isNull()
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun textPageGetBoundedText() =
+        nullableTest {
+            setup {
+                every { textPage.textPageGetBoundedText(any(), any()) } returns "Yo"
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.textPageGetBoundedText(document, 0, mockk(), 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo("Yo")
+                verify { document.openPage(any()) }
+                verify { page.openTextPage() }
+                verify { textPage.textPageGetBoundedText(any(), any()) }
+                verify { page.close() }
+                verify { textPage.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isNull()
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun mapRectToPage() =
+        nullableTest {
+            val expected = mockk<RectF>()
+            setup {
+                every { page.mapRectToPage(any(), any(), any(), any(), any(), any()) } returns expected
+                every { page.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.mapRectToPage(document, 0, 0, 0, 0, 0, 0, mockk()) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(expected)
+                verify { page.mapRectToPage(any(), any(), any(), any(), any(), any()) }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(RectF(-1f, -1f, -1f, -1f))
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun textPageCountRects() =
+        nullableTest {
+            setup {
+                every { textPage.textPageCountRects(any(), any()) } returns 124
+                every { page.close() } just runs
+                every { textPage.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.textPageCountRects(document, 0, 0, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(124)
+                verify { document.openPage(any()) }
+                verify { page.openTextPage() }
+                verify { textPage.textPageCountRects(any(), any()) }
+                verify { page.close() }
+                verify { textPage.close() }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(-1)
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun getPageLinks() =
+        nullableTest {
+            val expected = listOf(mockk<PdfDocument.Link>())
+            setup {
+                every { page.getPageLinks() } returns expected
+                every { page.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.getPageLinks(document, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(expected)
+                verify { page.getPageLinks() }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                assertThat(it).isEmpty()
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun mapPageCoordsToDevice() =
+        nullableTest {
+            val expected = mockk<Point>()
+            setup {
+                every {
+                    page.mapPageCoordsToDevice(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns expected
+                every { page.close() } just runs
+            }
+
+            apiCall = {
+                pdfiumCore.mapPageCoordsToDevice(document, 0, 0, 0, 0, 0, 0, 0.0, 0.0)
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(expected)
+                verify { page.mapPageCoordsToDevice(any(), any(), any(), any(), any(), any(), any()) }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(Point(-1, -1))
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun mapRectToDevice() =
+        nullableTest {
+            val expected = mockk<Rect>()
+            setup {
+                every { page.mapRectToDevice(any(), any(), any(), any(), any(), any()) } returns expected
+                every { page.close() } just runs
+            }
+
+            apiCall = {
+                pdfiumCore.mapRectToDevice(document, 0, 0, 0, 0, 0, 0, mockk())
+            }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(expected)
+                verify { page.mapRectToDevice(any(), any(), any(), any(), any(), any()) }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(Rect(-1, -1, -1, -1))
+                verify { document.openPage(any()) }
+            }
+        }
+}
+
+@RunWith(AndroidJUnit4::class)
+@Config(manifest = Config.NONE)
+class PdfiumCoreHappyPathTest : PdfiumCoreBaseTest() {
+    override fun shouldReturnDefault(): Boolean = false
+
+    override fun setupRules() {
         every { document.openPage(any()) } returns page
         every { page.openTextPage() } returns textPage
-        every { textPage.textPageGetRect(any()) } returns rect
-        every { page.close() } just runs
-        every { textPage.close() } just runs
-        val result = pdfiumCore.textPageGetRect(document, 0, 0)
-        assertThat(result).isEqualTo(rect)
-        verify { document.openPage(any()) }
-        verify { page.openTextPage() }
-        verify { textPage.textPageGetRect(any()) }
-        verify { page.close() }
-        verify { textPage.close() }
     }
+}
 
-    @Test
-    fun textPageGetBoundedText() {
-        every { document.openPage(any()) } returns page
-        every { page.openTextPage() } returns textPage
-        every { textPage.textPageGetBoundedText(any(), any()) } returns "Yo"
-        every { page.close() } just runs
-        every { textPage.close() } just runs
-        val result = pdfiumCore.textPageGetBoundedText(document, 0, mockk(), 0)
-        assertThat(result).isEqualTo("Yo")
-        verify { document.openPage(any()) }
-        verify { page.openTextPage() }
-        verify { textPage.textPageGetBoundedText(any(), any()) }
-        verify { page.close() }
-        verify { textPage.close() }
-    }
+@RunWith(AndroidJUnit4::class)
+@Config(manifest = Config.NONE)
+class PdfiumCoreNullPageTest : PdfiumCoreBaseTest() {
+    override fun shouldReturnDefault(): Boolean = true
 
-    @Test
-    fun mapRectToPage() {
-        val expected = mockk<RectF>()
-        every { document.openPage(any()) } returns page
-        every { page.mapRectToPage(any(), any(), any(), any(), any(), any()) } returns expected
-        every { page.close() } just runs
-        val result = pdfiumCore.mapRectToPage(document, 0, 0, 0, 0, 0, 0, mockk())
-        assertThat(result).isEqualTo(expected)
-        verify { page.mapRectToPage(any(), any(), any(), any(), any(), any()) }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
-
-    @Test
-    fun textPageCountRects() {
-        every { document.openPage(any()) } returns page
-        every { page.openTextPage() } returns textPage
-        every { textPage.textPageCountRects(any(), any()) } returns 124
-        every { page.close() } just runs
-        every { textPage.close() } just runs
-        val result = pdfiumCore.textPageCountRects(document, 0, 0, 0)
-        assertThat(result).isEqualTo(124)
-        verify { document.openPage(any()) }
-        verify { page.openTextPage() }
-        verify { textPage.textPageCountRects(any(), any()) }
-        verify { page.close() }
-        verify { textPage.close() }
-    }
-
-    @Test
-    fun getPageLinks() {
-        val expected = listOf(mockk<PdfDocument.Link>())
-        every { document.openPage(any()) } returns page
-        every { page.getPageLinks() } returns expected
-        every { page.close() } just runs
-        val result = pdfiumCore.getPageLinks(document, 0)
-        assertThat(result).isEqualTo(expected)
-        verify { page.getPageLinks() }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
-
-    @Test
-    fun mapPageCoordsToDevice() {
-        val expected = mockk<Point>()
-        every { document.openPage(any()) } returns page
-        every { page.mapPageCoordsToDevice(any(), any(), any(), any(), any(), any(), any()) } returns expected
-        every { page.close() } just runs
-        val result = pdfiumCore.mapPageCoordsToDevice(document, 0, 0, 0, 0, 0, 0, 0.0, 0.0)
-        assertThat(result).isEqualTo(expected)
-        verify { page.mapPageCoordsToDevice(any(), any(), any(), any(), any(), any(), any()) }
-        verify { page.close() }
-        verify { document.openPage(any()) }
-    }
-
-    @Test
-    fun mapRectToDevice() {
-        val expected = mockk<Rect>()
-        every { document.openPage(any()) } returns page
-        every { page.mapRectToDevice(any(), any(), any(), any(), any(), any()) } returns expected
-        every { page.close() } just runs
-        val result = pdfiumCore.mapRectToDevice(document, 0, 0, 0, 0, 0, 0, mockk())
-        assertThat(result).isEqualTo(expected)
-        verify { page.mapRectToDevice(any(), any(), any(), any(), any(), any()) }
-        verify { page.close() }
-        verify { document.openPage(any()) }
+    override fun setupRules() {
+        every { document.openPage(any()) } returns null
     }
 }

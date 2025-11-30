@@ -16,10 +16,12 @@ import io.legere.pdfiumandroid.util.pdfiumConfig
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.junit4.MockKRule
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config as RoboConfig
@@ -31,6 +33,9 @@ import org.robolectric.annotation.Config as RoboConfig
 @RunWith(AndroidJUnit4::class)
 @RoboConfig(manifest = RoboConfig.NONE)
 abstract class PdfTextPageBaseTest : ClosableTestContext {
+    @get:Rule
+    val mockkRule: MockKRule = MockKRule(this)
+
     @MockK lateinit var mockNativeFactory: NativeFactory
 
     @MockK lateinit var mockNativeDocument: NativeDocument
