@@ -6,7 +6,7 @@ import java.io.Closeable
 
 @Suppress("TooManyFunctions")
 class PdfPageLink(
-    private val pageLink: PdfPageLinkU,
+    val pageLink: PdfPageLinkU,
 ) : Closeable {
     fun countWebLinks(): Int {
         synchronized(PdfiumCore.lock) {
