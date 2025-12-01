@@ -402,3 +402,40 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
 
     dependsOn("pixelPhoneDebugAndroidTest") // Ensure instrumentation tests run before report generation
 }
+
+tasks.register<JacocoCoverageVerification>("jacocoAndroidTestCoverageVerification") {
+    group = "Reporting"
+    description = "Verifies JaCoCo coverage for Android instrumentation tests."
+
+    executionData.setFrom(
+        fileTree(
+            layout.buildDirectory.dir(
+                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
+            ),
+        ) {
+            include("**/*.ec")
+        },
+    )
+
+    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+
+    classDirectories.setFrom(
+        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+            exclude("**/*")
+            include("**/io/legere/pdfiumandroid/jni/**/*.class")
+        },
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+            include("**/io/legere/pdfiumandroid/jni/**/*.class")
+        },
+    )
+
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.95.toBigDecimal()
+            }
+        }
+    }
+
+    dependsOn("pixelPhoneDebugAndroidTest")
+}
