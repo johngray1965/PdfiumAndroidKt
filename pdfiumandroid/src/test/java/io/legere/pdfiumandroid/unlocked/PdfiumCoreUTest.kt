@@ -93,14 +93,16 @@ class PdfiumCoreUTest {
 
     @Test
     fun `newDocument thread safety`() {
-        // Call newDocument from multiple threads simultaneously to ensure the native library initialization lock and native core calls are thread-safe.
+        // Call newDocument from multiple threads simultaneously to ensure the native library initialization
+        // lock and native core calls are thread-safe.
         PdfiumCoreU(context = null, nativeFactory = mockNativeFactory, libraryLoader = libraryLoader)
     }
 
     @Test
     fun `newDocument native crash resilience`() {
         println("start newDocument native crash resilience")
-        // (Advanced) Test with malformed inputs designed to trigger native crashes (e.g. fuzzing inputs) to ensure the JNI layer doesn't crash the entire JVM.
+        // (Advanced) Test with malformed inputs designed to trigger native crashes (e.g. fuzzing inputs) to ensure the JNI
+        // layer doesn't crash the entire JVM.
         every { libraryLoader.load(any()) } throws Exception()
 
         val exception: java.lang.Exception =

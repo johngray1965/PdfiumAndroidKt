@@ -118,7 +118,18 @@ class PdfDocumentKtFTest {
         renderPages: Boolean,
         textMask: Boolean,
     ) {
-        coEvery { pdfDocumentU.renderPages(any<Surface>(), any(), any(), any(), any(), any(), any(), any()) } returns true
+        coEvery {
+            pdfDocumentU.renderPages(
+                any<Surface>(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns true
         val result =
             pdfDocument.renderPages(
                 mockk<Surface>(),
@@ -132,13 +143,35 @@ class PdfDocumentKtFTest {
                 renderCoroutinesDispatcher = Dispatchers.Main,
             )
         assertThat(result).isTrue()
-        coVerify { pdfDocumentU.renderPages(any<Surface>(), any(), any(), any(), any(), any(), any(), any()) }
+        coVerify {
+            pdfDocumentU.renderPages(
+                any<Surface>(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        }
     }
 
     @Test
     fun renderPagesDefault() =
         runTest {
-            coEvery { pdfDocumentU.renderPages(any<Surface>(), any(), any(), any(), any(), any(), any(), any()) } returns true
+            coEvery {
+                pdfDocumentU.renderPages(
+                    any<Surface>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
             val result =
                 pdfDocument.renderPages(
                     mockk<Surface>(),
@@ -148,7 +181,18 @@ class PdfDocumentKtFTest {
                     renderCoroutinesDispatcher = Dispatchers.Main,
                 )
             assertThat(result).isTrue()
-            coVerify { pdfDocumentU.renderPages(any<Surface>(), any(), any(), any(), any(), any(), any(), any()) }
+            coVerify {
+                pdfDocumentU.renderPages(
+                    any<Surface>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test

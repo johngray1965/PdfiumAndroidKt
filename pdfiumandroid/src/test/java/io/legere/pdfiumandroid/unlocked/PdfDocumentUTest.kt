@@ -26,11 +26,14 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 abstract class PdfDocumentUBaseTest : ClosableTestContext {
-    @MockK lateinit var mockNativeFactory: NativeFactory
+    @MockK
+    lateinit var mockNativeFactory: NativeFactory
 
-    @MockK lateinit var mockNativeDocument: NativeDocument
+    @MockK
+    lateinit var mockNativeDocument: NativeDocument
 
-    @MockK lateinit var mockNativeTextPage: NativeTextPage
+    @MockK
+    lateinit var mockNativeTextPage: NativeTextPage
 
     lateinit var pdfDocumentU: PdfDocumentU
 
@@ -158,6 +161,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
     }
 
     @Test
+    @Suppress("LongMethod")
     fun `renderPages  buffer  matrix flattening`() =
         closableTest {
             val matrixSlot = slot<FloatArray>()
@@ -195,12 +199,38 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                 assertThat(flattenedMatrix.size).isEqualTo(3)
                 verify(
                     exactly = 1,
-                ) { mockNativeDocument.renderPagesWithMatrix(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+                ) {
+                    mockNativeDocument.renderPagesWithMatrix(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                }
             }
             verifyDefault {
                 verify(
                     exactly = 0,
-                ) { mockNativeDocument.renderPagesWithMatrix(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) }
+                ) {
+                    mockNativeDocument.renderPagesWithMatrix(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                }
             }
         }
 
@@ -298,6 +328,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
         }
 
     @Test
+    @Suppress("LongMethod")
     fun getDocumentMeta() =
         closableTest {
             setupHappy {
@@ -436,7 +467,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
             setupHappy {
                 val child1Ptr = 200L
                 val child2Ptr = 300L
-                val child1_1Ptr = 400L
+                val child11Ptr = 400L
 
                 // Initial call for root
                 every { mockNativeDocument.getFirstChildBookmark(any(), any()) } returns child1Ptr
@@ -445,13 +476,18 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                 every { mockNativeDocument.getBookmarkTitle(child1Ptr) } returns "Child 1"
                 every { mockNativeDocument.getBookmarkDestIndex(any(), child1Ptr) } returns 1
                 every { mockNativeDocument.getSiblingBookmark(any(), child1Ptr) } returns child2Ptr
-                every { mockNativeDocument.getFirstChildBookmark(any(), child1Ptr) } returns child1_1Ptr
+                every {
+                    mockNativeDocument.getFirstChildBookmark(
+                        any(),
+                        child1Ptr,
+                    )
+                } returns child11Ptr
 
                 // Child 1.1 Setup (No siblings, No children)
-                every { mockNativeDocument.getBookmarkTitle(child1_1Ptr) } returns "Child 1.1"
-                every { mockNativeDocument.getBookmarkDestIndex(any(), child1_1Ptr) } returns 1
-                every { mockNativeDocument.getSiblingBookmark(any(), child1_1Ptr) } returns 0
-                every { mockNativeDocument.getFirstChildBookmark(any(), child1_1Ptr) } returns 0
+                every { mockNativeDocument.getBookmarkTitle(child11Ptr) } returns "Child 1.1"
+                every { mockNativeDocument.getBookmarkDestIndex(any(), child11Ptr) } returns 1
+                every { mockNativeDocument.getSiblingBookmark(any(), child11Ptr) } returns 0
+                every { mockNativeDocument.getFirstChildBookmark(any(), child11Ptr) } returns 0
 
                 // Child 2 Setup (No siblings, No children)
                 every { mockNativeDocument.getBookmarkTitle(child2Ptr) } returns "Child 2"
@@ -471,8 +507,8 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                 assertThat(node1.pageIdx).isEqualTo(1)
                 assertThat(node1.children).hasSize(1)
 
-                val node1_1 = node1.children[0]
-                assertThat(node1_1.title).isEqualTo("Child 1.1")
+                val node11 = node1.children[0]
+                assertThat(node11.title).isEqualTo("Child 1.1")
 
                 val node2 = toc[1]
                 assertThat(node2.title).isEqualTo("Child 2")

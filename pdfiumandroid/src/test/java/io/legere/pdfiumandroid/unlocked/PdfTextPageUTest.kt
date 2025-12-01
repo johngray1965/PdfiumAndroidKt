@@ -394,7 +394,9 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
     override fun isStateClosed() = false
 
-    override fun setupClosedState() { }
+    override fun setupClosedState() {
+        // empty
+    }
 
     @Test
     fun `textPageGetTextLegacy empty result`() {

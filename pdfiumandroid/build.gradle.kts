@@ -21,6 +21,10 @@ kotlin {
         freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
+
+detekt {
+    config.setFrom(files("${rootProject.projectDir}/config/detekt.yml"))
+}
 val numShards: String = System.getenv("CIRCLE_NODE_TOTAL") ?: "0"
 val shardIndex: String = System.getenv("CIRCLE_NODE_INDEX") ?: "0"
 
@@ -259,6 +263,11 @@ kover {
             }
             html {
                 onCheck = true
+            }
+            verify {
+                rule {
+                    minBound(95)
+                }
             }
         }
     }

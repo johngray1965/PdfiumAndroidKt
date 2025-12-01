@@ -1,5 +1,6 @@
 package io.legere.pdfiumandroid.suspend
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -8,7 +9,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -56,9 +57,9 @@ class PdfPageKtCacheTest {
             // 1. First fetch
             val result = cache.get(index)
 
-            assertNotNull(result)
-            assertEquals(pageMock, result.page)
-            assertEquals(textPageMock, result.textPage)
+            assertThat(result).isNotNull()
+            assertThat(pageMock).isEqualTo(result.page)
+            assertThat(textPageMock).isEqualTo(result.textPage)
 
             // Verify factory calls (document methods)
             coVerify(exactly = 1) { pdfDocument.openPage(index) }

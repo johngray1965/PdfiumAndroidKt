@@ -72,7 +72,10 @@ class MainViewModel
                     .flatMapLatest { action ->
                         flow {
                             when (action) {
-                                is UiAction.Init -> emit(UiState(loadState = LoadStatus.Init))
+                                is UiAction.Init -> {
+                                    emit(UiState(loadState = LoadStatus.Init))
+                                }
+
                                 is UiAction.LoadDoc -> {
                                     emit(UiState(loadState = LoadStatus.Loading))
                                     val fd = application.contentResolver.openFileDescriptor(action.uri, "r")
@@ -82,7 +85,7 @@ class MainViewModel
                                             pageCache =
                                                 PdfPageKtCache<PdfHolder>(
                                                     pdfDocument!!,
-                                                    Dispatchers.IO,
+                                                    dispatcher = Dispatchers.IO,
                                                 ) { page, textPage ->
                                                     val pageWidth = page.getPageWidthPoint()
                                                     val pageHeight = page.getPageHeightPoint()

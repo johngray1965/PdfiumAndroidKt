@@ -182,7 +182,18 @@ class PdfPageTest {
             val result = pdfPage.renderPage(1L, 0, 0, 0, 0, renderAnnot)
             assertThat(result).isEqualTo(expected)
         }
-        verify { page.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any<Boolean>(), any<Int>(), any<Int>()) }
+        verify {
+            page.renderPage(
+                any<Long>(),
+                any<Int>(),
+                any<Int>(),
+                any<Int>(),
+                any<Int>(),
+                any<Boolean>(),
+                any<Int>(),
+                any<Int>(),
+            )
+        }
     }
 
     @Test

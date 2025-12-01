@@ -37,6 +37,7 @@ class PdfiumCoreU(
             if (!isLibraryLoaded) {
                 Thread {
                     Log.d(TAG, "Loading native libraries in background thread")
+                    @Suppress("TooGenericExceptionCaught")
                     try {
                         libraryLoader.load("pdfium")
                         libraryLoader.load("pdfiumandroid")
@@ -62,6 +63,7 @@ class PdfiumCoreU(
         isReady.waitForReady()
 
         // FAIL FAST: If loading failed, re-throw the exception here on the calling thread.
+        @Suppress("TooGenericExceptionThrown")
         libraryLoadError?.let {
             throw RuntimeException("Failed to initialize PdfiumCore native libraries", it)
         }

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
+@Suppress("LargeClass")
 class PdfPageKtFTest {
     lateinit var pdfPage: PdfPageKtF
 
@@ -201,7 +202,18 @@ class PdfPageKtFTest {
             every {
                 pdfPageU.pageIndex
             } returns 0
-            every { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 1
@@ -212,9 +224,28 @@ class PdfPageKtFTest {
             every { pdfPageU.unlockSurface(any()) } just runs
 
             assertThat(
-                pdfPage.renderPage(surface, 0, 0, 100, 100, renderCoroutinesDispatcher = Dispatchers.Unconfined).getOrNull(),
+                pdfPage
+                    .renderPage(
+                        surface,
+                        0,
+                        0,
+                        100,
+                        100,
+                        renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                    ).getOrNull(),
             ).isTrue()
-            verify { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -224,7 +255,18 @@ class PdfPageKtFTest {
             every {
                 pdfPageU.pageIndex
             } returns 0
-            every { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 1
@@ -234,12 +276,31 @@ class PdfPageKtFTest {
             }
             every { pdfPageU.unlockSurface(any()) } just runs
 
-            val result = pdfPage.renderPage(null, 0, 0, 100, 100, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    null,
+                    0,
+                    0,
+                    100,
+                    100,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
 
             assertThat(
                 result.isLeft(),
             ).isTrue()
-            verify(exactly = 0) { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) }
+            verify(exactly = 0) {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -249,7 +310,18 @@ class PdfPageKtFTest {
             every {
                 pdfPageU.pageIndex
             } returns 0
-            every { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 0
@@ -259,12 +331,31 @@ class PdfPageKtFTest {
             }
             every { pdfPageU.unlockSurface(any()) } just runs
 
-            val result = pdfPage.renderPage(null, 0, 0, 100, 100, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    null,
+                    0,
+                    0,
+                    100,
+                    100,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
 
             assertThat(
                 result.isLeft(),
             ).isTrue()
-            verify(exactly = 0) { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) }
+            verify(exactly = 0) {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -274,7 +365,18 @@ class PdfPageKtFTest {
             every {
                 pdfPageU.pageIndex
             } returns 0
-            every { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = -1
@@ -284,12 +386,31 @@ class PdfPageKtFTest {
             }
             every { pdfPageU.unlockSurface(any()) } just runs
 
-            val result = pdfPage.renderPage(surface, 0, 0, 100, 100, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    surface,
+                    0,
+                    0,
+                    100,
+                    100,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
 
             assertThat(
                 result.isLeft(),
             ).isFalse()
-            verify { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -299,7 +420,18 @@ class PdfPageKtFTest {
             every {
                 pdfPageU.pageIndex
             } returns 0
-            every { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) } returns false
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns false
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 0
@@ -309,12 +441,31 @@ class PdfPageKtFTest {
             }
             every { pdfPageU.unlockSurface(any()) } just runs
 
-            val result = pdfPage.renderPage(surface, 0, 0, 100, 100, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    surface,
+                    0,
+                    0,
+                    100,
+                    100,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
 
             assertThat(
                 result.isLeft(),
             ).isFalse()
-            verify { pdfPageU.renderPage(any<Long>(), any<Int>(), any<Int>(), any<Int>(), any<Int>(), any(), any(), any()) }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -324,10 +475,38 @@ class PdfPageKtFTest {
             val surface = mockk<Surface>()
             val matrix = Matrix()
             val clip = RectF()
-            every { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
 
-            assertThat(pdfPage.renderPage(surface, matrix, clip, renderCoroutinesDispatcher = Dispatchers.Unconfined).getOrNull()).isTrue()
-            verify { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) }
+            assertThat(
+                pdfPage
+                    .renderPage(
+                        surface,
+                        matrix,
+                        clip,
+                        renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                    ).getOrNull(),
+            ).isTrue()
+            verify {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -336,11 +515,37 @@ class PdfPageKtFTest {
             // Variant with Surface and Matrix
             val matrix = Matrix()
             val clip = RectF()
-            every { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
 
-            val result = pdfPage.renderPage(null, matrix, clip, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    null,
+                    matrix,
+                    clip,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
             assertThat(result.isLeft()).isTrue()
-            verify(exactly = 0) { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) }
+            verify(exactly = 0) {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -350,11 +555,37 @@ class PdfPageKtFTest {
             val surface = mockk<Surface>()
             val matrix = Matrix()
             val clip = RectF()
-            every { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) } returns false
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns false
 
-            val result = pdfPage.renderPage(surface, matrix, clip, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    surface,
+                    matrix,
+                    clip,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
             assertThat(result.isLeft()).isTrue()
-            verify { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) }
+            verify {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -364,11 +595,37 @@ class PdfPageKtFTest {
             val surface = mockk<Surface>()
             val matrix = Matrix()
             val clip = RectF()
-            every { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) } throws Exception()
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } throws Exception()
 
-            val result = pdfPage.renderPage(surface, matrix, clip, renderCoroutinesDispatcher = Dispatchers.Unconfined)
+            val result =
+                pdfPage.renderPage(
+                    surface,
+                    matrix,
+                    clip,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
             assertThat(result.isLeft()).isTrue()
-            verify { pdfPageU.renderPage(any<Surface>(), any<Matrix>(), any(), any(), any(), any(), any()) }
+            verify {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<Matrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
         }
 
     @Test
@@ -410,7 +667,9 @@ class PdfPageKtFTest {
             val point = Point(10, 20)
             every { pdfPageU.mapPageCoordsToDevice(0, 0, 100, 100, 0, 5.0, 5.0) } returns point
 
-            assertThat(pdfPage.mapPageCoordsToDevice(0, 0, 100, 100, 0, 5.0, 5.0).getOrNull()).isEqualTo(point)
+            assertThat(
+                pdfPage.mapPageCoordsToDevice(0, 0, 100, 100, 0, 5.0, 5.0).getOrNull(),
+            ).isEqualTo(point)
             verify { pdfPageU.mapPageCoordsToDevice(0, 0, 100, 100, 0, 5.0, 5.0) }
         }
 
@@ -420,7 +679,9 @@ class PdfPageKtFTest {
             val point = PointF(5.0f, 5.0f)
             every { pdfPageU.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 10, 20) } returns point
 
-            assertThat(pdfPage.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 10, 20).getOrNull()).isEqualTo(point)
+            assertThat(
+                pdfPage.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 10, 20).getOrNull(),
+            ).isEqualTo(point)
             verify { pdfPageU.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 10, 20) }
         }
 

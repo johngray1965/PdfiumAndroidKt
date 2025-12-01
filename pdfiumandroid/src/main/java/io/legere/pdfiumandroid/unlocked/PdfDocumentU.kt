@@ -71,6 +71,7 @@ class PdfDocumentU(
      * @throws IllegalArgumentException if  document is closed or the page cannot be loaded,
      * RuntimeException if the page cannot be loaded
      */
+    @Suppress("ReturnCount")
     fun openPage(pageIndex: Int): PdfPageU? {
         if (handleAlreadyClosed(isClosed)) return null
         if (pageMap.containsKey(pageIndex)) {

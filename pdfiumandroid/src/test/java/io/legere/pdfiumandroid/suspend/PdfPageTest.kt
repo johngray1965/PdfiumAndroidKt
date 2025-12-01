@@ -178,7 +178,18 @@ class PdfPageTest {
     fun renderPage() =
         runTest {
             val surface = mockk<Surface>()
-            every { pdfPageU.renderPage(any(), 0, 0, 100, 100, any(), any(), any()) } returns true
+            every {
+                pdfPageU.renderPage(
+                    any(),
+                    0,
+                    0,
+                    100,
+                    100,
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 1

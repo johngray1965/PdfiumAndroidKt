@@ -602,7 +602,8 @@ class PdfPageHappyTest : PdfPageUBaseTest() {
 
     @Test
     fun `close actually closes native page with missing map entry`() {
-        // Verify that calling close() when reference count is 1 removes the page from pageMap, sets isClosed to true, and calls native closePage.
+        // Verify that calling close() when reference count is 1 removes the page from pageMap,
+        // sets isClosed to true, and calls native closePage.
         val pdfPage2 =
             PdfPageU(
                 pdfDocumentU,
@@ -618,7 +619,8 @@ class PdfPageHappyTest : PdfPageUBaseTest() {
 
     @Test(expected = IllegalStateException::class)
     fun `close idempotent check`() {
-        // Verify that calling close() multiple times on an already closed page does not cause errors or double-free native resources.
+        // Verify that calling close() multiple times on an already closed page does not cause errors
+        // or double-free native resources.
         pdfPage.close()
         pdfPage.close()
         pdfPage.close()

@@ -1,6 +1,7 @@
 package io.legere.pdfiumandroid.arrow
 
 import arrow.core.right
+import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
@@ -12,7 +13,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -72,7 +73,7 @@ class PdfPageKtFCacheTest {
             // 1. First fetch
             val result = cache.getF(index).getOrNull()
 
-            assertNotNull(result)
+            assertThat(result).isNotNull()
 //            assertEquals(pageMock.page, result?.page)
 //            assertEquals(textPageMock, result?.textPage)
 
