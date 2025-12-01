@@ -3,7 +3,6 @@ package io.legere.pdfiumandroid.base
 import android.graphics.RectF
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import io.legere.pdfiumandroid.PdfiumCoreTest
 
 @Suppress("unused")
 open class BasePDFTest {
@@ -21,7 +20,7 @@ open class BasePDFTest {
             val input = assetManager.open(filename)
             return input.readBytes()
         } catch (e: Exception) {
-            Log.e(PdfiumCoreTest::class.simpleName, "Ugh", e)
+            Log.e(BasePDFTest::class.simpleName, "Ugh", e)
         }
         assetManager.close()
         return null

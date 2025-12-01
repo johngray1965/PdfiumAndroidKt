@@ -28,7 +28,7 @@ class NativePageTest : BasePDFTest() {
         Truth.assertThat(pdfBytes).isNotNull()
 
         pdfDocument = PdfiumCoreU().newDocument(pdfBytes)
-        pdfPage = pdfDocument.openPage(0)
+        pdfPage = pdfDocument.openPage(0)!!
         pagePtr = pdfPage.pagePtr
     }
 

@@ -49,7 +49,7 @@ class FastNativeTest : BasePDFTest() {
         val time =
             measureTime {
                 repeat(10_000) {
-                    pdfDocument.openPage(0).use { page ->
+                    pdfDocument.openPage(0)?.use { page ->
                         testPageAttributes(page)
                     }
                 }
@@ -62,7 +62,7 @@ class FastNativeTest : BasePDFTest() {
     fun getPagAttributesSingleOpen() {
         val time =
             measureTime {
-                pdfDocument.openPage(0).use { page ->
+                pdfDocument.openPage(0)?.use { page ->
                     repeat(10_000) {
                         testPageAttributes(page)
                     }
@@ -74,7 +74,7 @@ class FastNativeTest : BasePDFTest() {
 
     @Test
     fun getPagAttributesTimeAttributesOnly() {
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             val time =
                 measureTime {
                     repeat(10_000) {
@@ -91,7 +91,7 @@ class FastNativeTest : BasePDFTest() {
         val time =
             measureTime {
                 repeat(10_000) {
-                    pdfDocument.openPage(0).use { page ->
+                    pdfDocument.openPage(0)?.use { page ->
                         page.openTextPage().use { textPage ->
                             testTextPageAttributes(textPage)
                         }
@@ -106,7 +106,7 @@ class FastNativeTest : BasePDFTest() {
     fun getPTextPagAttributesSingleOpen() {
         val time =
             measureTime {
-                pdfDocument.openPage(0).use { page ->
+                pdfDocument.openPage(0)?.use { page ->
                     page.openTextPage().use { textPage ->
                         repeat(10_000) {
                             testTextPageAttributes(textPage)
@@ -120,7 +120,7 @@ class FastNativeTest : BasePDFTest() {
 
     @Test
     fun getTextPagAttributesTimeAttributesOnly() {
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val time =
                     measureTime {
@@ -141,7 +141,7 @@ class FastNativeTest : BasePDFTest() {
         val time =
             measureTime {
                 repeat(iterations) {
-                    pdfDocument.openPage(0).use { page ->
+                    pdfDocument.openPage(0)?.use { page ->
                         page.renderPageBitmap(
                             bitmap,
                             0,
@@ -162,7 +162,7 @@ class FastNativeTest : BasePDFTest() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         val time =
             measureTime {
-                pdfDocument.openPage(0).use { page ->
+                pdfDocument.openPage(0)?.use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
                             bitmap,
@@ -187,7 +187,7 @@ class FastNativeTest : BasePDFTest() {
         val time =
             measureNanoTime {
                 repeat(iterations) {
-                    pdfDocument.openPage(0).use { page ->
+                    pdfDocument.openPage(0)?.use { page ->
                         page.renderPageBitmap(
                             bitmap,
                             matrix,
@@ -209,7 +209,7 @@ class FastNativeTest : BasePDFTest() {
         val matrix = Matrix()
         val time =
             measureTime {
-                pdfDocument.openPage(0).use { page ->
+                pdfDocument.openPage(0)?.use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
                             bitmap,
@@ -229,7 +229,7 @@ class FastNativeTest : BasePDFTest() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.RGB_565)
         val time =
             measureTime {
-                pdfDocument.openPage(0).use { page ->
+                pdfDocument.openPage(0)?.use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
                             bitmap,
@@ -249,7 +249,7 @@ class FastNativeTest : BasePDFTest() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
         val time =
             measureTime {
-                pdfDocument.openPage(0).use { page ->
+                pdfDocument.openPage(0)?.use { page ->
                     repeat(iterations) {
                         page.renderPageBitmap(
                             bitmap,
@@ -271,7 +271,7 @@ class FastNativeTest : BasePDFTest() {
 
     @Test
     fun gettextPageGetRectsForRanges() {
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val textCharCount =
                     textPage.textPageCountChars()
@@ -306,7 +306,7 @@ class FastNativeTest : BasePDFTest() {
     @Test
     fun gettextPageGetRects() {
         val iterations = 100
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val textCharCount =
                     textPage.textPageCountChars()
@@ -346,7 +346,7 @@ class FastNativeTest : BasePDFTest() {
     fun getPagBitmapViaMatrixSingleOpen8xARGB_8888ReadFromDisk() {
         val iterations = 100
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             repeat(iterations) {
                 page.renderPageBitmap(
                     bitmap,
