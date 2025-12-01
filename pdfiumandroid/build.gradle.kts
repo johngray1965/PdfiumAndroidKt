@@ -21,11 +21,6 @@ kotlin {
         freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
-
-jacoco {
-    toolVersion = "0.8.13"
-}
-
 val numShards: String = System.getenv("CIRCLE_NODE_TOTAL") ?: "0"
 val shardIndex: String = System.getenv("CIRCLE_NODE_INDEX") ?: "0"
 
@@ -178,6 +173,9 @@ android {
     compileOptions {
         sourceCompatibility(JavaVersion.VERSION_17)
         targetCompatibility(JavaVersion.VERSION_17)
+    }
+    testCoverage {
+        jacocoVersion = "0.8.13"
     }
     testOptions {
         unitTests.all {

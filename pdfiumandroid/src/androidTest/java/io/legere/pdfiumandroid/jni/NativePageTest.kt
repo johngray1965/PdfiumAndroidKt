@@ -2,6 +2,8 @@ package io.legere.pdfiumandroid.jni
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
+import android.graphics.SurfaceTexture
+import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
@@ -209,6 +211,32 @@ class NativePageTest : BasePDFTest() {
     }
 
     @Test
+    fun renderPageBitmapWithMatrixWithDefaults() {
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        nativePage.renderPageBitmapWithMatrix(
+            pdfPage.pagePtr,
+            bitmap,
+            floatArrayOf(
+                matrixValues[Matrix.MSCALE_X],
+                matrixValues[Matrix.MSCALE_Y],
+                matrixValues[Matrix.MTRANS_X],
+                matrixValues[Matrix.MTRANS_Y],
+            ),
+            clipRect,
+            canvasColor = 0,
+            pageBackgroundColor = 0,
+        )
+
+        // Check if a pixel is not transparent
+        assertThat(bitmap.getPixel(50, 50)).isNotEqualTo(0)
+    }
+
+    @Test
     fun renderPageBitmapWithMatrixWithAnnotations() {
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
@@ -234,6 +262,301 @@ class NativePageTest : BasePDFTest() {
 
         // Check if a pixel is not transparent
         assertThat(bitmap.getPixel(50, 50)).isNotEqualTo(0)
+    }
+
+    @Test
+    fun renderPageSurface() {
+        val surfaceTexture = SurfaceTexture(10)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val result =
+            nativePage.renderPageSurface(
+                pdfPage.pagePtr,
+                surface,
+                0,
+                0,
+                renderAnnot = false,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    @Test
+    fun renderPageSurfaceWithMatrix() {
+        fun renderPageSurfaceWithOptions(
+            renderAnnot: Boolean,
+            textMask: Boolean,
+        ) {
+            val surfaceTexture = SurfaceTexture(11)
+            surfaceTexture.setDefaultBufferSize(100, 100)
+            val surface = Surface(surfaceTexture)
+
+            val matrix = Matrix()
+            matrix.postScale(0.5f, 0.5f)
+            val matrixValues = FloatArray(9)
+            matrix.getValues(matrixValues)
+            val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+            val result =
+                nativePage.renderPageSurfaceWithMatrix(
+                    pdfPage.pagePtr,
+                    surface,
+                    floatArrayOf(
+                        matrixValues[Matrix.MSCALE_X],
+                        matrixValues[Matrix.MSCALE_Y],
+                        matrixValues[Matrix.MTRANS_X],
+                        matrixValues[Matrix.MTRANS_Y],
+                    ),
+                    clipRect,
+                    renderAnnot = renderAnnot,
+                    textMask = textMask,
+                    canvasColor = 0,
+                    pageBackgroundColor = 0,
+                )
+
+            assertThat(result).isTrue()
+            surface.release()
+            surfaceTexture.release()
+        }
+
+        renderPageSurfaceWithOptions(renderAnnot = false, textMask = false)
+        renderPageSurfaceWithOptions(renderAnnot = true, textMask = false)
+        renderPageSurfaceWithOptions(renderAnnot = false, textMask = true)
+        renderPageSurfaceWithOptions(renderAnnot = true, textMask = true)
+    }
+
+    @Test
+    fun renderPageSurfaceWithMatrixWithDefaults() {
+        val surfaceTexture = SurfaceTexture(11)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+        val result =
+            nativePage.renderPageSurfaceWithMatrix(
+                pdfPage.pagePtr,
+                surface,
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                clipRect,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    @Test
+    fun renderPageBufferRenderAnnotationTrue() {
+        renderPageBufferWithOptions(true)
+    }
+
+    @Test
+    fun renderPageBufferRenderAnnotationFalse() {
+        renderPageBufferWithOptions(false)
+    }
+
+    private fun renderPageBufferWithOptions(renderAnnot: Boolean) {
+        val surfaceTexture = SurfaceTexture(12)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val dimensions = IntArray(2)
+        val ptrs = LongArray(2)
+        nativePage.lockSurface(surface, dimensions, ptrs)
+        val bufferPtr = ptrs[1]
+
+        assertThat(bufferPtr).isNotEqualTo(0L)
+
+        val result =
+            nativePage.renderPage(
+                pdfPage.pagePtr,
+                bufferPtr,
+                0,
+                0,
+                dimensions[0],
+                dimensions[1],
+                renderAnnot = renderAnnot,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+
+        nativePage.unlockSurface(ptrs)
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    @Test
+    fun renderPageWithMatrixBufferFalseFalse() {
+        renderPageWithMatrixBufferWithOptions(renderAnnot = false, textMask = false)
+    }
+
+    @Test
+    fun renderPageWithMatrixBufferFalseTrue() {
+        renderPageWithMatrixBufferWithOptions(renderAnnot = false, textMask = true)
+    }
+
+    @Test
+    fun renderPageWithMatrixBufferTrueFalse() {
+        renderPageWithMatrixBufferWithOptions(renderAnnot = true, textMask = false)
+    }
+
+    @Test
+    fun renderPageWithMatrixBufferTrueTrue() {
+        renderPageWithMatrixBufferWithOptions(renderAnnot = true, textMask = true)
+    }
+
+    @Test
+    fun renderPageWithMatrixBufferWithDefaults() {
+        val surfaceTexture = SurfaceTexture(13)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val dimensions = IntArray(2)
+        val ptrs = LongArray(2)
+        nativePage.lockSurface(surface, dimensions, ptrs)
+        val bufferPtr = ptrs[1]
+
+        assertThat(bufferPtr).isNotEqualTo(0L)
+
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+        val result =
+            nativePage.renderPageWithMatrix(
+                pdfPage.pagePtr,
+                bufferPtr,
+                dimensions[0],
+                dimensions[1],
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                clipRect,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+
+        nativePage.unlockSurface(ptrs)
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    private fun renderPageWithMatrixBufferWithOptions(
+        renderAnnot: Boolean,
+        textMask: Boolean,
+    ) {
+        val surfaceTexture = SurfaceTexture(13)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val dimensions = IntArray(2)
+        val ptrs = LongArray(2)
+        nativePage.lockSurface(surface, dimensions, ptrs)
+        val bufferPtr = ptrs[1]
+
+        assertThat(bufferPtr).isNotEqualTo(0L)
+
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+        val result =
+            nativePage.renderPageWithMatrix(
+                pdfPage.pagePtr,
+                bufferPtr,
+                dimensions[0],
+                dimensions[1],
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                clipRect,
+                renderAnnot = renderAnnot,
+                textMask = textMask,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+
+        nativePage.unlockSurface(ptrs)
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    @Test
+    fun renderPageWithMatrixBufferWithAnnotations() {
+        val surfaceTexture = SurfaceTexture(13)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val dimensions = IntArray(2)
+        val ptrs = LongArray(2)
+        nativePage.lockSurface(surface, dimensions, ptrs)
+        val bufferPtr = ptrs[1]
+
+        assertThat(bufferPtr).isNotEqualTo(0L)
+
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+        val result =
+            nativePage.renderPageWithMatrix(
+                pdfPage.pagePtr,
+                bufferPtr,
+                dimensions[0],
+                dimensions[1],
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                clipRect,
+                renderAnnot = true,
+                textMask = true,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+
+        nativePage.unlockSurface(ptrs)
+        surface.release()
+        surfaceTexture.release()
     }
 
     @Test

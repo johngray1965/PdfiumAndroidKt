@@ -283,8 +283,8 @@ class NativePage {
             drawSizeVer: Int,
             matrix: FloatArray,
             clipRect: FloatArray,
-            renderAnnot: Boolean = false,
-            textMask: Boolean = false,
+            renderAnnot: Boolean,
+            textMask: Boolean,
             canvasColor: Int,
             pageBackgroundColor: Int,
         ): Boolean
@@ -308,8 +308,8 @@ class NativePage {
             surface: Surface,
             matrix: FloatArray,
             clipRect: FloatArray,
-            renderAnnot: Boolean = false,
-            textMask: Boolean = false,
+            renderAnnot: Boolean,
+            textMask: Boolean,
             canvasColor: Int,
             pageBackgroundColor: Int,
         ): Boolean
@@ -337,8 +337,8 @@ class NativePage {
             bitmap: Bitmap?,
             matrix: FloatArray,
             clipRect: FloatArray,
-            renderAnnot: Boolean = false,
-            textMask: Boolean = false,
+            renderAnnot: Boolean,
+            textMask: Boolean,
             canvasColor: Int,
             pageBackgroundColor: Int,
         )

@@ -1,9 +1,13 @@
 package io.legere.pdfiumandroid.jni
 
+import android.graphics.Matrix
+import android.graphics.SurfaceTexture
+import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.PdfDocument.Bookmark
+import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
@@ -15,6 +19,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NativeDocumentTest : BasePDFTest() {
     private val nativeDocument = defaultNativeFactory.getNativeDocument()
+    private val nativePage = defaultNativeFactory.getNativePage()
 
     private lateinit var pdfDocument: PdfDocumentU
 
@@ -150,5 +155,95 @@ class NativeDocumentTest : BasePDFTest() {
         println(pageCharCounts)
 
         Truth.assertThat(pageCharCounts).isEqualTo(expectedValues)
+    }
+
+    @Test
+    fun renderPageSurfaceWithMatrix() {
+        val surfaceTexture = SurfaceTexture(11)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+        val pdfPage = pdfDocument.openPage(0)
+
+        val result =
+            nativeDocument.renderPagesSurfaceWithMatrix(
+                longArrayOf(pdfPage?.pagePtr!!),
+                surface,
+                floatArrayOf(
+                    matrixValues[Matrix.MSCALE_X],
+                    matrixValues[Matrix.MSCALE_Y],
+                    matrixValues[Matrix.MTRANS_X],
+                    matrixValues[Matrix.MTRANS_Y],
+                ),
+                clipRect,
+                renderAnnot = false,
+                textMask = false,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+            )
+
+        assertThat(result).isTrue()
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    @Test
+    fun renderPageSurfaceWithMatrixViaBufferPtr() {
+        val surfaceTexture = SurfaceTexture(11)
+        surfaceTexture.setDefaultBufferSize(100, 100)
+        val surface = Surface(surfaceTexture)
+
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+
+        val dimensions = IntArray(2)
+        val ptrs = LongArray(2)
+        nativePage.lockSurface(surface, dimensions, ptrs)
+        val bufferPtr = ptrs[1]
+
+        val pdfPage = pdfDocument.openPage(0)
+
+        nativeDocument.renderPagesWithMatrix(
+            longArrayOf(pdfPage?.pagePtr!!),
+            bufferPtr,
+            dimensions[0],
+            dimensions[1],
+            floatArrayOf(
+                matrixValues[Matrix.MSCALE_X],
+                matrixValues[Matrix.MSCALE_Y],
+                matrixValues[Matrix.MTRANS_X],
+                matrixValues[Matrix.MTRANS_Y],
+            ),
+            clipRect,
+            renderAnnot = false,
+            textMask = false,
+            canvasColor = 0,
+            pageBackgroundColor = 0,
+        )
+
+        nativePage.unlockSurface(ptrs)
+        surface.release()
+        surfaceTexture.release()
+    }
+
+    @Test
+    fun saveAsCopy() {
+        val callback =
+            object : PdfWriteCallback {
+                override fun WriteBlock(data: ByteArray?): Int {
+                    return data?.size ?: 0
+                }
+            }
+        val result = nativeDocument.saveAsCopy(pdfDocument.mNativeDocPtr, callback, 0)
+        assertThat(result).isTrue()
     }
 }
