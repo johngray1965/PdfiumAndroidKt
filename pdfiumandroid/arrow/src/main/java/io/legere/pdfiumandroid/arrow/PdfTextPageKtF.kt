@@ -131,7 +131,9 @@ class PdfTextPageKtF(
 
     suspend fun loadWebLink(): Either<PdfiumKtFErrors, PdfPageLinkKtF> =
         wrapEither(dispatcher) {
-            PdfPageLinkKtF(page.loadWebLink(), dispatcher)
+            page.loadWebLink()?.let {
+                PdfPageLinkKtF(it, dispatcher)
+            } ?: error("PdfPageLink is null")
         }
 
     /**

@@ -6,6 +6,7 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.view.Surface
+import androidx.annotation.OpenForTesting
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument.Bookmark
 import io.legere.pdfiumandroid.PdfDocument.Meta
@@ -290,7 +291,8 @@ class PdfDocumentU(
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
     @Deprecated("Use PdfPage.openTextPage instead", ReplaceWith("page.openTextPage()"))
-    internal fun openTextPage(page: PdfPageU): PdfTextPageU {
+    @OpenForTesting
+    fun openTextPage(page: PdfPageU): PdfTextPageU {
         check(!isClosed) { "Already closed" }
         if (textPageMap.containsKey(page.pageIndex)) {
             textPageMap[page.pageIndex]?.let {

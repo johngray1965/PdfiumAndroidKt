@@ -226,23 +226,28 @@ class PdfPageKtF(
     ): Either<PdfiumKtFErrors, Boolean> {
         return PdfiumCore.surfaceMutex.withLock {
             withContext(renderCoroutinesDispatcher) {
-                return@withContext surface?.let {
-                    val retValue =
-                        page.renderPage(
-                            surface,
-                            matrix,
-                            clipRect,
-                            renderAnnot,
-                            textMask,
-                            canvasColor,
-                            pageBackgroundColor,
-                        )
-                    if (!retValue) {
-                        PdfiumKtFErrors.ConstraintError.left()
-                    } else {
-                        true.right()
+                Either
+                    .catch {
+                        return@withContext surface?.let {
+                            val retValue =
+                                page.renderPage(
+                                    surface,
+                                    matrix,
+                                    clipRect,
+                                    renderAnnot,
+                                    textMask,
+                                    canvasColor,
+                                    pageBackgroundColor,
+                                )
+                            if (!retValue) {
+                                PdfiumKtFErrors.ConstraintError.left()
+                            } else {
+                                true.right()
+                            }
+                        } ?: PdfiumKtFErrors.ConstraintError.left()
+                    }.mapLeft {
+                        exceptionToPdfiumKtFError(it)
                     }
-                } ?: PdfiumKtFErrors.ConstraintError.left()
             }
         }
     }

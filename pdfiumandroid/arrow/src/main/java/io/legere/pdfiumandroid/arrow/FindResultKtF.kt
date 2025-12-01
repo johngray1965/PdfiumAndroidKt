@@ -7,7 +7,7 @@ import java.io.Closeable
 
 @Suppress("unused")
 class FindResultKtF(
-    private val findResult: FindResultU,
+    val findResult: FindResultU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun findNext(): Either<PdfiumKtFErrors, Boolean> =

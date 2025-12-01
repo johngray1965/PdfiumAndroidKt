@@ -45,7 +45,9 @@ class PdfDocumentKtF(
      */
     suspend fun openPage(pageIndex: Int): Either<PdfiumKtFErrors, PdfPageKtF> =
         wrapEither(dispatcher) {
-            PdfPageKtF(document.openPage(pageIndex), dispatcher)
+            document.openPage(pageIndex)?.let {
+                PdfPageKtF(it, dispatcher)
+            } ?: error("Page is null")
         }
 
     /**

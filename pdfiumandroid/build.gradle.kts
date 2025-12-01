@@ -220,6 +220,8 @@ dependencies {
     androidTestImplementation(libs.bundles.instrumented.non.ui.test)
     androidTestUtil(libs.androidx.orchestrator)
     androidTestUtil(libs.androidx.test.services)
+
+    kover(project(":pdfiumandroid:arrow"))
 }
 kover {
     reports {

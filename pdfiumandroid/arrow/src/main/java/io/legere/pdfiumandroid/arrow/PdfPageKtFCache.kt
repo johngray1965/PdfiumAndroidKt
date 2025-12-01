@@ -4,6 +4,7 @@ package io.legere.pdfiumandroid.arrow
 
 import arrow.core.Either
 import io.legere.pdfiumandroid.suspend.PdfPageSuspendCacheBase
+import io.legere.pdfiumandroid.util.CACHE_SIZE
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
@@ -52,14 +53,15 @@ import kotlinx.coroutines.Dispatchers
  */
 class PdfPageKtFCache<H : AutoCloseable>(
     private val pdfDocument: PdfDocumentKtF,
+    maxSize: Long = CACHE_SIZE,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val pageHolderFactory: suspend (PdfPageKtF, PdfTextPageKtF) -> H,
 ) : AutoCloseable {
     private val suspendCache =
-        object : PdfPageSuspendCacheBase<H>(dispatcher) {
+        object : PdfPageSuspendCacheBase<H>(dispatcher, maxSize) {
             @Suppress("MaxLineLength")
-            override suspend fun openPageAndText(pageIndex: Int): H {
-                val page = pdfDocument.document.openPage(pageIndex)
+            override suspend fun openPageAndText(pageIndex: Int): H? {
+                val page = pdfDocument.document.openPage(pageIndex) ?: return null
                 val textPage = page.openTextPage()
                 return pageHolderFactory(
                     PdfPageKtF(page, dispatcher),

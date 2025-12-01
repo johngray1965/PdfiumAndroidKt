@@ -18,9 +18,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 class PdfiumCoreKtF(
     private val dispatcher: CoroutineDispatcher,
     config: Config = Config(),
+    private val coreInternal: PdfiumCoreU = PdfiumCoreU(config = config),
 ) {
-    private val coreInternal = PdfiumCoreU(config = config)
-
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
