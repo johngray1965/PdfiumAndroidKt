@@ -8,7 +8,7 @@ import java.io.Closeable
 
 @Suppress("unused")
 class FindResultKt(
-    private val findResult: FindResultU,
+    val findResult: FindResultU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun findNext(): Boolean =

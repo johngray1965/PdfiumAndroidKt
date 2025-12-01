@@ -22,16 +22,15 @@ import kotlinx.coroutines.withContext
 class PdfiumCoreKt(
     private val dispatcher: CoroutineDispatcher,
     config: Config = Config(),
+    private val coreInternal: PdfiumCoreU = PdfiumCoreU(config = config),
 ) {
-    private val coreInternal = PdfiumCoreU(config = config)
-
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
-    suspend fun newDocument(fd: ParcelFileDescriptor): PdfDocumentKt =
+    suspend fun newDocument(parcelFileDescriptor: ParcelFileDescriptor): PdfDocumentKt =
         mutex.withLock {
             withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(fd), dispatcher)
+                PdfDocumentKt(coreInternal.newDocument(parcelFileDescriptor), dispatcher)
             }
         }
 
@@ -39,12 +38,12 @@ class PdfiumCoreKt(
      * suspend version of [PdfiumCore.newDocument]
      */
     suspend fun newDocument(
-        fd: ParcelFileDescriptor,
+        parcelFileDescriptor: ParcelFileDescriptor,
         password: String?,
     ): PdfDocumentKt =
         mutex.withLock {
             withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(fd, password), dispatcher)
+                PdfDocumentKt(coreInternal.newDocument(parcelFileDescriptor, password), dispatcher)
             }
         }
 
