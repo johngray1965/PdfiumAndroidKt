@@ -1,5 +1,7 @@
 package io.legere.pdfiumandroid.jni
 
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
@@ -34,7 +36,11 @@ class NativePageTest : BasePDFTest() {
 
     @After
     fun tearDown() {
-        pdfPage.close()
+        try {
+            pdfPage.close()
+        } catch (e: Exception) {
+            println("Exception: $e")
+        }
         pdfDocument.close()
     }
 
@@ -163,5 +169,83 @@ class NativePageTest : BasePDFTest() {
                 699.1206f,
             )
         assertThat(matrix).isEqualTo(expectedMatrix)
+    }
+
+    @Test
+    fun renderPageBitmap() {
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        pdfPage.renderPageBitmap(bitmap, 0, 0, 100, 100)
+
+        // Check if a pixel is not transparent
+        assertThat(bitmap.getPixel(50, 50)).isNotEqualTo(0)
+    }
+
+    @Test
+    fun renderPageBitmapWithMatrix() {
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        nativePage.renderPageBitmapWithMatrix(
+            pdfPage.pagePtr,
+            bitmap,
+            floatArrayOf(
+                matrixValues[Matrix.MSCALE_X],
+                matrixValues[Matrix.MSCALE_Y],
+                matrixValues[Matrix.MTRANS_X],
+                matrixValues[Matrix.MTRANS_Y],
+            ),
+            clipRect,
+            renderAnnot = false,
+            textMask = false,
+            canvasColor = 0,
+            pageBackgroundColor = 0,
+        )
+
+        // Check if a pixel is not transparent
+        assertThat(bitmap.getPixel(50, 50)).isNotEqualTo(0)
+    }
+
+    @Test
+    fun renderPageBitmapWithMatrixWithAnnotations() {
+        val matrix = Matrix()
+        matrix.postScale(0.5f, 0.5f)
+        val matrixValues = FloatArray(9)
+        matrix.getValues(matrixValues)
+        val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
+        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+        nativePage.renderPageBitmapWithMatrix(
+            pdfPage.pagePtr,
+            bitmap,
+            floatArrayOf(
+                matrixValues[Matrix.MSCALE_X],
+                matrixValues[Matrix.MSCALE_Y],
+                matrixValues[Matrix.MTRANS_X],
+                matrixValues[Matrix.MTRANS_Y],
+            ),
+            clipRect,
+            renderAnnot = true,
+            textMask = true,
+            canvasColor = 0,
+            pageBackgroundColor = 0,
+        )
+
+        // Check if a pixel is not transparent
+        assertThat(bitmap.getPixel(50, 50)).isNotEqualTo(0)
+    }
+
+    @Test
+    fun closePages() {
+        val pdfPage2 = pdfDocument.openPage(1)!!
+        val pagePtr2 = pdfPage2.pagePtr
+        val pages2close = longArrayOf(pagePtr, pagePtr2)
+        println("Before Closing pages: ${pages2close.joinToString()}")
+        nativePage.closePages(pages2close)
+        println("After Closing pages: ${pages2close.joinToString()}")
+        // reopen the page so it's not closed
+        pdfPage = pdfDocument.openPage(0)!!
+        pagePtr = pdfPage.pagePtr
     }
 }

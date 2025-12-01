@@ -2,6 +2,7 @@ package io.legere.pdfiumandroid.jni
 
 import android.graphics.Bitmap
 import android.view.Surface
+import androidx.annotation.OpenForTesting
 import dalvik.annotation.optimization.FastNative
 
 @Suppress("TooManyFunctions")
@@ -141,7 +142,8 @@ class NativePage {
     )
 
     @Suppress("LongParameterList")
-    internal fun renderPageBitmapWithMatrix(
+    @OpenForTesting
+    fun renderPageBitmapWithMatrix(
         pagePtr: Long,
         bitmap: Bitmap?,
         matrix: FloatArray,

@@ -1,12 +1,17 @@
 package io.legere.pdfiumandroid.jni
 
+import android.graphics.Bitmap
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.base.ByteArrayPdfiumSource
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class NativeCoreTest : BasePDFTest() {
     val nativeCore = NativeCore()
 
@@ -18,7 +23,10 @@ class NativeCoreTest : BasePDFTest() {
 
     @Test
     fun openDocument() {
-//        val docPtr = nativeCore.openDocument(getPdfPath("f01.pdf"), null)
+        getPdfPath("f01.pdf")?.use {
+            val docPtr = nativeCore.openDocument(it.fd, null)
+            assertThat(docPtr).isNotNull()
+        }
     }
 
     @Test

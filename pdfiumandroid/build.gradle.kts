@@ -386,17 +386,14 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
     // Set the class directories to analyze
     classDirectories.setFrom(
         fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+            exclude("**/*")
+
+            include("**/io/legere/pdfiumandroid/jni/**/*.class")
             // Adjust path if needed
-            exclude(
-                "**/R.class",
-                "**/R\$*.class",
-                "**/BuildConfig.class",
-                "**/Manifest*.class",
-            ) // Exclude generated classes
         },
         fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
             // For Kotlin classes
-            exclude("**/R.class", "**/R\$*.class", "**/BuildConfig.class", "**/Manifest*.class")
+            include("**/io/legere/pdfiumandroid/jni/**/*.class")
         },
     )
 

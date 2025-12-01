@@ -1,8 +1,10 @@
 package io.legere.pdfiumandroid.base
 
 import android.graphics.RectF
+import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
+import java.io.File
 
 @Suppress("unused")
 open class BasePDFTest {
@@ -19,6 +21,26 @@ open class BasePDFTest {
         try {
             val input = assetManager.open(filename)
             return input.readBytes()
+        } catch (e: Exception) {
+            Log.e(BasePDFTest::class.simpleName, "Ugh", e)
+        }
+        assetManager.close()
+        return null
+    }
+
+    fun getPdfPath(filename: String): ParcelFileDescriptor? {
+        val appContext = InstrumentationRegistry.getInstrumentation().context
+        val assetManager = appContext.assets
+        try {
+            val input = assetManager.open(filename)
+            val path = appContext.filesDir.path + "/" + filename
+            input.copyTo(appContext.openFileOutput(filename, 0))
+            assetManager.close()
+            return ParcelFileDescriptor
+                .open(
+                    File(path),
+                    ParcelFileDescriptor.MODE_READ_ONLY,
+                )
         } catch (e: Exception) {
             Log.e(BasePDFTest::class.simpleName, "Ugh", e)
         }
