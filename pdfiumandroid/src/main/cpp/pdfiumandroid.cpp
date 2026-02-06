@@ -1540,8 +1540,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageWithMatrix(JNIEnv *
 
         auto matrix = FS_MATRIX();
         matrix.a = matrixFloats[0];
-        matrix.b = 0;
-        matrix.c = 0;
+        matrix.b = matrixFloats[4];
+        matrix.c = matrixFloats[5];
         matrix.d = matrixFloats[1];
         matrix.e = matrixFloats[2];
         matrix.f = matrixFloats[3];
@@ -1741,8 +1741,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
 
         auto matrix = FS_MATRIX();
         matrix.a = matrixFloats[0];
-        matrix.b = 0;
-        matrix.c = 0;
+        matrix.b = matrixFloats[4];
+        matrix.c = matrixFloats[5];
         matrix.d = matrixFloats[1];
         matrix.e = matrixFloats[2];
         matrix.f = matrixFloats[3];
@@ -1901,14 +1901,18 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
             }
 
 
-            auto scale = matrixFloats[0 + pageIndex * 3];
-            auto xTrans = matrixFloats[1 + pageIndex * 3];
-            auto yTrans = matrixFloats[2 + pageIndex * 3];
+            auto xScale = matrixFloats[0 + pageIndex * 6];
+            auto xSkew =  matrixFloats[4 + pageIndex * 6];
+            auto ySkew = matrixFloats[5 + pageIndex * 6];
+            auto xTrans = matrixFloats[1 + pageIndex * 6];
+            auto yTrans = matrixFloats[2 + pageIndex * 6];
+            auto yScale = matrixFloats[3 + pageIndex * 6];
+
             auto matrix = FS_MATRIX();
-            matrix.a = scale;
-            matrix.b = 0;
-            matrix.c = 0;
-            matrix.d = scale;
+            matrix.a = xScale;
+            matrix.b = xSkew;
+            matrix.c = ySkew;
+            matrix.d = yScale;
             matrix.e = xTrans;
             matrix.f = yTrans;
             auto clip = FS_RECTF();
@@ -2021,14 +2025,17 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesWithMatrix(JNIE
             }
 
 
-            auto scale = matrixFloats[0 + pageIndex * 3];
-            auto xTrans = matrixFloats[1 + pageIndex * 3];
-            auto yTrans = matrixFloats[2 + pageIndex * 3];
+            auto xScale = matrixFloats[0 + pageIndex * 6];
+            auto xSkew =  matrixFloats[4 + pageIndex * 6];
+            auto ySkew = matrixFloats[5 + pageIndex * 6];
+            auto xTrans = matrixFloats[1 + pageIndex * 6];
+            auto yTrans = matrixFloats[2 + pageIndex * 6];
+            auto yScale = matrixFloats[3 + pageIndex * 6];
             auto matrix = FS_MATRIX();
-            matrix.a = scale;
-            matrix.b = 0;
-            matrix.c = 0;
-            matrix.d = scale;
+            matrix.a = xScale;
+            matrix.b = xSkew;
+            matrix.c = ySkew;
+            matrix.d = yScale;
             matrix.e = xTrans;
             matrix.f = yTrans;
             auto clip = FS_RECTF();
@@ -2297,8 +2304,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageBitmapWithMatrix(JN
 
         auto matrix = FS_MATRIX();
         matrix.a = matrixFloats[0];
-        matrix.b = 0;
-        matrix.c = 0;
+        matrix.b = matrixFloats[4];
+        matrix.c = matrixFloats[5];
         matrix.d = matrixFloats[1];
         matrix.e = matrixFloats[2];
         matrix.f = matrixFloats[3];

@@ -196,7 +196,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
             verifyHappy {
                 val flattenedMatrix = matrixSlot.captured
                 println(flattenedMatrix.contentToString())
-                assertThat(flattenedMatrix.size).isEqualTo(3)
+                assertThat(flattenedMatrix.size).isEqualTo(6)
                 verify(
                     exactly = 1,
                 ) {

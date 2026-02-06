@@ -7,7 +7,6 @@ import org.jreleaser.model.Signing
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kover)

@@ -82,6 +82,7 @@ class PdfiumCoreUTest {
         // Verify that a valid PdfiumSource returns a valid PdfDocumentU instance and that document.source is set to the passed source.
         pdfiumCore = PdfiumCoreU(context = context, nativeFactory = mockNativeFactory, libraryLoader = libraryLoader)
         every { nativeCore.openCustomDocument(any(), any(), any()) } returns 1
+        every { libraryLoader.load(any()) } just runs
         pdfiumCore.newDocument(
             mockk<PdfiumSource> {
                 every { length } returns 100
@@ -141,8 +142,9 @@ class PdfiumCoreUTest {
                     )
                 } // Code expected to throw the exception
 
-        // Optional: Further assertions on the thrown exception object
+//        // Optional: Further assertions on the thrown exception object
         Assertions.assertEquals("Failed to initialize PdfiumCore native libraries", exception.message)
+
         println("end Native library initialization failure")
     }
 }

@@ -350,6 +350,8 @@ class PdfPageU(
                 matrixValues[Matrix.MSCALE_Y],
                 matrixValues[Matrix.MTRANS_X],
                 matrixValues[Matrix.MTRANS_Y],
+                matrixValues[Matrix.MSKEW_X],
+                matrixValues[Matrix.MSKEW_Y],
             ),
             floatArrayOf(
                 clipRect.left,
@@ -385,6 +387,8 @@ class PdfPageU(
                 matrixValues[Matrix.MSCALE_Y],
                 matrixValues[Matrix.MTRANS_X],
                 matrixValues[Matrix.MTRANS_Y],
+                matrixValues[Matrix.MSKEW_X],
+                matrixValues[Matrix.MSKEW_Y],
             ),
             floatArrayOf(
                 clipRect.left,
@@ -486,6 +490,8 @@ class PdfPageU(
                 matrixValues[Matrix.MSCALE_Y],
                 matrixValues[Matrix.MTRANS_X],
                 matrixValues[Matrix.MTRANS_Y],
+                matrixValues[Matrix.MSKEW_X],
+                matrixValues[Matrix.MSKEW_Y],
             ),
             floatArrayOf(
                 clipRect.left,

@@ -153,8 +153,11 @@ class PdfDocumentU(
                     matrix.getValues(matrixValues)
                     listOf(
                         matrixValues[Matrix.MSCALE_X],
+                        matrixValues[Matrix.MSCALE_Y],
                         matrixValues[Matrix.MTRANS_X],
                         matrixValues[Matrix.MTRANS_Y],
+                        matrixValues[Matrix.MSKEW_X],
+                        matrixValues[Matrix.MSKEW_Y],
                     )
                 }.toFloatArray()
         val clipFloats =
@@ -200,8 +203,11 @@ class PdfDocumentU(
                     matrix.getValues(matrixValues)
                     listOf(
                         matrixValues[Matrix.MSCALE_X],
+                        matrixValues[Matrix.MSCALE_Y],
                         matrixValues[Matrix.MTRANS_X],
                         matrixValues[Matrix.MTRANS_Y],
+                        matrixValues[Matrix.MSKEW_X],
+                        matrixValues[Matrix.MSKEW_Y],
                     )
                 }.toFloatArray()
         val clipFloats =
