@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.LibraryExtension
+
 import com.android.build.api.dsl.ManagedVirtualDevice
 import org.gradle.kotlin.dsl.create
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -16,7 +18,7 @@ plugins {
 }
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
         freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
@@ -32,7 +34,7 @@ fun isHostArm(): Boolean {
     return osArch.contains("aarch64") || osArch.contains("arm64")
 }
 
-android {
+configure<LibraryExtension> {
     namespace = "io.legere.pdfiumandroid"
     compileSdk = 36
 
@@ -153,11 +155,11 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-        debug {
+        getByName("debug") {
             enableAndroidTestCoverage = true
         }
 //        maybeCreate("qa")
@@ -174,8 +176,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_17)
-        targetCompatibility(JavaVersion.VERSION_17)
+        sourceCompatibility(JavaVersion.VERSION_21)
+        targetCompatibility(JavaVersion.VERSION_21)
     }
     testCoverage {
         jacocoVersion = "0.8.13"

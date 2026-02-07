@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.ApplicationExtension
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -10,11 +12,11 @@ plugins {
 }
 kotlin {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
     }
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "io.legere.pdfiumandroidkt"
     compileSdk = 36
 
@@ -29,7 +31,7 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -45,11 +47,12 @@ android {
 //        }
     }
     compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_17)
-        targetCompatibility(JavaVersion.VERSION_17)
+        sourceCompatibility(JavaVersion.VERSION_21)
+        targetCompatibility(JavaVersion.VERSION_21)
     }
 
     buildFeatures {
+        resValues = true
         compose = true
     }
 
@@ -65,6 +68,11 @@ android {
     lint {
         abortOnError = true
         disable += "NotificationPermission"
+    }
+}
+configurations {
+    configureEach {
+        exclude(module = "httpclient")
     }
 }
 
