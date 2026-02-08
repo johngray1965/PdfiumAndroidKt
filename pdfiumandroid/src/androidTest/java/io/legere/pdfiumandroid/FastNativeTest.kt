@@ -17,7 +17,6 @@ import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Size
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import kotlin.system.measureNanoTime
@@ -25,7 +24,6 @@ import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.measureTime
 
 @RunWith(AndroidJUnit4::class)
-@Ignore("Migrating to non-instrumented tests")
 class FastNativeTest : BasePDFTest() {
     private lateinit var pdfDocument: PdfDocumentU
     private var pdfBytes: ByteArray? = null

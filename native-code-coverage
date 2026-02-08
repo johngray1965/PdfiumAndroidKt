@@ -1,0 +1,15 @@
+#! /bin/bash
+
+# Note this is theory how it should go.  This mostly for future reference.
+
+adb pull /data/data/io.legere.pdfiumandroid.test/files/default.profraw .
+
+/Users/gray/Library/Android/sdk/ndk/29.0.13846066/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-profdata merge \
+    -sparse default.profraw -o default.profdata
+
+/Users/gray/Library/Android/sdk/ndk/29.0.13846066/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-cov show \
+    --format=html \
+    --output-dir=coverage_report \
+    --instr-profile=default.profdata \
+    pdfiumandroid/build/intermediates/cmake/debug/obj/arm64-v8a/libpdfiumandroid.so \
+    pdfiumandroid/src/main/cpp/pdfiumandroid.cpp
