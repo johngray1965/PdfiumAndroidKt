@@ -18,12 +18,12 @@ PdfDocument, PdfPage, PdfTextPage and the Kt and KtF versions all uses Closable.
 
 To use it, add the following in your app's build.gradle:
 ```
-    implementation("io.legere:pdfiumandroid:1.0.35")
+    implementation("io.legere:pdfiumandroid:2.0.0.beta1")
 ```
 
 The arrow support is in a separate module.  To use it, add the following in your app's build.gradle:
 ```
-    implementation("io.legere:pdfium-android-kt-arrow:1.0.35")
+    implementation("io.legere:pdfium-android-kt-arrow:2.0.0.beta1")
 ```
 For more information on arrow-kt, see the https://arrow-kt.io/
 
@@ -42,3 +42,7 @@ We provide Android bindings for Pdfium.  Pdfium is a library that Google produce
 We don't do user interfaces.   We are open to helping integrate this with your UI on contract basis.
 
 We are open to Pull Requests (PRs), but only if they keep the to scope of providing Android binding for Pdfium.   And we don't accept PRs that customize the Pdfium libraries.
+
+## Version 2
+
+Version 2 removes some deprecated APIs.  In Version 2s architecture, some of deprecated APIs become cumbersome to implement.  And they were, after all, deprecated. 
