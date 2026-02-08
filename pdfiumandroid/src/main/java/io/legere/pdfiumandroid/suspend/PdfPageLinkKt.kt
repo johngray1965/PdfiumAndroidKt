@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 class PdfPageLinkKt(
-    val pageLink: PdfPageLinkU,
+    private val pageLink: PdfPageLinkU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun countWebLinks(): Int =
