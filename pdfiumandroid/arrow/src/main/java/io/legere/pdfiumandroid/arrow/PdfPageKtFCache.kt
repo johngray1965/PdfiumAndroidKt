@@ -59,13 +59,13 @@ class PdfPageKtFCache<H : AutoCloseable>(
 ) : AutoCloseable {
     private val suspendCache =
         object : PdfPageSuspendCacheBase<H>(dispatcher, maxSize) {
-            @Suppress("MaxLineLength")
+            @Suppress("ReturnCount")
             override suspend fun openPageAndText(pageIndex: Int): H? {
-                val page = pdfDocument.document.openPage(pageIndex) ?: return null
-                val textPage = page.openTextPage()
+                val page = pdfDocument.openPage(pageIndex).getOrNull() ?: return null
+                val textPage = page.openTextPage().getOrNull() ?: return null
                 return pageHolderFactory(
-                    PdfPageKtF(page, dispatcher),
-                    PdfTextPageKtF(textPage, dispatcher),
+                    page,
+                    textPage,
                 )
             }
         }

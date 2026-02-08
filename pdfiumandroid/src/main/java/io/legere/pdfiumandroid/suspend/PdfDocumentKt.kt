@@ -25,7 +25,7 @@ import java.io.Closeable
 @Suppress("TooManyFunctions")
 @Keep
 class PdfDocumentKt(
-    val document: PdfDocumentU,
+    internal val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     /**

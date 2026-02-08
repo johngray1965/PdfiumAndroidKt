@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
 class PdfPageLinkKtF(
-    val pageLink: PdfPageLinkU,
+    internal val pageLink: PdfPageLinkU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     suspend fun countWebLinks(): Either<PdfiumKtFErrors, Int> =

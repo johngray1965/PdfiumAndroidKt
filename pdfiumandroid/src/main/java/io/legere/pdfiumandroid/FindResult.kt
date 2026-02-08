@@ -5,7 +5,7 @@ import java.io.Closeable
 
 @Suppress("TooManyFunctions")
 class FindResult(
-    val findResult: FindResultU,
+    internal val findResult: FindResultU,
 ) : Closeable {
     fun findNext(): Boolean {
         synchronized(PdfiumCore.lock) {

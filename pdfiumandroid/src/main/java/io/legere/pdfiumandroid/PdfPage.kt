@@ -28,7 +28,7 @@ private const val RECT_SIZE = 4
  */
 @Suppress("TooManyFunctions")
 class PdfPage(
-    val page: PdfPageU,
+    internal val page: PdfPageU,
 ) : Closeable {
     /**
      * Open a text page
