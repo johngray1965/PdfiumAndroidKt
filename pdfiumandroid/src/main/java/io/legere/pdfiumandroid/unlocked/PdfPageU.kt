@@ -18,15 +18,12 @@ import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.jni.NativePage
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.util.floatArrayToMatrix
+import io.legere.pdfiumandroid.util.floatArrayToRect
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
+import io.legere.pdfiumandroid.util.matrixToFloatArray
+import io.legere.pdfiumandroid.util.rectToFloatArray
 import java.io.Closeable
-
-private const val THREE_BY_THREE = 9
-
-private const val LEFT = 0
-private const val TOP = 1
-private const val RIGHT = 2
-private const val BOTTOM = 3
 
 private const val RECT_SIZE = 4
 
@@ -99,41 +96,8 @@ class PdfPageU(
     @Suppress("LongParameterList", "MagicNumber")
     fun getPageMatrix(): Matrix? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
-        // Translation is performed with [1 0 0 1 tx ty].
-        // Scaling is performed with [sx 0 0 sy 0 0].
-        // Matrix for transformation, in the form [a b c d e f], equivalent to:
-        // | a  b  0 |
-        // | c  d  0 |
-        // | e  f  1 |
 
-        val values = FloatArray(THREE_BY_THREE)
-
-        val pageMatrix = nativePage.getPageMatrix(pagePtr)
-
-        Logger.d(TAG, "pageMatrix[0] = ${pageMatrix[0]}")
-        Logger.d(TAG, "pageMatrix[1] = ${pageMatrix[1]}")
-        Logger.d(TAG, "pageMatrix[2] = ${pageMatrix[2]}")
-        Logger.d(TAG, "pageMatrix[3] = ${pageMatrix[3]}")
-        Logger.d(TAG, "pageMatrix[4] = ${pageMatrix[4]}")
-        Logger.d(TAG, "pageMatrix[5] = ${pageMatrix[5]}")
-
-        values[Matrix.MSCALE_X] = pageMatrix[0]
-        values[Matrix.MSKEW_X] = pageMatrix[1]
-        values[Matrix.MSKEW_Y] = pageMatrix[2]
-        values[Matrix.MSCALE_Y] = pageMatrix[3]
-
-        values[Matrix.MTRANS_X] = pageMatrix[4]
-        values[Matrix.MTRANS_Y] = pageMatrix[5]
-
-        values[Matrix.MPERSP_0] = 0f
-        values[Matrix.MPERSP_1] = 0f
-        values[Matrix.MPERSP_2] = 1f
-
-        val matrix = Matrix()
-
-        matrix.setValues(values)
-
-        return matrix
+        return floatArrayToMatrix(nativePage.getPageMatrix(pagePtr))
     }
 
     /**
@@ -159,13 +123,7 @@ class PdfPageU(
      */
     fun getPageCropBox(): RectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        val o = nativePage.getPageCropBox(pagePtr)
-        val r = RectF()
-        r.left = o[LEFT]
-        r.top = o[TOP]
-        r.right = o[RIGHT]
-        r.bottom = o[BOTTOM]
-        return r
+        return floatArrayToRect(nativePage.getPageCropBox(pagePtr))
     }
 
     /**
@@ -175,13 +133,7 @@ class PdfPageU(
      */
     fun getPageMediaBox(): RectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        val o = nativePage.getPageMediaBox(pagePtr)
-        val r = RectF()
-        r.left = o[LEFT]
-        r.top = o[TOP]
-        r.right = o[RIGHT]
-        r.bottom = o[BOTTOM]
-        return r
+        return floatArrayToRect(nativePage.getPageMediaBox(pagePtr))
     }
 
     /**
@@ -191,13 +143,7 @@ class PdfPageU(
      */
     fun getPageBleedBox(): RectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        val o = nativePage.getPageBleedBox(pagePtr)
-        val r = RectF()
-        r.left = o[LEFT]
-        r.top = o[TOP]
-        r.right = o[RIGHT]
-        r.bottom = o[BOTTOM]
-        return r
+        return floatArrayToRect(nativePage.getPageBleedBox(pagePtr))
     }
 
     /**
@@ -207,13 +153,7 @@ class PdfPageU(
      */
     fun getPageTrimBox(): RectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        val o = nativePage.getPageTrimBox(pagePtr)
-        val r = RectF()
-        r.left = o[LEFT]
-        r.top = o[TOP]
-        r.right = o[RIGHT]
-        r.bottom = o[BOTTOM]
-        return r
+        return floatArrayToRect(nativePage.getPageTrimBox(pagePtr))
     }
 
     /**
@@ -223,13 +163,7 @@ class PdfPageU(
      */
     fun getPageArtBox(): RectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        val o = nativePage.getPageArtBox(pagePtr)
-        val r = RectF()
-        r.left = o[LEFT]
-        r.top = o[TOP]
-        r.right = o[RIGHT]
-        r.bottom = o[BOTTOM]
-        return r
+        return floatArrayToRect(nativePage.getPageArtBox(pagePtr))
     }
 
     /**
@@ -239,13 +173,7 @@ class PdfPageU(
      */
     fun getPageBoundingBox(): RectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        val o = nativePage.getPageBoundingBox(pagePtr)
-        val r = RectF()
-        r.left = o[LEFT]
-        r.top = o[TOP]
-        r.right = o[RIGHT]
-        r.bottom = o[BOTTOM]
-        return r
+        return floatArrayToRect(nativePage.getPageBoundingBox(pagePtr))
     }
 
     /**
@@ -338,27 +266,13 @@ class PdfPageU(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return false
-        val matrixValues = FloatArray(THREE_BY_THREE)
-        matrix.getValues(matrixValues)
         return nativePage.renderPageWithMatrix(
             pagePtr,
             bufferPtr,
             drawSizeX,
             drawSizeY,
-            floatArrayOf(
-                matrixValues[Matrix.MSCALE_X],
-                matrixValues[Matrix.MSCALE_Y],
-                matrixValues[Matrix.MTRANS_X],
-                matrixValues[Matrix.MTRANS_Y],
-                matrixValues[Matrix.MSKEW_X],
-                matrixValues[Matrix.MSKEW_Y],
-            ),
-            floatArrayOf(
-                clipRect.left,
-                clipRect.top,
-                clipRect.right,
-                clipRect.bottom,
-            ),
+            matrixToFloatArray(matrix),
+            rectToFloatArray(clipRect),
             renderAnnot,
             textMask,
             canvasColor,
@@ -377,25 +291,11 @@ class PdfPageU(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return false
-        val matrixValues = FloatArray(THREE_BY_THREE)
-        matrix.getValues(matrixValues)
         return nativePage.renderPageSurfaceWithMatrix(
             pagePtr,
             surface,
-            floatArrayOf(
-                matrixValues[Matrix.MSCALE_X],
-                matrixValues[Matrix.MSCALE_Y],
-                matrixValues[Matrix.MTRANS_X],
-                matrixValues[Matrix.MTRANS_Y],
-                matrixValues[Matrix.MSKEW_X],
-                matrixValues[Matrix.MSKEW_Y],
-            ),
-            floatArrayOf(
-                clipRect.left,
-                clipRect.top,
-                clipRect.right,
-                clipRect.bottom,
-            ),
+            matrixToFloatArray(matrix),
+            rectToFloatArray(clipRect),
             renderAnnot,
             textMask,
             canvasColor,
@@ -480,25 +380,11 @@ class PdfPageU(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
-        val matrixValues = FloatArray(THREE_BY_THREE)
-        matrix.getValues(matrixValues)
         nativePage.renderPageBitmapWithMatrix(
             pagePtr,
             bitmap,
-            floatArrayOf(
-                matrixValues[Matrix.MSCALE_X],
-                matrixValues[Matrix.MSCALE_Y],
-                matrixValues[Matrix.MTRANS_X],
-                matrixValues[Matrix.MTRANS_Y],
-                matrixValues[Matrix.MSKEW_X],
-                matrixValues[Matrix.MSKEW_Y],
-            ),
-            floatArrayOf(
-                clipRect.left,
-                clipRect.top,
-                clipRect.right,
-                clipRect.bottom,
-            ),
+            matrixToFloatArray(matrix),
+            rectToFloatArray(clipRect),
             renderAnnot,
             textMask,
             canvasColor,
@@ -520,12 +406,7 @@ class PdfPageU(
                 links.add(
                     PdfDocument.Link(
                         rect.let { rectFloats ->
-                            RectF(
-                                rectFloats[LEFT],
-                                rectFloats[TOP],
-                                rectFloats[RIGHT],
-                                rectFloats[BOTTOM],
-                            )
+                            floatArrayToRect(rectFloats)
                         },
                         index,
                         uri,
@@ -742,10 +623,5 @@ class PdfPageU(
 
     companion object {
         private const val TAG = "PdfPage"
-
-        const val LEFT = 0
-        const val TOP = 1
-        const val RIGHT = 2
-        const val BOTTOM = 3
     }
 }

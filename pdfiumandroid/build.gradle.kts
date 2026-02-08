@@ -1,5 +1,4 @@
 import com.android.build.api.dsl.LibraryExtension
-
 import com.android.build.api.dsl.ManagedVirtualDevice
 import org.gradle.kotlin.dsl.create
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -395,15 +394,23 @@ tasks.register<JacocoReport>("jacocoAndroidTestReport") {
 
     // Set the class directories to analyze
     classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/compileDebugJavaWithJavac/classes")) {
             exclude("**/*")
 
-            include("**/io/legere/pdfiumandroid/jni/**/*.class")
-            // Adjust path if needed
+            include("**/io/legere/pdfiumandroid/jni/*.class")
+        },
+        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
+            exclude($$"**/*$DefaultImpls.class") // Exclude DefaultImpls
+            include("**/io/legere/pdfiumandroid/jni/*.class")
         },
         fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-            // For Kotlin classes
-            include("**/io/legere/pdfiumandroid/jni/**/*.class")
+            // Legacy/Fallback
+            include("**/io/legere/pdfiumandroid/jni/*.class")
+        },
+        fileTree(layout.buildDirectory.dir("intermediates/classes/debug")) {
+            // Fallback for newer AGP if classes are merged here
+            exclude("**/*")
+            include("**/io/legere/pdfiumandroid/jni/*.class")
         },
     )
 

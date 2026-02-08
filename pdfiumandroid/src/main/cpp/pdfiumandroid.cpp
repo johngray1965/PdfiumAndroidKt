@@ -32,6 +32,9 @@ static std::mutex sLibraryLock;
 
 static int sLibraryReferenceCount = 0;
 
+const int MATRIX_VALUES_LEN = 6;
+const int RECT_VALUES_LEN = 4;
+
 static void initLibraryIfNeed(){
     const std::lock_guard<std::mutex> lock(sLibraryLock);
     if(sLibraryReferenceCount == 0){
@@ -518,6 +521,118 @@ static void renderPageInternal( FPDF_PAGE page,
                            0, flags );
 }
 
+jfloatArray matrixToFloatArray(JNIEnv *env, const FS_MATRIX &fsMatrix) {
+    jfloatArray result = env->NewFloatArray(MATRIX_VALUES_LEN);
+    if (result == nullptr) {
+        return nullptr;
+    }
+    jfloat array[MATRIX_VALUES_LEN];
+    array[0] = fsMatrix.a;
+    array[1] = fsMatrix.b;
+    array[2] = fsMatrix.c;
+    array[3] = fsMatrix.d;
+    array[4] = fsMatrix.e;
+    array[5] = fsMatrix.f;
+
+    env->SetFloatArrayRegion(result, 0, MATRIX_VALUES_LEN, array);
+    return result;
+}
+
+_FS_MATRIX_ floatArrayToMatrix(JNIEnv *env, jfloatArray matrixValues) {
+    jboolean isCopy;
+
+    auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
+
+    auto matrix = FS_MATRIX();
+    matrix.a = matrixFloats[0];
+    matrix.b = matrixFloats[1];
+    matrix.c = matrixFloats[2];
+    matrix.d = matrixFloats[3];
+    matrix.e = matrixFloats[4];
+    matrix.f = matrixFloats[5];
+
+    if (isCopy) {
+        env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
+    }
+
+
+    return matrix;
+}
+
+_FS_MATRIX_ floatArrayToMatrix(JNIEnv *env, const jfloat* matrixFloats, int index) {
+
+    auto matrix = FS_MATRIX();
+    matrix.a = matrixFloats[0 + index * MATRIX_VALUES_LEN];
+    matrix.b = matrixFloats[1 + index * MATRIX_VALUES_LEN];
+    matrix.c = matrixFloats[2 + index * MATRIX_VALUES_LEN];
+    matrix.d = matrixFloats[3 + index * MATRIX_VALUES_LEN];
+    matrix.e = matrixFloats[4 + index * MATRIX_VALUES_LEN];
+    matrix.f = matrixFloats[5 + index * MATRIX_VALUES_LEN];
+
+
+    return matrix;
+}
+
+_FS_RECTF_ floatArrayToRect(JNIEnv *env, jfloatArray rect) {
+    jboolean isCopy;
+    auto clipRectFloats = env->GetFloatArrayElements(rect, &isCopy);
+    auto leftClip = clipRectFloats[0];
+    auto topClip = clipRectFloats[1];
+    auto rightClip = clipRectFloats[2];
+    auto bottomClip = clipRectFloats[3];
+
+    auto clip = FS_RECTF();
+    clip.left = leftClip;
+    clip.top = topClip;
+    clip.right = rightClip;
+    clip.bottom = bottomClip;
+
+    if (isCopy) {
+        env->ReleaseFloatArrayElements(rect, (jfloat *) clipRectFloats, JNI_ABORT);
+    }
+
+
+    return clip;
+}
+
+_FS_RECTF_ floatArrayToRect(JNIEnv *env,  const jfloat* clipRectFloats, int index) {
+    auto leftClip = clipRectFloats[0 + index * RECT_VALUES_LEN];
+    auto topClip = clipRectFloats[1 + index * RECT_VALUES_LEN];
+    auto rightClip = clipRectFloats[2 + index * RECT_VALUES_LEN];
+    auto bottomClip = clipRectFloats[3 + index * RECT_VALUES_LEN];
+
+    auto clip = FS_RECTF();
+    clip.left = leftClip;
+    clip.top = topClip;
+    clip.right = rightClip;
+    clip.bottom = bottomClip;
+
+    return clip;
+}
+
+jfloatArray rectToFloatArray(JNIEnv *env, float rect[]) {
+    jfloatArray result = env->NewFloatArray(RECT_VALUES_LEN);
+    if (result == nullptr) {
+        return nullptr;
+    }
+
+
+    env->SetFloatArrayRegion(result, 0, RECT_VALUES_LEN, (jfloat *) rect);
+    return result;
+
+}
+
+jfloatArray rectToFloatArray(JNIEnv *env, const FS_RECTF &fsRectF) {
+
+    float rect[RECT_VALUES_LEN];
+    rect[0] = fsRectF.left;
+    rect[1] = fsRectF.top;
+    rect[2] = fsRectF.right;
+    rect[3] = fsRectF.bottom;
+    return rectToFloatArray(env, rect);
+}
+
+
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeCore_nativeGetLinkRect(JNIEnv *env, jobject,
@@ -527,18 +642,8 @@ Java_io_legere_pdfiumandroid_jni_NativeCore_nativeGetLinkRect(JNIEnv *env, jobje
         FS_RECTF fsRectF;
         FPDF_BOOL retVal = FPDFLink_GetAnnotRect(link, &fsRectF);
 
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-        jfloat array[4];
-        array[0] = fsRectF.left;
-        array[1] = fsRectF.top;
-        array[2] = fsRectF.right;
-        array[3] = fsRectF.bottom;
+        return rectToFloatArray(env, fsRectF);
 
-        env->SetFloatArrayRegion(result, 0, 4, array);
-        return result;
     } catch (const char *msg) {
         LOGE("%s", msg);
 
@@ -623,7 +728,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeLoadPage(JNIEnv *env, jobj
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_io_legere_pdfiumandroid_jni_NativePage__nativeClosePage(JNIEnv *env, jclass , jlong page_ptr) {
+Java_io_legere_pdfiumandroid_jni_NativePage_nativeClosePage(JNIEnv *env, jclass , jlong page_ptr) {
     try {
         closePageInternal(page_ptr);
     } catch (std::bad_alloc &e) {
@@ -1071,21 +1176,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageMediaBox(JNIEnv *env, 
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
+        float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetMediaBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
             rect[0] = -1.0f;
             rect[1] = -1.0f;
             rect[2] = -1.0f;
             rect[3] = -1.0f;
         }
-
-        env->SetFloatArrayRegion(result, 0, 4, (jfloat *) rect);
-        return result;
+        return rectToFloatArray(env, rect);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1107,21 +1205,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageCropBox(JNIEnv *env, j
                                                           jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
+        float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetCropBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
             rect[0] = -1.0f;
             rect[1] = -1.0f;
             rect[2] = -1.0f;
             rect[3] = -1.0f;
         }
-
-        env->SetFloatArrayRegion(result, 0, 4, (jfloat *) rect);
-        return result;
+        return rectToFloatArray(env, rect);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1143,21 +1234,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageBleedBox(JNIEnv *env, 
                                                            jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
+        float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetBleedBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
             rect[0] = -1.0f;
             rect[1] = -1.0f;
             rect[2] = -1.0f;
             rect[3] = -1.0f;
         }
-
-        env->SetFloatArrayRegion(result, 0, 4, (jfloat *) rect);
-        return result;
+        return rectToFloatArray(env, rect);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1179,21 +1263,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageTrimBox(JNIEnv *env, j
                                                           jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
+        float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetTrimBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
             rect[0] = -1.0f;
             rect[1] = -1.0f;
             rect[2] = -1.0f;
             rect[3] = -1.0f;
         }
-
-        env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-        return result;
+        return rectToFloatArray(env, rect);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1215,21 +1292,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageArtBox(JNIEnv *env, jc
                                                          jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
+        float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetArtBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
             rect[0] = -1.0f;
             rect[1] = -1.0f;
             rect[2] = -1.0f;
             rect[3] = -1.0f;
         }
-
-        env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-        return result;
+        return rectToFloatArray(env, rect);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1251,27 +1321,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageBoundingBox(JNIEnv *en
                                                               jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(4);
-        if (result == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
         FS_RECTF fsRect;
         if (!FPDF_GetPageBoundingBox(page, &fsRect)) {
-            rect[0] = -1.0f;
-            rect[1] = -1.0f;
-            rect[2] = -1.0f;
-            rect[3] = -1.0f;
-        } else {
-            rect[0] = fsRect.left;
-            rect[1] = fsRect.top;
-            rect[2] = fsRect.right;
-            rect[3] = fsRect.bottom;
+            fsRect.left = -1.0f;
+            fsRect.top = -1.0f;
+            fsRect.right = -1.0f;
+            fsRect.bottom = -1.0f;
         }
-
-        env->SetFloatArrayRegion(result, 0, 4, (jfloat*)rect);
-        return result;
+        return rectToFloatArray(env, fsRect);
 
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
@@ -1294,49 +1351,19 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageMatrix(JNIEnv *env, jc
                                                          jlong page_ptr) {
     try {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
-        jfloatArray result = env->NewFloatArray(6);
-        if (result == nullptr) {
-            return nullptr;
-        }
-//        auto count = FPDFPage_CountObjects(page);
-//        int index;
-//        for (index = 0; index < count; index++) {
-//            FPDF_PAGEOBJECT pageObject = FPDFPage_GetObject(page, index);
-//            auto objectType = FPDFPageObj_GetType(pageObject);
-////            LOGD("objectType: %d, index: %d", objectType, index);
-//            float matrix[6];
-//            FS_MATRIX fsMatrix;
-//            FPDFPageObj_GetMatrix(pageObject, &fsMatrix);
-////            LOGD("fsMatrix.a: %f", fsMatrix.a);
-////            LOGD("fsMatrix.b: %f", fsMatrix.b);
-////            LOGD("fsMatrix.c: %f", fsMatrix.c);
-////            LOGD("fsMatrix.d: %f", fsMatrix.d);
-////            LOGD("fsMatrix.e: %f", fsMatrix.e);
-////            LOGD("fsMatrix.f: %f", fsMatrix.f);
-//        }
         FPDF_PAGEOBJECT pageObject = FPDFPage_GetObject(page, 0);
 
-        float matrix[6];
         FS_MATRIX fsMatrix;
         if (!FPDFPageObj_GetMatrix(pageObject, &fsMatrix)) {
-            matrix[0] = -1.0f;
-            matrix[1] = -1.0f;
-            matrix[2] = -1.0f;
-            matrix[3] = -1.0f;
-            matrix[4] = -1.0f;
-            matrix[5] = -1.0f;
-        } else {
-            matrix[0] = fsMatrix.a;
-            matrix[1] = fsMatrix.b;
-            matrix[2] = fsMatrix.c;
-            matrix[3] = fsMatrix.d;
-            matrix[4] = fsMatrix.e;
-            matrix[5] = fsMatrix.f;
+            fsMatrix.a = -1.0f;
+            fsMatrix.b = -1.0f;
+            fsMatrix.c = -1.0f;
+            fsMatrix.d = -1.0f;
+            fsMatrix.e = -1.0f;
+            fsMatrix.f = -1.0f;
         }
 
-        env->SetFloatArrayRegion(result, 0, 6, (jfloat*)matrix);
-        return result;
-
+        return  matrixToFloatArray(env, fsMatrix);
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch(std::runtime_error &e) {
@@ -1487,18 +1514,13 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageWithMatrix(JNIEnv *
         auto buffer = *bufferPtr;
 
 
-        jboolean isCopyClipRect;
-        auto clipRectFloats = env->GetFloatArrayElements(clipRect, &isCopyClipRect);
-        auto leftClip = clipRectFloats[0];
-        auto topClip = clipRectFloats[1];
-        auto rightClip = clipRectFloats[2];
-        auto bottomClip = clipRectFloats[3];
+        auto clip = floatArrayToRect(env, clipRect);
 
         auto canvasHorSize = draw_size_hor;
         auto canvasVerSize = draw_size_ver;
 
-        auto drawSizeHor = (int) (rightClip - leftClip);
-        auto drawSizeVer = (int) (bottomClip - topClip);
+        auto drawSizeHor = (int) (clip.right - clip.left);
+        auto drawSizeVer = (int) (clip.bottom - clip.top);
 
         FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(canvasHorSize, canvasVerSize,
                                                     FPDFBitmap_BGRA,
@@ -1509,8 +1531,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageWithMatrix(JNIEnv *
                                  canvasColor); //Gray
         }
 
-        auto startX = (int) leftClip;
-        auto startY = (int) topClip;
+        auto startX = (int) clip.left;
+        auto startY = (int) clip.top;
         int baseHorSize = (canvasHorSize < drawSizeHor)? canvasHorSize : drawSizeHor;
         int baseVerSize = (canvasVerSize < drawSizeVer)? canvasVerSize : drawSizeVer;
         int baseX = (startX < 0)? 0 : startX;
@@ -1535,31 +1557,10 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageWithMatrix(JNIEnv *
                                 pageBackgroundColor); //White
         }
 
-        jboolean isCopy;
-        auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
-
-        auto matrix = FS_MATRIX();
-        matrix.a = matrixFloats[0];
-        matrix.b = matrixFloats[4];
-        matrix.c = matrixFloats[5];
-        matrix.d = matrixFloats[1];
-        matrix.e = matrixFloats[2];
-        matrix.f = matrixFloats[3];
-        auto clip = FS_RECTF();
-        clip.left = leftClip;
-        clip.top = topClip;
-        clip.right = rightClip;
-        clip.bottom = bottomClip;
+        auto matrix = floatArrayToMatrix(env, matrixValues);
 
         FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
 
-
-        if (isCopyClipRect) {
-            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        }
-        if (isCopy) {
-            env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
-        }
         return true;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
@@ -1677,16 +1678,12 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
         }
 
 
-        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
-        auto leftClip = clipRectFloats[0];
-        auto topClip = clipRectFloats[1];
-        auto rightClip = clipRectFloats[2];
-        auto bottomClip = clipRectFloats[3];
+        auto clip = floatArrayToRect(env, clipRect);
 
-        auto drawSizeHor = (int) (rightClip - leftClip);
-        auto drawSizeVer = (int) (bottomClip - topClip);
-        auto startX = (int) leftClip;
-        auto startY = (int) topClip;
+        auto drawSizeHor = (int) (clip.right - clip.left);
+        auto drawSizeVer = (int) (clip.bottom - clip.top);
+        auto startX = (int) clip.left;
+        auto startY = (int) clip.top;
 
         int baseHorSize = (width < drawSizeHor)? width : drawSizeHor;
         int baseVerSize = (height < drawSizeVer)? height : drawSizeVer;
@@ -1699,21 +1696,21 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
             baseVerSize = height - startY;
         }
 
-        if (leftClip < 0) {
-            leftClip = 0;
+        if (clip.left < 0) {
+            clip.left = 0;
         }
-        if (topClip < 0) {
-            topClip = 0;
+        if (clip.top < 0) {
+            clip.top = 0;
         }
         auto fWidth = (float) width;
         auto fHeight = (float) height;
 
-        if (rightClip > fWidth) {
-            rightClip = fWidth;
+        if (clip.right > fWidth) {
+            clip.right = fWidth;
             baseHorSize = width - startX;
         }
-        if (bottomClip > fHeight) {
-            bottomClip = fHeight;
+        if (clip.bottom > fHeight) {
+            clip.bottom = fHeight;
             baseVerSize = height - startY;
         }
 
@@ -1737,20 +1734,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
                                 pageBackgroundColor); //White
         }
 
-        auto matrixFloats = env->GetFloatArrayElements(matrixValues, nullptr);
-
-        auto matrix = FS_MATRIX();
-        matrix.a = matrixFloats[0];
-        matrix.b = matrixFloats[4];
-        matrix.c = matrixFloats[5];
-        matrix.d = matrixFloats[1];
-        matrix.e = matrixFloats[2];
-        matrix.f = matrixFloats[3];
-        auto clip = FS_RECTF();
-        clip.left = leftClip;
-        clip.top = topClip;
-        clip.right = rightClip;
-        clip.bottom = bottomClip;
+        auto matrix = floatArrayToMatrix(env, matrixValues);
 
         LOGD("FPDF_RenderPageBitmapWithMatrix");
         FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
@@ -1758,9 +1742,6 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
         LOGD("ANativeWindow_unlockAndPost");
         ANativeWindow_unlockAndPost(nativeWindow);
         ANativeWindow_release(nativeWindow);
-
-        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
-        env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, 0);
 
         return true;
     } catch (std::bad_alloc &e) {
@@ -1852,23 +1833,14 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
             }
 
 
-            auto leftClip = clipRectFloats[0 + pageIndex * 4];
-            auto topClip = clipRectFloats[1 + pageIndex * 4];
-            auto rightClip = clipRectFloats[2 + pageIndex * 4];
-            auto bottomClip = clipRectFloats[3 + pageIndex * 4];
+            auto clip = floatArrayToRect(env, clipRectFloats, pageIndex);
 
-            auto drawSizeHor = (int) (rightClip - leftClip);
-            auto drawSizeVer = (int) (bottomClip - topClip);
+            auto drawSizeHor = (int) (clip.right - clip.left);
+            auto drawSizeVer = (int) (clip.bottom - clip.top);
 
-            auto startX = (int) leftClip;
-            auto startY = (int) topClip;
+            auto startX = (int) clip.left;
+            auto startY = (int) clip.top;
 
-//            if (drawSizeHor > width || drawSizeVer > height) {
-//                LOGE("Render page clipRect is larger than the surface: %d, %d, clipRect, %d, %d", width, height, drawSizeHor, drawSizeVer);
-//                ANativeWindow_unlockAndPost(nativeWindow);
-//                ANativeWindow_release(nativeWindow);
-//                return false;
-//            }
             int baseHorSize = (width < drawSizeHor) ? width : drawSizeHor;
             int baseVerSize = (height < drawSizeVer) ? height : drawSizeVer;
             int baseX = (startX < 0) ? 0 : startX;
@@ -1879,19 +1851,19 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
             if (startY + drawSizeVer > height) {
                 drawSizeVer = height - startY;
             }
-            if (leftClip < 0) {
-                leftClip = 0;
+            if (clip.left < 0) {
+                clip.left = 0;
             }
-            if (topClip < 0) {
-                topClip = 0;
+            if (clip.top < 0) {
+                clip.top = 0;
             }
             auto fWidth = (float) width;
             auto fHeight = (float) height;
-            if (rightClip > fWidth) {
-                rightClip = fWidth;
+            if (clip.right > fWidth) {
+                clip.right = fWidth;
             }
-            if (bottomClip > fHeight) {
-                bottomClip = fHeight;
+            if (clip.bottom > fHeight) {
+                clip.bottom = fHeight;
             }
 
 
@@ -1900,26 +1872,8 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
                                     pageBackgroundColor); //White
             }
 
+            auto matrix = floatArrayToMatrix(env, matrixFloats, pageIndex);
 
-            auto xScale = matrixFloats[0 + pageIndex * 6];
-            auto xSkew =  matrixFloats[4 + pageIndex * 6];
-            auto ySkew = matrixFloats[5 + pageIndex * 6];
-            auto xTrans = matrixFloats[1 + pageIndex * 6];
-            auto yTrans = matrixFloats[2 + pageIndex * 6];
-            auto yScale = matrixFloats[3 + pageIndex * 6];
-
-            auto matrix = FS_MATRIX();
-            matrix.a = xScale;
-            matrix.b = xSkew;
-            matrix.c = ySkew;
-            matrix.d = yScale;
-            matrix.e = xTrans;
-            matrix.f = yTrans;
-            auto clip = FS_RECTF();
-            clip.left = leftClip;
-            clip.top = topClip;
-            clip.right = rightClip;
-            clip.bottom = bottomClip;
 
             FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
             /* end process each page */
@@ -2002,17 +1956,13 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesWithMatrix(JNIE
                 return;
             }
 
+            auto clip = floatArrayToRect(env, clipRectFloats, pageIndex);
 
-            auto leftClip = clipRectFloats[0 + pageIndex * 4];
-            auto topClip = clipRectFloats[1 + pageIndex * 4];
-            auto rightClip = clipRectFloats[2 + pageIndex * 4];
-            auto bottomClip = clipRectFloats[3 + pageIndex * 4];
+            auto drawSizeHor = (int) (clip.right - clip.left);
+            auto drawSizeVer = (int) (clip.bottom - clip.top);
 
-            auto drawSizeHor = (int) (rightClip - leftClip);
-            auto drawSizeVer = (int) (bottomClip - topClip);
-
-            auto startX = (int) leftClip;
-            auto startY = (int) topClip;
+            auto startX = (int) clip.left;
+            auto startY = (int) clip.top;
             int baseHorSize = (canvasHorSize < drawSizeHor) ? canvasHorSize : drawSizeHor;
             int baseVerSize = (canvasVerSize < drawSizeVer) ? canvasVerSize : drawSizeVer;
             int baseX = (startX < 0) ? 0 : startX;
@@ -2024,25 +1974,8 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesWithMatrix(JNIE
                                     pageBackgroundColor); //White
             }
 
+            auto matrix = floatArrayToMatrix(env, matrixFloats, pageIndex);
 
-            auto xScale = matrixFloats[0 + pageIndex * 6];
-            auto xSkew =  matrixFloats[4 + pageIndex * 6];
-            auto ySkew = matrixFloats[5 + pageIndex * 6];
-            auto xTrans = matrixFloats[1 + pageIndex * 6];
-            auto yTrans = matrixFloats[2 + pageIndex * 6];
-            auto yScale = matrixFloats[3 + pageIndex * 6];
-            auto matrix = FS_MATRIX();
-            matrix.a = xScale;
-            matrix.b = xSkew;
-            matrix.c = ySkew;
-            matrix.d = yScale;
-            matrix.e = xTrans;
-            matrix.f = yTrans;
-            auto clip = FS_RECTF();
-            clip.left = leftClip;
-            clip.top = topClip;
-            clip.right = rightClip;
-            clip.bottom = bottomClip;
 
             FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
             /* end process each page */
@@ -2287,40 +2220,10 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageBitmapWithMatrix(JN
                                 pageBackgroundColor); //White
         }
 
-//        jclass clazz = env->FindClass("android/graphics/RectF");
-//        jfieldID left = env->GetFieldID(clazz, "left", "F");
-//        jfieldID top = env->GetFieldID(clazz, "top", "F");
-//        jfieldID right = env->GetFieldID(clazz, "right", "F");
-//        jfieldID bottom = env->GetFieldID(clazz, "bottom", "F");
-        jboolean isCopyClipRect;
-        auto clipRectFloats = env->GetFloatArrayElements(clipRect, &isCopyClipRect);
-        auto leftClip = clipRectFloats[0];
-        auto topClip = clipRectFloats[1];
-        auto rightClip = clipRectFloats[2];
-        auto bottomClip = clipRectFloats[3];
+        auto clip = floatArrayToRect(env, clipRect);
 
-        jboolean isCopy;
-        auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
+        auto matrix = floatArrayToMatrix(env, matrixValues);
 
-        auto matrix = FS_MATRIX();
-        matrix.a = matrixFloats[0];
-        matrix.b = matrixFloats[4];
-        matrix.c = matrixFloats[5];
-        matrix.d = matrixFloats[1];
-        matrix.e = matrixFloats[2];
-        matrix.f = matrixFloats[3];
-        auto clip = FS_RECTF();
-        clip.left = leftClip;
-        clip.top = topClip;
-        clip.right = rightClip;
-        clip.bottom = bottomClip;
-        if (isCopy) {
-            env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
-        }
-
-        if (isCopyClipRect) {
-            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        }
 
         FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
 
@@ -2714,13 +2617,13 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetRect(JNIEnv *env, 
                                                            jlong text_page_ptr, jint rect_index) {
     try {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-        jdoubleArray result = env->NewDoubleArray(4);
+        jdoubleArray result = env->NewDoubleArray(RECT_VALUES_LEN);
         if (result == nullptr) {
             return nullptr;
         }
-        double fill[4];
+        double fill[RECT_VALUES_LEN];
         FPDFText_GetRect(textPage, (int) rect_index, &fill[0], &fill[1], &fill[2], &fill[3]);
-        env->SetDoubleArrayRegion(result, 0, 4, (jdouble *) fill);
+        env->SetDoubleArrayRegion(result, 0, RECT_VALUES_LEN, (jdouble *) fill);
         return result;
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
@@ -2846,22 +2749,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetLinkRect(JNIEnv *env, jcla
         FS_RECTF fsRectF;
         FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
 
-        if (!result) {
-            return nullptr;
-        }
-        jfloatArray retVal = env->NewFloatArray(4);
-        if (retVal == nullptr) {
-            return nullptr;
-        }
-
-        float rect[4];
-        rect[0] = fsRectF.left;
-        rect[1] = fsRectF.top;
-        rect[2] = fsRectF.right;
-        rect[3] = fsRectF.bottom;
-
-        env->SetFloatArrayRegion(retVal, 0, 4, (jfloat *) rect);
-        return retVal;
+        return rectToFloatArray(env, fsRectF);
 
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
@@ -3255,17 +3143,17 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetRect(JNIEnv *env, jcla
         double bottom;
 
         if (FPDFLink_GetRect(pageLink, linkIndex, rectIndex, &left, &top, &right, &bottom )) {
-            jfloatArray result = env->NewFloatArray(4);
+            jfloatArray result = env->NewFloatArray(RECT_VALUES_LEN);
             if (result == nullptr) {
                 return nullptr;
             }
-            jfloat array[4];
+            jfloat array[RECT_VALUES_LEN];
             array[0] = (float) left;
             array[1] = (float) top;
             array[2] = (float) right;
             array[3] = (float) bottom;
 
-            env->SetFloatArrayRegion(result, 0, 4, array);
+            env->SetFloatArrayRegion(result, 0, RECT_VALUES_LEN, array);
             return result;
         }
 
@@ -3415,7 +3303,7 @@ static const JNINativeMethod coreMethods[] = {
 
 
 static const JNINativeMethod pageMethods[] = {
-        {"nativeClosePage",                  "(J)V",                                   (void *) Java_io_legere_pdfiumandroid_jni_NativePage__nativeClosePage},
+        {"nativeClosePage",                  "(J)V",                                   (void *) Java_io_legere_pdfiumandroid_jni_NativePage_nativeClosePage},
         {"nativeClosePages",                 "([J)V",                                  (void *) Java_io_legere_pdfiumandroid_jni_NativePage__nativeClosePages},
         {"nativeGetDestPageIndex",           "(JJ)I",                                  (void *) Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetDestPageIndex},
         {"nativeGetLinkURI",                 "(JJ)Ljava/lang/String;",                 (void *) Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetLinkURI},

@@ -21,10 +21,11 @@ import io.legere.pdfiumandroid.unlocked.PdfDocumentU.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU.Companion.FPDF_REMOVE_SECURITY
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
+import io.legere.pdfiumandroid.util.matricesToFloatArray
+import io.legere.pdfiumandroid.util.rectsToFloatArray
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
-private const val THREE_BY_THREE = 9
 
 /**
  * PdfDocument represents a PDF file and allows you to load pages from it.
@@ -146,37 +147,13 @@ class PdfDocumentU(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
         if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return
-        val matrixFloats =
-            matrices
-                .flatMap { matrix ->
-                    val matrixValues = FloatArray(THREE_BY_THREE)
-                    matrix.getValues(matrixValues)
-                    listOf(
-                        matrixValues[Matrix.MSCALE_X],
-                        matrixValues[Matrix.MSCALE_Y],
-                        matrixValues[Matrix.MTRANS_X],
-                        matrixValues[Matrix.MTRANS_Y],
-                        matrixValues[Matrix.MSKEW_X],
-                        matrixValues[Matrix.MSKEW_Y],
-                    )
-                }.toFloatArray()
-        val clipFloats =
-            clipRects
-                .flatMap { rect ->
-                    listOf(
-                        rect.left,
-                        rect.top,
-                        rect.right,
-                        rect.bottom,
-                    )
-                }.toFloatArray()
         nativeDocument.renderPagesWithMatrix(
             pages.map { it.pagePtr }.toLongArray(),
             bufferPtr,
             drawSizeX,
             drawSizeY,
-            matrixFloats,
-            clipFloats,
+            matricesToFloatArray(matrices),
+            rectsToFloatArray(clipRects),
             renderAnnot,
             textMask,
             canvasColor,
@@ -196,35 +173,11 @@ class PdfDocumentU(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean {
         if (handleAlreadyClosed(isClosed || pages.any { it.isClosed })) return false
-        val matrixFloats =
-            matrices
-                .flatMap { matrix ->
-                    val matrixValues = FloatArray(THREE_BY_THREE)
-                    matrix.getValues(matrixValues)
-                    listOf(
-                        matrixValues[Matrix.MSCALE_X],
-                        matrixValues[Matrix.MSCALE_Y],
-                        matrixValues[Matrix.MTRANS_X],
-                        matrixValues[Matrix.MTRANS_Y],
-                        matrixValues[Matrix.MSKEW_X],
-                        matrixValues[Matrix.MSKEW_Y],
-                    )
-                }.toFloatArray()
-        val clipFloats =
-            clipRects
-                .flatMap { rect ->
-                    listOf(
-                        rect.left,
-                        rect.top,
-                        rect.right,
-                        rect.bottom,
-                    )
-                }.toFloatArray()
         return nativeDocument.renderPagesSurfaceWithMatrix(
             pages.map { it.pagePtr }.toLongArray(),
             surface,
-            matrixFloats,
-            clipFloats,
+            matricesToFloatArray(matrices),
+            rectsToFloatArray(clipRects),
             renderAnnot,
             textMask,
             canvasColor,

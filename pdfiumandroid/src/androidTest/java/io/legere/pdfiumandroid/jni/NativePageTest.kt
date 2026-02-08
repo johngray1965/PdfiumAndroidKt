@@ -11,6 +11,7 @@ import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
+import io.legere.pdfiumandroid.util.matrixToFloatArray
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -186,21 +187,12 @@ class NativePageTest : BasePDFTest() {
     fun renderPageBitmapWithMatrix() {
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
             pdfPage.pagePtr,
             bitmap,
-            floatArrayOf(
-                matrixValues[Matrix.MSCALE_X],
-                matrixValues[Matrix.MSCALE_Y],
-                matrixValues[Matrix.MTRANS_X],
-                matrixValues[Matrix.MTRANS_Y],
-                matrixValues[Matrix.MSKEW_X],
-                matrixValues[Matrix.MSKEW_Y],
-            ),
+            matrixToFloatArray(matrix),
             clipRect,
             renderAnnot = false,
             textMask = false,
@@ -216,21 +208,12 @@ class NativePageTest : BasePDFTest() {
     fun renderPageBitmapWithMatrixWithDefaults() {
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
             pdfPage.pagePtr,
             bitmap,
-            floatArrayOf(
-                matrixValues[Matrix.MSCALE_X],
-                matrixValues[Matrix.MSCALE_Y],
-                matrixValues[Matrix.MTRANS_X],
-                matrixValues[Matrix.MTRANS_Y],
-                matrixValues[Matrix.MSKEW_X],
-                matrixValues[Matrix.MSKEW_Y],
-            ),
+            matrixToFloatArray(matrix),
             clipRect,
             canvasColor = 0,
             pageBackgroundColor = 0,
@@ -244,21 +227,12 @@ class NativePageTest : BasePDFTest() {
     fun renderPageBitmapWithMatrixWithAnnotations() {
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
             pdfPage.pagePtr,
             bitmap,
-            floatArrayOf(
-                matrixValues[Matrix.MSCALE_X],
-                matrixValues[Matrix.MSCALE_Y],
-                matrixValues[Matrix.MTRANS_X],
-                matrixValues[Matrix.MTRANS_Y],
-                matrixValues[Matrix.MSKEW_X],
-                matrixValues[Matrix.MSKEW_Y],
-            ),
+            matrixToFloatArray(matrix),
             clipRect,
             renderAnnot = true,
             textMask = true,
@@ -304,22 +278,13 @@ class NativePageTest : BasePDFTest() {
 
             val matrix = Matrix()
             matrix.postScale(0.5f, 0.5f)
-            val matrixValues = FloatArray(9)
-            matrix.getValues(matrixValues)
             val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
             val result =
                 nativePage.renderPageSurfaceWithMatrix(
                     pdfPage.pagePtr,
                     surface,
-                    floatArrayOf(
-                        matrixValues[Matrix.MSCALE_X],
-                        matrixValues[Matrix.MSCALE_Y],
-                        matrixValues[Matrix.MTRANS_X],
-                        matrixValues[Matrix.MTRANS_Y],
-                        matrixValues[Matrix.MSKEW_X],
-                        matrixValues[Matrix.MSKEW_Y],
-                    ),
+                    matrixToFloatArray(matrix),
                     clipRect,
                     renderAnnot = renderAnnot,
                     textMask = textMask,
@@ -346,22 +311,13 @@ class NativePageTest : BasePDFTest() {
 
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
             nativePage.renderPageSurfaceWithMatrix(
                 pdfPage.pagePtr,
                 surface,
-                floatArrayOf(
-                    matrixValues[Matrix.MSCALE_X],
-                    matrixValues[Matrix.MSCALE_Y],
-                    matrixValues[Matrix.MTRANS_X],
-                    matrixValues[Matrix.MTRANS_Y],
-                    matrixValues[Matrix.MSKEW_X],
-                    matrixValues[Matrix.MSKEW_Y],
-                ),
+                matrixToFloatArray(matrix),
                 clipRect,
                 canvasColor = 0,
                 pageBackgroundColor = 0,
@@ -449,8 +405,6 @@ class NativePageTest : BasePDFTest() {
 
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -459,14 +413,7 @@ class NativePageTest : BasePDFTest() {
                 bufferPtr,
                 dimensions[0],
                 dimensions[1],
-                floatArrayOf(
-                    matrixValues[Matrix.MSCALE_X],
-                    matrixValues[Matrix.MSCALE_Y],
-                    matrixValues[Matrix.MTRANS_X],
-                    matrixValues[Matrix.MTRANS_Y],
-                    matrixValues[Matrix.MSKEW_X],
-                    matrixValues[Matrix.MSKEW_Y],
-                ),
+                matrixToFloatArray(matrix),
                 clipRect,
                 canvasColor = 0,
                 pageBackgroundColor = 0,
@@ -496,8 +443,6 @@ class NativePageTest : BasePDFTest() {
 
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -506,14 +451,7 @@ class NativePageTest : BasePDFTest() {
                 bufferPtr,
                 dimensions[0],
                 dimensions[1],
-                floatArrayOf(
-                    matrixValues[Matrix.MSCALE_X],
-                    matrixValues[Matrix.MSCALE_Y],
-                    matrixValues[Matrix.MTRANS_X],
-                    matrixValues[Matrix.MTRANS_Y],
-                    matrixValues[Matrix.MSKEW_X],
-                    matrixValues[Matrix.MSKEW_Y],
-                ),
+                matrixToFloatArray(matrix),
                 clipRect,
                 renderAnnot = renderAnnot,
                 textMask = textMask,
@@ -543,8 +481,6 @@ class NativePageTest : BasePDFTest() {
 
         val matrix = Matrix()
         matrix.postScale(0.5f, 0.5f)
-        val matrixValues = FloatArray(9)
-        matrix.getValues(matrixValues)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -553,14 +489,7 @@ class NativePageTest : BasePDFTest() {
                 bufferPtr,
                 dimensions[0],
                 dimensions[1],
-                floatArrayOf(
-                    matrixValues[Matrix.MSCALE_X],
-                    matrixValues[Matrix.MSCALE_Y],
-                    matrixValues[Matrix.MTRANS_X],
-                    matrixValues[Matrix.MTRANS_Y],
-                    matrixValues[Matrix.MSKEW_X],
-                    matrixValues[Matrix.MSKEW_Y],
-                ),
+                matrixToFloatArray(matrix),
                 clipRect,
                 renderAnnot = true,
                 textMask = true,
