@@ -8,6 +8,7 @@ extern "C" {
 #include <sys/stat.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h> // Added for setenv
 }
 
 #include <android/native_window.h>
@@ -34,6 +35,10 @@ static int sLibraryReferenceCount = 0;
 
 const int MATRIX_VALUES_LEN = 6;
 const int RECT_VALUES_LEN = 4;
+
+#ifdef TEST_COVERAGE
+extern "C" int __llvm_profile_write_file(void);
+#endif
 
 static void initLibraryIfNeed(){
     const std::lock_guard<std::mutex> lock(sLibraryLock);
@@ -435,6 +440,23 @@ static jlong NativeCore_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject n
     docFile->pdfDocument = document;
 
     return reinterpret_cast<jlong>(docFile);
+}
+
+static void NativeCore_nativeDumpCoverageData(JNIEnv *env, jobject, jstring outputFile) {
+    LOGD("nativeDumpCoverageData");
+#ifdef TEST_COVERAGE
+    if (outputFile != nullptr) {
+        const char *cOutputFile = env->GetStringUTFChars(outputFile, nullptr);
+        if (cOutputFile != nullptr) {
+            setenv("LLVM_PROFILE_FILE", cOutputFile, 1);
+            env->ReleaseStringUTFChars(outputFile, cOutputFile);
+        }
+    }
+
+    if (__llvm_profile_write_file() != 0) {
+        LOGE("Failed to write profile data");
+    }
+#endif
 }
 
 static jlong loadPageInternal(JNIEnv *env, DocumentFile *doc, int pageIndex){
@@ -1419,9 +1441,9 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
         ANativeWindow_release(nativeWindow);
 
 
-        env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, 0);
-        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
-        env->ReleaseLongArrayElements(pages, pagePtrs, 0);
+        env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
 
         return (jboolean) true;
     });
@@ -2320,6 +2342,7 @@ static const JNINativeMethod coreMethods[] = {
         {"nativeOpenDocument",       "(ILjava/lang/String;)J",                                                        (void *) NativeCore_nativeOpenDocument},
         {"nativeOpenMemDocument",    "([BLjava/lang/String;)J",                                                       (void *) NativeCore_nativeOpenMemDocument},
         {"nativeOpenCustomDocument", "(Lio/legere/pdfiumandroid/util/PdfiumNativeSourceBridge;Ljava/lang/String;J)J", (void *) NativeCore_nativeOpenCustomDocument},
+        {"nativeDumpCoverageData",   "(Ljava/lang/String;)V",                                                         (void *) NativeCore_nativeDumpCoverageData},
 };
 
 
