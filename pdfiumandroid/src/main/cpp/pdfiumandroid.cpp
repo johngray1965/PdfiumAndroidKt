@@ -640,6 +640,14 @@ void raise_java_exception(JNIEnv *pEnv, std::exception &exception);
 
 void handleUnexpected(JNIEnv *pEnv, char const *name);
 
+
+static void errorRect(float *rect) {
+    rect[0] = -1.0f;
+    rect[1] = -1.0f;
+    rect[2] = -1.0f;
+    rect[3] = -1.0f;
+}
+
 template <typename T, typename Func>
 T runSafe(JNIEnv *env, T errorValue, Func func) {
     try {
@@ -842,8 +850,11 @@ static void NativePage_nativeClosePages(JNIEnv *env, jclass ,
         int length = (int) (env->GetArrayLength(pages_ptr));
         jlong *pages = env->GetLongArrayElements(pages_ptr, nullptr);
 
-        int i;
-        for (i = 0; i < length; i++) { closePageInternal(pages[i]); }
+        if (pages != nullptr) {
+            int i;
+            for (i = 0; i < length; i++) { closePageInternal(pages[i]); }
+            env->ReleaseLongArrayElements(pages_ptr, pages, JNI_ABORT);
+        }
     });
 }
 
@@ -893,10 +904,7 @@ static jfloatArray NativePage_nativeGetPageMediaBox(JNIEnv *env, jclass ,
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetMediaBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-            rect[0] = -1.0f;
-            rect[1] = -1.0f;
-            rect[2] = -1.0f;
-            rect[3] = -1.0f;
+            errorRect(rect);
         }
         return rectToFloatArray(env, rect);
     });
@@ -908,10 +916,7 @@ static jfloatArray NativePage_nativeGetPageCropBox(JNIEnv *env, jclass,
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetCropBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-            rect[0] = -1.0f;
-            rect[1] = -1.0f;
-            rect[2] = -1.0f;
-            rect[3] = -1.0f;
+            errorRect(rect);
         }
         return rectToFloatArray(env, rect);
     });
@@ -923,10 +928,7 @@ static jfloatArray NativePage_nativeGetPageBleedBox(JNIEnv *env, jclass,
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetBleedBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-            rect[0] = -1.0f;
-            rect[1] = -1.0f;
-            rect[2] = -1.0f;
-            rect[3] = -1.0f;
+            errorRect(rect);
         }
         return rectToFloatArray(env, rect);
     });
@@ -938,10 +940,7 @@ static jfloatArray NativePage_nativeGetPageTrimBox(JNIEnv *env, jclass,
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetTrimBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-            rect[0] = -1.0f;
-            rect[1] = -1.0f;
-            rect[2] = -1.0f;
-            rect[3] = -1.0f;
+            errorRect(rect);
         }
         return rectToFloatArray(env, rect);
     });
@@ -953,10 +952,7 @@ static jfloatArray NativePage_nativeGetPageArtBox(JNIEnv *env, jclass,
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetArtBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
-            rect[0] = -1.0f;
-            rect[1] = -1.0f;
-            rect[2] = -1.0f;
-            rect[3] = -1.0f;
+            errorRect(rect);
         }
         return rectToFloatArray(env, rect);
     });
@@ -1062,9 +1058,7 @@ static void NativePage_nativeUnlockSurface(JNIEnv *env, jclass clazz,
 
     ANativeWindow_unlockAndPost(nativeWindow);
     ANativeWindow_release(nativeWindow);
-    if (isCopyPtrs) {
-        env->ReleaseLongArrayElements(ptrsArray, ptrValues, JNI_ABORT);
-    }
+    env->ReleaseLongArrayElements(ptrsArray, ptrValues, JNI_ABORT);
 
 }
 
@@ -1439,9 +1433,9 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
         ANativeWindow_release(nativeWindow);
 
 
-        env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, 0);
-        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
-        env->ReleaseLongArrayElements(pages, pagePtrs, 0);
+        if (matrixFloats) env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
+        if (clipRectFloats) env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        if (pagePtrs) env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
 
         return (jboolean) true;
     });
@@ -1506,7 +1500,7 @@ static void NativeDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz
             auto startX = (int) clip.left;
             auto startY = (int) clip.top;
             int baseHorSize = (canvasHorSize < drawSizeHor) ? canvasHorSize : drawSizeHor;
-            int baseVerSize = (canvasVerSize < drawSizeVer) ? canvasVerSize : drawSizeVer;
+            int baseVerSize = (canvasVerSize < draw_size_ver) ? canvasVerSize : drawSizeVer;
             int baseX = (startX < 0) ? 0 : startX;
             int baseY = (startY < 0) ? 0 : startY;
 
@@ -1524,16 +1518,9 @@ static void NativeDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz
         }
 
 
-        if (isCopyMatrices) {
-            env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
-        }
-
-        if (isCopyClipRect) {
-            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        }
-        if (isCopyClipRect) {
-            env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
-        }
+        if (matrixFloats) env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
+        if (clipRectFloats) env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        if (pagePtrs) env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
     });
 }
 static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
