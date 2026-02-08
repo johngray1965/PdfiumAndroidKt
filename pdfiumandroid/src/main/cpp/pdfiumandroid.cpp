@@ -1000,24 +1000,13 @@ static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject 
         LOGE("native window pointer null");
         return false;
     }
-    auto widthHeightValues = env->GetIntArrayElements(widthHeightArray, nullptr);
-    if (widthHeightValues == nullptr) {
-        // Handle error
-        LOGE("widthHeightValues is null");
-        return false;
-    }
-    auto ptrValues = env->GetLongArrayElements(ptrsArray, nullptr);
-    if (ptrValues == nullptr) {
-        // Handle error
-        LOGE("ptrValues is null");
-        return static_cast<jlong>(0);
-    }
 
     auto width = ANativeWindow_getWidth(nativeWindow);
     auto height = ANativeWindow_getHeight(nativeWindow);
 
-    widthHeightValues[0] = width; // Modify the integer value
-    widthHeightValues[1] = height;
+    jint wh[2];
+    wh[0] = width;
+    wh[1] = height;
 
     if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
         LOGD("Set format to RGBA_8888");
@@ -1026,7 +1015,7 @@ static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject 
                                          height,
                                          WINDOW_FORMAT_RGBA_8888);
     }
-    env->ReleaseIntArrayElements(widthHeightArray, widthHeightValues, JNI_OK);
+    env->SetIntArrayRegion(widthHeightArray, 0, 2, wh);
 
     auto *buffer = new ANativeWindow_Buffer();
     int ret;
@@ -1034,23 +1023,21 @@ static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject 
         LOGE("Locking native window failed: %s", strerror(ret * -1));
         return false;
     }
-    ptrValues[0] = reinterpret_cast<jlong>(nativeWindow);
-    ptrValues[1] = reinterpret_cast<jlong>(buffer);
-    env->ReleaseLongArrayElements(ptrsArray, ptrValues, JNI_OK);
+    jlong ptrs[2];
+    ptrs[0] = reinterpret_cast<jlong>(nativeWindow);
+    ptrs[1] = reinterpret_cast<jlong>(buffer);
+    env->SetLongArrayRegion(ptrsArray, 0, 2, ptrs);
     return true;
 }
 static void NativePage_nativeUnlockSurface(JNIEnv *env, jclass clazz,
                                                          jlongArray ptrsArray) {
     LOGD("nativeUnlockSurface");
-    jboolean isCopyPtrs;
-    auto ptrValues = env->GetLongArrayElements(ptrsArray, &isCopyPtrs);
-    if (ptrValues == nullptr) {
-        // Handle error
-        return;
-    }
-    auto nativeWindow = reinterpret_cast<ANativeWindow*>(ptrValues[0]);
+    jlong ptrs[2];
+    env->GetLongArrayRegion(ptrsArray, 0, 2, ptrs);
 
-    auto buffer = reinterpret_cast<ANativeWindow_Buffer*>(ptrValues[1]);
+    auto nativeWindow = reinterpret_cast<ANativeWindow*>(ptrs[0]);
+
+    auto buffer = reinterpret_cast<ANativeWindow_Buffer*>(ptrs[1]);
 
     delete buffer;
 
@@ -1058,7 +1045,6 @@ static void NativePage_nativeUnlockSurface(JNIEnv *env, jclass clazz,
 
     ANativeWindow_unlockAndPost(nativeWindow);
     ANativeWindow_release(nativeWindow);
-    env->ReleaseLongArrayElements(ptrsArray, ptrValues, JNI_ABORT);
 
 }
 
@@ -1433,9 +1419,9 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
         ANativeWindow_release(nativeWindow);
 
 
-        if (matrixFloats) env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
-        if (clipRectFloats) env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        if (pagePtrs) env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
+        env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, 0);
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
+        env->ReleaseLongArrayElements(pages, pagePtrs, 0);
 
         return (jboolean) true;
     });
@@ -1518,9 +1504,16 @@ static void NativeDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz
         }
 
 
-        if (matrixFloats) env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
-        if (clipRectFloats) env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        if (pagePtrs) env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
+        if (isCopyMatrices) {
+            env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
+        }
+
+        if (isCopyClipRect) {
+            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        }
+        if (isCopyClipRect) {
+            env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
+        }
     });
 }
 static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
