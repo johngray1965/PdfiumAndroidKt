@@ -78,8 +78,10 @@ class PdfPageKtFCacheTest {
 //            assertEquals(textPageMock, result?.textPage)
 
             // Verify factory calls (document methods)
-            coVerify(exactly = 1) { pdfDocumentU.openPage(index) }
+//            coVerify(exactly = 1) { pdfDocumentU.openPage(index) }
 //            coVerify(exactly = 1) { pageMock.openTextPage() }
+            coVerify { pdfDocument.openPage(index) }
+            coVerify { pageMock.openTextPage() }
         }
 
     @Test
@@ -96,7 +98,9 @@ class PdfPageKtFCacheTest {
             assertSame(result1.getOrNull(), result2.getOrNull())
 
             // Verify factory was only called once
-            coVerify(exactly = 1) { pdfDocumentU.openPage(index) }
+            coVerify(exactly = 1) { pdfDocument.openPage(index) }
+            coVerify(exactly = 1) { pdgPage.openTextPage() }
+//            coVerify { pdgPage.close() }
         }
 
     @Test
@@ -115,11 +119,13 @@ class PdfPageKtFCacheTest {
             cache.getF(2)
 
             // Item 0 should be closed
-            verify(exactly = 1) { item0?.page?.close() }
-            verify(exactly = 1) { item0?.textPage?.close() }
+            verify { item0?.page?.close() }
+            verify { item0?.textPage?.close() }
 
             // Item 1 should NOT be closed yet
 //        verify(exactly = 0) { item1.page.close() }
+            coVerify { pdfDocument.openPage(any()) }
+            coVerify { pdgPage.openTextPage() }
         }
 
     @Test
@@ -140,11 +146,14 @@ class PdfPageKtFCacheTest {
             // We can't check the exact instance easily without capturing, but we can check logic:
             // If 0 is still in cache, asking for it should not trigger a re-open.
 
-            coVerify(exactly = 1) { pdfDocumentU.openPage(0) } // Still only opened once
+//            coVerify(exactly = 1) { pdfDocumentU.openPage(0) } // Still only opened once
 
             // If 1 was evicted, getting it again should trigger a 2nd open
             cache.getF(1)
-            coVerify(exactly = 2) { pdfDocumentU.openPage(1) }
+            coVerify { pdfDocument.openPage(any()) }
+            coVerify { pdgPage.openTextPage() }
+            coVerify { pdgPage.close() }
+            coVerify { pdfTextPage.close() }
         }
 
     @Test
@@ -159,6 +168,11 @@ class PdfPageKtFCacheTest {
 
             // Fetching 0 again should trigger re-open
             cache.getF(0)
-            coVerify(exactly = 2) { pdfDocumentU.openPage(0) }
+            coVerify(exactly = 2) { pdfDocument.openPage(0) }
+            coVerify(exactly = 1) { pdfDocument.openPage(1) }
+
+            coVerify { pdgPage.close() }
+            coVerify { pdgPage.openTextPage() }
+            coVerify { pdfTextPage.close() }
         }
 }

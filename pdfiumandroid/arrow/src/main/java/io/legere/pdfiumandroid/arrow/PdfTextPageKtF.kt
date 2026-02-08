@@ -18,7 +18,7 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 class PdfTextPageKtF(
-    private val page: PdfTextPageU,
+    internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     /**

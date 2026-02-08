@@ -26,7 +26,7 @@ private const val RANGE_RECT_DATA_SIZE = 6
  */
 @Suppress("TooManyFunctions")
 class PdfTextPage(
-    private val page: PdfTextPageU,
+    internal val page: PdfTextPageU,
 ) : Closeable {
     @Volatile
     private var isClosed = false
