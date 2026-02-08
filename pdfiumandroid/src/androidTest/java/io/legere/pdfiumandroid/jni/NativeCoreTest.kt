@@ -1,11 +1,9 @@
 package io.legere.pdfiumandroid.jni
 
-import android.graphics.Bitmap
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.base.ByteArrayPdfiumSource
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
 import org.junit.Before
 import org.junit.Test

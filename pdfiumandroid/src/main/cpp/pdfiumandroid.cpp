@@ -539,9 +539,8 @@ jfloatArray matrixToFloatArray(JNIEnv *env, const FS_MATRIX &fsMatrix) {
 }
 
 _FS_MATRIX_ floatArrayToMatrix(JNIEnv *env, jfloatArray matrixValues) {
-    jboolean isCopy;
-
-    auto matrixFloats = env->GetFloatArrayElements(matrixValues, &isCopy);
+    jfloat matrixFloats[MATRIX_VALUES_LEN];
+    env->GetFloatArrayRegion(matrixValues, 0, MATRIX_VALUES_LEN, matrixFloats);
 
     auto matrix = FS_MATRIX();
     matrix.a = matrixFloats[0];
@@ -550,11 +549,6 @@ _FS_MATRIX_ floatArrayToMatrix(JNIEnv *env, jfloatArray matrixValues) {
     matrix.d = matrixFloats[3];
     matrix.e = matrixFloats[4];
     matrix.f = matrixFloats[5];
-
-    if (isCopy) {
-        env->ReleaseFloatArrayElements(matrixValues, (jfloat *) matrixFloats, JNI_ABORT);
-    }
-
 
     return matrix;
 }
@@ -574,23 +568,14 @@ _FS_MATRIX_ floatArrayToMatrix(JNIEnv *env, const jfloat* matrixFloats, int inde
 }
 
 _FS_RECTF_ floatArrayToRect(JNIEnv *env, jfloatArray rect) {
-    jboolean isCopy;
-    auto clipRectFloats = env->GetFloatArrayElements(rect, &isCopy);
-    auto leftClip = clipRectFloats[0];
-    auto topClip = clipRectFloats[1];
-    auto rightClip = clipRectFloats[2];
-    auto bottomClip = clipRectFloats[3];
+    jfloat clipRectFloats[RECT_VALUES_LEN];
+    env->GetFloatArrayRegion(rect, 0, RECT_VALUES_LEN, clipRectFloats);
 
     auto clip = FS_RECTF();
-    clip.left = leftClip;
-    clip.top = topClip;
-    clip.right = rightClip;
-    clip.bottom = bottomClip;
-
-    if (isCopy) {
-        env->ReleaseFloatArrayElements(rect, (jfloat *) clipRectFloats, JNI_ABORT);
-    }
-
+    clip.left = clipRectFloats[0];
+    clip.top = clipRectFloats[1];
+    clip.right = clipRectFloats[2];
+    clip.bottom = clipRectFloats[3];
 
     return clip;
 }
@@ -683,13 +668,10 @@ void raise_java_exception(JNIEnv *pEnv, std::exception &exception);
 
 void handleUnexpected(JNIEnv *pEnv, char const *name);
 
-extern "C"
-JNIEXPORT jint JNICALL
-Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetPageCount(JNIEnv *env, jobject,
-                                                            jlong doc_ptr) {
+template <typename T, typename Func>
+T runSafe(JNIEnv *env, T errorValue, Func func) {
     try {
-        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
-        return (jint)FPDF_GetPageCount(doc->pdfDocument);
+        return func();
     } catch (std::bad_alloc &e) {
         raise_java_oom_exception(env, e);
     } catch (std::runtime_error &e) {
@@ -702,54 +684,59 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetPageCount(JNIEnv *env, 
         auto e =  std::runtime_error("Unknown error");
         raise_java_exception(env, e);
     }
-    return -1;
+    return errorValue;
+}
+
+template <typename Func>
+void runSafe(JNIEnv *env, Func func) {
+    try {
+        func();
+    } catch (std::bad_alloc &e) {
+        raise_java_oom_exception(env, e);
+    } catch (std::runtime_error &e) {
+        raise_java_runtime_exception(env, e);
+    } catch (std::invalid_argument &e) {
+        raise_java_invalid_arg_exception(env, e);
+    } catch (std::exception &e) {
+        raise_java_exception(env, e);
+    } catch (...) {
+        auto e =  std::runtime_error("Unknown error");
+        raise_java_exception(env, e);
+    }
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetPageCount(JNIEnv *env, jobject,
+                                                            jlong doc_ptr) {
+    return runSafe(env, -1, [&]() {
+        auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
+        return (jint)FPDF_GetPageCount(doc->pdfDocument);
+    });
 }
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeLoadPage(JNIEnv *env, jobject, jlong doc_ptr,
                                                         jint page_index) {
-    try {
+    return runSafe(env, (jlong) -1, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         return loadPageInternal(env, doc, (int) page_index);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage_nativeClosePage(JNIEnv *env, jclass , jlong page_ptr) {
-    try {
+    runSafe(env, [&]() {
         closePageInternal(page_ptr);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeDeletePage(JNIEnv *env, jobject, jlong doc_ptr,
                                                           jint page_index) {
-    try {
+    runSafe(env, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         if(doc == nullptr) throw std::runtime_error( "Get page document null");
 
@@ -757,40 +744,18 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeDeletePage(JNIEnv *env, jo
         if(pdfDoc != nullptr) {
             FPDFPage_Delete(pdfDoc, (int) page_index);
         }
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeCloseDocument(JNIEnv *env, jobject,
                                                              jlong doc_ptr) {
-    try {
+    runSafe(env, [&]() {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         // The destructor will close the document
         delete doc;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 
 }
 
@@ -798,10 +763,10 @@ extern "C"
 JNIEXPORT jlongArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeLoadPages(JNIEnv *env, jobject, jlong doc_ptr,
                                                          jint from_index, jint to_index) {
-    try {
+    return runSafe(env, (jlongArray) nullptr, [&]() {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
 
-        if(to_index < from_index) return nullptr;
+        if(to_index < from_index) return (jlongArray) nullptr;
         jlong pages[ to_index - from_index + 1 ];
 
         int i;
@@ -813,27 +778,14 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeLoadPages(JNIEnv *env, job
         env -> SetLongArrayRegion(javaPages, 0, (jsize)(to_index - from_index + 1), (const jlong*)pages);
 
         return javaPages;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
-
+    });
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetDocumentMetaText(JNIEnv *env, jobject,
                                                                    jlong doc_ptr, jstring tag) {
-    try {
+    return runSafe(env, (jstring) nullptr, [&]() {
         const char *ctag = env->GetStringUTFChars(tag, nullptr);
         if (ctag == nullptr) {
             return env->NewStringUTF("");
@@ -848,19 +800,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetDocumentMetaText(JNIEnv
         FPDF_GetMetaText(doc->pdfDocument, ctag, WriteInto(&text, bufferLen + 1), bufferLen);
         env->ReleaseStringUTFChars(tag, ctag);
         return env->NewString((jchar*) text.c_str(), bufferLen / 2 - 1);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -868,7 +808,7 @@ JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetFirstChildBookmark(JNIEnv *env, jobject,
                                                                      jlong doc_ptr,
                                                                      jlong bookmark_ptr) {
-    try {
+    return runSafe(env, (jlong) 0, [&]() {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         FPDF_BOOKMARK parent;
         if(bookmark_ptr == 0) {
@@ -878,22 +818,10 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetFirstChildBookmark(JNIE
         }
         FPDF_BOOKMARK bookmark = FPDFBookmark_GetFirstChild(doc->pdfDocument, parent);
         if (bookmark == nullptr) {
-            return 0;
+            return (jlong) 0;
         }
         return reinterpret_cast<jlong>(bookmark);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 
 extern "C"
@@ -901,56 +829,32 @@ JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetSiblingBookmark(JNIEnv *env, jobject,
                                                                   jlong doc_ptr,
                                                                   jlong bookmark_ptr) {
-    try {
+    return runSafe(env, (jlong) 0, [&]() {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         auto parent = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
         FPDF_BOOKMARK bookmark = FPDFBookmark_GetNextSibling(doc->pdfDocument, parent);
         if (bookmark == nullptr) {
-            return 0;
+            return (jlong) 0;
         }
         return reinterpret_cast<jlong>(bookmark);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeLoadTextPage(JNIEnv *env, jobject,
                                                             jlong doc_ptr, jlong page_ptr) {
-    try {
+    return runSafe(env, (jlong) -1, [&]() {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         return loadTextPageInternal(env, doc, page_ptr);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetBookmarkTitle(JNIEnv *env, jobject,
                                                                 jlong bookmark_ptr) {
-    try {
+    return runSafe(env, (jstring) nullptr, [&]() {
         auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
         int bufferLen = (int) FPDFBookmark_GetTitle(bookmark, nullptr, 0);
         if (bufferLen <= 2) {
@@ -959,26 +863,14 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetBookmarkTitle(JNIEnv *e
         std::wstring title;
         FPDFBookmark_GetTitle(bookmark, WriteInto(&title, bufferLen + 1), bufferLen);
         return env->NewString((jchar*) title.c_str(), bufferLen / 2 - 1);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetDestPageIndex(JNIEnv *env, jobject,
                                                                 jlong doc_ptr, jlong link_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
         FPDF_DEST dest = FPDFLink_GetDest(doc->pdfDocument, link);
@@ -987,26 +879,14 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetDestPageIndex(JNIEnv *e
         }
         unsigned long index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
         return (jint) index;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeSaveAsCopy(JNIEnv *env, jobject, jlong doc_ptr,
                                                           jobject callback, jint flags) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/PdfWriteCallback");
         if (callback != nullptr && env->IsInstanceOf(callback, callbackClass)) {
             //Setup the callback to Java.
@@ -1020,161 +900,78 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeSaveAsCopy(JNIEnv *env, jo
             auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
             return (jboolean) FPDF_SaveAsCopy(doc->pdfDocument, &fw, flags);
         }
-        return false;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return false;
+        return (jboolean) false;
+    });
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeClosePages(JNIEnv *env, jclass ,
                                                       jlongArray pages_ptr) {
-    try {
+    runSafe(env, [&]() {
         int length = (int) (env->GetArrayLength(pages_ptr));
         jlong *pages = env->GetLongArrayElements(pages_ptr, nullptr);
 
         int i;
         for (i = 0; i < length; i++) { closePageInternal(pages[i]); }
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageWidthPixel(JNIEnv *env, jclass,
                                                              jlong page_ptr, jint dpi) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         return (jint) (FPDF_GetPageWidth(page) * dpi / 72);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageHeightPixel(JNIEnv *env, jclass,
                                                               jlong page_ptr, jint dpi) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         return (jint)(FPDF_GetPageHeight(page) * dpi / 72);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageWidthPoint(JNIEnv *env, jclass,
                                                              jlong page_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         return (jint)FPDF_GetPageWidth(page);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageHeightPoint(JNIEnv *env, jclass,
                                                               jlong page_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         return (jint)FPDF_GetPageHeight(page);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jdouble JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeGetFontSize(JNIEnv *env, jclass, jlong page_ptr,
                                                        jint char_index) {
-    try {
+    return runSafe(env, 0.0, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(page_ptr);
         return (jdouble) FPDFText_GetFontSize(textPage, char_index);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageMediaBox(JNIEnv *env, jclass ,
                                                            jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetMediaBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
@@ -1184,26 +981,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageMediaBox(JNIEnv *env, 
             rect[3] = -1.0f;
         }
         return rectToFloatArray(env, rect);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageCropBox(JNIEnv *env, jclass,
                                                           jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetCropBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
@@ -1213,26 +998,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageCropBox(JNIEnv *env, j
             rect[3] = -1.0f;
         }
         return rectToFloatArray(env, rect);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageBleedBox(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetBleedBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
@@ -1242,26 +1015,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageBleedBox(JNIEnv *env, 
             rect[3] = -1.0f;
         }
         return rectToFloatArray(env, rect);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageTrimBox(JNIEnv *env, jclass,
                                                           jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetTrimBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
@@ -1271,26 +1032,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageTrimBox(JNIEnv *env, j
             rect[3] = -1.0f;
         }
         return rectToFloatArray(env, rect);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageArtBox(JNIEnv *env, jclass,
                                                          jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         float rect[RECT_VALUES_LEN];
         if (!FPDFPage_GetArtBox(page, &rect[0], &rect[1], &rect[2], &rect[3])) {
@@ -1300,26 +1049,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageArtBox(JNIEnv *env, jc
             rect[3] = -1.0f;
         }
         return rectToFloatArray(env, rect);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageBoundingBox(JNIEnv *env, jclass,
                                                               jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         FS_RECTF fsRect;
         if (!FPDF_GetPageBoundingBox(page, &fsRect)) {
@@ -1329,27 +1066,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageBoundingBox(JNIEnv *en
             fsRect.bottom = -1.0f;
         }
         return rectToFloatArray(env, fsRect);
-
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageMatrix(JNIEnv *env, jclass,
                                                          jlong page_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         FPDF_PAGEOBJECT pageObject = FPDFPage_GetObject(page, 0);
 
@@ -1364,19 +1088,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageMatrix(JNIEnv *env, jc
         }
 
         return  matrixToFloatArray(env, fsMatrix);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -1461,12 +1173,12 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPage(JNIEnv *env, jclas
                                                       jint start_y, jint draw_size_hor,
                                                       jint draw_size_ver, jboolean render_annot,
                                                       jint canvasColor, jint pageBackgroundColor) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            return false;
+            return (jboolean) false;
         }
 
         auto buffer = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
@@ -1476,20 +1188,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPage(JNIEnv *env, jclas
                            buffer->width, buffer->height,
                            (int) draw_size_hor, (int) draw_size_ver,
                            (bool) render_annot, canvasColor, pageBackgroundColor);
-        return true;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return false;
+        return (jboolean) true;
+    });
 }
 
 extern "C"
@@ -1502,12 +1202,12 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageWithMatrix(JNIEnv *
                                                                 jboolean render_annot,
                                                                 jboolean,
                                                                 jint canvasColor, jint pageBackgroundColor) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            return false;
+            return (jboolean) false;
         }
 
         auto bufferPtr = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
@@ -1561,20 +1261,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageWithMatrix(JNIEnv *
 
         FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
 
-        return true;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return false;
+        return (jboolean) true;
+    });
 }
 
 extern "C"
@@ -1583,17 +1271,17 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurface(JNIEnv *env
                                                       jobject surface, jint start_x,
                                                       jint start_y, jboolean render_annot,
                                                       jint canvasColor, jint pageBackgroundColor) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            return false;
+            return (jboolean) false;
         }
         ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
         if (nativeWindow == nullptr) {
             LOGE("native window pointer null");
-            return false;
+            return (jboolean) false;
         }
         auto width = ANativeWindow_getWidth(nativeWindow);
         auto height = ANativeWindow_getHeight(nativeWindow);
@@ -1610,7 +1298,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurface(JNIEnv *env
         int ret;
         if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
             LOGE("Locking native window failed: %s", strerror(ret * -1));
-            return false;
+            return (jboolean) false;
         }
 
         renderPageInternal(page, buffer,
@@ -1621,20 +1309,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurface(JNIEnv *env
         ANativeWindow_unlockAndPost(nativeWindow);
         ANativeWindow_release(nativeWindow);
 
-        return true;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return false;
+        return (jboolean) true;
+    });
 }
 
 extern "C"
@@ -1646,18 +1322,18 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
                                                                 jboolean render_annot,
                                                                 jboolean,
                                                                 jint canvasColor, jint pageBackgroundColor) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr) {
             LOGE("Render page pointers invalid");
-            return false;
+            return (jboolean) false;
         }
 
         ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
         if (nativeWindow == nullptr) {
             LOGE("native window pointer null");
-            return false;
+            return (jboolean) false;
         }
         auto width = ANativeWindow_getWidth(nativeWindow);
         auto height = ANativeWindow_getHeight(nativeWindow);
@@ -1674,7 +1350,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
         int ret;
         if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
             LOGE("Locking native window failed: %s", strerror(ret * -1));
-            return false;
+            return (jboolean) false;
         }
 
 
@@ -1743,20 +1419,8 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageSurfaceWithMatrix(J
         ANativeWindow_unlockAndPost(nativeWindow);
         ANativeWindow_release(nativeWindow);
 
-        return true;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return false;
+        return (jboolean) true;
+    });
 }
 
 extern "C"
@@ -1771,11 +1435,11 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
                                                                             jboolean text_mask,
                                                                             jint canvasColor,
                                                                             jint pageBackgroundColor) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
         if (nativeWindow == nullptr) {
             LOGE("native window pointer null");
-            return false;
+            return (jboolean) false;
         }
         auto width = ANativeWindow_getWidth(nativeWindow);
         auto height = ANativeWindow_getHeight(nativeWindow);
@@ -1795,7 +1459,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
         if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
             LOGE("Locking native window failed: %s", strerror(ret * -1));
             ANativeWindow_release(nativeWindow);
-            return false;
+            return (jboolean) false;
         }
 
         auto pagePtrs = env->GetLongArrayElements(pages, nullptr);
@@ -1829,7 +1493,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
             if (page == nullptr) {
                 LOGE("Render page pointers invalid");
                 ANativeWindow_release(nativeWindow);
-                return false;
+                return (jboolean) false;
             }
 
 
@@ -1887,20 +1551,8 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesSurfaceWithMatr
         env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, 0);
         env->ReleaseLongArrayElements(pages, pagePtrs, 0);
 
-        return true;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return false;
+        return (jboolean) true;
+    });
 }
 
 extern "C"
@@ -1914,7 +1566,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesWithMatrix(JNIE
                                                                      jboolean text_mask,
                                                                      jint canvasColor,
                                                                      jint pageBackgroundColor) {
-    try {
+    runSafe(env, [&]() {
         auto bufferPtr = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
         auto buffer = *bufferPtr;
         jboolean isCopyPages;
@@ -1992,18 +1644,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeRenderPagesWithMatrix(JNIE
         if (isCopyClipRect) {
             env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
         }
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 extern "C"
 JNIEXPORT void JNICALL
@@ -2016,7 +1657,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageBitmap(JNIEnv *env,
                                                             jboolean render_annot,
                                                             jboolean,
                                                             jint canvasColor, jint pageBackgroundColor) {
-    try {
+    runSafe(env, [&]() {
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
@@ -2117,18 +1758,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageBitmap(JNIEnv *env,
         }
 
         AndroidBitmap_unlockPixels(env, bitmap);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 
 extern "C"
@@ -2141,7 +1771,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageBitmapWithMatrix(JN
                                                                       jboolean render_annot,
                                                                       jboolean,
                                                                       jint canvasColor, jint pageBackgroundColor) {
-    try {
+    runSafe(env, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
         if (page == nullptr || bitmap == nullptr) {
@@ -2233,32 +1863,21 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeRenderPageBitmapWithMatrix(JN
         }
 
         AndroidBitmap_unlockPixels(env, bitmap);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 extern "C"
 JNIEXPORT jintArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageSizeByIndex(JNIEnv *env, jclass,
                                                               jlong doc_ptr, jint page_index,
                                                               jint dpi) {
-    try {
+    return runSafe(env, (jintArray) nullptr, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         if (doc == nullptr) {
             LOGE("Document is null");
 
             jniThrowException(env, "java/lang/IllegalStateException",
                               "Document is null");
-            return nullptr;
+            return (jintArray) nullptr;
         }
 
         double width, height;
@@ -2274,32 +1893,20 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageSizeByIndex(JNIEnv *en
 
         jintArray retVal = env->NewIntArray(2);
         if (retVal == nullptr) {
-            return nullptr;
+            return (jintArray) nullptr;
         }
 
         jint buffer[] = {widthInt, heightInt};
         env->SetIntArrayRegion(retVal, 0, 2, buffer);
 
         return retVal;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jlongArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageLinks(JNIEnv *env, jclass, jlong page_ptr) {
-    try {
+    return runSafe(env, (jlongArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         int pos = 0;
         std::vector<jlong> links;
@@ -2311,19 +1918,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageLinks(JNIEnv *env, jcl
         jlongArray result = env->NewLongArray((int) links.size());
         env->SetLongArrayRegion(result, 0, (int) links.size(), &links[0]);
         return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -2333,7 +1928,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativePageCoordsToDevice(JNIEnv *en
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
                                                               jdouble page_x, jdouble page_y) {
-    try {
+    return runSafe(env, (jintArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         int deviceX, deviceY;
 
@@ -2341,25 +1936,13 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativePageCoordsToDevice(JNIEnv *en
                           &deviceY);
         jintArray retVal = env->NewIntArray(2);
         if (retVal == nullptr) {
-            return nullptr;
+            return (jintArray) nullptr;
         }
 
         jint buffer[] = {deviceX, deviceY};
         env->SetIntArrayRegion(retVal, 0, 2, buffer);
         return retVal;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -2369,14 +1952,14 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeDeviceCoordsToPage(JNIEnv *en
                                                               jint start_y, jint size_x,
                                                               jint size_y, jint rotate,
                                                               jint device_x, jint device_y) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         double pageX, pageY;
 
 
         jfloatArray retVal = env->NewFloatArray(2);
         if (retVal == nullptr) {
-            return nullptr;
+            return (jfloatArray) nullptr;
         }
         float point[2];
         if (!FPDF_DeviceToPage(page, start_x, start_y, size_x, size_y, rotate, device_x, device_y,
@@ -2390,19 +1973,7 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeDeviceCoordsToPage(JNIEnv *en
 
         env->SetFloatArrayRegion(retVal, 0, 2, point);
         return retVal;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 static void closeTextPageInternal(jlong textPagePtr) { FPDFText_ClosePage(reinterpret_cast<FPDF_TEXTPAGE>(textPagePtr)); }
@@ -2411,42 +1982,19 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeCloseTextPage(JNIEnv *env, jclass,
                                                              jlong page_ptr) {
-    try {
+    runSafe(env, [&]() {
         closeTextPageInternal(page_ptr);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextCountChars(JNIEnv *env, jclass,
                                                               jlong text_page_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         return (jint) FPDFText_CountChars(textPage);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
@@ -2454,7 +2002,7 @@ JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetText(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint start_index,
                                                            jint count, jshortArray result) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         jboolean isCopy = 1;
         auto *arr = (unsigned short *) env->GetShortArrayElements(result, &isCopy);
@@ -2464,19 +2012,7 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetText(JNIEnv *env, 
             env->ReleaseShortArrayElements(result, (jshort *) arr, JNI_ABORT);
         }
         return output;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
@@ -2485,7 +2021,7 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetTextByteArray(JNIE
                                                                     jlong text_page_ptr,
                                                                     jint start_index, jint count,
                                                                     jbyteArray result) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         jboolean isCopy = 0;
         auto *arr = (jbyteArray) env->GetByteArrayElements(result, &isCopy);
@@ -2497,70 +2033,34 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetTextByteArray(JNIE
             env->ReleaseByteArrayElements(result, (jbyte *) arr, JNI_ABORT);
         }
         return output;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetUnicode(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint index) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         return (jint) FPDFText_GetUnicode(textPage, (int) index);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch (std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch (std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetCharBox(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint index) {
-    try {
+    return runSafe(env, (jdoubleArray) nullptr, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         jdoubleArray result = env->NewDoubleArray(4);
         if (result == nullptr) {
-            return nullptr;
+            return (jdoubleArray) nullptr;
         }
         double fill[4];
         FPDFText_GetCharBox(textPage, (int) index, &fill[0], &fill[1], &fill[2], &fill[3]);
         env->SetDoubleArrayRegion(result, 0, 4, (jdouble *) fill);
         return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -2569,23 +2069,11 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetCharIndexAtPos(JNI
                                                                      jlong text_page_ptr, jdouble x,
                                                                      jdouble y, jdouble x_tolerance,
                                                                      jdouble y_tolerance) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         return (jint) FPDFText_GetCharIndexAtPos(textPage, (double) x, (double) y,
                                                  (double) x_tolerance, (double) y_tolerance);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
@@ -2593,51 +2081,27 @@ JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextCountRects(JNIEnv *env, jclass,
                                                               jlong text_page_ptr, jint start_index,
                                                               jint count) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         return (jint) FPDFText_CountRects(textPage, (int) start_index, (int) count);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jdoubleArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetRect(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint rect_index) {
-    try {
+    return runSafe(env, (jdoubleArray) nullptr, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         jdoubleArray result = env->NewDoubleArray(RECT_VALUES_LEN);
         if (result == nullptr) {
-            return nullptr;
+            return (jdoubleArray) nullptr;
         }
         double fill[RECT_VALUES_LEN];
         FPDFText_GetRect(textPage, (int) rect_index, &fill[0], &fill[1], &fill[2], &fill[3]);
         env->SetDoubleArrayRegion(result, 0, RECT_VALUES_LEN, (jdouble *) fill);
         return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -2646,7 +2110,7 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetBoundedText(JNIEnv
                                                                   jlong text_page_ptr, jdouble left,
                                                                   jdouble top, jdouble right,
                                                                   jdouble bottom, jshortArray arr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
         jboolean isCopy = 0;
         unsigned short *buffer = nullptr;
@@ -2663,26 +2127,14 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeTextGetBoundedText(JNIEnv
             env->ReleaseShortArrayElements(arr, (jshort *) buffer, JNI_ABORT);
         }
         return output;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetDestPageIndex(JNIEnv *env, jclass,
                                                             jlong doc_ptr, jlong link_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(link_ptr);
 
@@ -2692,31 +2144,19 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetDestPageIndex(JNIEnv *env,
         }
         auto index = FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
         return (jint) index;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetLinkURI(JNIEnv *env, jclass, jlong doc_ptr,
                                                       jlong link_ptr) {
-    try {
+    return runSafe(env, (jstring) nullptr, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
         FPDF_ACTION action = FPDFLink_GetAction(link);
         if (action == nullptr) {
-            return nullptr;
+            return (jstring) nullptr;
         }
         size_t bufferLen = FPDFAction_GetURIPath(doc->pdfDocument, action, nullptr, 0);
         if (bufferLen <= 0) {
@@ -2725,80 +2165,43 @@ Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetLinkURI(JNIEnv *env, jclas
         std::string uri;
         FPDFAction_GetURIPath(doc->pdfDocument, action, WriteInto(&uri, bufferLen), bufferLen);
         return env->NewStringUTF(uri.c_str());
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetLinkRect(JNIEnv *env, jclass, jlong,
                                                        jlong link_ptr) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto link = reinterpret_cast<FPDF_LINK>(link_ptr);
         FS_RECTF fsRectF;
         FPDF_BOOL result = FPDFLink_GetAnnotRect(link, &fsRectF);
 
         return rectToFloatArray(env, fsRectF);
-
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetBookmarkDestIndex(JNIEnv *env, jobject,
                                                                     jlong doc_ptr,
                                                                     jlong bookmark_ptr) {
-    try {
+    return runSafe(env, (jlong) -1, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         auto bookmark = reinterpret_cast<FPDF_BOOKMARK>(bookmark_ptr);
 
         FPDF_DEST dest = FPDFBookmark_GetDest(doc->pdfDocument, bookmark);
         if (dest == nullptr) {
-            return -1;
+            return (jlong) -1;
         }
         return (jlong) FPDFDest_GetDestPageIndex(doc->pdfDocument, dest);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 extern "C"
 JNIEXPORT jintArray JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetPageCharCounts(JNIEnv *env, jobject,
                                                                  jlong doc_ptr) {
-    try {
+    return runSafe(env, (jintArray) nullptr, [&]() {
         auto *doc = reinterpret_cast<DocumentFile *>(doc_ptr);
         auto pageCount = FPDF_GetPageCount(doc->pdfDocument);
 
@@ -2816,19 +2219,7 @@ Java_io_legere_pdfiumandroid_jni_NativeDocument_nativeGetPageCharCounts(JNIEnv *
         jintArray result = env->NewIntArray((int) charCounts.size());
         env->SetIntArrayRegion(result, 0, (int) charCounts.size(), &charCounts[0]);
         return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 extern "C"
@@ -2837,13 +2228,13 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeFindStart(JNIEnv *env, jc
                                                          jlong text_page_ptr,
                                                          jstring find_what,
                                                          jint flags, jint start_index) {
-    try {
+    return runSafe(env, (jlong) 0, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
 
         const jchar* raw = env->GetStringChars(find_what, nullptr);
         if (raw == nullptr) {
             // Handle error, possibly throw an exception
-            return 0;
+            return (jlong) 0;
         }
 
         jsize len = env->GetStringLength(find_what);
@@ -2860,220 +2251,114 @@ Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeFindStart(JNIEnv *env, jc
 
 
         return (jlong) handle;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeFindResult_nativeFindNext(JNIEnv *env, jobject,
                                                         jlong find_handle) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
 
         auto result = FPDFText_FindNext(findHandle);
-        return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+        return (jboolean) result;
+    });
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeFindResult_nativeFindPrev(JNIEnv *env, jobject,
                                                         jlong find_handle) {
-    try {
+    return runSafe(env, (jboolean) false, [&]() {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
 
         auto result = FPDFText_FindPrev(findHandle);
-        return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+        return (jboolean) result;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeFindResult_nativeGetSchResultIndex(JNIEnv *env, jobject,
                                                                  jlong find_handle) {
-    try {
+    return runSafe(env, 0, [&]() {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
 
         auto result = FPDFText_GetSchResultIndex(findHandle);
-        return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+        return (jint) result;
+    });
 }
 
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeFindResult_nativeGetSchCount(JNIEnv *env, jobject,
                                                            jlong find_handle) {
-    try {
+    return runSafe(env, 0, [&]() {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
 
         auto result = FPDFText_GetSchCount(findHandle);
-        return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+        return (jint) result;
+    });
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeFindResult_nativeCloseFind(JNIEnv *env, jobject,
                                                          jlong find_handle) {
-    try {
+    runSafe(env, [&]() {
         auto findHandle = reinterpret_cast<FPDF_SCHHANDLE>(find_handle);
 
 
         FPDFText_FindClose(findHandle);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_io_legere_pdfiumandroid_jni_NativeTextPage__nativeLoadWebLink(JNIEnv *env, jclass,
                                                            jlong text_page_ptr) {
-    try {
+    return runSafe(env, (jlong) 0, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
 
         auto handle = FPDFLink_LoadWebLinks(textPage);
 
         return (jlong) handle;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeClosePageLink(JNIEnv *env, jclass,
                                                              jlong page_link_ptr) {
-    try {
+    runSafe(env, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
 
         FPDFLink_CloseWebLinks(pageLink);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
+    });
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeCountWebLinks(JNIEnv *env, jclass,
                                                              jlong page_link_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
 
         auto result =  FPDFLink_CountWebLinks(pageLink);
         LOGE("CountWebLinks result %d", result);
-        return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+        return (jint) result;
+    });
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetURL(JNIEnv *env, jclass,
                                                       jlong page_link_ptr, jint index, jint count, jbyteArray result) {
-    try {
+    return runSafe(env, 0, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
         jboolean isCopy = 0;
@@ -3089,26 +2374,13 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetURL(JNIEnv *env, jclas
             env->ReleaseByteArrayElements(result, (jbyte *) arr, JNI_ABORT);
         }
         return output;
-
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeCountRects(JNIEnv *env, jclass,
                                                           jlong page_link_ptr, jint index) {
-    try {
+    return runSafe(env, 0, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
 
@@ -3116,25 +2388,13 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeCountRects(JNIEnv *env, j
         LOGE("CountRect %d", result);
 
         return result;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return 0;
+    });
 }
 extern "C"
 JNIEXPORT jfloatArray JNICALL
 Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetRect(JNIEnv *env, jclass,
                                                        jlong page_link_ptr, jint linkIndex, jint rectIndex) {
-    try {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
         double left;
@@ -3145,7 +2405,7 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetRect(JNIEnv *env, jcla
         if (FPDFLink_GetRect(pageLink, linkIndex, rectIndex, &left, &top, &right, &bottom )) {
             jfloatArray result = env->NewFloatArray(RECT_VALUES_LEN);
             if (result == nullptr) {
-                return nullptr;
+                return (jfloatArray) nullptr;
             }
             jfloat array[RECT_VALUES_LEN];
             array[0] = (float) left;
@@ -3156,26 +2416,14 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetRect(JNIEnv *env, jcla
             env->SetFloatArrayRegion(result, 0, RECT_VALUES_LEN, array);
             return result;
         }
-
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+        return (jfloatArray) nullptr;
+    });
 }
 extern "C"
 JNIEXPORT jintArray JNICALL
 Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetTextRange(JNIEnv *env, jclass,
                                                             jlong page_link_ptr, jint index) {
-    try {
+    return runSafe(env, (jintArray) nullptr, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
         if (pageLink == nullptr) {
@@ -3183,7 +2431,7 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetTextRange(JNIEnv *env,
 
             jniThrowException(env, "java/lang/IllegalStateException",
                               "Document is null");
-            return nullptr;
+            return (jintArray) nullptr;
         }
 
         int start, count;
@@ -3196,26 +2444,14 @@ Java_io_legere_pdfiumandroid__jni_NativePageLink_nativeGetTextRange(JNIEnv *env,
 
         jintArray retVal = env->NewIntArray(2);
         if (retVal == nullptr) {
-            return nullptr;
+            return (jintArray) nullptr;
         }
 
         jint buffer[] = {start, count};
         env->SetIntArrayRegion(retVal, 0, 2, buffer);
 
         return retVal;
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch (std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return nullptr;
+    });
 }
 
 
@@ -3277,22 +2513,10 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_io_legere_pdfiumandroid_jni_NativePage__nativeGetPageRotation(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
-    try {
+    return runSafe(env, -1, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
         return (jint)FPDFPage_GetRotation(page);
-    } catch (std::bad_alloc &e) {
-        raise_java_oom_exception(env, e);
-    } catch(std::runtime_error &e) {
-        raise_java_runtime_exception(env, e);
-    } catch(std::invalid_argument &e) {
-        raise_java_invalid_arg_exception(env, e);
-    } catch(std::exception &e) {
-        raise_java_exception(env, e);
-    } catch (...) {
-        auto e =  std::runtime_error("Unknown error");
-        raise_java_exception(env, e);
-    }
-    return -1;
+    });
 }
 
 static const JNINativeMethod coreMethods[] = {
