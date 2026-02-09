@@ -49,11 +49,11 @@ abstract class PdfPageSuspendCacheBase<H : AutoCloseable>(
 
     suspend fun get(pageIndex: Int): H {
         val deferred =
-            requestDeferred(pageIndex)
+            getDeferred(pageIndex)
         return deferred.await()
     }
 
-    private fun requestDeferred(pageIndex: Int): Deferred<H> =
+    fun getDeferred(pageIndex: Int): Deferred<H> =
         cache.asMap().computeIfAbsent(pageIndex) { key ->
             scope.async {
                 // we need open pageIndex, not key
@@ -63,12 +63,22 @@ abstract class PdfPageSuspendCacheBase<H : AutoCloseable>(
         }
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    fun getIfPresent(pageIndex: Int): H? {
+        val deferred = cache.getIfPresent(pageIndex)
+        return if (deferred != null && deferred.isCompleted) {
+            runCatching { deferred.getCompleted() }.getOrNull()
+        } else {
+            null
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
     fun peek(pageIndex: Int): H? {
         val deferred = cache.getIfPresent(pageIndex)
         return if (deferred != null && deferred.isCompleted) {
             runCatching { deferred.getCompleted() }.getOrNull()
         } else {
-            requestDeferred(pageIndex)
+            getDeferred(pageIndex)
             null
         }
     }

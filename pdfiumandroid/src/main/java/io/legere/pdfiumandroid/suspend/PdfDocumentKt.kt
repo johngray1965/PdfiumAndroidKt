@@ -28,6 +28,8 @@ class PdfDocumentKt(
     internal val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    fun getDocument(): PdfDocument = PdfDocument(document)
+
     /**
      *  suspend version of [PdfDocument.getPageCount]
      */

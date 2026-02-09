@@ -26,6 +26,11 @@ class PdfTextPageKt(
     internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    constructor(page: PdfTextPage, dispatcher: CoroutineDispatcher) : this(
+        page.page,
+        dispatcher,
+    )
+
     val pageIndex: Int
         get() = page.pageIndex
 

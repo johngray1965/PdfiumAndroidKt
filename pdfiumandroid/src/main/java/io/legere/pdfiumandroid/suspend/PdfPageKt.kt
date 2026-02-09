@@ -34,6 +34,11 @@ class PdfPageKt(
     internal val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    constructor(page: PdfPage, dispatcher: CoroutineDispatcher) : this(
+        page.page,
+        dispatcher,
+    )
+
     val pageIndex: Int
         get() = page.pageIndex
 
@@ -104,10 +109,10 @@ class PdfPageKt(
             }
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.getPageCropBox]
      */
+    @Suppress("LongParameterList")
     suspend fun getPageCropBox(): RectF =
         mutex.withLock {
             withContext(dispatcher) {
@@ -284,10 +289,10 @@ class PdfPageKt(
         return retValue
     }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap,
         startX: Int,
@@ -314,10 +319,10 @@ class PdfPageKt(
         }
     }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
@@ -369,10 +374,10 @@ class PdfPageKt(
             }
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapDeviceCoordsToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapDeviceCoordsToPage(
         startX: Int,
         startY: Int,
@@ -388,10 +393,10 @@ class PdfPageKt(
             }
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToDevice]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToDevice(
         startX: Int,
         startY: Int,
@@ -406,10 +411,10 @@ class PdfPageKt(
             }
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToPage(
         startX: Int,
         startY: Int,
