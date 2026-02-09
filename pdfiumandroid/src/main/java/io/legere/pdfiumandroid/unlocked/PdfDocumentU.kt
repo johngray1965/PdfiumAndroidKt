@@ -72,21 +72,26 @@ class PdfDocumentU(
      * @throws IllegalArgumentException if  document is closed or the page cannot be loaded,
      * RuntimeException if the page cannot be loaded
      */
-    @Suppress("ReturnCount")
+    @Suppress("ReturnCount", "TooGenericExceptionCaught")
     fun openPage(pageIndex: Int): PdfPageU? {
         if (handleAlreadyClosed(isClosed)) return null
-        if (pageMap.containsKey(pageIndex)) {
-            pageMap[pageIndex]?.let {
-                it.count++
+        try {
+            if (pageMap.containsKey(pageIndex)) {
+                pageMap[pageIndex]?.let {
+                    it.count++
 //                    Timber.d("from cache openPage: pageIndex: $pageIndex, count: ${it.count}")
-                return PdfPageU(this, pageIndex, it.pagePtr, pageMap)
+                    return PdfPageU(this, pageIndex, it.pagePtr, pageMap)
+                }
             }
-        }
 //            Timber.d("openPage: pageIndex: $pageIndex")
 
-        val pagePtr = nativeDocument.loadPage(this.mNativeDocPtr, pageIndex)
-        pageMap[pageIndex] = PageCount(pagePtr, 1)
-        return PdfPageU(this, pageIndex, pagePtr, pageMap)
+            val pagePtr = nativeDocument.loadPage(this.mNativeDocPtr, pageIndex)
+            pageMap[pageIndex] = PageCount(pagePtr, 1)
+            return PdfPageU(this, pageIndex, pagePtr, pageMap)
+        } catch (e: RuntimeException) {
+            Logger.e(TAG, e, "openPage: pageIndex: $pageIndex $e")
+            return null
+        }
     }
 
     /**

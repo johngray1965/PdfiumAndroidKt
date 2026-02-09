@@ -31,6 +31,9 @@ class PdfTextPage(
     @Volatile
     private var isClosed = false
 
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * Get character count of the page
      * @return the number of characters on the page

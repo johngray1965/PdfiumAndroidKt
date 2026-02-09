@@ -21,6 +21,9 @@ class PdfTextPageKtF(
     internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */

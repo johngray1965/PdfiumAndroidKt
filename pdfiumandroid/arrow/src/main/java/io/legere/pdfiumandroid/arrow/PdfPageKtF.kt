@@ -33,6 +33,9 @@ class PdfPageKtF(
     internal val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * Open a text page
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded

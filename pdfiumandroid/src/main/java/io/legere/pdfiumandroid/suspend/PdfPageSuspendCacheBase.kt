@@ -6,6 +6,7 @@ import com.google.common.cache.RemovalListener
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
@@ -48,12 +49,28 @@ abstract class PdfPageSuspendCacheBase<H : AutoCloseable>(
 
     suspend fun get(pageIndex: Int): H {
         val deferred =
-            cache.asMap().computeIfAbsent(pageIndex) { key ->
-                scope.async {
-                    openPageAndText(key) ?: error("Page $key not found")
-                }
-            }
+            requestDeferred(pageIndex)
         return deferred.await()
+    }
+
+    private fun requestDeferred(pageIndex: Int): Deferred<H> =
+        cache.asMap().computeIfAbsent(pageIndex) { key ->
+            scope.async {
+                // we need open pageIndex, not key
+                openPageAndText(pageIndex)
+                    ?: error("Page pageIndex: $pageIndex, key $key not found")
+            }
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun peek(pageIndex: Int): H? {
+        val deferred = cache.getIfPresent(pageIndex)
+        return if (deferred != null && deferred.isCompleted) {
+            runCatching { deferred.getCompleted() }.getOrNull()
+        } else {
+            requestDeferred(pageIndex)
+            null
+        }
     }
 
     override fun close() {

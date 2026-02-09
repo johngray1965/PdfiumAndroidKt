@@ -30,6 +30,9 @@ private const val RECT_SIZE = 4
 class PdfPage(
     internal val page: PdfPageU,
 ) : Closeable {
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * Open a text page
      * @return the opened [PdfTextPage]
