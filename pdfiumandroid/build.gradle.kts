@@ -350,10 +350,13 @@ publishOnCentral {
      * The publications can be sent to other destinations, e.g. GitHub
      * The task name would be 'publishAllPublicationsToGitHubRepository'
      */
-//    repository("https://maven.pkg.github.com/OWNER/REPOSITORY", "GitHub") {
-//        user.set(System.getenv("GITHUB_USERNAME"))
-//        password.set(System.getenv("GITHUB_TOKEN"))
-//    }
+    val githubUsername = project.properties["GITHUB_USERNAME"]?.toString() ?: ""
+    val githubToken = project.properties["GITHUB_TOKEN"]?.toString() ?: ""
+
+    repository("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt", "GitHub") {
+        user.set(githubUsername)
+        password.set(githubToken)
+    }
 }
 
 tasks.register<JacocoReport>("jacocoAndroidTestReport") {
