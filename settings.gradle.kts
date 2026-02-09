@@ -21,3 +21,4 @@ rootProject.name = "pdfiumandroid"
 include(":app")
 include(":pdfiumandroid")
 include(":pdfiumandroid:arrow")
+include(":pdfiumandroid:benchmark")

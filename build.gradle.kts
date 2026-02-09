@@ -9,4 +9,5 @@ plugins {
     alias(libs.plugins.kover) apply false
     alias(libs.plugins.ktlint)
     alias(libs.plugins.gradle.publish)
+    alias(libs.plugins.benchmark) apply false
 }

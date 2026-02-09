@@ -35,6 +35,8 @@ orchestrator_version = "1.6.1"
 testServices = "1.6.0"
 mockk = "1.14.9"
 
+benchmark = "1.5.0-alpha02"
+
 [libraries]
 compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
 compose-ui = { module = "androidx.compose.ui:ui" }
@@ -67,6 +69,7 @@ arrow-fx-coroutines = { module = "io.arrow-kt:arrow-fx-coroutines", version.ref 
 androidx-annotation-jvm = { group = "androidx.annotation", name = "annotation-jvm", version.ref = "annotation-jvm" }
 androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
+androidx-benchmark-junit4 = { group = "androidx.benchmark", name = "benchmark-junit4", version.ref = "benchmark" }
 androidx-orchestrator = { module = "androidx.test:orchestrator", version.ref = "orchestrator_version" }
 androidx-test-services = { module = "androidx.test.services:test-services", version.ref = "testServices" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
@@ -95,4 +98,5 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt_version" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover_version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint_version" }
+benchmark = { id = "androidx.benchmark", version.ref = "benchmark" }
 gradle-publish = { id = "org.danilopianini.publish-on-central", version.ref = "publish_on_central"}
