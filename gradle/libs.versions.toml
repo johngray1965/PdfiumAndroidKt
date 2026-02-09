@@ -28,8 +28,7 @@ timber = "5.0.1"
 truth = "1.4.5"
 arrow = "2.2.1.1"
 annotation-jvm = "1.9.1"
-#noinspection NewerVersionAvailable
-jreleaser = "1.22.0"
+publish_on_central = "9.1.12"
 runner = "1.7.0"
 guava = "33.5.0-android"
 orchestrator_version = "1.6.1"
@@ -96,4 +95,4 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt_version" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover_version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint_version" }
-jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
+gradle-publish = { id = "org.danilopianini.publish-on-central", version.ref = "publish_on_central"}

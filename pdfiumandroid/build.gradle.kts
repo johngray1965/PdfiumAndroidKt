@@ -2,8 +2,6 @@ import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.dsl.ManagedVirtualDevice
 import org.gradle.kotlin.dsl.create
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jreleaser.model.Active
-import org.jreleaser.model.Signing
 
 
 plugins {
@@ -11,9 +9,10 @@ plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kover)
-    alias(libs.plugins.jreleaser)
+    alias(libs.plugins.gradle.publish)
     jacoco
     `maven-publish`
+    signing
 }
 kotlin {
     compilerOptions {
@@ -326,56 +325,35 @@ publishing {
         }
     }
 }
+signing {
+    val keyId = project.properties["signing.keyId"]?.toString() ?: ""
+    val password = project.properties["signing.password"]?.toString() ?: ""
 
-jreleaser {
-    project {
-        inceptionYear = "2023"
-        author("@johngray1965")
-        description = rootProject.properties["POM_DESCRIPTION"] as String
-        version = rootProject.properties["VERSION_NAME"] as String
+    // This attempts to read the keyring file specified in gradle.properties
+    // which contains the full PGP key material.
+    if (keyId.isNotBlank() && password.isNotBlank()) {
+        sign(publishing.publications)
     }
-    gitRootSearch = true
-    signing {
-        active = Active.ALWAYS
-        mode = Signing.Mode.MEMORY
-        armored = true
-        verify = true
-    }
-    release {
-        github {
-            repoOwner = "johngray1965"
-            overwrite = true
-        }
-    }
-//    distributions {
-//        create("zip") {
-//            artifacts {
-//                add(
-//                    layout.buildDirectory
-//                        .dir("libs")
-//                        .map {
-//                            it.file("pdfiumandroid.zip")
-//                        }
-//                )
-//            }
-//        }
+}
+group = rootProject.properties["GROUP"] as String
+publishOnCentral {
+    repoOwner.set("johngray1965") // Used to populate the default value for projectUrl and scmConnection
+    projectDescription.set(rootProject.properties["POM_DESCRIPTION"] as String)
+    // The following values are the default, if they are ok with you, just omit them
+    projectLongName.set(project.name)
+    licenseName.set("Apache License, Version 2.0")
+    licenseUrl.set("http://www.apache.org/licenses/LICENSE-2.0")
+    projectUrl.set("https://github.com/${repoOwner.get()}/${project.name}")
+    scmConnection.set("scm:git:https://github.com/${repoOwner.get()}/${project.name}")
+
+    /*
+     * The publications can be sent to other destinations, e.g. GitHub
+     * The task name would be 'publishAllPublicationsToGitHubRepository'
+     */
+//    repository("https://maven.pkg.github.com/OWNER/REPOSITORY", "GitHub") {
+//        user.set(System.getenv("GITHUB_USERNAME"))
+//        password.set(System.getenv("GITHUB_TOKEN"))
 //    }
-    deploy {
-        maven {
-            mavenCentral.create("sonatype") {
-                active = Active.ALWAYS
-                verifyPom = false
-                url = "https://central.sonatype.com/api/v1/publisher"
-                stagingRepository(
-                    layout.buildDirectory
-                        .dir("target/staging-deploy")
-                        .get()
-                        .toString(),
-                )
-                username = getRepositoryUsername()
-            }
-        }
-    }
 }
 
 tasks.register<JacocoReport>("jacocoAndroidTestReport") {
