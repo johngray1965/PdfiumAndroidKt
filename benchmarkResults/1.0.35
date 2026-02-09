@@ -1,0 +1,16 @@
+    7,111,366   ns           3 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapOpenEveryPass
+      454,727   ns        2510 allocs    Trace    Method Trace    PDFBenchmark.gettextPageGetRects
+    4,621,959   ns         265 allocs    Trace    Method Trace    PDFBenchmark.getTextPagAttributesOpenEveryPass
+   39,177,812   ns           4 allocs    Trace    Method Trace    PDFBenchmark.getRenderPageBitmap
+      294,376   ns        2510 allocs    Trace    Method Trace    PDFBenchmark.gettextPageGetRectsForRanges
+    3,176,258   ns           0 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapSingleOpen
+    3,314,006   ns           3 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapViaMatrixSingleOpen
+    2,659,900   ns         139 allocs    Trace    Method Trace    PDFBenchmark.getPagAttributesOpenEveryPass
+        7,482   ns         136 allocs    Trace    Method Trace    PDFBenchmark.getPagAttributesSingleOpen
+  263,298,594   ns          26 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapViaMatrixSingleOpen8xARGB_8888ReadFromDisk
+   80,067,604   ns           5 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapViaMatrixSingleOpen8x
+        7,526   ns         136 allocs    Trace    Method Trace    PDFBenchmark.getPagAttributesTimeAttributesOnly
+   38,183,932   ns           4 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapViaMatrixSingleOpen8xARGB_8888
+      123,417   ns         258 allocs    Trace    Method Trace    PDFBenchmark.getPTextPagAttributesSingleOpen
+    7,001,490   ns           6 allocs    Trace    Method Trace    PDFBenchmark.getPagBitmapViaMatrixOpenEveryPass
+      123,879   ns         258 allocs    Trace    Method Trace    PDFBenchmark.getTextPagAttributesTimeAttributesOnly
