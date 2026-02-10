@@ -1,5 +1,6 @@
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
@@ -16,6 +17,8 @@ configure<LibraryExtension> {
     compileSdk {
         version = release(36)
     }
+    compileOptions.sourceCompatibility = JavaVersion.VERSION_17
+    compileOptions.targetCompatibility = JavaVersion.VERSION_17
 
     defaultConfig {
         minSdk = 24
@@ -48,7 +51,7 @@ configure<LibraryExtension> {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 

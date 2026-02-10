@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
 import androidx.benchmark.junit4.BenchmarkRule
@@ -16,7 +15,6 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.util.Size
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -363,43 +361,44 @@ class PDFBenchmark {
     }
 
     private fun testPageAttributes(page: PdfPage) {
-        val pageWidth = page.getPageWidth(72)
-        val pageHeight = page.getPageHeight(72)
-        val pageWidthPoint = page.getPageWidthPoint()
-        val pageHeightPoint = page.getPageHeightPoint()
-        val cropBox = page.getPageCropBox()
-        val mediaBox = page.getPageMediaBox()
-        val bleedBox = page.getPageBleedBox()
-        val trimBox = page.getPageTrimBox()
-        val artBox = page.getPageArtBox()
-        val boundingBox = page.getPageBoundingBox()
-        val size = page.getPageSize(72)
-        val links = page.getPageLinks()
-        val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
+        val pageAttributes = page.getPageAttributes()
+//        val pageWidth = page.getPageWidth(72)
+//        val pageHeight = page.getPageHeight(72)
+//        val pageWidthPoint = page.getPageWidthPoint()
+//        val pageHeightPoint = page.getPageHeightPoint()
+//        val cropBox = page.getPageCropBox()
+//        val mediaBox = page.getPageMediaBox()
+//        val bleedBox = page.getPageBleedBox()
+//        val trimBox = page.getPageTrimBox()
+//        val artBox = page.getPageArtBox()
+//        val boundingBox = page.getPageBoundingBox()
+//        val size = page.getPageSize(72)
+//        val links = page.getPageLinks()
+//        val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
 
-        assertThat(pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
-        assertThat(pageHeight).isEqualTo(792) // 11 inches * 72 dpi
-        assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
-        assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
-        assertThat(cropBox).isEqualTo(noResultRect)
-        assertThat(mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
-        assertThat(bleedBox).isEqualTo(noResultRect)
-        assertThat(trimBox).isEqualTo(noResultRect)
-        assertThat(artBox).isEqualTo(noResultRect)
-        assertThat(boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
-        assertThat(size).isEqualTo(Size(612, 792))
-        assertThat(links.size).isEqualTo(0) // The test doc doesn't have links
-        assertThat(devicePt).isEqualTo(
-            Rect(
-                // 0f in coords to 0f in device
-                0,
-                // 0f in corrds in at the bottom, the bottom of the device is 100f
-                100,
-                // 100f in coords = 100f/(8.5*72) * 100f = 16f
-                16,
-                // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
-                87,
-            ),
-        )
+        assertThat(pageAttributes.pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
+        assertThat(pageAttributes.pageHeight).isEqualTo(792) // 11 inches * 72 dpi
+//        assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
+//        assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
+        assertThat(pageAttributes.cropBox).isEqualTo(noResultRect)
+        assertThat(pageAttributes.mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
+        assertThat(pageAttributes.bleedBox).isEqualTo(noResultRect)
+        assertThat(pageAttributes.trimBox).isEqualTo(noResultRect)
+        assertThat(pageAttributes.artBox).isEqualTo(noResultRect)
+        assertThat(pageAttributes.boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
+//        assertThat(size).isEqualTo(Size(612, 792))
+        assertThat(pageAttributes.links.size).isEqualTo(0) // The test doc doesn't have links
+//        assertThat(pageAttributes.devicePt).isEqualTo(
+//            Rect(
+//                // 0f in coords to 0f in device
+//                0,
+//                // 0f in corrds in at the bottom, the bottom of the device is 100f
+//                100,
+//                // 100f in coords = 100f/(8.5*72) * 100f = 16f
+//                16,
+//                // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+//                87,
+//            ),
+//        )
     }
 }

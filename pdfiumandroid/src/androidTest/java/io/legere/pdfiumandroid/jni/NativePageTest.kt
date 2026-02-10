@@ -175,6 +175,46 @@ class NativePageTest : BasePDFTest() {
     }
 
     @Test
+    fun getPageAttributes() {
+        val attribs = pdfPage.getPageAttributes()
+
+        assertThat(attribs.pageWidth).isEqualTo(612)
+        assertThat(attribs.pageHeight).isEqualTo(792)
+        assertThat(attribs.pageRotation).isEqualTo(0)
+        assertThat(attribs.mediaBox).isEqualTo(android.graphics.RectF(0.0f, 0.0f, 612.0f, 792.0f))
+        assertThat(attribs.cropBox).isEqualTo(noResultRect)
+        assertThat(attribs.bleedBox).isEqualTo(noResultRect)
+        assertThat(attribs.trimBox).isEqualTo(noResultRect)
+        assertThat(attribs.artBox).isEqualTo(noResultRect)
+        assertThat(attribs.boundingBox).isEqualTo(android.graphics.RectF(0f, 792f, 612f, 0f))
+
+        val matrixValues = FloatArray(9)
+        attribs.pageMatrix.getValues(matrixValues)
+
+        // FPDF_GetPageMatrix with 0,0,612,792,0 should give:
+        // a=1, b=0, c=0, d=-1, e=0, f=792
+        // MSCALE_X (a), MSKEW_X (c), MTRANS_X (e)
+        // MSKEW_Y (b), MSCALE_Y (d), MTRANS_Y (f)
+        // MPERSP_0 (0), MPERSP_1 (0), MPERSP_2 (1)
+
+        val expectedValues =
+            floatArrayOf(
+                1.0f,
+                0.0f,
+                0.0f,
+                0.0f,
+                -1.0f,
+                792.0f,
+                0.0f,
+                0.0f,
+                1.0f,
+            )
+
+        assertThat(matrixValues).isEqualTo(expectedValues)
+        assertThat(attribs.links).isEmpty()
+    }
+
+    @Test
     fun renderPageBitmap() {
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         pdfPage.renderPageBitmap(bitmap, 0, 0, 100, 100)

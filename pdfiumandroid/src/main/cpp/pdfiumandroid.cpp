@@ -1508,7 +1508,7 @@ static void NativeDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz
             auto startX = (int) clip.left;
             auto startY = (int) clip.top;
             int baseHorSize = (canvasHorSize < drawSizeHor) ? canvasHorSize : drawSizeHor;
-            int baseVerSize = (canvasVerSize < draw_size_ver) ? canvasVerSize : drawSizeVer;
+            int baseVerSize = (canvasVerSize < drawSizeVer) ? canvasVerSize : drawSizeVer;
             int baseX = (startX < 0) ? 0 : startX;
             int baseY = (startY < 0) ? 0 : startY;
 
@@ -2033,6 +2033,71 @@ static jfloatArray NativePage_nativeGetLinkRect(JNIEnv *env, jclass, jlong,
         return rectToFloatArray(env, fsRectF);
     });
 }
+
+static jfloatArray NativePage_nativeGetPageAttributes(JNIEnv *env, jclass, jlong page_ptr) {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
+        auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
+
+        const int ATTRIB_SIZE = 27;
+        jfloat array[ATTRIB_SIZE]; // width, height, rotation, 6 boxes * 4, matrix * 6
+
+        double width = FPDF_GetPageWidth(page);
+        double height = FPDF_GetPageHeight(page);
+        int rotation = FPDFPage_GetRotation(page);
+
+        array[0] = (float)width;
+        array[1] = (float)height;
+        array[2] = (float)rotation;
+
+        // MediaBox
+        if (!FPDFPage_GetMediaBox(page, &array[3], &array[4], &array[5], &array[6])) {
+            errorRect(&array[3]);
+        }
+        // CropBox
+        if (!FPDFPage_GetCropBox(page, &array[7], &array[8], &array[9], &array[10])) {
+            errorRect(&array[7]);
+        }
+        // BleedBox
+        if (!FPDFPage_GetBleedBox(page, &array[11], &array[12], &array[13], &array[14])) {
+            errorRect(&array[11]);
+        }
+        // TrimBox
+        if (!FPDFPage_GetTrimBox(page, &array[15], &array[16], &array[17], &array[18])) {
+            errorRect(&array[15]);
+        }
+        // ArtBox
+        if (!FPDFPage_GetArtBox(page, &array[19], &array[20], &array[21], &array[22])) {
+            errorRect(&array[19]);
+        }
+
+        // BoundingBox
+        FS_RECTF fsRect;
+        if (FPDF_GetPageBoundingBox(page, &fsRect)) {
+            array[23] = fsRect.left;
+            array[24] = fsRect.top;
+            array[25] = fsRect.right;
+            array[26] = fsRect.bottom;
+        } else {
+            errorRect(&array[23]);
+        }
+
+//        // Page Matrix (maps page coordinates to device coordinates 0,0,width,height)
+//        FS_MATRIX pageMatrix;
+//        FPDF_GetPageMatrix(page, 0, 0, (int)width, (int)height, rotation, &pageMatrix);
+//        array[27] = pageMatrix.a;
+//        array[28] = pageMatrix.b;
+//        array[29] = pageMatrix.c;
+//        array[30] = pageMatrix.d;
+//        array[31] = pageMatrix.e;
+//        array[32] = pageMatrix.f;
+
+        jfloatArray result = env->NewFloatArray(ATTRIB_SIZE);
+        if (result == nullptr) return (jfloatArray) nullptr;
+        env->SetFloatArrayRegion(result, 0, ATTRIB_SIZE, array);
+        return result;
+    });
+}
+
 static jlong NativeDocument_nativeGetBookmarkDestIndex(JNIEnv *env, jobject,
                                                                     jlong doc_ptr,
                                                                     jlong bookmark_ptr) {
@@ -2376,6 +2441,7 @@ static const JNINativeMethod pageMethods[] = {
         {"nativeGetPageArtBox",              "(J)[F",                                  (void *) NativePage_nativeGetPageArtBox},
         {"nativeGetPageBoundingBox",         "(J)[F",                                  (void *) NativePage_nativeGetPageBoundingBox},
         {"nativeGetPageMatrix",              "(J)[F",                                  (void *) NativePage_nativeGetPageMatrix},
+        {"nativeGetPageAttributes",          "(J)[F",                                  (void *) NativePage_nativeGetPageAttributes},
 };
 
 

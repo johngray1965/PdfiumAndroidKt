@@ -17,6 +17,7 @@ import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.jni.NativePage
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
+import io.legere.pdfiumandroid.util.PageAttributes
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.floatArrayToMatrix
 import io.legere.pdfiumandroid.util.floatArrayToRect
@@ -583,6 +584,30 @@ class PdfPageU(
                 coords.bottom,
             )
         return RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
+    }
+
+    /**
+     * Get all attributes of a page in a single call.
+     */
+    @Suppress("MagicNumber")
+    fun getPageAttributes(): PageAttributes {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) {
+            return PageAttributes(0, 0, 0, RectF(), RectF(), RectF(), RectF(), RectF(), RectF(), Matrix(), emptyList())
+        }
+        val data = nativePage.getPageAttributes(pagePtr)
+        return PageAttributes(
+            pageWidth = data[0].toInt(),
+            pageHeight = data[1].toInt(),
+            pageRotation = data[2].toInt(),
+            mediaBox = RectF(data[3], data[4], data[5], data[6]),
+            cropBox = RectF(data[7], data[8], data[9], data[10]),
+            bleedBox = RectF(data[11], data[12], data[13], data[14]),
+            trimBox = RectF(data[15], data[16], data[17], data[18]),
+            artBox = RectF(data[19], data[20], data[21], data[22]),
+            boundingBox = RectF(data[23], data[24], data[25], data[26]),
+            pageMatrix = floatArrayToMatrix(floatArrayOf(data[27], data[28], data[29], data[30], data[31], data[32])),
+            links = getPageLinks(),
+        )
     }
 
     /**

@@ -16,6 +16,7 @@ import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfPageU
+import io.legere.pdfiumandroid.util.PageAttributes
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -426,6 +427,16 @@ class PdfPageKt(
         mutex.withLock {
             withContext(dispatcher) {
                 page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
+            }
+        }
+
+    /**
+     * suspend version of [PdfPage.getPageAttributes]
+     */
+    suspend fun getPageAttributes(): PageAttributes =
+        mutex.withLock {
+            withContext(dispatcher) {
+                page.getPageAttributes()
             }
         }
 

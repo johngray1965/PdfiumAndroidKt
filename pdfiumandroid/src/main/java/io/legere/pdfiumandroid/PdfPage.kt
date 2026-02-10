@@ -11,6 +11,7 @@ import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.unlocked.PdfPageU
+import io.legere.pdfiumandroid.util.PageAttributes
 import io.legere.pdfiumandroid.util.Size
 import java.io.Closeable
 
@@ -525,6 +526,15 @@ class PdfPage(
                 rotate,
                 coords,
             )
+        }
+    }
+
+    /**
+     * Get all attributes of a page in a single call.
+     */
+    fun getPageAttributes(): PageAttributes {
+        synchronized(PdfiumCore.lock) {
+            return page.getPageAttributes()
         }
     }
 

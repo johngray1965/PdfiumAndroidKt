@@ -225,6 +225,8 @@ class NativePage {
 
     internal fun getPageMatrix(pagePtr: Long) = nativeGetPageMatrix(pagePtr)
 
+    internal fun getPageAttributes(pagePtr: Long) = nativeGetPageAttributes(pagePtr)
+
     companion object {
         @JvmStatic
         private external fun nativeClosePage(pagePtr: Long)
@@ -434,5 +436,9 @@ class NativePage {
         @JvmStatic
         @FastNative
         private external fun nativeGetPageMatrix(pagePtr: Long): FloatArray
+
+        @JvmStatic
+        @FastNative
+        private external fun nativeGetPageAttributes(pagePtr: Long): FloatArray
     }
 }
