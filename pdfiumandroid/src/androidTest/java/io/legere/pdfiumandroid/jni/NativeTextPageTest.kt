@@ -71,7 +71,7 @@ class NativeTextPageTest : BasePDFTest() {
     @Test
     fun textGetRect() {
         val rect = nativeTextPage.textGetRect(pageTextPtr, 0)
-        Truth.assertThat(rect).isEqualTo(doubleArrayOf(0.0, 0.0, 0.0, 0.0))
+        Truth.assertThat(rect).isEqualTo(floatArrayOf(0.0f, 0.0f, 0.0f, 0.0f))
     }
 
     fun findWordRanges(text: String): List<Pair<Int, Int>> {
@@ -111,10 +111,10 @@ class NativeTextPageTest : BasePDFTest() {
                                 val wordRangeRects = mutableListOf<WordRangeRect>()
                                 for (i in data.indices step 6) {
                                     val r = RectF()
-                                    r.left = data[i + 0].toFloat()
-                                    r.top = data[i + 1].toFloat()
-                                    r.right = data[i + 2].toFloat()
-                                    r.bottom = data[i + 3].toFloat()
+                                    r.left = data[i + 0]
+                                    r.top = data[i + 1]
+                                    r.right = data[i + 2]
+                                    r.bottom = data[i + 3]
                                     val rangeStart = data[i + 4].toInt()
                                     val rangeLength = data[i + 5].toInt()
                                     WordRangeRect(rangeStart, rangeLength, r).let {

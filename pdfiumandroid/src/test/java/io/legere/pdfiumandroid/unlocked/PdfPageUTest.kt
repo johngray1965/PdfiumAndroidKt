@@ -9,6 +9,7 @@ import android.graphics.RectF
 import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.jni.NativeDocument
 import io.legere.pdfiumandroid.jni.NativeFactory
@@ -31,9 +32,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 import java.lang.NullPointerException
+import kotlin.collections.emptyList
 
 @RunWith(AndroidJUnit4::class)
 @Config(manifest = Config.NONE)
+@Suppress("LargeClass")
 abstract class PdfPageUBaseTest : ClosableTestContext {
     @get:Rule
     val mockkRule: MockKRule = MockKRule(this)
@@ -173,14 +176,38 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `getPageMatrix success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.getPageMatrix(any()) } returns floatArrayOf(1f, 2f, 3f, 4f, 5f, 6f)
+                every { mockNativePage.getPageMatrix(any()) } returns
+                    floatArrayOf(
+                        1f,
+                        2f,
+                        3f,
+                        4f,
+                        5f,
+                        6f,
+                    )
             }
             apiCall = {
                 pdfPage.getPageMatrix()
             }
 
             verifyHappy {
-                assertThat(it).isEqualTo(Matrix().apply { setValues(floatArrayOf(1.0f, 2.0f, 5.0f, 3.0f, 4.0f, 6.0f, 0.0f, 0.0f, 1.0f)) })
+                assertThat(it).isEqualTo(
+                    Matrix().apply {
+                        setValues(
+                            floatArrayOf(
+                                1.0f,
+                                2.0f,
+                                5.0f,
+                                3.0f,
+                                4.0f,
+                                6.0f,
+                                0.0f,
+                                0.0f,
+                                1.0f,
+                            ),
+                        )
+                    },
+                )
             }
             verifyDefault {
                 assertThat(it).isNull()
@@ -319,7 +346,11 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `getPageSize success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.getPageSizeByIndex(any(), any(), any()) } returns intArrayOf(10, 20)
+                every { mockNativePage.getPageSizeByIndex(any(), any(), any()) } returns
+                    intArrayOf(
+                        10,
+                        20,
+                    )
             }
             apiCall = {
                 pdfPage.getPageSize(72)
@@ -336,7 +367,19 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `renderPage to bufferPtr success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns true
+                every {
+                    mockNativePage.renderPage(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns true
             }
             apiCall = {
                 pdfPage.renderPage(0L, 100, 100, 100, 100)
@@ -356,7 +399,19 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `renderPage to bufferPtr exception handling`() {
         if (isStateClosed()) return // Skip for closed states as we are testing logic inside the open state
 
-        every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws
+        every {
+            mockNativePage.renderPage(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } throws
             NullPointerException("Test exception")
         val result = pdfPage.renderPage(0L, 100, 100, 100, 100)
         assertThat(result).isFalse()
@@ -366,7 +421,19 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `renderPage to bufferPtr exception handling 2`() {
         if (isStateClosed()) return
 
-        every { mockNativePage.renderPage(any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws
+        every {
+            mockNativePage.renderPage(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } throws
             IllegalStateException("Test exception")
         val result = pdfPage.renderPage(0L, 100, 100, 100, 100)
         assertThat(result).isFalse()
@@ -380,7 +447,20 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             val clipRect = RectF(0f, 0f, 100f, 100f)
 
             setupHappy {
-                every { mockNativePage.renderPageWithMatrix(any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                every {
+                    mockNativePage.renderPageWithMatrix(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns
                     true
             }
             apiCall = {
@@ -403,7 +483,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             val clipRect = RectF(0f, 0f, 100f, 100f)
 
             setupHappy {
-                every { mockNativePage.renderPageSurfaceWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } returns true
+                every {
+                    mockNativePage.renderPageSurfaceWithMatrix(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns true
             }
             apiCall = {
                 pdfPage.renderPage(surface, matrix, clipRect)
@@ -425,7 +516,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             val clipRect = RectF(0f, 0f, 100f, 100f)
 
             setupHappy {
-                every { mockNativePage.renderPageBitmapWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } just runs
+                every {
+                    mockNativePage.renderPageBitmapWithMatrix(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } just runs
             }
             apiCall = {
                 pdfPage.renderPageBitmap(bitmap, matrix, clipRect)
@@ -443,7 +545,21 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
         closableTest {
             val bitmap = mockk<Bitmap>()
             setupHappy {
-                every { mockNativePage.renderPageBitmap(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } just
+                every {
+                    mockNativePage.renderPageBitmap(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } just
                     runs
             }
             apiCall = {
@@ -464,7 +580,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
         val matrix = Matrix()
         matrix.postTranslate(100f, 100f)
         val clipRect = RectF(0f, 0f, 100f, 100f)
-        every { mockNativePage.renderPageBitmapWithMatrix(any(), any(), any(), any(), any(), any(), any(), any()) } just runs
+        every {
+            mockNativePage.renderPageBitmapWithMatrix(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } just runs
         pdfPage.renderPageBitmap(null, matrix, clipRect)
     }
 
@@ -494,7 +621,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `mapPageCoordsToDevice success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.pageCoordsToDevice(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                every {
+                    mockNativePage.pageCoordsToDevice(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns
                     intArrayOf(100, 200)
             }
             apiCall = {
@@ -512,7 +650,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `mapDeviceCoordsToPage success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.deviceCoordsToPage(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                every {
+                    mockNativePage.deviceCoordsToPage(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns
                     floatArrayOf(100f, 200f)
             }
             apiCall = {
@@ -530,7 +679,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `mapRectToDevice success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.pageCoordsToDevice(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                every {
+                    mockNativePage.pageCoordsToDevice(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns
                     intArrayOf(100, 200)
             }
             apiCall = {
@@ -548,7 +708,18 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `mapRectToPage success`() =
         closableTest {
             setupHappy {
-                every { mockNativePage.deviceCoordsToPage(any(), any(), any(), any(), any(), any(), any(), any()) } returns
+                every {
+                    mockNativePage.deviceCoordsToPage(
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                        any(),
+                    )
+                } returns
                     floatArrayOf(100f, 200f)
             }
             apiCall = {
@@ -559,6 +730,97 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
+            }
+        }
+
+    @Test
+    @Suppress("MagicNumber", "LongMethod")
+    fun `getPageAttributes success`() =
+        closableTest {
+            setupHappy {
+                every {
+                    mockNativePage.getPageLinks(
+                        any(),
+                    )
+                } returns LongArray(0) { 0L }
+
+                every {
+                    mockNativePage.getPageAttributes(
+                        any(),
+                    )
+                } returns
+                    floatArrayOf(
+                        1f,
+                        2f,
+                        3f,
+                        4f,
+                        5f,
+                        6f,
+                        7f,
+                        8f,
+                        9f,
+                        10f,
+                        11f,
+                        12f,
+                        13f,
+                        14f,
+                        15f,
+                        16f,
+                        17f,
+                        18f,
+                        19f,
+                        20f,
+                        21f,
+                        22f,
+                        23f,
+                        24f,
+                        25f,
+                        26f,
+                        27f,
+                        28f,
+                        29f,
+                        30f,
+                        31f,
+                    )
+            }
+            apiCall = {
+                pdfPage.getPageAttributes()
+            }
+            verifyHappy {
+                assertThat(it).isEqualTo(
+                    PageAttributes(
+                        0,
+                        1,
+                        2,
+                        3,
+                        RectF(0.0f, 0.0f, 1.0f, 2.0f),
+                        RectF(4.0f, 5.0f, 6.0f, 7.0f),
+                        RectF(8.0f, 9.0f, 10.0f, 11.0f),
+                        RectF(12.0f, 13.0f, 14.0f, 15.0f),
+                        RectF(16.0f, 17.0f, 18.0f, 19.0f),
+                        RectF(20.0f, 21.0f, 22.0f, 23.0f),
+                        RectF(24.0f, 25.0f, 26.0f, 27.0f),
+                        emptyList(),
+                        Matrix().apply {
+                            setValues(
+                                floatArrayOf(
+                                    2.0f,
+                                    0.0f,
+                                    28.0f,
+                                    0.0f,
+                                    1.0f,
+                                    29.0f,
+                                    0.0f,
+                                    0.0f,
+                                    1.0f,
+                                ),
+                            )
+                        },
+                    ),
+                )
+            }
+            verifyDefault {
+                assertThat(it).isEqualTo(PageAttributes.EMPTY)
             }
         }
 }

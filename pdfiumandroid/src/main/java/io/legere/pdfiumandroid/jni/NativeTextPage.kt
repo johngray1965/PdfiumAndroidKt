@@ -114,14 +114,14 @@ class NativeTextPage {
         private external fun nativeTextGetRect(
             textPagePtr: Long,
             rectIndex: Int,
-        ): DoubleArray
+        ): FloatArray
 
         @JvmStatic
         @FastNative
         private external fun nativeTextGetRects(
             textPagePtr: Long,
             wordRanges: IntArray,
-        ): DoubleArray?
+        ): FloatArray?
 
         @Suppress("LongParameterList")
         @JvmStatic

@@ -1971,17 +1971,26 @@ static jint NativeTextPage_nativeTextCountRects(JNIEnv *env, jclass,
     });
 }
 
-static jdoubleArray NativeTextPage_nativeTextGetRect(JNIEnv *env, jclass,
+static jfloatArray NativeTextPage_nativeTextGetRect(JNIEnv *env, jclass,
                                                            jlong text_page_ptr, jint rect_index) {
-    return runSafe(env, (jdoubleArray) nullptr, [&]() {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-        jdoubleArray result = env->NewDoubleArray(RECT_VALUES_LEN);
+        double left, top, right, bottom;
+        FPDFText_GetRect(textPage, (int) rect_index, &left, &top, &right, &bottom);
+        std::vector<float> data;
+        data.push_back((float)left);
+        data.push_back((float)top);
+        data.push_back((float)right);
+        data.push_back((float)bottom);
+
+        // Create a jfloatArray and copy the data
+        jfloatArray result = env->NewFloatArray(static_cast<jsize>(data.size()));
         if (result == nullptr) {
-            return (jdoubleArray) nullptr;
+            return (jfloatArray) nullptr; // Out of memory error
         }
-        double fill[RECT_VALUES_LEN];
-        FPDFText_GetRect(textPage, (int) rect_index, &fill[0], &fill[1], &fill[2], &fill[3]);
-        env->SetDoubleArrayRegion(result, 0, RECT_VALUES_LEN, (jdouble *) fill);
+        env->SetFloatArrayRegion(result, 0, static_cast<jsize>(data.size()), data.data());
+
+
         return result;
     });
 }
@@ -2418,6 +2427,58 @@ static jdoubleArray NativeTextPage_nativeTextGetRects(JNIEnv *env, jclass clazz,
     return result;
 }
 
+static jfloatArray NativeTextPage_nativeTextGetRectsFloat(JNIEnv *env, jclass clazz,
+                                                            jlong text_page_ptr,
+                                                            jintArray wordRanges) {
+    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+
+    jsize numRanges = env->GetArrayLength(wordRanges) / 2;
+
+    // Get the ranges array
+    jint *ranges = env->GetIntArrayElements(wordRanges, nullptr);
+
+    // Create a vector to store the data
+    std::vector<float> data;
+
+    // Iterate through the ranges
+    for (jsize i = 0; i < numRanges; ++i) {
+        // Get the start and length
+        jint start = ranges[i * 2];
+        jint length = ranges[i * 2 + 1];
+
+        // Get the number of rectangles in the range
+        int rectCount = FPDFText_CountRects(textPage, start, length);
+
+        // Get the rectangles
+        for (int j = 0; j < rectCount; ++j) {
+            double left, top, right, bottom;
+            FPDFText_GetRect(textPage, j, &left, &top, &right, &bottom);
+
+            // Add the rectangle to the data vector (left, top, right, bottom)
+            data.push_back((float)left);
+            data.push_back((float)top);
+            data.push_back((float)right);
+            data.push_back((float)bottom);
+
+            // Add the range to the data vector (start, length)
+            data.push_back(static_cast<float>(start));
+            data.push_back(static_cast<float>(length));
+        }
+    }
+
+    // Release the ranges array
+    env->ReleaseIntArrayElements(wordRanges, ranges, JNI_ABORT);
+
+    // Create a jfloatArray and copy the data
+    jfloatArray result = env->NewFloatArray(static_cast<jsize>(data.size()));
+    if (result == nullptr) {
+        return nullptr; // Out of memory error
+    }
+    env->SetFloatArrayRegion(result, 0, static_cast<jsize>(data.size()), data.data());
+
+    return result;
+}
+
 static jint NativePage_nativeGetPageRotation(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
     return runSafe(env, -1, [&]() {
@@ -2473,8 +2534,8 @@ static const JNINativeMethod textPageMethods[] = {
         {"nativeCloseTextPage",         "(J)V",                     (void *) NativeTextPage_nativeCloseTextPage},
         {"nativeTextCountChars",        "(J)I",                     (void *) NativeTextPage_nativeTextCountChars},
         {"nativeTextGetCharBox",        "(JI)[D",                   (void *) NativeTextPage_nativeTextGetCharBox},
-        {"nativeTextGetRect",           "(JI)[D",                   (void *) NativeTextPage_nativeTextGetRect},
-        {"nativeTextGetRects",           "(J[I)[D",                   (void *) NativeTextPage_nativeTextGetRects},
+        {"nativeTextGetRect",           "(JI)[F",                   (void *) NativeTextPage_nativeTextGetRect},
+        {"nativeTextGetRects",           "(J[I)[F",                   (void *) NativeTextPage_nativeTextGetRectsFloat},
         {"nativeTextGetBoundedText",    "(JDDDD[S)I",               (void *) NativeTextPage_nativeTextGetBoundedText},
         {"nativeFindStart",             "(JLjava/lang/String;II)J", (void *) NativeTextPage_nativeFindStart},
         {"nativeLoadWebLink",           "(J)J",                     (void *) NativeTextPage_nativeLoadWebLink},

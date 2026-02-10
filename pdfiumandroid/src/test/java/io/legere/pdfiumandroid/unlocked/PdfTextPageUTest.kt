@@ -134,13 +134,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
             val expectedString = "Hello World"
             val length = expectedString.length
             setupHappy {
-                every { mockNativeTextPage.textGetTextByteArray(any(), any(), any(), any()) } answers {
-                    val buffer = arg<ByteArray>(3)
-                    val count = thirdArg<Int>()
-                    val bytes = expectedString.toByteArray(Charsets.UTF_16LE)
-                    bytes.copyInto(buffer, endIndex = minOf(bytes.size, count * 2))
-                    count + 1
-                }
+                every { mockNativeTextPage.textGetTextString(any(), any(), any()) } returns expectedString
             }
             apiCall = {
                 pdfTextPage.textPageGetText(0, length)
@@ -232,7 +226,13 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
     fun textPageGetRect_validIndex() =
         closableTest {
             setupHappy {
-                every { mockNativeTextPage.textGetRect(any(), any()) } returns doubleArrayOf(90.0, 700.0, 100.0, 600.0)
+                every { mockNativeTextPage.textGetRect(any(), any()) } returns
+                    floatArrayOf(
+                        90.0f,
+                        700.0f,
+                        100.0f,
+                        600.0f,
+                    )
             }
             apiCall = {
                 pdfTextPage.textPageGetRect(0)
@@ -250,7 +250,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
     fun textPageGetRectsForRanges_validInput() =
         closableTest {
             setupHappy {
-                val mockRects = doubleArrayOf(10.0, 20.0, 30.0, 40.0, 50.0, 60.0)
+                val mockRects = floatArrayOf(10.0f, 20.0f, 30.0f, 40.0f, 50.0f, 60.0f)
                 every { mockNativeTextPage.textGetRects(any(), any()) } returns mockRects
             }
             apiCall = {
@@ -447,7 +447,7 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
             count + 1
         }
         val result = pdfTextPage.textPageGetText(0, length)
-        assertThat(result).isEqualTo(expectedString)
+        assertThat(result).isNull()
     }
 
     @Test

@@ -32,8 +32,6 @@ class PDFBenchmark {
     @get:Rule
     val benchmarkRule = BenchmarkRule()
 
-    val noResultRect = RectF(-1f, -1f, -1f, -1f)
-
     fun getPdfBytes(filename: String): ByteArray? {
         val appContext = InstrumentationRegistry.getInstrumentation().context
         val assetManager = appContext.assets
@@ -85,6 +83,18 @@ class PDFBenchmark {
     }
 
     @Test
+    fun getTextPageText() {
+        pdfDocument.openPage(0)?.use { page ->
+            page.openTextPage().use { textPage ->
+                benchmarkRule.measureRepeated {
+                    val textPageCountChars = textPage.textPageCountChars()
+                    textPage.textPageGetText(0, textPageCountChars)
+                }
+            }
+        }
+    }
+
+    @Test
     fun getPageBitmap() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         pdfDocument.openPage(0)?.use { page ->
@@ -119,7 +129,7 @@ class PDFBenchmark {
     @Test
     fun openPage() {
         benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0)?.use { page ->
+            pdfDocument.openPage(0)?.use { _ ->
             }
         }
     }
@@ -128,7 +138,7 @@ class PDFBenchmark {
     fun openTextPage() {
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
-                page.openTextPage().use { textPage ->
+                page.openTextPage().use { _ ->
                 }
             }
         }
@@ -198,8 +208,9 @@ class PDFBenchmark {
         }
     }
 
+    // Note: this is bad way to solve this problem
     @Test
-    fun gettextPageGetRects() {
+    fun getTextPageGetRects() {
         pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val textCharCount =
@@ -214,8 +225,8 @@ class PDFBenchmark {
                     val wordBoundaries = findWordRanges(pageText)
                     benchmarkRule.measureRepeated {
                         val list = mutableListOf<RectF>()
-                        wordBoundaries.forEach {
-                            val count = textPage.textPageCountRects(it.first, it.second)
+                        wordBoundaries.forEach { pair ->
+                            val count = textPage.textPageCountRects(pair.first, pair.second)
                             repeat(count) {
                                 textPage.textPageGetRect(it)?.let { rect ->
                                     list.add(rect)
@@ -225,6 +236,38 @@ class PDFBenchmark {
                         }
                         assertThat(list).isNotNull()
                         assertThat(list.size).isEqualTo(1238)
+                    }
+                }
+            }
+        }
+    }
+
+    // Note: this is a much better way to solve this problem
+    @Test
+    fun getTextPageGetRects2() {
+        pdfDocument.openPage(0)?.use { page ->
+            page.openTextPage().use { textPage ->
+                val textCharCount =
+                    textPage.textPageCountChars()
+                if (textCharCount > 0) {
+                    val pageText =
+                        textPage.textPageGetText(
+                            0,
+                            textCharCount,
+                        )
+                            ?: ""
+                    val wordBoundaries =
+                        findWordRanges(pageText)
+                            .flatMap { (first, second) ->
+                                listOf(
+                                    first,
+                                    second,
+                                )
+                            }.toIntArray()
+                    benchmarkRule.measureRepeated {
+                        val list = textPage.textPageGetRectsForRanges(wordBoundaries)
+                        assertThat(list).isNotNull()
+                        assertThat(list?.size).isEqualTo(1238)
                     }
                 }
             }
@@ -287,11 +330,11 @@ class PDFBenchmark {
         val textPageCountChars = page.textPageCountChars()
         val textPageCountRects = page.textPageCountRects(0, textPageCountChars)
 //        assertThat(textPageCountChars).isEqualTo(3468)
-        val textPageGetText = page.textPageGetText(0, textPageCountChars)
+        page.textPageGetText(0, textPageCountChars)
 //        assertThat(textPageGetText).startsWith("The 50 Best Videos For Kids")
-        val textPageGetUnicode = page.textPageGetUnicode(0)
+        page.textPageGetUnicode(0)
 //        assertThat(textPageGetUnicode).isEqualTo('T')
-        val textPageGetCharBox = page.textPageGetCharBox(0)
+        page.textPageGetCharBox(0)
 //        assertThat(textPageGetCharBox).isEqualTo(
 //            RectF(
 //                90.314415f,
@@ -302,7 +345,7 @@ class PDFBenchmark {
 //        )
 
         repeat(textPageCountRects) {
-            val textPageGetRect = page.textPageGetRect(it)
+            page.textPageGetRect(it)
         }
     }
 
