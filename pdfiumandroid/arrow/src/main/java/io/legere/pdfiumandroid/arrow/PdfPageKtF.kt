@@ -13,6 +13,7 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import io.legere.pdfiumandroid.Logger
+import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
@@ -255,10 +256,10 @@ class PdfPageKtF(
         }
     }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap,
         startX: Int,
@@ -285,10 +286,10 @@ class PdfPageKtF(
             true
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
@@ -328,10 +329,10 @@ class PdfPageKtF(
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapDeviceCoordsToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapDeviceCoordsToPage(
         startX: Int,
         startY: Int,
@@ -345,10 +346,10 @@ class PdfPageKtF(
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToDevice]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToDevice(
         startX: Int,
         startY: Int,
@@ -361,10 +362,10 @@ class PdfPageKtF(
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToPage(
         startX: Int,
         startY: Int,
@@ -375,6 +376,14 @@ class PdfPageKtF(
     ): Either<PdfiumKtFErrors, RectF> =
         wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
+        }
+
+    /**
+     * suspend version of [PdfPage.getPageAttributes]
+     */
+    suspend fun getPageAttributes(): Either<PdfiumKtFErrors, PageAttributes> =
+        wrapEither(dispatcher) {
+            page.getPageAttributes()
         }
 
     /**

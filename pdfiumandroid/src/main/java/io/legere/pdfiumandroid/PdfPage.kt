@@ -11,7 +11,6 @@ import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.util.PageAttributes
 import io.legere.pdfiumandroid.util.Size
 import java.io.Closeable
 

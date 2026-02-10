@@ -11,13 +11,13 @@ import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.Logger
+import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.jni.NativePage
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
-import io.legere.pdfiumandroid.util.PageAttributes
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.floatArrayToMatrix
 import io.legere.pdfiumandroid.util.floatArrayToRect
@@ -592,20 +592,35 @@ class PdfPageU(
     @Suppress("MagicNumber")
     fun getPageAttributes(): PageAttributes {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) {
-            return PageAttributes(0, 0, 0, RectF(), RectF(), RectF(), RectF(), RectF(), RectF(), Matrix(), emptyList())
+            return PageAttributes(0, 0, 0, 0, RectF(), RectF(), RectF(), RectF(), RectF(), RectF(), RectF(), emptyList(), Matrix())
         }
         val data = nativePage.getPageAttributes(pagePtr)
+        val mappedRect = RectF(data[27], data[28], data[29], data[30])
+        val matrix = Matrix()
+
+        val pageWidth = data[0]
+        val pageHeight = data[1]
+
+        val pageRectF = RectF().apply { set(0f, 0f, pageWidth, pageHeight) }
+        calculateRectTranslateMatrix(
+            pageRectF,
+            mappedRect,
+            result = matrix,
+        )
+
         return PageAttributes(
+            page = pageIndex,
             pageWidth = data[0].toInt(),
             pageHeight = data[1].toInt(),
             pageRotation = data[2].toInt(),
+            rect = pageRectF,
             mediaBox = RectF(data[3], data[4], data[5], data[6]),
             cropBox = RectF(data[7], data[8], data[9], data[10]),
             bleedBox = RectF(data[11], data[12], data[13], data[14]),
             trimBox = RectF(data[15], data[16], data[17], data[18]),
             artBox = RectF(data[19], data[20], data[21], data[22]),
             boundingBox = RectF(data[23], data[24], data[25], data[26]),
-            pageMatrix = floatArrayToMatrix(floatArrayOf(data[27], data[28], data[29], data[30], data[31], data[32])),
+            pageMatrix = matrix,
             links = getPageLinks(),
         )
     }
@@ -648,5 +663,22 @@ class PdfPageU(
 
     companion object {
         private const val TAG = "PdfPage"
+
+        fun calculateRectTranslateMatrix(
+            from: RectF?,
+            to: RectF?,
+            result: Matrix?,
+        ) {
+            if (from == null || to == null || result == null) {
+                return
+            }
+            if (from.width() == 0f || from.height() == 0f) {
+                return
+            }
+            result.reset()
+            result.postTranslate(-from.left, -from.top)
+            result.postScale(to.width() / from.width(), to.height() / from.height())
+            result.postTranslate(to.left, to.top)
+        }
     }
 }

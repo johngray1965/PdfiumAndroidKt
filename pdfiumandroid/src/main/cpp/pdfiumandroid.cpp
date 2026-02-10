@@ -2038,7 +2038,7 @@ static jfloatArray NativePage_nativeGetPageAttributes(JNIEnv *env, jclass, jlong
     return runSafe(env, (jfloatArray) nullptr, [&]() {
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
-        const int ATTRIB_SIZE = 27;
+        const int ATTRIB_SIZE = 31;
         jfloat array[ATTRIB_SIZE]; // width, height, rotation, 6 boxes * 4, matrix * 6
 
         double width = FPDF_GetPageWidth(page);
@@ -2081,15 +2081,18 @@ static jfloatArray NativePage_nativeGetPageAttributes(JNIEnv *env, jclass, jlong
             errorRect(&array[23]);
         }
 
-//        // Page Matrix (maps page coordinates to device coordinates 0,0,width,height)
-//        FS_MATRIX pageMatrix;
-//        FPDF_GetPageMatrix(page, 0, 0, (int)width, (int)height, rotation, &pageMatrix);
-//        array[27] = pageMatrix.a;
-//        array[28] = pageMatrix.b;
-//        array[29] = pageMatrix.c;
-//        array[30] = pageMatrix.d;
-//        array[31] = pageMatrix.e;
-//        array[32] = pageMatrix.f;
+        int top, left, bottom, right;
+
+        FPDF_PageToDevice(page, 0, 0, (int) width, (int) height, rotation, 0, 0, &left,
+                &top);
+
+        FPDF_PageToDevice(page, 0, 0, (int) width, (int) height, rotation, width, height, &right,
+                &bottom);
+
+        array[27] = (float) left;
+        array[28] = (float) top;
+        array[29] = (float) right;
+        array[30] = (float) bottom;
 
         jfloatArray result = env->NewFloatArray(ATTRIB_SIZE);
         if (result == nullptr) return (jfloatArray) nullptr;
