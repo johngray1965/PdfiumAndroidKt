@@ -112,19 +112,11 @@ class PdfTextPageU(
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         try {
-            val bytes = ByteArray(length * 2)
-            val r =
-                nativeTextPage.textGetTextByteArray(
-                    pagePtr,
-                    startIndex,
-                    length,
-                    bytes,
-                )
-
-            if (r <= 0) {
-                return ""
-            }
-            return String(bytes, StandardCharsets.UTF_16LE)
+            return nativeTextPage.textGetTextString(
+                pagePtr,
+                startIndex,
+                length,
+            )
         } catch (e: NullPointerException) {
             println("textPageGetText $e")
             Logger.e(TAG, e, "mContext may be null")

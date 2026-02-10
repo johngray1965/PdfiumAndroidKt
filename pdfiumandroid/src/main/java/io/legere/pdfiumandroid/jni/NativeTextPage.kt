@@ -4,7 +4,7 @@ import dalvik.annotation.optimization.FastNative
 
 @Suppress("TooManyFunctions")
 class NativeTextPage {
-    internal fun closeTextPage(pagePtr: Long) = nativeCloseTextPage(pagePtr)
+    internal fun closeTextPage(textPagePtr: Long) = nativeCloseTextPage(textPagePtr)
 
     internal fun textCountChars(textPagePtr: Long) = nativeTextCountChars(textPagePtr)
 
@@ -75,15 +75,20 @@ class NativeTextPage {
         count: Int,
     ) = nativeTextCountRects(textPagePtr, startIndex, count)
 
-    internal fun getFontSize(
-        pagePtr: Long,
-        charIndex: Int,
-    ) = nativeGetFontSize(pagePtr, charIndex)
+    internal fun textGetTextString(
+        textPagePtr: Long,
+        startIndex: Int,
+        count: Int,
+    ) = nativeTextGetTextString(textPagePtr, startIndex, count)
 
-    @Suppress("TooManyFunctions")
+    internal fun getFontSize(
+        textPagePtr: Long,
+        charIndex: Int,
+    ) = nativeGetFontSize(textPagePtr, charIndex)
+
     companion object {
         @JvmStatic
-        private external fun nativeCloseTextPage(pagePtr: Long)
+        private external fun nativeCloseTextPage(textPagePtr: Long)
 
         @JvmStatic
         @FastNative
@@ -95,6 +100,14 @@ class NativeTextPage {
             textPagePtr: Long,
             index: Int,
         ): DoubleArray
+
+        @JvmStatic
+        @FastNative
+        private external fun nativeTextGetTextString(
+            textPagePtr: Long,
+            startIndex: Int,
+            count: Int,
+        ): String
 
         @JvmStatic
         @FastNative
@@ -134,6 +147,7 @@ class NativeTextPage {
         private external fun nativeLoadWebLink(textPagePtr: Long): Long
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetCharIndexAtPos(
             textPagePtr: Long,
             x: Double,
@@ -143,6 +157,7 @@ class NativeTextPage {
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetText(
             textPagePtr: Long,
             startIndex: Int,
@@ -150,8 +165,8 @@ class NativeTextPage {
             result: ShortArray,
         ): Int
 
-        //
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetTextByteArray(
             textPagePtr: Long,
             startIndex: Int,
@@ -177,7 +192,7 @@ class NativeTextPage {
         @JvmStatic
         @FastNative
         private external fun nativeGetFontSize(
-            pagePtr: Long,
+            textPagePtr: Long,
             charIndex: Int,
         ): Double
     }

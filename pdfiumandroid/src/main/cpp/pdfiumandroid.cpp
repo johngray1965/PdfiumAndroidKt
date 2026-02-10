@@ -1889,6 +1889,26 @@ static jint NativeTextPage_nativeTextGetText(JNIEnv *env, jclass,
     });
 }
 
+static jstring NativeTextPage_nativeTextGetTextString(JNIEnv *env, jclass,
+                                                      jlong text_page_ptr,
+                                                      jint start_index, jint count) {
+    return runSafe(env, (jstring) nullptr, [&]() {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+        std::vector<unsigned short> buffer(count);
+        jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, buffer.data());
+        if (output <= 0) {
+            return env->NewStringUTF("");
+        }
+        // FPDFText_GetText returns the number of characters written, including the null terminator.
+        // NewString expects length without null terminator.
+        // However, if the buffer was not large enough, it might not be null terminated?
+        // FPDF documentation says: "The number of characters written into the buffer, including the terminating null character."
+        // So output should be > 0. The number of actual characters is output - 1.
+
+        return env->NewString((jchar*) buffer.data(), output - 1);
+    });
+}
+
 static jint NativeTextPage_nativeTextGetTextByteArray(JNIEnv *env, jclass,
                                                                     jlong text_page_ptr,
                                                                     jint start_index, jint count,
@@ -2460,6 +2480,7 @@ static const JNINativeMethod textPageMethods[] = {
         {"nativeLoadWebLink",           "(J)J",                     (void *) NativeTextPage_nativeLoadWebLink},
         {"nativeTextGetCharIndexAtPos", "(JDDDD)I",                 (void *) NativeTextPage_nativeTextGetCharIndexAtPos},
         {"nativeTextGetText",           "(JII[S)I",                 (void *) NativeTextPage_nativeTextGetText},
+        {"nativeTextGetTextString",     "(JII)Ljava/lang/String;",  (void *) NativeTextPage_nativeTextGetTextString},
         {"nativeTextGetTextByteArray",  "(JII[B)I",                 (void *) NativeTextPage_nativeTextGetTextByteArray},
         {"nativeTextGetUnicode",        "(JI)I",                    (void *) NativeTextPage_nativeTextGetUnicode},
         {"nativeTextCountRects",        "(JII)I",                   (void *) NativeTextPage_nativeTextCountRects},
