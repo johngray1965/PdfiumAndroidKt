@@ -36,10 +36,6 @@ static int sLibraryReferenceCount = 0;
 const int MATRIX_VALUES_LEN = 6;
 const int RECT_VALUES_LEN = 4;
 
-#ifdef TEST_COVERAGE
-extern "C" int __llvm_profile_write_file(void);
-#endif
-
 static void initLibraryIfNeed(){
     const std::lock_guard<std::mutex> lock(sLibraryLock);
     if(sLibraryReferenceCount == 0){
@@ -440,23 +436,6 @@ static jlong NativeCore_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject n
     docFile->pdfDocument = document;
 
     return reinterpret_cast<jlong>(docFile);
-}
-
-static void NativeCore_nativeDumpCoverageData(JNIEnv *env, jobject, jstring outputFile) {
-    LOGD("nativeDumpCoverageData");
-#ifdef TEST_COVERAGE
-    if (outputFile != nullptr) {
-        const char *cOutputFile = env->GetStringUTFChars(outputFile, nullptr);
-        if (cOutputFile != nullptr) {
-            setenv("LLVM_PROFILE_FILE", cOutputFile, 1);
-            env->ReleaseStringUTFChars(outputFile, cOutputFile);
-        }
-    }
-
-    if (__llvm_profile_write_file() != 0) {
-        LOGE("Failed to write profile data");
-    }
-#endif
 }
 
 static jlong loadPageInternal(JNIEnv *env, DocumentFile *doc, int pageIndex){
@@ -2430,7 +2409,8 @@ static jdoubleArray NativeTextPage_nativeTextGetRects(JNIEnv *env, jclass clazz,
 static jfloatArray NativeTextPage_nativeTextGetRectsFloat(JNIEnv *env, jclass clazz,
                                                             jlong text_page_ptr,
                                                             jintArray wordRanges) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
 
     jsize numRanges = env->GetArrayLength(wordRanges) / 2;
 
@@ -2472,11 +2452,13 @@ static jfloatArray NativeTextPage_nativeTextGetRectsFloat(JNIEnv *env, jclass cl
     // Create a jfloatArray and copy the data
     jfloatArray result = env->NewFloatArray(static_cast<jsize>(data.size()));
     if (result == nullptr) {
-        return nullptr; // Out of memory error
+        return (jfloatArray) nullptr; // Out of memory error
     }
     env->SetFloatArrayRegion(result, 0, static_cast<jsize>(data.size()), data.data());
 
     return result;
+    });
+
 }
 
 static jint NativePage_nativeGetPageRotation(JNIEnv *env, jclass,
