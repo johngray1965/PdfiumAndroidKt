@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
 import io.legere.pdfiumandroid.unlocked.PdfPageU
@@ -61,6 +62,14 @@ class PdfPageKtFTest {
             // assertThat(result.page).isEqualTo(pdfTextPageU) // If accessing the inner prop is possible
 
             verify { pdfPageU.openTextPage() }
+        }
+
+    @Test
+    fun pageIndex() =
+        runTest {
+            every { pdfPageU.pageIndex } returns 100
+            assertThat(pdfPage.pageIndex).isEqualTo(100)
+            verify { pdfPageU.pageIndex }
         }
 
     @Test
@@ -705,6 +714,16 @@ class PdfPageKtFTest {
 
             assertThat(pdfPage.mapRectToPage(0, 0, 100, 100, 0, src).getOrNull()).isEqualTo(rect)
             verify { pdfPageU.mapRectToPage(0, 0, 100, 100, 0, src) }
+        }
+
+    @Test
+    fun getPageAttributes() =
+        runTest {
+            val expected = PageAttributes.EMPTY
+            every { pdfPageU.getPageAttributes() } returns PageAttributes.EMPTY
+            val result = pdfPage.getPageAttributes().getOrNull()
+            assertThat(result).isEqualTo(expected)
+            verify { pdfPageU.getPageAttributes() }
         }
 
     @Test

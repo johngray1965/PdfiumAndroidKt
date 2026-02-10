@@ -18,6 +18,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -36,6 +37,14 @@ class PdfPageTest {
     fun setUp() {
         pdfPage = PdfPage(page)
     }
+
+    @Test
+    fun pageIndex() =
+        runTest {
+            every { page.pageIndex } returns 100
+            assertThat(pdfPage.pageIndex).isEqualTo(100)
+            verify { page.pageIndex }
+        }
 
     @Test
     fun openTextPage() {
@@ -401,6 +410,15 @@ class PdfPageTest {
         val result = pdfPage.mapRectToPage(0, 0, 0, 0, 0, mockk())
         assertThat(result).isEqualTo(expected)
         verify { page.mapRectToPage(any(), any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun getPageAttributes() {
+        val expected = PageAttributes.EMPTY
+        every { page.getPageAttributes() } returns PageAttributes.EMPTY
+        val result = pdfPage.getPageAttributes()
+        assertThat(result).isEqualTo(expected)
+        verify { page.getPageAttributes() }
     }
 
     @Test

@@ -36,6 +36,14 @@ class PdfTextPageTest {
     }
 
     @Test
+    fun pageIndex() =
+        runTest {
+            every { pdfTextPageU.pageIndex } returns 100
+            assertThat(pdfTextPage.pageIndex).isEqualTo(100)
+            verify { pdfTextPageU.pageIndex }
+        }
+
+    @Test
     fun textPageCountChars() =
         runTest {
             val expected = 124

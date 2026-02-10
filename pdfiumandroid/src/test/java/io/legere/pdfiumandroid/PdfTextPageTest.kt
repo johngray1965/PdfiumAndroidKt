@@ -12,6 +12,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -26,6 +27,14 @@ class PdfTextPageTest {
         MockKAnnotations.init(this)
         page = PdfTextPage(pdfTextPageU)
     }
+
+    @Test
+    fun pageIndex() =
+        runTest {
+            every { pdfTextPageU.pageIndex } returns 100
+            assertThat(page.pageIndex).isEqualTo(100)
+            verify { pdfTextPageU.pageIndex }
+        }
 
     @Test
     fun textPageCountChars() {
