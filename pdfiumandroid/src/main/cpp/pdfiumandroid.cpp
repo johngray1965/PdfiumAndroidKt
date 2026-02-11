@@ -2473,7 +2473,6 @@ static const JNINativeMethod coreMethods[] = {
         {"nativeOpenDocument",       "(ILjava/lang/String;)J",                                                        (void *) NativeCore_nativeOpenDocument},
         {"nativeOpenMemDocument",    "([BLjava/lang/String;)J",                                                       (void *) NativeCore_nativeOpenMemDocument},
         {"nativeOpenCustomDocument", "(Lio/legere/pdfiumandroid/util/PdfiumNativeSourceBridge;Ljava/lang/String;J)J", (void *) NativeCore_nativeOpenCustomDocument},
-        {"nativeDumpCoverageData",   "(Ljava/lang/String;)V",                                                         (void *) NativeCore_nativeDumpCoverageData},
 };
 
 
