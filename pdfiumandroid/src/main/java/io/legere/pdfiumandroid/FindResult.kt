@@ -7,32 +7,28 @@ import java.io.Closeable
 class FindResult(
     internal val findResult: FindResultU,
 ) : Closeable {
-    fun findNext(): Boolean {
-        synchronized(PdfiumCore.lock) {
-            return findResult.findNext()
+    fun findNext(): Boolean =
+        PdfiumCore.lock.withLockBlocking {
+            findResult.findNext()
         }
-    }
 
-    fun findPrev(): Boolean {
-        synchronized(PdfiumCore.lock) {
-            return findResult.findPrev()
+    fun findPrev(): Boolean =
+        PdfiumCore.lock.withLockBlocking {
+            findResult.findPrev()
         }
-    }
 
-    fun getSchResultIndex(): Int {
-        synchronized(PdfiumCore.lock) {
-            return findResult.getSchResultIndex()
+    fun getSchResultIndex(): Int =
+        PdfiumCore.lock.withLockBlocking {
+            findResult.getSchResultIndex()
         }
-    }
 
-    fun getSchCount(): Int {
-        synchronized(PdfiumCore.lock) {
-            return findResult.getSchCount()
+    fun getSchCount(): Int =
+        PdfiumCore.lock.withLockBlocking {
+            findResult.getSchCount()
         }
-    }
 
     fun closeFind() {
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             findResult.closeFind()
         }
     }

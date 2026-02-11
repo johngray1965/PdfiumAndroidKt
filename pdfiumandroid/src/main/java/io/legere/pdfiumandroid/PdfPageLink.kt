@@ -8,45 +8,42 @@ import java.io.Closeable
 class PdfPageLink(
     val pageLink: PdfPageLinkU,
 ) : Closeable {
-    fun countWebLinks(): Int {
-        synchronized(PdfiumCore.lock) {
-            return pageLink.countWebLinks()
+    fun countWebLinks(): Int =
+        PdfiumCore.lock.withLockBlocking {
+            pageLink.countWebLinks()
         }
-    }
 
     @Suppress("TooGenericExceptionCaught", "ReturnCount")
     fun getURL(
         index: Int,
         length: Int,
-    ): String? {
-        synchronized(PdfiumCore.lock) {
-            return pageLink.getURL(index, length)
+    ): String? =
+        PdfiumCore.lock.withLockBlocking {
+            pageLink.getURL(index, length)
         }
-    }
 
-    fun countRects(index: Int): Int {
-        synchronized(PdfiumCore.lock) {
-            return pageLink.countRects(index)
+    fun countRects(index: Int): Int =
+        PdfiumCore.lock.withLockBlocking {
+            pageLink.countRects(index)
         }
-    }
 
     @Suppress("MagicNumber")
     fun getRect(
         linkIndex: Int,
         rectIndex: Int,
-    ): RectF {
-        synchronized(PdfiumCore.lock) {
-            return pageLink.getRect(linkIndex, rectIndex)
+    ): RectF =
+        PdfiumCore.lock.withLockBlocking {
+            pageLink.getRect(linkIndex, rectIndex)
         }
-    }
 
-    fun getTextRange(index: Int): Pair<Int, Int> {
-        synchronized(PdfiumCore.lock) {
-            return pageLink.getTextRange(index)
+    fun getTextRange(index: Int): Pair<Int, Int> =
+        PdfiumCore.lock.withLockBlocking {
+            pageLink.getTextRange(index)
         }
-    }
 
     override fun close() {
-        pageLink.close()
+        PdfiumCore.lock.withLockBlocking {
+            pageLink.close()
+        }
     }
 }

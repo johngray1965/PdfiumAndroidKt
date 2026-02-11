@@ -7,6 +7,7 @@ import arrow.core.Either
 import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
@@ -143,13 +144,17 @@ class PdfTextPageKtF(
      * Close the page and free all resources.
      */
     override fun close() {
-        page.close()
+        mutex.withLockBlocking {
+            page.close()
+        }
     }
 
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                page.close()
+                mutex.withLockBlocking {
+                    page.close()
+                }
                 true
             }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

@@ -11,7 +11,6 @@ import io.legere.pdfiumandroid.WordRangeRect
 import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -177,12 +176,16 @@ class PdfTextPageKt(
      * Close the page and free all resources.
      */
     override fun close() {
-        page.close()
+        mutex.withLockBlocking {
+            page.close()
+        }
     }
 
     fun safeClose(): Boolean =
         try {
-            page.close()
+            mutex.withLockBlocking {
+                page.close()
+            }
             true
         } catch (e: IllegalStateException) {
             Logger.e("PdfTextPageKt", e, "PdfTextPageKt.safeClose")

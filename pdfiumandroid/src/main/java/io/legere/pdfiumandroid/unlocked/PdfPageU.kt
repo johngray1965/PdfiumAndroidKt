@@ -674,12 +674,12 @@ class PdfPageU(
         dimensions: IntArray,
         ptrs: LongArray,
     ): Boolean =
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             nativePage.lockSurface(surface, dimensions, ptrs)
         }
 
     fun unlockSurface(ptrs: LongArray) =
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             nativePage.unlockSurface(ptrs)
         }
 

@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.jni.NativeCore
@@ -160,7 +161,7 @@ class PdfiumCoreU(
         private val TAG = PdfiumCoreU::class.java.name
 
         // synchronize native methods
-        val lock = Any()
+        val lock = LockManager()
 
         val isReady = InitLock()
 

@@ -17,6 +17,7 @@ import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
 import kotlinx.coroutines.CoroutineDispatcher
@@ -390,13 +391,17 @@ class PdfPageKtF(
      * Closes the page
      */
     override fun close() {
-        page.close()
+        mutex.withLockBlocking {
+            page.close()
+        }
     }
 
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                page.close()
+                mutex.withLockBlocking {
+                    page.close()
+                }
                 true
             }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

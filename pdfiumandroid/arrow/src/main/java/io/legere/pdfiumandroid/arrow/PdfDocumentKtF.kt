@@ -8,6 +8,7 @@ import android.view.Surface
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -141,13 +142,17 @@ class PdfDocumentKtF(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        document.close()
+        mutex.withLockBlocking {
+            document.close()
+        }
     }
 
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                document.close()
+                mutex.withLockBlocking {
+                    document.close()
+                }
                 true
             }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

@@ -10,6 +10,7 @@ import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
@@ -34,7 +35,7 @@ class PdfDocumentKt(
      *  suspend version of [PdfDocument.getPageCount]
      */
     suspend fun getPageCount(): Int =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.getPageCount()
             }
@@ -44,7 +45,7 @@ class PdfDocumentKt(
      *  suspend version of [PdfDocument.getPageCharCounts]
      */
     suspend fun getPageCharCounts(): IntArray =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.getPageCharCounts()
             }
@@ -54,7 +55,7 @@ class PdfDocumentKt(
      * suspend version of [PdfDocument.openPage]
      */
     suspend fun openPage(pageIndex: Int): PdfPageKt? =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.openPage(pageIndex)?.let { PdfPageKt(it, dispatcher) }
             }
@@ -64,7 +65,7 @@ class PdfDocumentKt(
      * suspend version of [PdfDocument.deletePage]
      */
     suspend fun deletePage(pageIndex: Int): Unit =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.deletePage(pageIndex)
             }
@@ -77,7 +78,7 @@ class PdfDocumentKt(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfPageKt> =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
             }
@@ -118,7 +119,7 @@ class PdfDocumentKt(
      * suspend version of [PdfDocument.getDocumentMeta]
      */
     suspend fun getDocumentMeta(): PdfDocument.Meta =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.getDocumentMeta()
             }
@@ -128,7 +129,7 @@ class PdfDocumentKt(
      * suspend version of [PdfDocument.getTableOfContents]
      */
     suspend fun getTableOfContents(): List<PdfDocument.Bookmark> =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.getTableOfContents()
             }
@@ -140,7 +141,7 @@ class PdfDocumentKt(
     @Deprecated("use PdfPageKt.openTextPage", ReplaceWith("page.openTextPage()"))
     @Suppress("DEPRECATION")
     suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 PdfTextPageKt(document.openTextPage(page.page), dispatcher)
             }
@@ -153,7 +154,7 @@ class PdfDocumentKt(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfTextPageKt> =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
             }
@@ -163,7 +164,7 @@ class PdfDocumentKt(
      * suspend version of [PdfDocument.saveAsCopy]
      */
     suspend fun saveAsCopy(callback: PdfWriteCallback): Boolean =
-        PdfiumCoreKt.mutex.withLock {
+        mutex.withLock {
             withContext(dispatcher) {
                 document.saveAsCopy(callback)
             }
@@ -174,12 +175,16 @@ class PdfDocumentKt(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        document.close()
+        mutex.withLockBlocking {
+            document.close()
+        }
     }
 
     fun safeClose(): Boolean =
         try {
-            document.close()
+            mutex.withLockBlocking {
+                document.close()
+            }
             true
         } catch (e: IllegalStateException) {
             Logger.e("PdfDocumentKt", e, "PdfDocumentKt.safeClose")

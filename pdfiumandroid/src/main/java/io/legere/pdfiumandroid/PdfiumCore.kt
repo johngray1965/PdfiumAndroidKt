@@ -444,7 +444,7 @@ class PdfiumCore(
         private val TAG = PdfiumCore::class.java.name
 
         // synchronize native methods
-        val lock = Any()
+        val lock = PdfiumCoreU.lock
 
         val surfaceMutex = Mutex()
     }

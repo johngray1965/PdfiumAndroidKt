@@ -25,21 +25,19 @@ class PdfDocument(
      *  Get the page count of the PDF document
      *  @return the number of pages
      */
-    fun getPageCount(): Int {
-        synchronized(PdfiumCore.lock) {
-            return document.getPageCount()
+    fun getPageCount(): Int =
+        PdfiumCore.lock.withLockBlocking {
+            document.getPageCount()
         }
-    }
 
     /**
      *  Get the page character counts for every page of the PDF document
      *  @return an array of character counts
      */
-    fun getPageCharCounts(): IntArray {
-        synchronized(PdfiumCore.lock) {
-            return document.getPageCharCounts()
+    fun getPageCharCounts(): IntArray =
+        PdfiumCore.lock.withLockBlocking {
+            document.getPageCharCounts()
         }
-    }
 
     /**
      * Open page and store native pointer in [PdfDocument]
@@ -48,11 +46,10 @@ class PdfDocument(
      * @throws IllegalArgumentException if  document is closed or the page cannot be loaded,
      * RuntimeException if the page cannot be loaded
      */
-    fun openPage(pageIndex: Int): PdfPage? {
-        synchronized(PdfiumCore.lock) {
-            return document.openPage(pageIndex)?.let { PdfPage(it) }
+    fun openPage(pageIndex: Int): PdfPage? =
+        PdfiumCore.lock.withLockBlocking {
+            document.openPage(pageIndex)?.let { PdfPage(it) }
         }
-    }
 
     /**
      * Delete page
@@ -60,7 +57,7 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun deletePage(pageIndex: Int) {
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             document.deletePage(pageIndex)
         }
     }
@@ -75,11 +72,10 @@ class PdfDocument(
     fun openPages(
         fromIndex: Int,
         toIndex: Int,
-    ): List<PdfPage> {
-        synchronized(PdfiumCore.lock) {
-            return document.openPages(fromIndex, toIndex).map { PdfPage(it) }
+    ): List<PdfPage> =
+        PdfiumCore.lock.withLockBlocking {
+            document.openPages(fromIndex, toIndex).map { PdfPage(it) }
         }
-    }
 
     /**
      * Render page fragment on [Surface].<br></br>
@@ -107,7 +103,7 @@ class PdfDocument(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             document.renderPages(
                 bufferPtr,
                 drawSizeX,
@@ -133,9 +129,9 @@ class PdfDocument(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ): Boolean {
-        synchronized(PdfiumCore.lock) {
-            return document.renderPages(
+    ): Boolean =
+        PdfiumCore.lock.withLockBlocking {
+            document.renderPages(
                 surface,
                 pages.map { it.page },
                 matrices,
@@ -146,29 +142,26 @@ class PdfDocument(
                 pageBackgroundColor,
             )
         }
-    }
 
     /**
      * Get metadata for given document
      * @return the [Meta] data
      * @throws IllegalArgumentException if document is closed
      */
-    fun getDocumentMeta(): Meta {
-        synchronized(PdfiumCore.lock) {
-            return document.getDocumentMeta()
+    fun getDocumentMeta(): Meta =
+        PdfiumCore.lock.withLockBlocking {
+            document.getDocumentMeta()
         }
-    }
 
     /**
      * Get table of contents (bookmarks) for given document
      * @return the [Bookmark] list
      * @throws IllegalArgumentException if document is closed
      */
-    fun getTableOfContents(): List<Bookmark> {
-        synchronized(PdfiumCore.lock) {
-            return document.getTableOfContents()
+    fun getTableOfContents(): List<Bookmark> =
+        PdfiumCore.lock.withLockBlocking {
+            document.getTableOfContents()
         }
-    }
 
     /**
      * Save document as a copy
@@ -180,18 +173,17 @@ class PdfDocument(
     fun saveAsCopy(
         callback: PdfWriteCallback,
         flags: Int = FPDF_NO_INCREMENTAL,
-    ): Boolean {
-        synchronized(PdfiumCore.lock) {
-            return document.saveAsCopy(callback, flags)
+    ): Boolean =
+        PdfiumCore.lock.withLockBlocking {
+            document.saveAsCopy(callback, flags)
         }
-    }
 
     /**
      * Close the document
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             document.close()
         }
     }

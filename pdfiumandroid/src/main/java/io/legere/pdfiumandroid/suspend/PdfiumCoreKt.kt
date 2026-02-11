@@ -9,8 +9,6 @@ import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
@@ -94,6 +92,6 @@ class PdfiumCoreKt(
         }
 
     companion object {
-        val mutex = Mutex()
+        val mutex = PdfiumCoreU.lock
     }
 }

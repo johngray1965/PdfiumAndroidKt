@@ -444,12 +444,16 @@ class PdfPageKt(
      * Closes the page
      */
     override fun close() {
-        page.close()
+        mutex.withLockBlocking {
+            page.close()
+        }
     }
 
     fun safeClose(): Boolean =
         try {
-            page.close()
+            mutex.withLockBlocking {
+                page.close()
+            }
             true
         } catch (e: IllegalStateException) {
             Logger.e("PdfPageKt", e, "PdfPageKt.safeClose")

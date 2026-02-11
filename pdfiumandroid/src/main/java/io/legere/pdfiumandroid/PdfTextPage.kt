@@ -39,11 +39,10 @@ class PdfTextPage(
      * @return the number of characters on the page
      * @throws IllegalStateException if the page or document is closed
      */
-    fun textPageCountChars(): Int {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageCountChars()
+    fun textPageCountChars(): Int =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageCountChars()
         }
-    }
 
     /**
      * Get the text on the page
@@ -56,21 +55,19 @@ class PdfTextPage(
     fun textPageGetTextLegacy(
         startIndex: Int,
         length: Int,
-    ): String? {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetTextLegacy(startIndex, length)
+    ): String? =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetTextLegacy(startIndex, length)
         }
-    }
 
     @Suppress("ReturnCount")
     fun textPageGetText(
         startIndex: Int,
         length: Int,
-    ): String? {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetText(startIndex, length)
+    ): String? =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetText(startIndex, length)
         }
-    }
 
     /**
      * Get a unicode character on the page
@@ -78,11 +75,10 @@ class PdfTextPage(
      * @return the character
      * @throws IllegalStateException if the page or document is closed
      */
-    fun textPageGetUnicode(index: Int): Char {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetUnicode(index)
+    fun textPageGetUnicode(index: Int): Char =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetUnicode(index)
         }
-    }
 
     /**
      * Get the bounding box of a character on the page
@@ -108,11 +104,10 @@ class PdfTextPage(
         y: Double,
         xTolerance: Double,
         yTolerance: Double,
-    ): Int {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
+    ): Int =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
-    }
 
     /**
      * Get the count of rectangles that bound the text on the page in a given range
@@ -124,11 +119,10 @@ class PdfTextPage(
     fun textPageCountRects(
         startIndex: Int,
         count: Int,
-    ): Int {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageCountRects(startIndex, count)
+    ): Int =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageCountRects(startIndex, count)
         }
-    }
 
     /**
      * Get the bounding box of a text on the page
@@ -137,11 +131,10 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("MagicNumber")
-    fun textPageGetRect(rectIndex: Int): RectF? {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetRect(rectIndex)
+    fun textPageGetRect(rectIndex: Int): RectF? =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetRect(rectIndex)
         }
-    }
 
     /**
      * Get the bounding box of a range of texts on the page
@@ -151,11 +144,10 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetRectsForRanges(wordRanges)
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetRectsForRanges(wordRanges)
         }
-    }
 
     /**
      * Get the text bounded by the given rectangle
@@ -167,11 +159,10 @@ class PdfTextPage(
     fun textPageGetBoundedText(
         rect: RectF,
         length: Int,
-    ): String? {
-        synchronized(PdfiumCore.lock) {
-            return page.textPageGetBoundedText(rect, length)
+    ): String? =
+        PdfiumCore.lock.withLockBlocking {
+            page.textPageGetBoundedText(rect, length)
         }
-    }
 
     /**
      * Get character font size in PostScript points (1/72th of an inch).<br></br>
@@ -179,33 +170,30 @@ class PdfTextPage(
      * @return the font size
      * @throws IllegalStateException if the page or document is closed
      */
-    fun getFontSize(charIndex: Int): Double {
-        synchronized(PdfiumCore.lock) {
-            return page.getFontSize(charIndex)
+    fun getFontSize(charIndex: Int): Double =
+        PdfiumCore.lock.withLockBlocking {
+            page.getFontSize(charIndex)
         }
-    }
 
     fun findStart(
         findWhat: String,
         flags: Set<FindFlags>,
         startIndex: Int,
-    ): FindResult? {
-        synchronized(PdfiumCore.lock) {
-            return page.findStart(findWhat, flags, startIndex)?.let { FindResult(it) }
+    ): FindResult? =
+        PdfiumCore.lock.withLockBlocking {
+            page.findStart(findWhat, flags, startIndex)?.let { FindResult(it) }
         }
-    }
 
-    fun loadWebLink(): PdfPageLink? {
-        synchronized(PdfiumCore.lock) {
-            return page.loadWebLink()?.let { PdfPageLink(it) }
+    fun loadWebLink(): PdfPageLink? =
+        PdfiumCore.lock.withLockBlocking {
+            page.loadWebLink()?.let { PdfPageLink(it) }
         }
-    }
 
     /**
      * Close the page and release all resources
      */
     override fun close() {
-        synchronized(PdfiumCore.lock) {
+        PdfiumCore.lock.withLockBlocking {
             page.close()
         }
     }
