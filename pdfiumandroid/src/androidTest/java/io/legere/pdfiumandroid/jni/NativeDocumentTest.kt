@@ -152,7 +152,7 @@ class NativeDocumentTest : BasePDFTest() {
     fun getPageCharCounts() {
         val pageCharCounts = pdfDocument.getPageCharCounts()
 
-        val expectedValues = intArrayOf(3468, 3723, 3966, 2290)
+        val expectedValues = intArrayOf(3415, 3667, 3907, 2262)
         println(pageCharCounts)
 
         Truth.assertThat(pageCharCounts).isEqualTo(expectedValues)

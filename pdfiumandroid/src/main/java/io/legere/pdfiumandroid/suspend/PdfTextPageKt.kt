@@ -5,11 +5,12 @@ package io.legere.pdfiumandroid.suspend
 import android.graphics.RectF
 import androidx.annotation.Keep
 import io.legere.pdfiumandroid.FindFlags
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.WordRangeRect
-import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.Closeable
@@ -25,6 +26,8 @@ class PdfTextPageKt(
     internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    private val lock: LockManager = pdfiumConfig.lock
+
     constructor(page: PdfTextPage, dispatcher: CoroutineDispatcher) : this(
         page.page,
         dispatcher,
@@ -37,7 +40,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageCountChars]
      */
     suspend fun textPageCountChars(): Int =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageCountChars()
             }
@@ -50,7 +53,7 @@ class PdfTextPageKt(
         startIndex: Int,
         length: Int,
     ): String? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetText(startIndex, length)
             }
@@ -60,7 +63,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetUnicode]
      */
     suspend fun textPageGetUnicode(index: Int): Char =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetUnicode(index)
             }
@@ -70,7 +73,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
     suspend fun textPageGetCharBox(index: Int): RectF? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetCharBox(index)
             }
@@ -85,7 +88,7 @@ class PdfTextPageKt(
         xTolerance: Double,
         yTolerance: Double,
     ): Int =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
             }
@@ -98,7 +101,7 @@ class PdfTextPageKt(
         startIndex: Int,
         count: Int,
     ): Int =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageCountRects(startIndex, count)
             }
@@ -108,7 +111,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetRect]
      */
     suspend fun textPageGetRect(rectIndex: Int): RectF? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetRect(rectIndex)
             }
@@ -117,8 +120,8 @@ class PdfTextPageKt(
     /**
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */
-    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
-        mutex.withLock {
+    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Array<WordRangeRect>? =
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetRectsForRanges(wordRanges)
             }
@@ -131,7 +134,7 @@ class PdfTextPageKt(
         rect: RectF,
         length: Int,
     ): String? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.textPageGetBoundedText(rect, length)
             }
@@ -141,7 +144,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.getFontSize]
      */
     suspend fun getFontSize(charIndex: Int): Double =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.getFontSize(charIndex)
             }
@@ -152,7 +155,7 @@ class PdfTextPageKt(
         flags: Set<FindFlags>,
         startIndex: Int,
     ): FindResultKt? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 val findResult = page.findStart(findWhat, flags, startIndex)
                 if (findResult == null) {
@@ -164,7 +167,7 @@ class PdfTextPageKt(
         }
 
     suspend fun loadWebLink(): PdfPageLinkKt? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 page.loadWebLink()?.let {
                     PdfPageLinkKt(it, dispatcher)
@@ -176,14 +179,14 @@ class PdfTextPageKt(
      * Close the page and free all resources.
      */
     override fun close() {
-        mutex.withLockBlocking {
+        lock.withLockBlocking {
             page.close()
         }
     }
 
     fun safeClose(): Boolean =
         try {
-            mutex.withLockBlocking {
+            lock.withLockBlocking {
                 page.close()
             }
             true

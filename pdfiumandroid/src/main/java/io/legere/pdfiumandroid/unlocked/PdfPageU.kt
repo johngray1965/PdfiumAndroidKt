@@ -10,11 +10,11 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfTextPage
-import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.jni.NativeFactory
 import io.legere.pdfiumandroid.jni.NativePage
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
@@ -23,6 +23,7 @@ import io.legere.pdfiumandroid.util.floatArrayToMatrix
 import io.legere.pdfiumandroid.util.floatArrayToRect
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import io.legere.pdfiumandroid.util.matrixToFloatArray
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import io.legere.pdfiumandroid.util.rectToFloatArray
 import java.io.Closeable
 
@@ -41,6 +42,7 @@ class PdfPageU(
 ) : Closeable {
     @Volatile
     internal var isClosed = false
+    private val lock: LockManager = pdfiumConfig.lock
 
     private val nativePage: NativePage = nativeFactory.getNativePage()
 
@@ -396,26 +398,20 @@ class PdfPageU(
     /** Get all links from given page  */
     fun getPageLinks(): List<PdfDocument.Link> {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return emptyList()
-        val links: MutableList<PdfDocument.Link> =
-            ArrayList()
         val linkPtrs = nativePage.getPageLinks(pagePtr)
-        for (linkPtr in linkPtrs) {
-            val index = nativePage.getDestPageIndex(doc.mNativeDocPtr, linkPtr)
-            val uri = nativePage.getLinkURI(doc.mNativeDocPtr, linkPtr)
-            val rect = nativePage.getLinkRect(doc.mNativeDocPtr, linkPtr)
-            if (rect.size == RECT_SIZE && (index != -1 || uri != null)) {
-                links.add(
-                    PdfDocument.Link(
-                        rect.let { rectFloats ->
-                            floatArrayToRect(rectFloats)
-                        },
-                        index,
-                        uri,
-                    ),
+        val links =
+            Array(linkPtrs.size) { i ->
+                val linkPtr = linkPtrs[i]
+                val index = nativePage.getDestPageIndex(doc.mNativeDocPtr, linkPtr)
+                val uri = nativePage.getLinkURI(doc.mNativeDocPtr, linkPtr)
+                val rect = nativePage.getLinkRect(doc.mNativeDocPtr, linkPtr)
+                PdfDocument.Link(
+                    floatArrayToRect(rect),
+                    index,
+                    uri,
                 )
             }
-        }
-        return links
+        return links.toList()
     }
 
     /**
@@ -674,12 +670,12 @@ class PdfPageU(
         dimensions: IntArray,
         ptrs: LongArray,
     ): Boolean =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             nativePage.lockSurface(surface, dimensions, ptrs)
         }
 
     fun unlockSurface(ptrs: LongArray) =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             nativePage.unlockSurface(ptrs)
         }
 

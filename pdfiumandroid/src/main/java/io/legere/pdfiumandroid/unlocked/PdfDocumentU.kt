@@ -92,16 +92,17 @@ class PdfDocumentU(
      */
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     fun openPage(pageIndex: Int): PdfPageU? {
+        Logger.d(TAG, "openPage: $pageIndex")
         if (handleAlreadyClosed(isClosed)) return null
         try {
             if (pageMap.containsKey(pageIndex)) {
                 pageMap[pageIndex]?.let {
                     it.count++
-//                    Timber.d("from cache openPage: pageIndex: $pageIndex, count: ${it.count}")
+                    Logger.d(TAG, "from cache openPage: pageIndex: $pageIndex, count: ${it.count}")
                     return PdfPageU(this, pageIndex, it.pagePtr, pageMap)
                 }
             }
-//            Timber.d("openPage: pageIndex: $pageIndex")
+            Logger.d(TAG, "openPage: pageIndex: $pageIndex")
 
             val pagePtr = nativeDocument.loadPage(this.mNativeDocPtr, pageIndex)
             pageMap[pageIndex] = PageCount(pagePtr, 1)
@@ -335,7 +336,7 @@ class PdfDocumentU(
      */
     override fun close() {
         if (handleAlreadyClosed(isClosed)) return
-        Logger.d(TAG, "PdfDocument.close")
+        Logger.d(TAG, "PdfDocument.close $mNativeDocPtr")
         isClosed = true
         nativeDocument.closeDocument(mNativeDocPtr)
         parcelFileDescriptor?.close()

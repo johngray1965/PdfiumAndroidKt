@@ -1,16 +1,15 @@
 package io.legere.pdfiumandroid.arrow
 
 import arrow.core.Either
-import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 suspend inline fun <reified T> wrapEither(
     dispatcher: CoroutineDispatcher,
     crossinline block: () -> T,
 ): Either<PdfiumKtFErrors, T> =
-    mutex.withLock {
+    pdfiumConfig.lock.withLock {
         withContext(dispatcher) {
             Either
                 .catch {

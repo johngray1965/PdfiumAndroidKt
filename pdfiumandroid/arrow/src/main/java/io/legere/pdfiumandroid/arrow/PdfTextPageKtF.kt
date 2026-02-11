@@ -5,10 +5,11 @@ package io.legere.pdfiumandroid.arrow
 import android.graphics.RectF
 import arrow.core.Either
 import io.legere.pdfiumandroid.FindFlags
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.WordRangeRect
-import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -22,6 +23,8 @@ class PdfTextPageKtF(
     internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    private val lock: LockManager = pdfiumConfig.lock
+
     val pageIndex: Int
         get() = page.pageIndex
 
@@ -95,7 +98,7 @@ class PdfTextPageKtF(
     /**
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */
-    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Either<PdfiumKtFErrors, List<WordRangeRect>?> =
+    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Either<PdfiumKtFErrors, Array<WordRangeRect>?> =
         wrapEither(dispatcher) {
             page.textPageGetRectsForRanges(wordRanges)
         }
@@ -144,7 +147,7 @@ class PdfTextPageKtF(
      * Close the page and free all resources.
      */
     override fun close() {
-        mutex.withLockBlocking {
+        lock.withLockBlocking {
             page.close()
         }
     }
@@ -152,7 +155,7 @@ class PdfTextPageKtF(
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                mutex.withLockBlocking {
+                lock.withLockBlocking {
                     page.close()
                 }
                 true

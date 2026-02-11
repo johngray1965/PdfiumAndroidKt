@@ -1,10 +1,10 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -12,8 +12,10 @@ class PdfPageLinkKt(
     internal val pageLink: PdfPageLinkU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    private val lock: LockManager = pdfiumConfig.lock
+
     suspend fun countWebLinks(): Int =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 pageLink.countWebLinks()
             }
@@ -23,14 +25,14 @@ class PdfPageLinkKt(
         index: Int,
         length: Int,
     ): String? =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 pageLink.getURL(index, length)
             }
         }
 
     suspend fun countRects(index: Int): Int =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 pageLink.countRects(index)
             }
@@ -40,14 +42,14 @@ class PdfPageLinkKt(
         linkIndex: Int,
         rectIndex: Int,
     ): RectF =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 pageLink.getRect(linkIndex, rectIndex)
             }
         }
 
     suspend fun getTextRange(index: Int): Pair<Int, Int> =
-        mutex.withLock {
+        lock.withLock {
             withContext(dispatcher) {
                 pageLink.getTextRange(index)
             }

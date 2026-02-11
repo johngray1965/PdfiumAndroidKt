@@ -6,10 +6,11 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
-import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import java.io.Closeable
@@ -25,6 +26,8 @@ class PdfDocumentKtF(
     internal val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    private val lock: LockManager = pdfiumConfig.lock
+
     /**
      *  suspend version of [PdfDocument.getPageCount]
      */
@@ -142,7 +145,7 @@ class PdfDocumentKtF(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        mutex.withLockBlocking {
+        lock.withLockBlocking {
             document.close()
         }
     }
@@ -150,7 +153,7 @@ class PdfDocumentKtF(
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                mutex.withLockBlocking {
+                lock.withLockBlocking {
                     document.close()
                 }
                 true

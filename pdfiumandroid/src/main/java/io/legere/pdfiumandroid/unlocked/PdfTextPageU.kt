@@ -238,12 +238,12 @@ class PdfTextPageU(
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         return try {
             val o = nativeTextPage.textGetRect(pagePtr, rectIndex)
-            val r = RectF()
-            r.left = o[LEFT_OFFSET]
-            r.top = o[TOP_OFFSET]
-            r.right = o[RIGHT_OFFSET]
-            r.bottom = o[BOTTOM_OFFSET]
-            r
+            RectF(
+                o[LEFT_OFFSET],
+                o[TOP_OFFSET],
+                o[RIGHT_OFFSET],
+                o[BOTTOM_OFFSET],
+            )
         } catch (e: NullPointerException) {
             Logger.e(TAG, e, "mContext may be null")
             null
@@ -261,23 +261,27 @@ class PdfTextPageU(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? {
+    fun textPageGetRectsForRanges(wordRanges: IntArray): Array<WordRangeRect>? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         val data = nativeTextPage.textGetRects(pagePtr, wordRanges)
         if (data != null) {
-            val wordRangeRects = mutableListOf<WordRangeRect>()
-            for (i in data.indices step RANGE_RECT_DATA_SIZE) {
-                val r = RectF()
-                r.left = data[i + LEFT_OFFSET]
-                r.top = data[i + TOP_OFFSET]
-                r.right = data[i + RIGHT_OFFSET]
-                r.bottom = data[i + BOTTOM_OFFSET]
-                val rangeStart = data[i + RANGE_START_OFFSET].toInt()
-                val rangeLength = data[i + RANGE_LENGTH_OFFSET].toInt()
-                WordRangeRect(rangeStart, rangeLength, r).let {
-                    wordRangeRects.add(it)
+            val count = data.size / RANGE_RECT_DATA_SIZE
+// Pre-allocating the exact size avoids "resizing" overhead
+            val wordRangeRects =
+                Array(count) { i ->
+                    val offset = i * RANGE_RECT_DATA_SIZE
+                    WordRangeRect(
+                        rangeStart = data[offset + RANGE_START_OFFSET].toInt(),
+                        rangeLength = data[offset + RANGE_LENGTH_OFFSET].toInt(),
+                        rect =
+                            RectF(
+                                data[offset + LEFT_OFFSET],
+                                data[offset + TOP_OFFSET],
+                                data[offset + RIGHT_OFFSET],
+                                data[offset + BOTTOM_OFFSET],
+                            ),
+                    )
                 }
-            }
             return wordRangeRects
         }
         return null

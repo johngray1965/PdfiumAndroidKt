@@ -30,6 +30,7 @@ extern "C" {
 #include <mutex>
 
 static std::mutex sLibraryLock;
+static std::mutex sCloseLock;
 
 static int sLibraryReferenceCount = 0;
 
@@ -104,6 +105,7 @@ public:
 };
 
 DocumentFile::~DocumentFile(){
+    const std::lock_guard<std::mutex> lock(sCloseLock);
     if(pdfDocument != nullptr){
         FPDF_CloseDocument(pdfDocument);
         pdfDocument = nullptr;
@@ -1873,7 +1875,7 @@ static jstring NativeTextPage_nativeTextGetTextString(JNIEnv *env, jclass,
                                                       jint start_index, jint count) {
     return runSafe(env, (jstring) nullptr, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-        std::vector<unsigned short> buffer(count);
+        std::vector<unsigned short> buffer(count + 1);
         jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, buffer.data());
         if (output <= 0) {
             return env->NewStringUTF("");

@@ -102,6 +102,7 @@ class NativeTextPage {
         ): DoubleArray
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetTextString(
             textPagePtr: Long,
             startIndex: Int,
@@ -146,6 +147,7 @@ class NativeTextPage {
         private external fun nativeLoadWebLink(textPagePtr: Long): Long
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetCharIndexAtPos(
             textPagePtr: Long,
             x: Double,
@@ -155,6 +157,7 @@ class NativeTextPage {
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetText(
             textPagePtr: Long,
             startIndex: Int,
@@ -163,6 +166,7 @@ class NativeTextPage {
         ): Int
 
         @JvmStatic
+        @FastNative
         private external fun nativeTextGetTextByteArray(
             textPagePtr: Long,
             startIndex: Int,

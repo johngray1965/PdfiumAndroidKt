@@ -102,7 +102,7 @@ class PdfTextPageTest {
 
     @Test
     fun textPageGetRectsForRanges() {
-        val expected = listOf(WordRangeRect(5, 0, mockk()))
+        val expected = arrayOf(WordRangeRect(5, 0, mockk()))
 
         every { pdfTextPageU.textPageGetRectsForRanges(any()) } returns expected
 

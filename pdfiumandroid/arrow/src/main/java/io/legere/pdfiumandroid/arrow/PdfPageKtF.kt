@@ -12,14 +12,15 @@ import android.view.Surface
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.suspend.PdfiumCoreKt.Companion.mutex
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -35,6 +36,8 @@ class PdfPageKtF(
     internal val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    private val lock: LockManager = pdfiumConfig.lock
+
     val pageIndex: Int
         get() = page.pageIndex
 
@@ -391,7 +394,7 @@ class PdfPageKtF(
      * Closes the page
      */
     override fun close() {
-        mutex.withLockBlocking {
+        lock.withLockBlocking {
             page.close()
         }
     }
@@ -399,7 +402,7 @@ class PdfPageKtF(
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                mutex.withLockBlocking {
+                lock.withLockBlocking {
                     page.close()
                 }
                 true

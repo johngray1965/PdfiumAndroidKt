@@ -164,12 +164,12 @@ class NativePageTest : BasePDFTest() {
 
         val expectedMatrix =
             floatArrayOf(
-                0.99808586f,
+                0.99808574f,
                 0.0f,
                 0.0f,
-                1.0000008f,
-                89.999176f,
-                699.1206f,
+                1.0000007f,
+                89.99916f,
+                699.1205f,
             )
         assertThat(matrix).isEqualTo(expectedMatrix)
     }

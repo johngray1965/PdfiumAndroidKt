@@ -12,6 +12,7 @@ import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.Closeable
 
 private const val THREE_BY_THREE = 9
@@ -33,6 +34,8 @@ class PdfPage(
     val pageIndex: Int
         get() = page.pageIndex
 
+    private val lock: LockManager = pdfiumConfig.lock
+
     /**
      * Open a text page
      * @return the opened [PdfTextPage]
@@ -48,7 +51,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidth(screenDpi: Int): Int =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageWidth(screenDpi)
         }
 
@@ -59,7 +62,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeight(screenDpi: Int): Int =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageHeight(screenDpi)
         }
 
@@ -69,7 +72,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidthPoint(): Int =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageWidthPoint()
         }
 
@@ -79,13 +82,13 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeightPoint(): Int =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageHeightPoint()
         }
 
     @Suppress("LongParameterList", "MagicNumber")
     fun getPageMatrix(): Matrix? =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageMatrix()
         }
 
@@ -101,7 +104,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageRotation(): Int =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageRotation()
         }
 
@@ -111,7 +114,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageCropBox(): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageCropBox()
         }
 
@@ -121,7 +124,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageMediaBox(): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageMediaBox()
         }
 
@@ -131,7 +134,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBleedBox(): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageBleedBox()
         }
 
@@ -141,7 +144,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageTrimBox(): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageTrimBox()
         }
 
@@ -151,7 +154,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageArtBox(): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageArtBox()
         }
 
@@ -161,7 +164,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBoundingBox(): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageBoundingBox()
         }
 
@@ -171,7 +174,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageSize(screenDpi: Int): Size =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageSize(screenDpi)
         }
 
@@ -201,7 +204,7 @@ class PdfPage(
         @ColorInt
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.renderPage(
                 bufferPtr,
                 startX,
@@ -238,7 +241,7 @@ class PdfPage(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.renderPage(
                 bufferPtr,
                 drawSizeX,
@@ -262,7 +265,7 @@ class PdfPage(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.renderPage(
                 surface,
                 matrix,
@@ -305,7 +308,7 @@ class PdfPage(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = PdfiumCore.lock.withLockBlocking {
+    ) = lock.withLockBlocking {
         page.renderPageBitmap(
             bitmap,
             startX,
@@ -346,7 +349,7 @@ class PdfPage(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = PdfiumCore.lock.withLockBlocking {
+    ) = lock.withLockBlocking {
         page.renderPageBitmap(
             bitmap,
             matrix,
@@ -360,7 +363,7 @@ class PdfPage(
 
     /** Get all links from given page  */
     fun getPageLinks(): List<PdfDocument.Link> =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageLinks()
         }
 
@@ -388,7 +391,7 @@ class PdfPage(
         pageX: Double,
         pageY: Double,
     ): Point =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.mapPageCoordsToDevice(
                 startX,
                 startY,
@@ -424,7 +427,7 @@ class PdfPage(
         deviceX: Int,
         deviceY: Int,
     ): PointF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.mapDeviceCoordsToPage(
                 startX,
                 startY,
@@ -460,7 +463,7 @@ class PdfPage(
         rotate: Int,
         coords: RectF,
     ): Rect =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.mapRectToDevice(
                 startX,
                 startY,
@@ -492,7 +495,7 @@ class PdfPage(
         rotate: Int,
         coords: Rect,
     ): RectF =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.mapRectToPage(
                 startX,
                 startY,
@@ -507,7 +510,7 @@ class PdfPage(
      * Get all attributes of a page in a single call.
      */
     fun getPageAttributes(): PageAttributes =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.getPageAttributes()
         }
 
@@ -515,7 +518,7 @@ class PdfPage(
      * Close the page and release all resources
      */
     override fun close() {
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             page.close()
         }
     }

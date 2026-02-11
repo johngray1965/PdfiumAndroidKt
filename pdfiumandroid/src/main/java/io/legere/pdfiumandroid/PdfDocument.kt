@@ -9,6 +9,7 @@ import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_REMOVE_SECURITY
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
@@ -21,12 +22,14 @@ private const val THREE_BY_THREE = 9
 class PdfDocument(
     val document: PdfDocumentU,
 ) : Closeable {
+    private val lock: LockManager = pdfiumConfig.lock
+
     /**
      *  Get the page count of the PDF document
      *  @return the number of pages
      */
     fun getPageCount(): Int =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.getPageCount()
         }
 
@@ -35,7 +38,7 @@ class PdfDocument(
      *  @return an array of character counts
      */
     fun getPageCharCounts(): IntArray =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.getPageCharCounts()
         }
 
@@ -47,7 +50,8 @@ class PdfDocument(
      * RuntimeException if the page cannot be loaded
      */
     fun openPage(pageIndex: Int): PdfPage? =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
+            Logger.d(TAG, "openPage: $pageIndex")
             document.openPage(pageIndex)?.let { PdfPage(it) }
         }
 
@@ -57,7 +61,7 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun deletePage(pageIndex: Int) {
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.deletePage(pageIndex)
         }
     }
@@ -73,7 +77,7 @@ class PdfDocument(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfPage> =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.openPages(fromIndex, toIndex).map { PdfPage(it) }
         }
 
@@ -103,7 +107,7 @@ class PdfDocument(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ) {
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.renderPages(
                 bufferPtr,
                 drawSizeX,
@@ -130,7 +134,7 @@ class PdfDocument(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.renderPages(
                 surface,
                 pages.map { it.page },
@@ -149,7 +153,7 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun getDocumentMeta(): Meta =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.getDocumentMeta()
         }
 
@@ -159,7 +163,7 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     fun getTableOfContents(): List<Bookmark> =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.getTableOfContents()
         }
 
@@ -174,7 +178,7 @@ class PdfDocument(
         callback: PdfWriteCallback,
         flags: Int = FPDF_NO_INCREMENTAL,
     ): Boolean =
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.saveAsCopy(callback, flags)
         }
 
@@ -183,7 +187,7 @@ class PdfDocument(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        PdfiumCore.lock.withLockBlocking {
+        lock.withLockBlocking {
             document.close()
         }
     }
