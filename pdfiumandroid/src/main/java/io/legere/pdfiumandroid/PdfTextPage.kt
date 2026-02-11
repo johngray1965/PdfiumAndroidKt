@@ -147,7 +147,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): Array<WordRangeRect>? =
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
         lock.withLockBlocking {
             page.textPageGetRectsForRanges(wordRanges)
         }

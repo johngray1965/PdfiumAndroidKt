@@ -105,7 +105,7 @@ class PdfTextPageKt(
     /**
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */
-    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Array<WordRangeRect>? =
+    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
         wrapSuspend(dispatcher) {
             page.textPageGetRectsForRanges(wordRanges)
         }

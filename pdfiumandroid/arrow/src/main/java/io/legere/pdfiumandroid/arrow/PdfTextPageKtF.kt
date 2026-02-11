@@ -98,7 +98,7 @@ class PdfTextPageKtF(
     /**
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */
-    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Either<PdfiumKtFErrors, Array<WordRangeRect>?> =
+    suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Either<PdfiumKtFErrors, List<WordRangeRect>?> =
         wrapEither(dispatcher) {
             page.textPageGetRectsForRanges(wordRanges)
         }

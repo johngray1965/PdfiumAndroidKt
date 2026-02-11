@@ -261,7 +261,7 @@ class PdfTextPageU(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): Array<WordRangeRect>? {
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         val data = nativeTextPage.textGetRects(pagePtr, wordRanges)
         if (data != null) {
@@ -282,7 +282,7 @@ class PdfTextPageU(
                             ),
                     )
                 }
-            return wordRangeRects
+            return wordRangeRects.toList()
         }
         return null
     }
