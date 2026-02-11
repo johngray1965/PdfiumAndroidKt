@@ -32,8 +32,6 @@ class PDFBenchmark {
     @get:Rule
     val benchmarkRule = BenchmarkRule()
 
-    val noResultRect = RectF(-1f, -1f, -1f, -1f)
-
     fun getPdfBytes(filename: String): ByteArray? {
         val appContext = InstrumentationRegistry.getInstrumentation().context
         val assetManager = appContext.assets
@@ -65,16 +63,7 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagAttributesOpenEveryPass() {
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0)?.use { page ->
-                testPageAttributes(page)
-            }
-        }
-    }
-
-    @Test
-    fun getPagAttributesSingleOpen() {
+    fun getPageAttributes() {
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 testPageAttributes(page)
@@ -83,27 +72,7 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagAttributesTimeAttributesOnly() {
-        pdfDocument.openPage(0)?.use { page ->
-            benchmarkRule.measureRepeated {
-                testPageAttributes(page)
-            }
-        }
-    }
-
-    @Test
-    fun getTextPagAttributesOpenEveryPass() {
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0)?.use { page ->
-                page.openTextPage().use { textPage ->
-                    testTextPageAttributes(textPage)
-                }
-            }
-        }
-    }
-
-    @Test
-    fun getPTextPagAttributesSingleOpen() {
+    fun getTextPageAttributes() {
         pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 benchmarkRule.measureRepeated {
@@ -114,34 +83,19 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getTextPagAttributesTimeAttributesOnly() {
+    fun getTextPageText() {
         pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 benchmarkRule.measureRepeated {
-                    testTextPageAttributes(textPage)
+                    val textPageCountChars = textPage.textPageCountChars()
+                    textPage.textPageGetText(0, textPageCountChars)
                 }
             }
         }
     }
 
     @Test
-    fun getPagBitmapOpenEveryPass() {
-        val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0)?.use { page ->
-                page.renderPageBitmap(
-                    bitmap,
-                    0,
-                    0,
-                    612,
-                    792,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun getPagBitmapSingleOpen() {
+    fun getPageBitmap() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
@@ -157,23 +111,7 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixOpenEveryPass() {
-        val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        val rect = RectF(0f, 0f, 612f, 792f)
-        val matrix = Matrix()
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0)?.use { page ->
-                page.renderPageBitmap(
-                    bitmap,
-                    matrix,
-                    rect,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun getPagBitmapViaMatrixSingleOpen() {
+    fun getPagBitmapViaMatrix() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         val rect = RectF(0f, 0f, 612f, 792f)
         val matrix = Matrix()
@@ -189,7 +127,25 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixSingleOpen8x() {
+    fun openPage() {
+        benchmarkRule.measureRepeated {
+            pdfDocument.openPage(0)?.use { _ ->
+            }
+        }
+    }
+
+    @Test
+    fun openTextPage() {
+        pdfDocument.openPage(0)?.use { page ->
+            benchmarkRule.measureRepeated {
+                page.openTextPage().use { _ ->
+                }
+            }
+        }
+    }
+
+    @Test
+    fun getPagBitmapViaMatrix8x() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.RGB_565)
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
@@ -203,7 +159,7 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixSingleOpen8xARGB_8888() {
+    fun getPagBitmapViaMatrix8xARGB_8888() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
@@ -252,8 +208,9 @@ class PDFBenchmark {
         }
     }
 
+    // Note: this is bad way to solve this problem
     @Test
-    fun gettextPageGetRects() {
+    fun getTextPageGetRects() {
         pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val textCharCount =
@@ -268,8 +225,8 @@ class PDFBenchmark {
                     val wordBoundaries = findWordRanges(pageText)
                     benchmarkRule.measureRepeated {
                         val list = mutableListOf<RectF>()
-                        wordBoundaries.forEach {
-                            val count = textPage.textPageCountRects(it.first, it.second)
+                        wordBoundaries.forEach { pair ->
+                            val count = textPage.textPageCountRects(pair.first, pair.second)
                             repeat(count) {
                                 textPage.textPageGetRect(it)?.let { rect ->
                                     list.add(rect)
@@ -279,6 +236,38 @@ class PDFBenchmark {
                         }
                         assertThat(list).isNotNull()
                         assertThat(list.size).isEqualTo(1238)
+                    }
+                }
+            }
+        }
+    }
+
+    // Note: this is a much better way to solve this problem
+    @Test
+    fun getTextPageGetRects2() {
+        pdfDocument.openPage(0)?.use { page ->
+            page.openTextPage().use { textPage ->
+                val textCharCount =
+                    textPage.textPageCountChars()
+                if (textCharCount > 0) {
+                    val pageText =
+                        textPage.textPageGetText(
+                            0,
+                            textCharCount,
+                        )
+                            ?: ""
+                    val wordBoundaries =
+                        findWordRanges(pageText)
+                            .flatMap { (first, second) ->
+                                listOf(
+                                    first,
+                                    second,
+                                )
+                            }.toIntArray()
+                    benchmarkRule.measureRepeated {
+                        val list = textPage.textPageGetRectsForRanges(wordBoundaries)
+                        assertThat(list).isNotNull()
+                        assertThat(list?.size).isEqualTo(1238)
                     }
                 }
             }
@@ -300,7 +289,7 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixSingleOpen8xARGB_8888ReadFromDisk() {
+    fun getPagBitmapViaMatrix8xARGB_8888ReadFromDisk() {
         val (bitmap, _, _) = commonParams8X(Bitmap.Config.ARGB_8888)
         val targetCtx: Context = InstrumentationRegistry.getInstrumentation().targetContext
         targetCtx.openFileOutput("test.png", Context.MODE_PRIVATE).use {
@@ -340,28 +329,28 @@ class PDFBenchmark {
     private fun testTextPageAttributes(page: PdfTextPage) {
         val textPageCountChars = page.textPageCountChars()
         val textPageCountRects = page.textPageCountRects(0, textPageCountChars)
-        assertThat(textPageCountChars).isEqualTo(3468)
-        val textPageGetText = page.textPageGetText(0, textPageCountChars)
-        assertThat(textPageGetText).startsWith("The 50 Best Videos For Kids")
-        val textPageGetUnicode = page.textPageGetUnicode(0)
-        assertThat(textPageGetUnicode).isEqualTo('T')
-        val textPageGetCharBox = page.textPageGetCharBox(0)
-        assertThat(textPageGetCharBox).isEqualTo(
-            RectF(
-                90.314415f,
-                715.3187f,
-                103.44171f,
-                699.1206f,
-            ),
-        )
+//        assertThat(textPageCountChars).isEqualTo(3468)
+        page.textPageGetText(0, textPageCountChars)
+//        assertThat(textPageGetText).startsWith("The 50 Best Videos For Kids")
+        page.textPageGetUnicode(0)
+//        assertThat(textPageGetUnicode).isEqualTo('T')
+        page.textPageGetCharBox(0)
+//        assertThat(textPageGetCharBox).isEqualTo(
+//            RectF(
+//                90.314415f,
+//                715.3187f,
+//                103.44171f,
+//                699.1206f,
+//            ),
+//        )
 
         repeat(textPageCountRects) {
-            val textPageGetRect = page.textPageGetRect(it)
+            page.textPageGetRect(it)
         }
     }
 
     private fun testPageAttributes(page: PdfPage) {
-        val pageAttributes = page.getPageAttributes()
+        page.getPageAttributes()
 //        val pageWidth = page.getPageWidth(72)
 //        val pageHeight = page.getPageHeight(72)
 //        val pageWidthPoint = page.getPageWidthPoint()

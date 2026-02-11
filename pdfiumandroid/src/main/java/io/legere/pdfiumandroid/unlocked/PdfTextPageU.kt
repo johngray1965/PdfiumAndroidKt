@@ -112,19 +112,11 @@ class PdfTextPageU(
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         try {
-            val bytes = ByteArray(length * 2)
-            val r =
-                nativeTextPage.textGetTextByteArray(
-                    pagePtr,
-                    startIndex,
-                    length,
-                    bytes,
-                )
-
-            if (r <= 0) {
-                return ""
-            }
-            return String(bytes, StandardCharsets.UTF_16LE)
+            return nativeTextPage.textGetTextString(
+                pagePtr,
+                startIndex,
+                length,
+            )
         } catch (e: NullPointerException) {
             println("textPageGetText $e")
             Logger.e(TAG, e, "mContext may be null")
@@ -247,10 +239,10 @@ class PdfTextPageU(
         return try {
             val o = nativeTextPage.textGetRect(pagePtr, rectIndex)
             val r = RectF()
-            r.left = o[LEFT_OFFSET].toFloat()
-            r.top = o[TOP_OFFSET].toFloat()
-            r.right = o[RIGHT_OFFSET].toFloat()
-            r.bottom = o[BOTTOM_OFFSET].toFloat()
+            r.left = o[LEFT_OFFSET]
+            r.top = o[TOP_OFFSET]
+            r.right = o[RIGHT_OFFSET]
+            r.bottom = o[BOTTOM_OFFSET]
             r
         } catch (e: NullPointerException) {
             Logger.e(TAG, e, "mContext may be null")
@@ -276,10 +268,10 @@ class PdfTextPageU(
             val wordRangeRects = mutableListOf<WordRangeRect>()
             for (i in data.indices step RANGE_RECT_DATA_SIZE) {
                 val r = RectF()
-                r.left = data[i + LEFT_OFFSET].toFloat()
-                r.top = data[i + TOP_OFFSET].toFloat()
-                r.right = data[i + RIGHT_OFFSET].toFloat()
-                r.bottom = data[i + BOTTOM_OFFSET].toFloat()
+                r.left = data[i + LEFT_OFFSET]
+                r.top = data[i + TOP_OFFSET]
+                r.right = data[i + RIGHT_OFFSET]
+                r.bottom = data[i + BOTTOM_OFFSET]
                 val rangeStart = data[i + RANGE_START_OFFSET].toInt()
                 val rangeLength = data[i + RANGE_LENGTH_OFFSET].toInt()
                 WordRangeRect(rangeStart, rangeLength, r).let {

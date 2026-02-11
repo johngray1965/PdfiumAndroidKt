@@ -38,6 +38,24 @@ class PdfDocumentU(
     private val pageMap = mutableMapOf<Int, PageCount>()
     private val textPageMap = mutableMapOf<Int, PageCount>()
 
+    data class MatrixKey(
+        val pageWidth: Int,
+        val pageHeight: Int,
+        val rotation: Int,
+        val right: Int,
+        val bottom: Int,
+    )
+
+    private val matrixCache = mutableMapOf<MatrixKey, Matrix>()
+
+    internal fun getCachedMatrix(
+        key: MatrixKey,
+        calculate: (Matrix) -> Unit,
+    ): Matrix =
+        matrixCache.getOrPut(key) {
+            Matrix().also(calculate)
+        }
+
     private val nativeDocument = nativeFactory.getNativeDocument()
 
     @Volatile
@@ -324,6 +342,7 @@ class PdfDocumentU(
         parcelFileDescriptor = null
         source?.close()
         source = null
+        matrixCache.clear()
     }
 
     companion object {

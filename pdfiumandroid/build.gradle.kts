@@ -44,7 +44,12 @@ configure<LibraryExtension> {
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
 
         consumerProguardFiles("consumer-rules.pro")
-
+        @Suppress("UnstableApiUsage")
+        externalNativeBuild {
+            cmake {
+                cppFlags("")
+            }
+        }
         testOptions {
             execution = "ANDROIDX_TEST_ORCHESTRATOR"
             animationsDisabled = true
@@ -156,12 +161,6 @@ configure<LibraryExtension> {
         }
         getByName("debug") {
             enableAndroidTestCoverage = true
-            @Suppress("UnstableApiUsage")
-            externalNativeBuild {
-                cmake {
-                    cppFlags("-fprofile-instr-generate -fcoverage-mapping -DTEST_COVERAGE")
-                }
-            }
         }
 //        maybeCreate("qa")
 //        getByName("qa") {

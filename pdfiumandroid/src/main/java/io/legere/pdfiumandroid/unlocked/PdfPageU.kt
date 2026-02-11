@@ -443,9 +443,19 @@ class PdfPageU(
         pageY: Double,
     ): Point {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return Point(-1, -1)
-        return nativePage.pageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY).let {
-            Point(it[0], it[1])
-        }
+        return nativePage
+            .pageCoordsToDevice(
+                pagePtr,
+                startX,
+                startY,
+                sizeX,
+                sizeY,
+                rotate,
+                pageX,
+                pageY,
+            ).let {
+                Point(it[0], it[1])
+            }
     }
 
     /**
@@ -592,27 +602,39 @@ class PdfPageU(
     @Suppress("MagicNumber")
     fun getPageAttributes(): PageAttributes {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) {
-            return PageAttributes(0, 0, 0, 0, RectF(), RectF(), RectF(), RectF(), RectF(), RectF(), RectF(), emptyList(), Matrix())
+            return PageAttributes.EMPTY
         }
         val data = nativePage.getPageAttributes(pagePtr)
-        val mappedRect = RectF(data[27], data[28], data[29], data[30])
-        val matrix = Matrix()
 
         val pageWidth = data[0]
         val pageHeight = data[1]
+        val pageWidthInt = pageWidth.toInt()
+        val pageHeightInt = pageHeight.toInt()
+        val pageRotation = data[2].toInt()
+        val left = data[27]
+        val top = data[28]
+        val right = data[29]
+        val bottom = data[30]
 
-        val pageRectF = RectF().apply { set(0f, 0f, pageWidth, pageHeight) }
-        calculateRectTranslateMatrix(
-            pageRectF,
-            mappedRect,
-            result = matrix,
-        )
+        val key = PdfDocumentU.MatrixKey(pageWidthInt, pageHeightInt, pageRotation, right.toInt(), bottom.toInt())
+
+        val pageRectF = RectF(0f, 0f, pageWidth, pageHeight)
+        val mappedRect = RectF(left, top, right, bottom)
+
+        val matrix =
+            doc.getCachedMatrix(key) { m ->
+                calculateRectTranslateMatrix(
+                    pageRectF,
+                    mappedRect,
+                    result = m,
+                )
+            }
 
         return PageAttributes(
             page = pageIndex,
-            pageWidth = data[0].toInt(),
-            pageHeight = data[1].toInt(),
-            pageRotation = data[2].toInt(),
+            pageWidth = pageWidthInt,
+            pageHeight = pageHeightInt,
+            pageRotation = pageRotation,
             rect = pageRectF,
             mediaBox = RectF(data[3], data[4], data[5], data[6]),
             cropBox = RectF(data[7], data[8], data[9], data[10]),
