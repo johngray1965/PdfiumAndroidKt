@@ -51,37 +51,31 @@ class PdfPageKt(
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
     suspend fun openTextPage(): PdfTextPageKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfTextPageKt(page.openTextPage(), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfTextPageKt(page.openTextPage(), dispatcher)
         }
 
     /**
      * suspend version of [PdfPage.getPageWidth]
      */
     suspend fun getPageWidth(screenDpi: Int): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageWidth(screenDpi)
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageWidth(screenDpi)
         }
 
     /**
      * suspend version of [PdfPage.getPageHeight]
      */
     suspend fun getPageHeight(screenDpi: Int): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageHeight(screenDpi)
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageHeight(screenDpi)
         }
 
     /**
      * suspend version of [PdfPage.getPageWidthPoint]
      */
     suspend fun getPageWidthPoint(): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageWidthPoint()
         }
 
@@ -89,17 +83,15 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageHeightPoint]
      */
     suspend fun getPageHeightPoint(): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageHeightPoint()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageHeightPoint()
         }
 
     /**
      * suspend version of [PdfPage.getPageMatrix]
      */
     suspend fun getPageMatrix(): Matrix? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageMatrix()
         }
 
@@ -107,10 +99,8 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageRotation]
      */
     suspend fun getPageRotation(): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageRotation()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageRotation()
         }
 
     /**
@@ -118,70 +108,56 @@ class PdfPageKt(
      */
     @Suppress("LongParameterList")
     suspend fun getPageCropBox(): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageCropBox()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageCropBox()
         }
 
     /**
      * suspend version of [PdfPage.getPageMediaBox]
      */
     suspend fun getPageMediaBox(): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageMediaBox()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageMediaBox()
         }
 
     /**
      * suspend version of [PdfPage.getPageBleedBox]
      */
     suspend fun getPageBleedBox(): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageBleedBox()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageBleedBox()
         }
 
     /**
      * suspend version of [PdfPage.getPageTrimBox]
      */
     suspend fun getPageTrimBox(): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageTrimBox()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageTrimBox()
         }
 
     /**
      * suspend version of [PdfPage.getPageArtBox]
      */
     suspend fun getPageArtBox(): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageArtBox()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageArtBox()
         }
 
     /**
      * suspend version of [PdfPage.getPageBoundingBox]
      */
     suspend fun getPageBoundingBox(): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageBoundingBox()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageBoundingBox()
         }
 
     /**
      * suspend version of [PdfPage.getPageSize]
      */
     suspend fun getPageSize(screenDpi: Int): Size =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageSize(screenDpi)
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageSize(screenDpi)
         }
 
     /**
@@ -307,20 +283,18 @@ class PdfPageKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = lock.withLock {
-        withContext(dispatcher) {
-            page.renderPageBitmap(
-                bitmap,
-                startX,
-                startY,
-                drawSizeX,
-                drawSizeY,
-                renderAnnot,
-                textMask,
-                canvasColor,
-                pageBackgroundColor,
-            )
-        }
+    ) = wrapSuspend(dispatcher) {
+        page.renderPageBitmap(
+            bitmap,
+            startX,
+            startY,
+            drawSizeX,
+            drawSizeY,
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
     }
 
     /**
@@ -335,28 +309,24 @@ class PdfPageKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = lock.withLock {
-        withContext(dispatcher) {
-            page.renderPageBitmap(
-                bitmap,
-                matrix,
-                clipRect,
-                renderAnnot,
-                textMask,
-                canvasColor,
-                pageBackgroundColor,
-            )
-        }
+    ) = wrapSuspend(dispatcher) {
+        page.renderPageBitmap(
+            bitmap,
+            matrix,
+            clipRect,
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
     }
 
     /**
      * suspend version of [PdfPage.getPageLinks]
      */
     suspend fun getPageLinks(): List<PdfDocument.Link> =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageLinks()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageLinks()
         }
 
     /**
@@ -372,10 +342,8 @@ class PdfPageKt(
         pageX: Double,
         pageY: Double,
     ): Point =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
-            }
+        wrapSuspend(dispatcher) {
+            page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
 
     /**
@@ -391,10 +359,8 @@ class PdfPageKt(
         deviceX: Int,
         deviceY: Int,
     ): PointF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
-            }
+        wrapSuspend(dispatcher) {
+            page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
 
     /**
@@ -409,10 +375,8 @@ class PdfPageKt(
         rotate: Int,
         coords: RectF,
     ): Rect =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
-            }
+        wrapSuspend(dispatcher) {
+            page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
 
     /**
@@ -427,20 +391,16 @@ class PdfPageKt(
         rotate: Int,
         coords: Rect,
     ): RectF =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
-            }
+        wrapSuspend(dispatcher) {
+            page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }
 
     /**
      * suspend version of [PdfPage.getPageAttributes]
      */
     suspend fun getPageAttributes(): PageAttributes =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getPageAttributes()
-            }
+        wrapSuspend(dispatcher) {
+            page.getPageAttributes()
         }
 
     /**

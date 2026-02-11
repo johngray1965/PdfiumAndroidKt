@@ -255,6 +255,8 @@ kover {
                     "*.Manifest",
                     "*.Manifest$*",
                     "io.legere.pdfiumandroid.unlocked.SystemLibraryLoader",
+                    "io.legere.pdfiumandroid.LockManagerSplitLockImpl",
+                    "io.legere.pdfiumandroid.LockManagerSuspendOnlyImpl",
                 )
             }
         }

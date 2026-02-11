@@ -12,7 +12,6 @@ import io.legere.pdfiumandroid.WordRangeRect
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
@@ -40,10 +39,8 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageCountChars]
      */
     suspend fun textPageCountChars(): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageCountChars()
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageCountChars()
         }
 
     /**
@@ -53,30 +50,24 @@ class PdfTextPageKt(
         startIndex: Int,
         length: Int,
     ): String? =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetText(startIndex, length)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetText(startIndex, length)
         }
 
     /**
      * suspend version of [PdfTextPage.textPageGetUnicode]
      */
     suspend fun textPageGetUnicode(index: Int): Char =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetUnicode(index)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetUnicode(index)
         }
 
     /**
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
     suspend fun textPageGetCharBox(index: Int): RectF? =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetCharBox(index)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetCharBox(index)
         }
 
     /**
@@ -88,10 +79,8 @@ class PdfTextPageKt(
         xTolerance: Double,
         yTolerance: Double,
     ): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
 
     /**
@@ -101,30 +90,24 @@ class PdfTextPageKt(
         startIndex: Int,
         count: Int,
     ): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageCountRects(startIndex, count)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageCountRects(startIndex, count)
         }
 
     /**
      * suspend version of [PdfTextPage.textPageGetRect]
      */
     suspend fun textPageGetRect(rectIndex: Int): RectF? =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetRect(rectIndex)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetRect(rectIndex)
         }
 
     /**
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */
     suspend fun textPageGetRectsForRanges(wordRanges: IntArray): Array<WordRangeRect>? =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetRectsForRanges(wordRanges)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetRectsForRanges(wordRanges)
         }
 
     /**
@@ -134,20 +117,16 @@ class PdfTextPageKt(
         rect: RectF,
         length: Int,
     ): String? =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.textPageGetBoundedText(rect, length)
-            }
+        wrapSuspend(dispatcher) {
+            page.textPageGetBoundedText(rect, length)
         }
 
     /**
      * suspend version of [PdfTextPage.getFontSize]
      */
     suspend fun getFontSize(charIndex: Int): Double =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.getFontSize(charIndex)
-            }
+        wrapSuspend(dispatcher) {
+            page.getFontSize(charIndex)
         }
 
     suspend fun findStart(
@@ -155,23 +134,19 @@ class PdfTextPageKt(
         flags: Set<FindFlags>,
         startIndex: Int,
     ): FindResultKt? =
-        lock.withLock {
-            withContext(dispatcher) {
-                val findResult = page.findStart(findWhat, flags, startIndex)
-                if (findResult == null) {
-                    null
-                } else {
-                    FindResultKt(findResult, dispatcher)
-                }
+        wrapSuspend(dispatcher) {
+            val findResult = page.findStart(findWhat, flags, startIndex)
+            if (findResult == null) {
+                null
+            } else {
+                FindResultKt(findResult, dispatcher)
             }
         }
 
     suspend fun loadWebLink(): PdfPageLinkKt? =
-        lock.withLock {
-            withContext(dispatcher) {
-                page.loadWebLink()?.let {
-                    PdfPageLinkKt(it, dispatcher)
-                }
+        wrapSuspend(dispatcher) {
+            page.loadWebLink()?.let {
+                PdfPageLinkKt(it, dispatcher)
             }
         }
 

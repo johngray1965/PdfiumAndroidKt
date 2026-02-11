@@ -258,7 +258,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
             }
 
             verifyHappy {
-                assertThat(it).hasSize(1)
+                assertThat(it).hasLength(1)
                 assertThat(it!![0].rect).isEqualTo(RectF(10f, 20f, 30f, 40f))
             }
             verifyDefault {

@@ -10,12 +10,9 @@ import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
-import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
@@ -38,40 +35,32 @@ class PdfDocumentKt(
      *  suspend version of [PdfDocument.getPageCount]
      */
     suspend fun getPageCount(): Int =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.getPageCount()
-            }
+        wrapSuspend(dispatcher) {
+            document.getPageCount()
         }
 
     /**
      *  suspend version of [PdfDocument.getPageCharCounts]
      */
     suspend fun getPageCharCounts(): IntArray =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.getPageCharCounts()
-            }
+        wrapSuspend(dispatcher) {
+            document.getPageCharCounts()
         }
 
     /**
      * suspend version of [PdfDocument.openPage]
      */
     suspend fun openPage(pageIndex: Int): PdfPageKt? =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.openPage(pageIndex)?.let { PdfPageKt(it, dispatcher) }
-            }
+        wrapSuspend(dispatcher) {
+            document.openPage(pageIndex)?.let { PdfPageKt(it, dispatcher) }
         }
 
     /**
      * suspend version of [PdfDocument.deletePage]
      */
     suspend fun deletePage(pageIndex: Int): Unit =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.deletePage(pageIndex)
-            }
+        wrapSuspend(dispatcher) {
+            document.deletePage(pageIndex)
         }
 
     /**
@@ -81,10 +70,8 @@ class PdfDocumentKt(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfPageKt> =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
-            }
+        wrapSuspend(dispatcher) {
+            document.openPages(fromIndex, toIndex).map { PdfPageKt(it, dispatcher) }
         }
 
     /**
@@ -101,41 +88,34 @@ class PdfDocumentKt(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
         renderCoroutinesDispatcher: CoroutineDispatcher,
-    ): Boolean {
-        PdfiumCore.surfaceMutex.withLock {
-            return withContext(renderCoroutinesDispatcher) {
-                return@withContext document.renderPages(
-                    surface,
-                    pages.map { it.page },
-                    matrices,
-                    clipRects,
-                    renderAnnot,
-                    textMask,
-                    canvasColor,
-                    pageBackgroundColor,
-                )
-            }
+    ): Boolean =
+        wrapSuspend(dispatcher) {
+            document.renderPages(
+                surface,
+                pages.map { it.page },
+                matrices,
+                clipRects,
+                renderAnnot,
+                textMask,
+                canvasColor,
+                pageBackgroundColor,
+            )
         }
-    }
 
     /**
      * suspend version of [PdfDocument.getDocumentMeta]
      */
     suspend fun getDocumentMeta(): PdfDocument.Meta =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.getDocumentMeta()
-            }
+        wrapSuspend(dispatcher) {
+            document.getDocumentMeta()
         }
 
     /**
      * suspend version of [PdfDocument.getTableOfContents]
      */
     suspend fun getTableOfContents(): List<PdfDocument.Bookmark> =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.getTableOfContents()
-            }
+        wrapSuspend(dispatcher) {
+            document.getTableOfContents()
         }
 
     /**
@@ -144,10 +124,8 @@ class PdfDocumentKt(
     @Deprecated("use PdfPageKt.openTextPage", ReplaceWith("page.openTextPage()"))
     @Suppress("DEPRECATION")
     suspend fun openTextPage(page: PdfPageKt): PdfTextPageKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfTextPageKt(document.openTextPage(page.page), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfTextPageKt(document.openTextPage(page.page), dispatcher)
         }
 
     /**
@@ -157,20 +135,16 @@ class PdfDocumentKt(
         fromIndex: Int,
         toIndex: Int,
     ): List<PdfTextPageKt> =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
-            }
+        wrapSuspend(dispatcher) {
+            document.openTextPages(fromIndex, toIndex).map { PdfTextPageKt(it, dispatcher) }
         }
 
     /**
      * suspend version of [PdfDocument.saveAsCopy]
      */
     suspend fun saveAsCopy(callback: PdfWriteCallback): Boolean =
-        lock.withLock {
-            withContext(dispatcher) {
-                document.saveAsCopy(callback)
-            }
+        wrapSuspend(dispatcher) {
+            document.saveAsCopy(callback)
         }
 
     /**

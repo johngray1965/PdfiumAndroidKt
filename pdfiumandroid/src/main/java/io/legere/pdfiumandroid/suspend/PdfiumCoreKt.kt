@@ -11,7 +11,6 @@ import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.util.Config
 import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 
 /**
  * PdfiumCoreKt is the main entry-point for access to the PDFium API.
@@ -30,10 +29,8 @@ class PdfiumCoreKt(
      * suspend version of [PdfiumCore.newDocument]
      */
     suspend fun newDocument(parcelFileDescriptor: ParcelFileDescriptor): PdfDocumentKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(parcelFileDescriptor), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfDocumentKt(coreInternal.newDocument(parcelFileDescriptor), dispatcher)
         }
 
     /**
@@ -43,20 +40,16 @@ class PdfiumCoreKt(
         parcelFileDescriptor: ParcelFileDescriptor,
         password: String?,
     ): PdfDocumentKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(parcelFileDescriptor, password), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfDocumentKt(coreInternal.newDocument(parcelFileDescriptor, password), dispatcher)
         }
 
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
     suspend fun newDocument(data: ByteArray?): PdfDocumentKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(data), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfDocumentKt(coreInternal.newDocument(data), dispatcher)
         }
 
     /**
@@ -66,20 +59,16 @@ class PdfiumCoreKt(
         data: ByteArray?,
         password: String?,
     ): PdfDocumentKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(data, password), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfDocumentKt(coreInternal.newDocument(data, password), dispatcher)
         }
 
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
     suspend fun newDocument(data: PdfiumSource): PdfDocumentKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(data), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfDocumentKt(coreInternal.newDocument(data), dispatcher)
         }
 
     /**
@@ -89,9 +78,7 @@ class PdfiumCoreKt(
         data: PdfiumSource,
         password: String?,
     ): PdfDocumentKt =
-        lock.withLock {
-            withContext(dispatcher) {
-                PdfDocumentKt(coreInternal.newDocument(data, password), dispatcher)
-            }
+        wrapSuspend(dispatcher) {
+            PdfDocumentKt(coreInternal.newDocument(data, password), dispatcher)
         }
 }
