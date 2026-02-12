@@ -1,7 +1,7 @@
 package io.legere.pdfiumandroid.arrow
 
 import arrow.core.Either
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -10,7 +10,7 @@ suspend inline fun <reified T> wrapEither(
     crossinline block: () -> T,
 ): Either<PdfiumKtFErrors, T> =
     withContext(dispatcher) {
-        pdfiumConfig.lock.withLock {
+        lock.withLock {
             Either
                 .catch {
                     block()

@@ -4,9 +4,11 @@ package io.legere.pdfiumandroid.arrow
 
 import android.os.ParcelFileDescriptor
 import arrow.core.Either
+import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.CoroutineDispatcher
 
@@ -76,4 +78,8 @@ class PdfiumCoreKtF(
         wrapEither(dispatcher) {
             PdfDocumentKtF(coreInternal.newDocument(data, password), dispatcher)
         }
+
+    fun setLockManager(lockManager: LockManager) {
+        lock = lockManager
+    }
 }

@@ -2,17 +2,14 @@ package io.legere.pdfiumandroid
 
 import android.graphics.RectF
 import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.Closeable
 
 @Suppress("TooManyFunctions")
 class PdfPageLink(
     val pageLink: PdfPageLinkU,
 ) : Closeable {
-    private val lock: LockManager = pdfiumConfig.lock
-
     fun countWebLinks(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             pageLink.countWebLinks()
         }
 
@@ -21,12 +18,12 @@ class PdfPageLink(
         index: Int,
         length: Int,
     ): String? =
-        lock.withLockBlocking {
+        wrapLock {
             pageLink.getURL(index, length)
         }
 
     fun countRects(index: Int): Int =
-        lock.withLockBlocking {
+        wrapLock {
             pageLink.countRects(index)
         }
 
@@ -35,17 +32,17 @@ class PdfPageLink(
         linkIndex: Int,
         rectIndex: Int,
     ): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             pageLink.getRect(linkIndex, rectIndex)
         }
 
     fun getTextRange(index: Int): Pair<Int, Int> =
-        lock.withLockBlocking {
+        wrapLock {
             pageLink.getTextRange(index)
         }
 
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             pageLink.close()
         }
     }

@@ -8,8 +8,8 @@ import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
 import io.legere.pdfiumandroid.util.Config
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import kotlinx.coroutines.CoroutineDispatcher
 
 /**
@@ -23,8 +23,6 @@ class PdfiumCoreKt(
     config: Config = Config(),
     private val coreInternal: PdfiumCoreU = PdfiumCoreU(config = config),
 ) {
-    private val lock: LockManager = pdfiumConfig.lock
-
     /**
      * suspend version of [PdfiumCore.newDocument]
      */
@@ -81,4 +79,8 @@ class PdfiumCoreKt(
         wrapSuspend(dispatcher) {
             PdfDocumentKt(coreInternal.newDocument(data, password), dispatcher)
         }
+
+    fun setLockManager(lockManager: LockManager) {
+        lock = lockManager
+    }
 }

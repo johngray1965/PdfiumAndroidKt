@@ -6,12 +6,11 @@ import android.graphics.Matrix
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -27,8 +26,6 @@ class PdfDocumentKt(
     internal val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
-    private val lock: LockManager = pdfiumConfig.lock
-
     fun getDocument(): PdfDocument = PdfDocument(document)
 
     /**
@@ -152,14 +149,14 @@ class PdfDocumentKt(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             document.close()
         }
     }
 
     fun safeClose(): Boolean =
         try {
-            lock.withLockBlocking {
+            wrapLock {
                 document.close()
             }
             true

@@ -12,7 +12,6 @@ import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.Closeable
 
 private const val THREE_BY_THREE = 9
@@ -34,8 +33,6 @@ class PdfPage(
     val pageIndex: Int
         get() = page.pageIndex
 
-    private val lock: LockManager = pdfiumConfig.lock
-
     /**
      * Open a text page
      * @return the opened [PdfTextPage]
@@ -51,7 +48,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidth(screenDpi: Int): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageWidth(screenDpi)
         }
 
@@ -62,7 +59,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeight(screenDpi: Int): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageHeight(screenDpi)
         }
 
@@ -72,7 +69,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageWidthPoint(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageWidthPoint()
         }
 
@@ -82,13 +79,13 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageHeightPoint(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageHeightPoint()
         }
 
     @Suppress("LongParameterList", "MagicNumber")
     fun getPageMatrix(): Matrix? =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageMatrix()
         }
 
@@ -104,7 +101,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageRotation(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageRotation()
         }
 
@@ -114,7 +111,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageCropBox(): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageCropBox()
         }
 
@@ -124,7 +121,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageMediaBox(): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageMediaBox()
         }
 
@@ -134,7 +131,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBleedBox(): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageBleedBox()
         }
 
@@ -144,7 +141,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageTrimBox(): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageTrimBox()
         }
 
@@ -154,7 +151,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageArtBox(): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageArtBox()
         }
 
@@ -164,7 +161,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBoundingBox(): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageBoundingBox()
         }
 
@@ -174,7 +171,7 @@ class PdfPage(
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageSize(screenDpi: Int): Size =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageSize(screenDpi)
         }
 
@@ -204,7 +201,7 @@ class PdfPage(
         @ColorInt
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        lock.withLockBlocking {
+        wrapLock {
             page.renderPage(
                 bufferPtr,
                 startX,
@@ -241,7 +238,7 @@ class PdfPage(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        lock.withLockBlocking {
+        wrapLock {
             page.renderPage(
                 bufferPtr,
                 drawSizeX,
@@ -265,7 +262,7 @@ class PdfPage(
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
     ): Boolean =
-        lock.withLockBlocking {
+        wrapLock {
             page.renderPage(
                 surface,
                 matrix,
@@ -308,7 +305,7 @@ class PdfPage(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = lock.withLockBlocking {
+    ) = wrapLock {
         page.renderPageBitmap(
             bitmap,
             startX,
@@ -349,7 +346,7 @@ class PdfPage(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) = lock.withLockBlocking {
+    ) = wrapLock {
         page.renderPageBitmap(
             bitmap,
             matrix,
@@ -363,7 +360,7 @@ class PdfPage(
 
     /** Get all links from given page  */
     fun getPageLinks(): List<PdfDocument.Link> =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageLinks()
         }
 
@@ -391,7 +388,7 @@ class PdfPage(
         pageX: Double,
         pageY: Double,
     ): Point =
-        lock.withLockBlocking {
+        wrapLock {
             page.mapPageCoordsToDevice(
                 startX,
                 startY,
@@ -427,7 +424,7 @@ class PdfPage(
         deviceX: Int,
         deviceY: Int,
     ): PointF =
-        lock.withLockBlocking {
+        wrapLock {
             page.mapDeviceCoordsToPage(
                 startX,
                 startY,
@@ -463,7 +460,7 @@ class PdfPage(
         rotate: Int,
         coords: RectF,
     ): Rect =
-        lock.withLockBlocking {
+        wrapLock {
             page.mapRectToDevice(
                 startX,
                 startY,
@@ -495,7 +492,7 @@ class PdfPage(
         rotate: Int,
         coords: Rect,
     ): RectF =
-        lock.withLockBlocking {
+        wrapLock {
             page.mapRectToPage(
                 startX,
                 startY,
@@ -510,7 +507,7 @@ class PdfPage(
      * Get all attributes of a page in a single call.
      */
     fun getPageAttributes(): PageAttributes =
-        lock.withLockBlocking {
+        wrapLock {
             page.getPageAttributes()
         }
 
@@ -518,7 +515,7 @@ class PdfPage(
      * Close the page and release all resources
      */
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             page.close()
         }
     }

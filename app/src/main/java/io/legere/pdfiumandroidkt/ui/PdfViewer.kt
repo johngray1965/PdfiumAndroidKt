@@ -61,7 +61,7 @@ fun PdfViewer(
     }
 }
 
-@Suppress("LongParameterList")
+@Suppress("LongParameterList", "TooGenericExceptionCaught")
 suspend fun drawPdf(
     surface: Surface,
     surfaceWidth: Int,

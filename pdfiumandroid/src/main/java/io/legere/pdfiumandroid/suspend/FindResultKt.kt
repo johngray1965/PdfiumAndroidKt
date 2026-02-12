@@ -1,8 +1,7 @@
 package io.legere.pdfiumandroid.suspend
 
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.unlocked.FindResultU
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -11,8 +10,6 @@ class FindResultKt(
     internal val findResult: FindResultU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
-    private val lock: LockManager = pdfiumConfig.lock
-
     suspend fun findNext(): Boolean =
         wrapSuspend(dispatcher) {
             findResult.findNext()
@@ -40,6 +37,8 @@ class FindResultKt(
     }
 
     override fun close() {
-        findResult.closeFind()
+        wrapLock {
+            findResult.closeFind()
+        }
     }
 }

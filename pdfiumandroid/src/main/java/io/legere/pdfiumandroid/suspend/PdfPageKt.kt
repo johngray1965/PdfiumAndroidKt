@@ -10,7 +10,6 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
@@ -18,7 +17,7 @@ import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withLock
@@ -40,8 +39,6 @@ class PdfPageKt(
         page.page,
         dispatcher,
     )
-
-    private val lock: LockManager = pdfiumConfig.lock
 
     val pageIndex: Int
         get() = page.pageIndex
@@ -406,14 +403,14 @@ class PdfPageKt(
      * Closes the page
      */
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             page.close()
         }
     }
 
     fun safeClose(): Boolean =
         try {
-            lock.withLockBlocking {
+            wrapLock {
                 page.close()
             }
             true

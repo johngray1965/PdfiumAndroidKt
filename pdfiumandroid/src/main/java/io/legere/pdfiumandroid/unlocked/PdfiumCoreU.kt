@@ -6,6 +6,8 @@ import android.content.Context
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.annotation.VisibleForTesting
+import io.legere.pdfiumandroid.LockManager
+import io.legere.pdfiumandroid.LockManagerReentrantLockImpl
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.jni.NativeCore
@@ -156,10 +158,14 @@ class PdfiumCoreU(
         }
     }
 
+    fun setLockManager(lockManager: LockManager) {
+        lock = lockManager
+    }
+
     companion object {
         private val TAG = PdfiumCoreU::class.java.name
 
-        val lock = Any()
+        var lock: LockManager = LockManagerReentrantLockImpl()
 
         val isReady = InitLock()
 

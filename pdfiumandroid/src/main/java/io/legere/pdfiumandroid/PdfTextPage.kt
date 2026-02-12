@@ -4,7 +4,6 @@ package io.legere.pdfiumandroid
 
 import android.graphics.RectF
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.Closeable
 
 typealias FindHandle = Long
@@ -32,8 +31,6 @@ class PdfTextPage(
     @Volatile
     private var isClosed = false
 
-    private val lock: LockManager = pdfiumConfig.lock
-
     val pageIndex: Int
         get() = page.pageIndex
 
@@ -43,7 +40,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageCountChars(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageCountChars()
         }
 
@@ -59,7 +56,7 @@ class PdfTextPage(
         startIndex: Int,
         length: Int,
     ): String? =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetTextLegacy(startIndex, length)
         }
 
@@ -68,7 +65,7 @@ class PdfTextPage(
         startIndex: Int,
         length: Int,
     ): String? =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetText(startIndex, length)
         }
 
@@ -79,7 +76,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetUnicode(index: Int): Char =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetUnicode(index)
         }
 
@@ -108,7 +105,7 @@ class PdfTextPage(
         xTolerance: Double,
         yTolerance: Double,
     ): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
 
@@ -123,7 +120,7 @@ class PdfTextPage(
         startIndex: Int,
         count: Int,
     ): Int =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageCountRects(startIndex, count)
         }
 
@@ -135,7 +132,7 @@ class PdfTextPage(
      */
     @Suppress("MagicNumber")
     fun textPageGetRect(rectIndex: Int): RectF? =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetRect(rectIndex)
         }
 
@@ -148,7 +145,7 @@ class PdfTextPage(
      */
     @Suppress("ReturnCount")
     fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetRectsForRanges(wordRanges)
         }
 
@@ -163,7 +160,7 @@ class PdfTextPage(
         rect: RectF,
         length: Int,
     ): String? =
-        lock.withLockBlocking {
+        wrapLock {
             page.textPageGetBoundedText(rect, length)
         }
 
@@ -174,7 +171,7 @@ class PdfTextPage(
      * @throws IllegalStateException if the page or document is closed
      */
     fun getFontSize(charIndex: Int): Double =
-        lock.withLockBlocking {
+        wrapLock {
             page.getFontSize(charIndex)
         }
 
@@ -183,12 +180,12 @@ class PdfTextPage(
         flags: Set<FindFlags>,
         startIndex: Int,
     ): FindResult? =
-        lock.withLockBlocking {
+        wrapLock {
             page.findStart(findWhat, flags, startIndex)?.let { FindResult(it) }
         }
 
     fun loadWebLink(): PdfPageLink? =
-        lock.withLockBlocking {
+        wrapLock {
             page.loadWebLink()?.let { PdfPageLink(it) }
         }
 
@@ -196,7 +193,7 @@ class PdfTextPage(
      * Close the page and release all resources
      */
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             page.close()
         }
     }

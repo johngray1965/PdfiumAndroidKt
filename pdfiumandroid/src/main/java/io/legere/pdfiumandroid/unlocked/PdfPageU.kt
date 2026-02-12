@@ -10,7 +10,6 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
@@ -23,8 +22,8 @@ import io.legere.pdfiumandroid.util.floatArrayToMatrix
 import io.legere.pdfiumandroid.util.floatArrayToRect
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import io.legere.pdfiumandroid.util.matrixToFloatArray
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import io.legere.pdfiumandroid.util.rectToFloatArray
+import io.legere.pdfiumandroid.wrapLock
 import java.io.Closeable
 
 private const val RECT_SIZE = 4
@@ -42,7 +41,6 @@ class PdfPageU(
 ) : Closeable {
     @Volatile
     internal var isClosed = false
-    private val lock: LockManager = pdfiumConfig.lock
 
     private val nativePage: NativePage = nativeFactory.getNativePage()
 
@@ -670,12 +668,12 @@ class PdfPageU(
         dimensions: IntArray,
         ptrs: LongArray,
     ): Boolean =
-        lock.withLockBlocking {
+        wrapLock {
             nativePage.lockSurface(surface, dimensions, ptrs)
         }
 
     fun unlockSurface(ptrs: LongArray) =
-        lock.withLockBlocking {
+        wrapLock {
             nativePage.unlockSurface(ptrs)
         }
 

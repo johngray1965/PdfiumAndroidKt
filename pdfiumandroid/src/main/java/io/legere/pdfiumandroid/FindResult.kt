@@ -1,43 +1,40 @@
 package io.legere.pdfiumandroid
 
 import io.legere.pdfiumandroid.unlocked.FindResultU
-import io.legere.pdfiumandroid.util.pdfiumConfig
 import java.io.Closeable
 
 @Suppress("TooManyFunctions")
 class FindResult(
     internal val findResult: FindResultU,
 ) : Closeable {
-    private val lock: LockManager = pdfiumConfig.lock
-
     fun findNext(): Boolean =
-        lock.withLockBlocking {
+        wrapLock {
             findResult.findNext()
         }
 
     fun findPrev(): Boolean =
-        lock.withLockBlocking {
+        wrapLock {
             findResult.findPrev()
         }
 
     fun getSchResultIndex(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             findResult.getSchResultIndex()
         }
 
     fun getSchCount(): Int =
-        lock.withLockBlocking {
+        wrapLock {
             findResult.getSchCount()
         }
 
     fun closeFind() {
-        lock.withLockBlocking {
+        wrapLock {
             findResult.closeFind()
         }
     }
 
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             findResult.close()
         }
     }

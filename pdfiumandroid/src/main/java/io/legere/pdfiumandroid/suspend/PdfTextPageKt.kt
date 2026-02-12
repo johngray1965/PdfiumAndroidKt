@@ -5,12 +5,11 @@ package io.legere.pdfiumandroid.suspend
 import android.graphics.RectF
 import androidx.annotation.Keep
 import io.legere.pdfiumandroid.FindFlags
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.WordRangeRect
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -25,8 +24,6 @@ class PdfTextPageKt(
     internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
-    private val lock: LockManager = pdfiumConfig.lock
-
     constructor(page: PdfTextPage, dispatcher: CoroutineDispatcher) : this(
         page.page,
         dispatcher,
@@ -154,14 +151,14 @@ class PdfTextPageKt(
      * Close the page and free all resources.
      */
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             page.close()
         }
     }
 
     fun safeClose(): Boolean =
         try {
-            lock.withLockBlocking {
+            wrapLock {
                 page.close()
             }
             true

@@ -9,6 +9,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
+import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
 import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.sync.Mutex
 import java.io.IOException
@@ -440,11 +441,12 @@ class PdfiumCore(
         }
     }
 
+    fun setLockManager(lockManager: LockManager) {
+        lock = lockManager
+    }
+
     companion object {
         private val TAG = PdfiumCore::class.java.name
-
-        // synchronize native methods
-        val lock = PdfiumCoreU.lock
 
         val surfaceMutex = Mutex()
     }

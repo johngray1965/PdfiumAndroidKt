@@ -5,11 +5,10 @@ package io.legere.pdfiumandroid.arrow
 import android.graphics.RectF
 import arrow.core.Either
 import io.legere.pdfiumandroid.FindFlags
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.WordRangeRect
 import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -23,8 +22,6 @@ class PdfTextPageKtF(
     internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
-    private val lock: LockManager = pdfiumConfig.lock
-
     val pageIndex: Int
         get() = page.pageIndex
 
@@ -147,7 +144,7 @@ class PdfTextPageKtF(
      * Close the page and free all resources.
      */
     override fun close() {
-        lock.withLockBlocking {
+        wrapLock {
             page.close()
         }
     }
@@ -155,7 +152,7 @@ class PdfTextPageKtF(
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                lock.withLockBlocking {
+                wrapLock {
                     page.close()
                 }
                 true
