@@ -48,7 +48,6 @@ class PdfDocument(
      */
     fun openPage(pageIndex: Int): PdfPage? =
         wrapLock {
-            Logger.d(TAG, "openPage: $pageIndex")
             document.openPage(pageIndex)?.let { PdfPage(it) }
         }
 
