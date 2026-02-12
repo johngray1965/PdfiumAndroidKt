@@ -8,8 +8,8 @@ suspend inline fun <reified T> wrapSuspend(
     dispatcher: CoroutineDispatcher,
     crossinline block: () -> T,
 ): T =
-    pdfiumConfig.lock.withLock {
-        withContext(dispatcher) {
+    withContext(dispatcher) {
+        pdfiumConfig.lock.withLock {
             block()
         }
     }

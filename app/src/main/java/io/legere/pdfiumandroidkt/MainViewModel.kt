@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.legere.pdfiumandroid.LoggerInterface
+import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.suspend.PdfDocumentKt
 import io.legere.pdfiumandroid.suspend.PdfPageKt
 import io.legere.pdfiumandroid.suspend.PdfPageKtCache
@@ -78,7 +79,8 @@ class MainViewModel
 
                                 is UiAction.LoadDoc -> {
                                     emit(UiState(loadState = LoadStatus.Loading))
-                                    val fd = application.contentResolver.openFileDescriptor(action.uri, "r")
+                                    val fd =
+                                        application.contentResolver.openFileDescriptor(action.uri, "r")
                                     if (fd != null) {
                                         try {
                                             pdfDocument = pdfiumCore.newDocument(fd)
@@ -87,10 +89,9 @@ class MainViewModel
                                                     pdfDocument!!,
                                                     dispatcher = Dispatchers.IO,
                                                 ) { page, textPage ->
-                                                    val pageWidth = page.getPageWidthPoint()
-                                                    val pageHeight = page.getPageHeightPoint()
+                                                    val pageAttributes = page.getPageAttributes()
 
-                                                    PdfHolder(page, textPage, pageWidth, pageHeight)
+                                                    PdfHolder(page, textPage, pageAttributes)
                                                 }
                                             val pageCount = pdfDocument?.getPageCount() ?: 0
                                             Timber.d("pageCount: $pageCount")
@@ -203,8 +204,7 @@ class MainViewModel
 data class PdfHolder(
     val page: PdfPageKt,
     val textPage: PdfTextPageKt,
-    val pageWidth: Int,
-    val pageHeight: Int,
+    val pageAttributes: PageAttributes,
 ) : AutoCloseable {
     override fun close() {
         try {

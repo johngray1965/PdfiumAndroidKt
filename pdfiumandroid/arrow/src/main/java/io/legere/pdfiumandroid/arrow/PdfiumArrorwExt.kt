@@ -9,8 +9,8 @@ suspend inline fun <reified T> wrapEither(
     dispatcher: CoroutineDispatcher,
     crossinline block: () -> T,
 ): Either<PdfiumKtFErrors, T> =
-    pdfiumConfig.lock.withLock {
-        withContext(dispatcher) {
+    withContext(dispatcher) {
+        pdfiumConfig.lock.withLock {
             Either
                 .catch {
                     block()

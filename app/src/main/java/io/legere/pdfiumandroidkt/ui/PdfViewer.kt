@@ -20,8 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import io.legere.pdfiumandroid.suspend.PdfPageKtCache
 import io.legere.pdfiumandroidkt.PdfHolder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import timber.log.Timber
 import kotlin.math.min
 
 @Composable
@@ -51,15 +50,13 @@ fun PdfViewer(
     LaunchedEffect(surface, pageNum, viewWidth, viewHeight) {
         val s = surface
         if (s != null && viewWidth > 0 && viewHeight > 0) {
-            withContext(Dispatchers.IO) {
-                drawPdf(
-                    s,
-                    viewWidth,
-                    viewHeight,
-                    pageCache,
-                    pageNum,
-                )
-            }
+            drawPdf(
+                s,
+                viewWidth,
+                viewHeight,
+                pageCache,
+                pageNum,
+            )
         }
     }
 }
@@ -77,30 +74,34 @@ suspend fun drawPdf(
         return
     }
 
-    val pageHolder = pageCache.get(currentPage)
-    val pageWidth = pageHolder.pageWidth
-    val pageHeight = pageHolder.pageHeight
-    // Calculate scaling factor to fit page within Surface bounds
-    val scaleFactor =
-        min(
-            surfaceWidth.toFloat() / pageWidth,
-            surfaceHeight.toFloat() / pageHeight,
+    try {
+        val pageHolder = pageCache.get(currentPage)
+        val pageWidth = pageHolder.pageAttributes.pageWidth
+        val pageHeight = pageHolder.pageAttributes.pageHeight
+        // Calculate scaling factor to fit page within Surface bounds
+        val scaleFactor =
+            min(
+                surfaceWidth.toFloat() / pageWidth,
+                surfaceHeight.toFloat() / pageHeight,
+            )
+
+        val height = (pageHeight * scaleFactor).toInt()
+        val width = (pageWidth * scaleFactor).toInt()
+
+        val startX = (surfaceWidth - width) / 2
+        val startY = (surfaceHeight - height) / 2
+
+        val matrix = Matrix()
+        matrix.postScale(scaleFactor, scaleFactor)
+        matrix.postTranslate(startX.toFloat(), startY.toFloat())
+        val clipRect =
+            RectF(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat())
+        pageHolder.page.renderPage(
+            surface = surface,
+            matrix,
+            clipRect,
         )
-
-    val height = (pageHeight * scaleFactor).toInt()
-    val width = (pageWidth * scaleFactor).toInt()
-
-    val startX = (surfaceWidth - width) / 2
-    val startY = (surfaceHeight - height) / 2
-
-    val matrix = Matrix()
-    matrix.postScale(scaleFactor, scaleFactor)
-    matrix.postTranslate(startX.toFloat(), startY.toFloat())
-    val clipRect =
-        RectF(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat())
-    pageHolder.page.renderPage(
-        surface = surface,
-        matrix,
-        clipRect,
-    )
+    } catch (e: Exception) {
+        Timber.d(e)
+    }
 }
