@@ -997,7 +997,6 @@ static jfloatArray NativePage_nativeGetPageMatrix(JNIEnv *env, jclass,
 }
 
 static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject surface, jintArray widthHeightArray, jlongArray ptrsArray) {
-    LOGD("nativeLockSurface");
     ANativeWindow *nativeWindow = ANativeWindow_fromSurface(env, surface);
     if (nativeWindow == nullptr) {
         LOGE("native window pointer null");
@@ -1012,7 +1011,6 @@ static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject 
     wh[1] = height;
 
     if (ANativeWindow_getFormat(nativeWindow) != WINDOW_FORMAT_RGBA_8888) {
-        LOGD("Set format to RGBA_8888");
         ANativeWindow_setBuffersGeometry(nativeWindow,
                                          width,
                                          height,
@@ -1034,7 +1032,6 @@ static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject 
 }
 static void NativePage_nativeUnlockSurface(JNIEnv *env, jclass clazz,
                                                          jlongArray ptrsArray) {
-    LOGD("nativeUnlockSurface");
     jlong ptrs[2];
     env->GetLongArrayRegion(ptrsArray, 0, 2, ptrs);
 

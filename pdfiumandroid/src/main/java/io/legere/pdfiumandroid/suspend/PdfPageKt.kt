@@ -242,7 +242,6 @@ class PdfPageKt(
             val bufferPtr = pointers[1]
             val surfaceWidth = sizes[0]
             val surfaceHeight = sizes[1]
-            Logger.d("PdfPageKt", "nativeWindow: $nativeWindow")
             if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
                 return false
             }
