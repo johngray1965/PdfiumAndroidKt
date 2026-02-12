@@ -19,7 +19,6 @@ import io.legere.pdfiumandroid.unlocked.PdfPageU
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
@@ -173,9 +172,9 @@ class PdfPageKt(
     ): Boolean {
         var retValue: Boolean
         PdfiumCore.surfaceMutex.withLock {
-            val sizes = IntArray(2)
-            val pointers = LongArray(2)
-            withContext(Dispatchers.Main) {
+            withContext(dispatcher) {
+                val sizes = IntArray(2)
+                val pointers = LongArray(2)
                 surface?.let {
                     page.lockSurface(
                         it,
@@ -183,27 +182,29 @@ class PdfPageKt(
                         pointers,
                     )
                 }
-            }
-            val nativeWindow = pointers[0]
-            val bufferPtr = pointers[1]
-            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return false
-            }
-            withContext(dispatcher) {
-                retValue =
-                    page.renderPage(
-                        bufferPtr,
-                        startX,
-                        startY,
-                        drawSizeX,
-                        drawSizeY,
-                        renderAnnot,
-                        canvasColor,
-                        pageBackgroundColor,
-                    )
-            }
-            withContext(Dispatchers.Main) {
-                page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                val nativeWindow = pointers[0]
+                val bufferPtr = pointers[1]
+                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                    try {
+                        retValue =
+                            page.renderPage(
+                                bufferPtr,
+                                startX,
+                                startY,
+                                drawSizeX,
+                                drawSizeY,
+                                renderAnnot,
+                                canvasColor,
+                                pageBackgroundColor,
+                            )
+                    } finally {
+                        surface?.let {
+                            page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                        }
+                    }
+                } else {
+                    retValue = false
+                }
             }
         }
         return retValue
@@ -224,9 +225,9 @@ class PdfPageKt(
     ): Boolean {
         var retValue: Boolean
         PdfiumCore.surfaceMutex.withLock {
-            val sizes = IntArray(2)
-            val pointers = LongArray(2)
-            withContext(Dispatchers.Main) {
+            withContext(dispatcher) {
+                val sizes = IntArray(2)
+                val pointers = LongArray(2)
                 surface?.let {
                     page.lockSurface(
                         it,
@@ -234,31 +235,31 @@ class PdfPageKt(
                         pointers,
                     )
                 }
-            }
-            val nativeWindow = pointers[0]
-            val bufferPtr = pointers[1]
-            val surfaceWidth = sizes[0]
-            val surfaceHeight = sizes[1]
-            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return false
-            }
-            withContext(dispatcher) {
-                retValue =
-                    page.renderPage(
-                        bufferPtr,
-                        surfaceWidth,
-                        surfaceHeight,
-                        matrix,
-                        clipRect,
-                        renderAnnot,
-                        textMask,
-                        canvasColor,
-                        pageBackgroundColor,
-                    )
-            }
-            withContext(Dispatchers.Main) {
-                surface?.let {
-                    page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                val nativeWindow = pointers[0]
+                val bufferPtr = pointers[1]
+                val surfaceWidth = sizes[0]
+                val surfaceHeight = sizes[1]
+                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                    try {
+                        retValue =
+                            page.renderPage(
+                                bufferPtr,
+                                surfaceWidth,
+                                surfaceHeight,
+                                matrix,
+                                clipRect,
+                                renderAnnot,
+                                textMask,
+                                canvasColor,
+                                pageBackgroundColor,
+                            )
+                    } finally {
+                        surface?.let {
+                            page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                        }
+                    }
+                } else {
+                    retValue = false
                 }
             }
         }

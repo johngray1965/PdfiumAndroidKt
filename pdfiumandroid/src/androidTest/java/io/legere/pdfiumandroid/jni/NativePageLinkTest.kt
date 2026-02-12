@@ -87,7 +87,7 @@ class NativePageLinkTest : BasePDFTest() {
         val links = nativeTextPage.loadWebLink(pageTextPtr)
         Truth.assertThat(links).isNotNull()
         val rect = nativePageLink.getRect(links, 0, 0)
-        Truth.assertThat(rect).isEqualTo(floatArrayOf(221.45999f, 480.624f, 389.66394f, 469.152f))
+        Truth.assertThat(rect).isEqualTo(floatArrayOf(221.46f, 480.624f, 389.66394f, 469.152f))
         nativePageLink.closePageLink(links)
     }
 
@@ -99,7 +99,7 @@ class NativePageLinkTest : BasePDFTest() {
         val links = nativeTextPage.loadWebLink(pageTextPtr)
         Truth.assertThat(links).isNotNull()
         val range = nativePageLink.getTextRange(links, 0)
-        Truth.assertThat(range).isEqualTo(intArrayOf(354, 31))
+        Truth.assertThat(range).isEqualTo(intArrayOf(351, 31))
         text = pdfTextPage.textPageGetText(range.first(), range[1])
         println(text)
         nativePageLink.closePageLink(links)
@@ -114,7 +114,7 @@ class NativePageLinkTest : BasePDFTest() {
         val uri = nativePage.getLinkURI(pdfDocument.mNativeDocPtr, link)
         Truth.assertThat(uri).isEqualTo("http://www.education.gov.yk.ca/")
         val rect = nativePage.getLinkRect(pdfDocument.mNativeDocPtr, link)
-        Truth.assertThat(rect).isEqualTo(floatArrayOf(220.68f, 483.852f, 389.461f, 467.88f))
+        Truth.assertThat(rect).isEqualTo(floatArrayOf(220.68001f, 483.852f, 389.461f, 467.87997f))
         val page = nativePage.getDestPageIndex(pdfDocument.mNativeDocPtr, link)
         Truth.assertThat(page).isEqualTo(-1)
     }

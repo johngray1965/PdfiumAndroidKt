@@ -203,11 +203,12 @@ dependencies {
     compileOnly(libs.kotlin.stdlib)
     implementation(libs.guava)
 
-    testImplementation(libs.androidx.junit)
-    testImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.junit)
+    testImplementation(libs.espresso.core)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.core.testing)
     testImplementation(libs.bundles.test)
+    testImplementation(libs.ext.junit)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
@@ -217,12 +218,13 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.core.testing)
     androidTestImplementation(libs.bundles.instrumented.non.ui.test)
+    androidTestImplementation(libs.ext.junit)
     androidTestUtil(libs.androidx.orchestrator)
     androidTestUtil(libs.androidx.test.services)
 
@@ -357,7 +359,7 @@ publishOnCentral {
 //    repository("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt", "GitHub") {
 //        user.set(githubUsername)
 //        password.set(githubToken)
-//    }
+// }
 }
 
 tasks.register<JacocoReport>("jacocoAndroidTestReport") {

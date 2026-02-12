@@ -52,6 +52,11 @@ find_library( # Sets the name of the path variable.
 # Specifies libraries CMake should link to your target library. You
 # can link multiple libraries, such as libraries you define in this
 # build script, prebuilt third-party libraries, or system libraries.
+#if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+#    message(STATUS "Enabling HWASan for arm64")
+#    target_compile_options(pdfiumandroid PUBLIC -fsanitize=hwaddress -fno-omit-frame-pointer)
+#    target_link_options(pdfiumandroid PUBLIC -fsanitize=hwaddress)
+#endif()
 
 target_link_libraries( # Specifies the target library.
         pdfiumandroid

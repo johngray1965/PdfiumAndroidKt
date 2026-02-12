@@ -30,7 +30,6 @@ extern "C" {
 #include <mutex>
 
 static std::mutex sLibraryLock;
-static std::mutex sCloseLock;
 
 static int sLibraryReferenceCount = 0;
 
@@ -105,7 +104,6 @@ public:
 };
 
 DocumentFile::~DocumentFile(){
-    const std::lock_guard<std::mutex> lock(sCloseLock);
     if(pdfDocument != nullptr){
         FPDF_CloseDocument(pdfDocument);
         pdfDocument = nullptr;
@@ -1324,12 +1322,13 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
                                              WINDOW_FORMAT_RGBA_8888);
         }
 
-        LOGD("nativeRenderPagesSurfaceWithMatrix width %d, height %d", width, height);
+//        LOGD("nativeRenderPagesSurfaceWithMatrix width %d, height %d", width, height);
 
-        auto *buffer = new ANativeWindow_Buffer();
+        // 1. Use stack allocation for the buffer to avoid the leak
+        ANativeWindow_Buffer buffer{};
         int ret;
-        if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
-            LOGE("Locking native window failed: %s", strerror(ret * -1));
+        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
+            LOGE("Locking native window failed");
             ANativeWindow_release(nativeWindow);
             return (jboolean) false;
         }
@@ -1341,14 +1340,20 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
 
         auto matrixFloats = env->GetFloatArrayElements(matrices, nullptr);
 
+        // 2. CRITICAL: Use the buffer's actual dimensions, not the window's.
+        // During rapid resizing, the buffer might not match the window yet.
+        int bufW = buffer.width;
+        int bufH = buffer.height;
+        int bufStride = buffer.stride;
 
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(width, height,
+        // Use the buffer's stride for the bitmap pitch (pixels * 4 bytes)
+        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(bufW, bufH,
                                                     FPDFBitmap_BGRA,
-                                                    buffer->bits, (int)(buffer->stride) * 4);
+                                                    buffer.bits,
+                                                    bufStride * 4);
 
-        if(canvasColor != 0) {
-            FPDFBitmap_FillRect( pdfBitmap, 0, 0, width, height,
-                                 canvasColor); //Gray
+        if (canvasColor != 0) {
+            FPDFBitmap_FillRect(pdfBitmap, 0, 0, bufW, bufH, canvasColor);
         }
 
         int flags = FPDF_REVERSE_BYTE_ORDER;
@@ -1357,62 +1362,39 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
             flags |= FPDF_ANNOT;
         }
 
-        /* from here we process each page */
         for (int pageIndex = 0; pageIndex < numPages; ++pageIndex) {
-
             auto page = reinterpret_cast<FPDF_PAGE>(pagePtrs[pageIndex]);
+            if (page == nullptr) continue;
 
-            if (page == nullptr) {
-                LOGE("Render page pointers invalid");
-                ANativeWindow_release(nativeWindow);
-                return (jboolean) false;
-            }
-
-
+            // 3. Get the raw rect from Java
             auto clip = floatArrayToRect(env, clipRectFloats, pageIndex);
 
-            auto drawSizeHor = (int) (clip.right - clip.left);
-            auto drawSizeVer = (int) (clip.bottom - clip.top);
+            // 4. ROBUST CLIPPING:
+            // We clamp and floor/ceil to ensure we stay within the bitmask bounds.
+            // PDFium uses floats for FPDF_RECT, but internally maps to pixels.
+            if (clip.left < 0) clip.left = 0;
+            if (clip.top < 0) clip.top = 0;
+            if (clip.right > (float)bufW) clip.right = (float)bufW;
+            if (clip.bottom > (float)bufH) clip.bottom = (float)bufH;
 
-            auto startX = (int) clip.left;
-            auto startY = (int) clip.top;
+            // Sanity check: if the clip is inverted or empty, skip this page.
+            if (clip.left >= clip.right || clip.top >= clip.bottom) continue;
 
-            int baseHorSize = (width < drawSizeHor) ? width : drawSizeHor;
-            int baseVerSize = (height < drawSizeVer) ? height : drawSizeVer;
-            int baseX = (startX < 0) ? 0 : startX;
-            int baseY = (startY < 0) ? 0 : startY;
-            if (startX + drawSizeHor > width) {
-                drawSizeHor = width - startX;
-            }
-            if (startY + drawSizeVer > height) {
-                drawSizeVer = height - startY;
-            }
-            if (clip.left < 0) {
-                clip.left = 0;
-            }
-            if (clip.top < 0) {
-                clip.top = 0;
-            }
-            auto fWidth = (float) width;
-            auto fHeight = (float) height;
-            if (clip.right > fWidth) {
-                clip.right = fWidth;
-            }
-            if (clip.bottom > fHeight) {
-                clip.bottom = fHeight;
+            // 5. Background Fill Calculation
+            // Ensure baseX/Y and sizes are strictly within [0, bufW/bufH]
+            int baseX = (int)fmax(0.0f, floor(clip.left));
+            int baseY = (int)fmax(0.0f, floor(clip.top));
+            int baseWidth = (int)fmax((float)bufW - baseX, ceil(clip.right) - baseX);
+            int baseHeight = (int)fmax((float)bufH - baseY, ceil(clip.bottom) - baseY);
+
+            if (pageBackgroundColor != 0 && baseWidth > 0 && baseHeight > 0) {
+                FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseWidth, baseHeight,
+                                    pageBackgroundColor);
             }
 
-
-            if (pageBackgroundColor != 0) {
-                FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
-                                    pageBackgroundColor); //White
-            }
-
+            // 6. Final Render
             auto matrix = floatArrayToMatrix(env, matrixFloats, pageIndex);
-
-
             FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
-            /* end process each page */
         }
 
         ANativeWindow_unlockAndPost(nativeWindow);

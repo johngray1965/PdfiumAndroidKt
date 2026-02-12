@@ -8,9 +8,11 @@ import android.view.Surface
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -80,18 +82,20 @@ class PdfDocumentKtF(
         return withContext(renderCoroutinesDispatcher) {
             return@withContext surface
                 ?.let {
-                    document.renderPages(
-                        surface,
-                        pages.map { page -> page.page },
-                        matrices,
-                        clipRects,
-                        renderAnnot,
-                        textMask,
-                        canvasColor,
-                        pageBackgroundColor,
-                    )
-                } ?: false
-        }
+                    PdfiumCore.surfaceMutex.withLock {
+                        document.renderPages(
+                            surface,
+                            pages.map { page -> page.page },
+                            matrices,
+                            clipRects,
+                            renderAnnot,
+                            textMask,
+                            canvasColor,
+                            pageBackgroundColor,
+                        )
+                    }
+                }
+        } ?: false
     }
 
     /**

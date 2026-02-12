@@ -177,41 +177,43 @@ class PdfPageKtF(
         val sizes = IntArray(2)
         val pointers = LongArray(2)
         return withContext(renderCoroutinesDispatcher) {
-            surface?.let {
-                page.lockSurface(
-                    it,
-                    sizes,
-                    pointers,
-                )
-                val nativeWindow = pointers[0]
-                val bufferPtr = pointers[1]
-                val surfaceWidth = sizes[0]
-                val surfaceHeight = sizes[1]
-                Logger.d(
-                    "PdfPageKtF",
-                    "page: ${page.pageIndex}, surfaceWidth: $surfaceWidth, " +
-                        "surfaceHeight: $surfaceHeight, nativeWindow: $nativeWindow, " +
-                        "bufferPtr: $bufferPtr, nativeWindow: $nativeWindow",
-                )
-                if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                    PdfiumKtFErrors.ConstraintError.left()
-                }
-                val result =
-                    page.renderPage(
-                        bufferPtr,
-                        startX,
-                        startY,
-                        drawSizeX,
-                        drawSizeY,
-                        canvasColor = canvasColor,
-                        pageBackgroundColor = pageBackgroundColor,
+            PdfiumCore.surfaceMutex.withLock {
+                surface?.let {
+                    page.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
                     )
-                page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
-                if (!result) {
-                    PdfiumKtFErrors.ConstraintError.left()
-                }
-                true.right()
-            } ?: PdfiumKtFErrors.ConstraintError.left()
+                    val nativeWindow = pointers[0]
+                    val bufferPtr = pointers[1]
+                    val surfaceWidth = sizes[0]
+                    val surfaceHeight = sizes[1]
+                    Logger.d(
+                        "PdfPageKtF",
+                        "page: ${page.pageIndex}, surfaceWidth: $surfaceWidth, " +
+                            "surfaceHeight: $surfaceHeight, nativeWindow: $nativeWindow, " +
+                            "bufferPtr: $bufferPtr, nativeWindow: $nativeWindow",
+                    )
+                    if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                        PdfiumKtFErrors.ConstraintError.left()
+                    }
+                    val result =
+                        page.renderPage(
+                            bufferPtr,
+                            startX,
+                            startY,
+                            drawSizeX,
+                            drawSizeY,
+                            canvasColor = canvasColor,
+                            pageBackgroundColor = pageBackgroundColor,
+                        )
+                    page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                    if (!result) {
+                        PdfiumKtFErrors.ConstraintError.left()
+                    }
+                    true.right()
+                } ?: PdfiumKtFErrors.ConstraintError.left()
+            }
         }
     }
 
@@ -229,8 +231,8 @@ class PdfPageKtF(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
         renderCoroutinesDispatcher: CoroutineDispatcher,
     ): Either<PdfiumKtFErrors, Boolean> {
-        return PdfiumCore.surfaceMutex.withLock {
-            withContext(renderCoroutinesDispatcher) {
+        return withContext(renderCoroutinesDispatcher) {
+            PdfiumCore.surfaceMutex.withLock {
                 Either
                     .catch {
                         return@withContext surface?.let {

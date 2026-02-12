@@ -9,9 +9,13 @@ import androidx.annotation.Keep
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
@@ -86,17 +90,20 @@ class PdfDocumentKt(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
         renderCoroutinesDispatcher: CoroutineDispatcher,
     ): Boolean =
-        wrapSuspend(dispatcher) {
-            document.renderPages(
-                surface,
-                pages.map { it.page },
-                matrices,
-                clipRects,
-                renderAnnot,
-                textMask,
-                canvasColor,
-                pageBackgroundColor,
-            )
+        withContext(renderCoroutinesDispatcher) {
+            PdfiumCore.surfaceMutex.withLock {
+                if (!coroutineContext.isActive) return@withContext false
+                document.renderPages(
+                    surface,
+                    pages.map { it.page },
+                    matrices,
+                    clipRects,
+                    renderAnnot,
+                    textMask,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
         }
 
     /**

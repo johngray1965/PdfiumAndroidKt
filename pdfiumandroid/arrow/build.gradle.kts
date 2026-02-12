@@ -79,10 +79,10 @@ dependencies {
     compileOnly(libs.kotlin.stdlib)
     implementation(libs.guava)
 
-    testImplementation(libs.androidx.junit)
-    testImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.junit)
+    testImplementation(libs.espresso.core)
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.androidx.core.testing)
+    testImplementation(libs.core.testing)
     testImplementation(libs.bundles.test)
 
     testImplementation(platform(libs.junit.bom))
@@ -94,11 +94,11 @@ dependencies {
     testRuntimeOnly(libs.junit.jupiter.engine)
     testImplementation(libs.arrow.fx.coroutines)
 
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.core.testing)
+    androidTestImplementation(libs.core.testing)
 }
 
 publishing {

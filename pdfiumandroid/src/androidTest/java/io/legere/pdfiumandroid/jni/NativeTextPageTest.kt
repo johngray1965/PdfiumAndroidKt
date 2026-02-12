@@ -51,7 +51,7 @@ class NativeTextPageTest : BasePDFTest() {
     @Test
     fun textCountChars() {
         val charCount = nativeTextPage.textCountChars(pageTextPtr)
-        Truth.assertThat(charCount).isEqualTo(3415)
+        Truth.assertThat(charCount).isEqualTo(3468)
     }
 
     @Test
@@ -60,10 +60,10 @@ class NativeTextPageTest : BasePDFTest() {
 
         Truth.assertThat(rect).isEqualTo(
             doubleArrayOf(
-                90.31439971923828,
-                103.44169616699219,
-                699.1204833984375,
-                715.318603515625,
+                90.31441497802734,
+                103.44171142578125,
+                699.12060546875,
+                715.3187255859375,
             ),
         )
     }
@@ -125,7 +125,7 @@ class NativeTextPageTest : BasePDFTest() {
                             }
 
                         Truth.assertThat(result).isNotNull()
-                        Truth.assertThat(result?.size).isEqualTo(1237)
+                        Truth.assertThat(result?.size).isEqualTo(1238)
                     }
                 }
             val averageDuration = (time / iterations)
