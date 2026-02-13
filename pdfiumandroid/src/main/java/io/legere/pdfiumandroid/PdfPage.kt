@@ -505,6 +505,7 @@ class PdfPage(
 
     /**
      * Get all attributes of a page in a single call.
+     * @return [PageAttributes]
      */
     fun getPageAttributes(): PageAttributes =
         wrapLock {

@@ -11,15 +11,15 @@ class NativeFindResult {
 
     private external fun nativeCloseFind(findHandle: Long)
 
-    fun findNext(handle: Long): Boolean = nativeFindNext(handle)
+    internal fun findNext(handle: Long): Boolean = nativeFindNext(handle)
 
-    fun findPrev(handle: Long): Boolean = nativeFindPrev(handle)
+    internal fun findPrev(handle: Long): Boolean = nativeFindPrev(handle)
 
-    fun getSchResultIndex(handle: Long): Int = nativeGetSchResultIndex(handle)
+    internal fun getSchResultIndex(handle: Long): Int = nativeGetSchResultIndex(handle)
 
-    fun getSchCount(handle: Long): Int = nativeGetSchCount(handle)
+    internal fun getSchCount(handle: Long): Int = nativeGetSchCount(handle)
 
-    fun closeFind(handle: Long) {
+    internal fun closeFind(handle: Long) {
         nativeCloseFind(handle)
     }
 }

@@ -5,18 +5,24 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.locks.ReentrantLock
 
+/**
+ * Lock manager interface.
+ */
 interface LockManager {
+    /**
+     * Executes the given [block] function while holding the lock.
+     */
     suspend fun <T> withLock(block: suspend () -> T): T
 
+    /**
+     * Executes the given [block] function while holding the lock.
+     */
     fun <T> withLockBlocking(block: () -> T): T
 }
 
 class LockManagerReentrantLockImpl : LockManager {
     private val lock = ReentrantLock()
 
-    /**
-     * Executes the given [block] function while holding the lock.
-     */
     override suspend fun <T> withLock(block: suspend () -> T): T {
         lock.lock()
         try {
@@ -26,9 +32,6 @@ class LockManagerReentrantLockImpl : LockManager {
         }
     }
 
-    /**
-     * Executes the given [block] function while holding the lock.
-     */
     override fun <T> withLockBlocking(block: () -> T): T {
         lock.lock()
         try {

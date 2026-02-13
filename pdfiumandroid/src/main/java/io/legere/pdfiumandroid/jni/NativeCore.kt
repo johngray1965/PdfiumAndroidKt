@@ -1,6 +1,5 @@
 package io.legere.pdfiumandroid.jni
 
-import androidx.annotation.VisibleForTesting
 import io.legere.pdfiumandroid.util.PdfiumNativeSourceBridge
 
 class NativeCore {
@@ -19,8 +18,6 @@ class NativeCore {
         password: String?,
         size: Long,
     ): Long
-
-    private external fun nativeDumpCoverageData(outputFile: String?)
 
     internal fun openDocument(
         fd: Int,
@@ -50,9 +47,4 @@ class NativeCore {
             password,
             size,
         )
-
-    @VisibleForTesting
-    fun dumpCoverageData(outputFile: String?) {
-        nativeDumpCoverageData(outputFile)
-    }
 }

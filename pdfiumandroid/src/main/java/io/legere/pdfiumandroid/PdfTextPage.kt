@@ -20,9 +20,7 @@ private const val RANGE_RECT_DATA_SIZE = 6
 /**
  * PdfTextPage is a wrapper around the native PdfiumCore text page
  * It is used to get text and other information about the text on a page
- * @property doc the PdfDocument this page belongs to
- * @property pageIndex the index of this page in the document
- * @property pagePtr the pointer to the native page
+ * @property page the unlock page interface
  */
 @Suppress("TooManyFunctions")
 class PdfTextPage(
