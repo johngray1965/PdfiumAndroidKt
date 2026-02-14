@@ -124,6 +124,7 @@ class PdfDocumentKt(
 
     /**
      * suspend version of [PdfDocument.openTextPage]
+     * @deprecated
      */
     @Deprecated("use PdfPageKt.openTextPage", ReplaceWith("page.openTextPage()"))
     @Suppress("DEPRECATION")

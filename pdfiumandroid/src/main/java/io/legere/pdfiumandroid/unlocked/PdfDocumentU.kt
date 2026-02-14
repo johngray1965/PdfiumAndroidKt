@@ -335,7 +335,7 @@ class PdfDocumentU(
     /**
      * Open a text page.
      * For internal use only. Prefer [PdfPageU.openTextPage].
-     *
+     * @deprecated
      * @param page the [PdfPageU]
      * @return the opened [PdfTextPageU]
      * @throws IllegalStateException if document is closed or the page cannot be loaded
