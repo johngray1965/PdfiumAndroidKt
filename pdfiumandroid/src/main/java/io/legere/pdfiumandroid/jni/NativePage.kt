@@ -2,40 +2,493 @@ package io.legere.pdfiumandroid.jni
 
 import android.graphics.Bitmap
 import android.view.Surface
-import androidx.annotation.OpenForTesting
 import dalvik.annotation.optimization.FastNative
 
+/**
+ * Contract for native PDFium page operations.
+ * This interface defines the JNI methods for interacting with PDF pages.
+ * Implementations of this contract are intended for **internal use only**
+ * within the PdfiumAndroid library to abstract native calls.
+ */
 @Suppress("TooManyFunctions")
-class NativePage {
-    internal fun closePage(pagePtr: Long) = nativeClosePage(pagePtr)
+interface NativePageContract {
+    /**
+     * Closes a native PDF page.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page to close.
+     */
+    fun closePage(pagePtr: Long)
 
-    internal fun closePages(pagesPtr: LongArray) = nativeClosePages(pagesPtr)
+    /**
+     * Closes multiple native PDF pages.
+     * This is a JNI method.
+     *
+     * @param pagesPtr An array of native pointers (long) to the PDF pages to close.
+     */
+    fun closePages(pagesPtr: LongArray)
 
-    internal fun getDestPageIndex(
+    /**
+     * Gets the page index of a destination linked from a PDF link.
+     * This is a JNI method.
+     *
+     * @param docPtr The native pointer (long) to the PDF document.
+     * @param linkPtr The native pointer (long) to the PDF link.
+     * @return The 0-based page index of the destination, or -1 if not found.
+     */
+    fun getDestPageIndex(
+        docPtr: Long,
+        linkPtr: Long,
+    ): Int
+
+    /**
+     * Gets the URI of a web link on a PDF page.
+     * This is a JNI method.
+     *
+     * @param docPtr The native pointer (long) to the PDF document.
+     * @param linkPtr The native pointer (long) to the PDF link.
+     * @return The URI string, or `null` if it's not a URI link or an error occurs.
+     */
+    fun getLinkURI(
+        docPtr: Long,
+        linkPtr: Long,
+    ): String?
+
+    /**
+     * Gets the bounding rectangle of a link on a PDF page.
+     * This is a JNI method.
+     *
+     * @param docPtr The native pointer (long) to the PDF document.
+     * @param linkPtr The native pointer (long) to the PDF link.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the rectangle.
+     */
+    fun getLinkRect(
+        docPtr: Long,
+        linkPtr: Long,
+    ): FloatArray
+
+    /**
+     * Locks an Android [Surface] for rendering and retrieves its dimensions and native buffer pointers.
+     * This is a JNI method.
+     *
+     * @param surface The [Surface] to lock.
+     * @param dimensions An [IntArray] of size 2 to receive the width and height [width, height].
+     * @param ptrs A [LongArray] of size 2 to receive the native window pointer and the buffer pointer.
+     * @return `true` if the surface was successfully locked, `false` otherwise.
+     */
+    fun lockSurface(
+        surface: Surface,
+        dimensions: IntArray,
+        ptrs: LongArray,
+    ): Boolean
+
+    /**
+     * Unlocks an Android [Surface] and releases native resources.
+     * This is a JNI method.
+     *
+     * @param ptrs A [LongArray] containing the native window pointer and buffer pointer obtained from [lockSurface].
+     */
+    fun unlockSurface(ptrs: LongArray)
+
+    /**
+     * Renders a fragment of a PDF page onto a pre-locked [Surface] buffer.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page to render.
+     * @param bufferPtr The native pointer (long) to the locked [Surface] buffer's pixel data.
+     * @param startX The X coordinate of the left edge of the rendering area in device pixels.
+     * @param startY The Y coordinate of the top edge of the rendering area in device pixels.
+     * @param drawSizeHor The horizontal size of the rendering area in device pixels.
+     * @param drawSizeVer The vertical size of the rendering area in device pixels.
+     * @param renderAnnot `true` to render annotations, `false` otherwise.
+     * @param canvasColor The ARGB color to fill the canvas background. Use 0 for no fill.
+     * @param pageBackgroundColor The ARGB color to fill the page background. Use 0 for no fill.
+     * @return `true` if rendering was successful, `false` otherwise.
+     */
+    @Suppress("LongParameterList")
+    fun renderPage(
+        pagePtr: Long,
+        bufferPtr: Long,
+        startX: Int,
+        startY: Int,
+        drawSizeHor: Int,
+        drawSizeVer: Int,
+        renderAnnot: Boolean,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    ): Boolean
+
+    /**
+     * Renders a fragment of a PDF page onto a pre-locked [Surface] buffer using a transformation matrix.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page to render.
+     * @param bufferPtr The native pointer (long) to the locked [Surface] buffer's pixel data.
+     * @param drawSizeHor The horizontal size of the rendering area in device pixels.
+     * @param drawSizeVer The vertical size of the rendering area in device pixels.
+     * @param matrix A `FloatArray` of 6 elements representing the 2x3 transformation matrix.
+     * @param clipRect A `FloatArray` of 4 elements [left, top, right, bottom] defining the clipping rectangle.
+     * @param renderAnnot `true` to render annotations, `false` otherwise.
+     * @param textMask `true` to render text as an image mask, `false` otherwise. (Currently ignored by Pdfium)
+     * @param canvasColor The ARGB color to fill the canvas background. Use 0 for no fill.
+     * @param pageBackgroundColor The ARGB color to fill the page background. Use 0 for no fill.
+     * @return `true` if rendering was successful, `false` otherwise.
+     */
+    @Suppress("LongParameterList")
+    fun renderPageWithMatrix(
+        pagePtr: Long,
+        bufferPtr: Long,
+        drawSizeHor: Int,
+        drawSizeVer: Int,
+        matrix: FloatArray,
+        clipRect: FloatArray,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    ): Boolean
+
+    /**
+     * Renders a fragment of a PDF page directly onto an Android [Surface].
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page to render.
+     * @param surface The [Surface] to render onto.
+     * @param startX The X coordinate of the left edge of the rendering area in device pixels.
+     * @param startY The Y coordinate of the top edge of the rendering area in device pixels.
+     * @param renderAnnot `true` to render annotations, `false` otherwise.
+     * @param canvasColor The ARGB color to fill the canvas background. Use 0 for no fill.
+     * @param pageBackgroundColor The ARGB color to fill the page background. Use 0 for no fill.
+     * @return `true` if rendering was successful, `false` otherwise.
+     */
+    @Suppress("LongParameterList")
+    fun renderPageSurface(
+        pagePtr: Long,
+        surface: Surface,
+        startX: Int,
+        startY: Int,
+        renderAnnot: Boolean,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    ): Boolean
+
+    /**
+     * Renders a fragment of a PDF page directly onto an Android [Surface] using a transformation matrix.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page to render.
+     * @param surface The [Surface] to render onto.
+     * @param matrix A `FloatArray` of 6 elements representing the 2x3 transformation matrix.
+     * @param clipRect A `FloatArray` of 4 elements [left, top, right, bottom] defining the clipping rectangle.
+     * @param renderAnnot `true` to render annotations, `false` otherwise.
+     * @param textMask `true` to render text as an image mask, `false` otherwise. (Currently ignored by Pdfium)
+     * @param canvasColor The ARGB color to fill the canvas background. Use 0 for no fill.
+     * @param pageBackgroundColor The ARGB color to fill the page background. Use 0 for no fill.
+     * @return `true` if rendering was successful, `false` otherwise.
+     */
+    @Suppress("LongParameterList")
+    fun renderPageSurfaceWithMatrix(
+        pagePtr: Long,
+        surface: Surface,
+        matrix: FloatArray,
+        clipRect: FloatArray,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    ): Boolean
+
+    /**
+     * Renders a fragment of a PDF page onto an Android [Bitmap].
+     * This is a JNI method.
+     *
+     * @param docPtr The native pointer (long) to the PDF document.
+     * @param pagePtr The native pointer (long) to the PDF page to render.
+     * @param bitmap The [Bitmap] to render onto. Supported formats: `ARGB_8888`, `RGB_565`.
+     * @param startX The X coordinate of the left edge of the rendering area in device pixels.
+     * @param startY The Y coordinate of the top edge of the rendering area in device pixels.
+     * @param drawSizeHor The horizontal size of the rendering area in device pixels.
+     * @param drawSizeVer The vertical size of the rendering area in device pixels.
+     * @param renderAnnot `true` to render annotations, `false` otherwise.
+     * @param textMask `true` to render text as an image mask, `false` otherwise. (Currently ignored by Pdfium)
+     * @param canvasColor The ARGB color to fill the canvas background. Use 0 for no fill.
+     * @param pageBackgroundColor The ARGB color to fill the page background. Use 0 for no fill.
+     */
+    @Suppress("LongParameterList")
+    fun renderPageBitmap(
+        docPtr: Long,
+        pagePtr: Long,
+        bitmap: Bitmap?,
+        startX: Int,
+        startY: Int,
+        drawSizeHor: Int,
+        drawSizeVer: Int,
+        renderAnnot: Boolean,
+        textMask: Boolean,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    )
+
+    /**
+     * Renders a fragment of a PDF page onto an Android [Bitmap] using a transformation matrix.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page to render.
+     * @param bitmap The [Bitmap] to render onto. Supported formats: `ARGB_8888`, `RGB_565`.
+     * @param matrix A `FloatArray` of 6 elements representing the 2x3 transformation matrix.
+     * @param clipRect A `FloatArray` of 4 elements [left, top, right, bottom] defining the clipping rectangle.
+     * @param renderAnnot `true` to render annotations, `false` otherwise.
+     * @param textMask `true` to render text as an image mask, `false` otherwise. (Currently ignored by Pdfium)
+     * @param canvasColor The ARGB color to fill the canvas background. Use 0 for no fill.
+     * @param pageBackgroundColor The ARGB color to fill the page background. Use 0 for no fill.
+     */
+    @Suppress("LongParameterList")
+    fun renderPageBitmapWithMatrix(
+        pagePtr: Long,
+        bitmap: Bitmap?,
+        matrix: FloatArray,
+        clipRect: FloatArray,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int,
+        pageBackgroundColor: Int,
+    )
+
+    /**
+     * Gets the width and height of a PDF page by its index in pixels.
+     * This is a JNI method.
+     *
+     * @param docPtr The native pointer (long) to the PDF document.
+     * @param pageIndex The 0-based index of the page.
+     * @param dpi The screen DPI (Dots Per Inch) for pixel conversion.
+     * @return An [IntArray] of size 2 containing [width, height] in pixels.
+     */
+    fun getPageSizeByIndex(
+        docPtr: Long,
+        pageIndex: Int,
+        dpi: Int,
+    ): IntArray
+
+    /**
+     * Retrieves a list of native pointers to links on a PDF page.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A [LongArray] of native pointers to PDF links.
+     */
+    fun getPageLinks(pagePtr: Long): LongArray
+
+    /**
+     * Converts page coordinates to device (pixel) coordinates.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @param startX The X coordinate of the left edge of the display area in device coordinates.
+     * @param startY The Y coordinate of the top edge of the display area in device coordinates.
+     * @param sizeX The horizontal size (in pixels) for displaying the page.
+     * @param sizeY The vertical size (in pixels) for displaying the page.
+     * @param rotate Page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
+     * 2 (180 degrees), 3 (270 degrees clockwise).
+     * @param pageX The X value in page coordinates.
+     * @param pageY The Y value in page coordinates.
+     * @return An [IntArray] of size 2 containing [deviceX, deviceY].
+     */
+    @Suppress("LongParameterList")
+    fun pageCoordsToDevice(
+        pagePtr: Long,
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        pageX: Double,
+        pageY: Double,
+    ): IntArray
+
+    /**
+     * Converts device (pixel) coordinates to page coordinates.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @param startX The X coordinate of the left edge of the display area in device coordinates.
+     * @param startY The Y coordinate of the top edge of the display area in device coordinates.
+     * @param sizeX The horizontal size (in pixels) for displaying the page.
+     * @param sizeY The vertical size (in pixels) for displaying the page.
+     * @param rotate Page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
+     * 2 (180 degrees), 3 (270 degrees clockwise).
+     * @param deviceX The X value in device coordinates.
+     * @param deviceY The Y value in device coordinates.
+     * @return A [FloatArray] of size 2 containing [pageX, pageY].
+     */
+    @Suppress("LongParameterList")
+    fun deviceCoordsToPage(
+        pagePtr: Long,
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        deviceX: Int,
+        deviceY: Int,
+    ): FloatArray
+
+    /**
+     * Gets the width of a PDF page in pixels.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @param dpi The screen DPI (Dots Per Inch) for pixel conversion.
+     * @return The page width in pixels.
+     */
+    fun getPageWidthPixel(
+        pagePtr: Long,
+        dpi: Int,
+    ): Int
+
+    /**
+     * Gets the height of a PDF page in pixels.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @param dpi The screen DPI (Dots Per Inch) for pixel conversion.
+     * @return The page height in pixels.
+     */
+    fun getPageHeightPixel(
+        pagePtr: Long,
+        dpi: Int,
+    ): Int
+
+    /**
+     * Gets the width of a PDF page in PostScript points (1/72th of an inch).
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return The page width in points.
+     */
+    fun getPageWidthPoint(pagePtr: Long): Int
+
+    /**
+     * Gets the height of a PDF page in PostScript points (1/72th of an inch).
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return The page height in points.
+     */
+    fun getPageHeightPoint(pagePtr: Long): Int
+
+    /**
+     * Gets the rotation of a PDF page.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return The page rotation (0, 1, 2, or 3 for 0, 90, 180, 270 degrees clockwise).
+     */
+    fun getPageRotation(pagePtr: Long): Int
+
+    /**
+     * Gets the MediaBox of a PDF page in PostScript points.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the MediaBox.
+     */
+    fun getPageMediaBox(pagePtr: Long): FloatArray
+
+    /**
+     * Gets the CropBox of a PDF page in PostScript points.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the CropBox.
+     */
+    fun getPageCropBox(pagePtr: Long): FloatArray
+
+    /**
+     * Gets the BleedBox of a PDF page in PostScript points.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the BleedBox.
+     */
+    fun getPageBleedBox(pagePtr: Long): FloatArray
+
+    /**
+     * Gets the TrimBox of a PDF page in PostScript points.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the TrimBox.
+     */
+    fun getPageTrimBox(pagePtr: Long): FloatArray
+
+    /**
+     * Gets the ArtBox of a PDF page in PostScript points.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the ArtBox.
+     */
+    fun getPageArtBox(pagePtr: Long): FloatArray
+
+    /**
+     * Gets the BoundingBox of a PDF page in PostScript points.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 4 elements [left, top, right, bottom] representing the BoundingBox.
+     */
+    fun getPageBoundingBox(pagePtr: Long): FloatArray
+
+    /**
+     * Gets the transformation matrix of a PDF page.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` of 6 elements [a, b, c, d, e, f] representing the 2x3 matrix.
+     */
+    fun getPageMatrix(pagePtr: Long): FloatArray
+
+    /**
+     * Gets all relevant attributes of a PDF page in a single call.
+     * This is a JNI method.
+     *
+     * @param pagePtr The native pointer (long) to the PDF page.
+     * @return A `FloatArray` containing various page attributes (width, height, rotation, bounding boxes, etc.).
+     */
+    fun getPageAttributes(pagePtr: Long): FloatArray
+}
+
+@Suppress("TooManyFunctions")
+internal class NativePage : NativePageContract {
+    override fun closePage(pagePtr: Long) = nativeClosePage(pagePtr)
+
+    override fun closePages(pagesPtr: LongArray) = nativeClosePages(pagesPtr)
+
+    override fun getDestPageIndex(
         docPtr: Long,
         linkPtr: Long,
     ) = nativeGetDestPageIndex(docPtr, linkPtr)
 
-    internal fun getLinkURI(
+    override fun getLinkURI(
         docPtr: Long,
         linkPtr: Long,
     ) = nativeGetLinkURI(docPtr, linkPtr)
 
-    internal fun getLinkRect(
+    override fun getLinkRect(
         docPtr: Long,
         linkPtr: Long,
     ) = nativeGetLinkRect(docPtr, linkPtr)
 
-    internal fun lockSurface(
+    override fun lockSurface(
         surface: Surface,
         dimensions: IntArray,
         ptrs: LongArray,
     ) = nativeLockSurface(surface, dimensions, ptrs)
 
-    internal fun unlockSurface(ptrs: LongArray) = nativeUnlockSurface(ptrs)
+    override fun unlockSurface(ptrs: LongArray) = nativeUnlockSurface(ptrs)
 
     @Suppress("LongParameterList")
-    internal fun renderPage(
+    override fun renderPage(
         pagePtr: Long,
         bufferPtr: Long,
         startX: Int,
@@ -58,15 +511,15 @@ class NativePage {
     )
 
     @Suppress("LongParameterList")
-    internal fun renderPageWithMatrix(
+    override fun renderPageWithMatrix(
         pagePtr: Long,
         bufferPtr: Long,
         drawSizeHor: Int,
         drawSizeVer: Int,
         matrix: FloatArray,
         clipRect: FloatArray,
-        renderAnnot: Boolean = false,
-        textMask: Boolean = false,
+        renderAnnot: Boolean,
+        textMask: Boolean,
         canvasColor: Int,
         pageBackgroundColor: Int,
     ) = nativeRenderPageWithMatrix(
@@ -83,7 +536,7 @@ class NativePage {
     )
 
     @Suppress("LongParameterList")
-    internal fun renderPageSurface(
+    override fun renderPageSurface(
         pagePtr: Long,
         surface: Surface,
         startX: Int,
@@ -94,13 +547,13 @@ class NativePage {
     ) = nativeRenderPageSurface(pagePtr, surface, startX, startY, renderAnnot, canvasColor, pageBackgroundColor)
 
     @Suppress("LongParameterList")
-    internal fun renderPageSurfaceWithMatrix(
+    override fun renderPageSurfaceWithMatrix(
         pagePtr: Long,
         surface: Surface,
         matrix: FloatArray,
         clipRect: FloatArray,
-        renderAnnot: Boolean = false,
-        textMask: Boolean = false,
+        renderAnnot: Boolean,
+        textMask: Boolean,
         canvasColor: Int,
         pageBackgroundColor: Int,
     ) = nativeRenderPageSurfaceWithMatrix(
@@ -115,7 +568,7 @@ class NativePage {
     )
 
     @Suppress("LongParameterList")
-    internal fun renderPageBitmap(
+    override fun renderPageBitmap(
         docPtr: Long,
         pagePtr: Long,
         bitmap: Bitmap?,
@@ -142,14 +595,13 @@ class NativePage {
     )
 
     @Suppress("LongParameterList")
-    @OpenForTesting
-    fun renderPageBitmapWithMatrix(
+    override fun renderPageBitmapWithMatrix(
         pagePtr: Long,
         bitmap: Bitmap?,
         matrix: FloatArray,
         clipRect: FloatArray,
-        renderAnnot: Boolean = false,
-        textMask: Boolean = false,
+        renderAnnot: Boolean,
+        textMask: Boolean,
         canvasColor: Int,
         pageBackgroundColor: Int,
     ) = nativeRenderPageBitmapWithMatrix(
@@ -163,16 +615,16 @@ class NativePage {
         pageBackgroundColor,
     )
 
-    internal fun getPageSizeByIndex(
+    override fun getPageSizeByIndex(
         docPtr: Long,
         pageIndex: Int,
         dpi: Int,
     ) = nativeGetPageSizeByIndex(docPtr, pageIndex, dpi)
 
-    internal fun getPageLinks(pagePtr: Long) = nativeGetPageLinks(pagePtr)
+    override fun getPageLinks(pagePtr: Long) = nativeGetPageLinks(pagePtr)
 
     @Suppress("LongParameterList")
-    internal fun pageCoordsToDevice(
+    override fun pageCoordsToDevice(
         pagePtr: Long,
         startX: Int,
         startY: Int,
@@ -184,7 +636,7 @@ class NativePage {
     ) = nativePageCoordsToDevice(pagePtr, startX, startY, sizeX, sizeY, rotate, pageX, pageY)
 
     @Suppress("LongParameterList")
-    internal fun deviceCoordsToPage(
+    override fun deviceCoordsToPage(
         pagePtr: Long,
         startX: Int,
         startY: Int,
@@ -195,37 +647,37 @@ class NativePage {
         deviceY: Int,
     ) = nativeDeviceCoordsToPage(pagePtr, startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
 
-    internal fun getPageWidthPixel(
+    override fun getPageWidthPixel(
         pagePtr: Long,
         dpi: Int,
     ) = nativeGetPageWidthPixel(pagePtr, dpi)
 
-    internal fun getPageHeightPixel(
+    override fun getPageHeightPixel(
         pagePtr: Long,
         dpi: Int,
     ) = nativeGetPageHeightPixel(pagePtr, dpi)
 
-    internal fun getPageWidthPoint(pagePtr: Long) = nativeGetPageWidthPoint(pagePtr)
+    override fun getPageWidthPoint(pagePtr: Long) = nativeGetPageWidthPoint(pagePtr)
 
-    internal fun getPageHeightPoint(pagePtr: Long) = nativeGetPageHeightPoint(pagePtr)
+    override fun getPageHeightPoint(pagePtr: Long) = nativeGetPageHeightPoint(pagePtr)
 
-    internal fun getPageRotation(pagePtr: Long) = nativeGetPageRotation(pagePtr)
+    override fun getPageRotation(pagePtr: Long) = nativeGetPageRotation(pagePtr)
 
-    internal fun getPageMediaBox(pagePtr: Long) = nativeGetPageMediaBox(pagePtr)
+    override fun getPageMediaBox(pagePtr: Long) = nativeGetPageMediaBox(pagePtr)
 
-    internal fun getPageCropBox(pagePtr: Long) = nativeGetPageCropBox(pagePtr)
+    override fun getPageCropBox(pagePtr: Long) = nativeGetPageCropBox(pagePtr)
 
-    internal fun getPageBleedBox(pagePtr: Long) = nativeGetPageBleedBox(pagePtr)
+    override fun getPageBleedBox(pagePtr: Long) = nativeGetPageBleedBox(pagePtr)
 
-    internal fun getPageTrimBox(pagePtr: Long) = nativeGetPageTrimBox(pagePtr)
+    override fun getPageTrimBox(pagePtr: Long) = nativeGetPageTrimBox(pagePtr)
 
-    internal fun getPageArtBox(pagePtr: Long) = nativeGetPageArtBox(pagePtr)
+    override fun getPageArtBox(pagePtr: Long) = nativeGetPageArtBox(pagePtr)
 
-    internal fun getPageBoundingBox(pagePtr: Long) = nativeGetPageBoundingBox(pagePtr)
+    override fun getPageBoundingBox(pagePtr: Long) = nativeGetPageBoundingBox(pagePtr)
 
-    internal fun getPageMatrix(pagePtr: Long) = nativeGetPageMatrix(pagePtr)
+    override fun getPageMatrix(pagePtr: Long) = nativeGetPageMatrix(pagePtr)
 
-    internal fun getPageAttributes(pagePtr: Long) = nativeGetPageAttributes(pagePtr)
+    override fun getPageAttributes(pagePtr: Long) = nativeGetPageAttributes(pagePtr)
 
     companion object {
         @JvmStatic

@@ -2,7 +2,7 @@ package io.legere.pdfiumandroid.unlocked
 
 import io.legere.pdfiumandroid.FindHandle
 import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativeFindResult
+import io.legere.pdfiumandroid.jni.NativeFindResultContract
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import java.io.Closeable
 
@@ -11,7 +11,7 @@ class FindResultU(
     val handle: FindHandle,
     nativeFactory: NativeFactory = defaultNativeFactory,
 ) : Closeable {
-    val nativeFindResult: NativeFindResult = nativeFactory.getNativeFindResult()
+    private val nativeFindResult: NativeFindResultContract = nativeFactory.getNativeFindResult()
 
     fun findNext(): Boolean = nativeFindResult.findNext(handle)
 

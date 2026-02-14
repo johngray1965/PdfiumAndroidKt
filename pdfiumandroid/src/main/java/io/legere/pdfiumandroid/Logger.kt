@@ -3,15 +3,32 @@ package io.legere.pdfiumandroid
 import android.util.Log
 import androidx.annotation.Keep
 
-// At the moment we only do debug log with message, or error log with message and throwable
-// in the future, we might expand this.
+/**
+ * Interface for logging within the PdfiumAndroid library. This allows for custom
+ * logger implementations to be plugged in.
+ */
 @Keep
 interface LoggerInterface {
+    /**
+     * Logs a debug message.
+     *
+     * @param tag Used to identify the source of a log message. It usually identifies
+     * the class or activity where the log call occurs.
+     * @param message The message to log.
+     */
     fun d(
         tag: String,
         message: String?,
     )
 
+    /**
+     * Logs an error message, optionally with a [Throwable].
+     *
+     * @param tag Used to identify the source of a log message. It usually identifies
+     * the class or activity where the log call occurs.
+     * @param t An optional [Throwable] to be logged.
+     * @param message The message to log.
+     */
     fun e(
         tag: String,
         t: Throwable?,

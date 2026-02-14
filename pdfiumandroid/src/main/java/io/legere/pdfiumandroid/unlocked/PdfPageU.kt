@@ -13,9 +13,8 @@ import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PageAttributes
 import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativePage
+import io.legere.pdfiumandroid.jni.NativePageContract
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.util.Size
 import io.legere.pdfiumandroid.util.floatArrayToMatrix
@@ -29,7 +28,15 @@ import java.io.Closeable
 private const val RECT_SIZE = 4
 
 /**
- * Represents a single page in a [PdfDocument].
+ * Represents an **unlocked** single page in a [PdfDocumentU].
+ * This class is for **internal use only** within the PdfiumAndroid library.
+ * Direct use from outside the library is not recommended as it bypasses thread-safety mechanisms.
+ *
+ * @property doc The parent [PdfDocumentU] this page belongs to.
+ * @property pageIndex The 0-based index of this page within the document.
+ * @property pagePtr The native pointer to the FPDF_PAGE object.
+ * @property pageMap A mutable map used internally to track open page counts.
+ * @property nativePage The native interface for page operations.
  */
 @Suppress("TooManyFunctions")
 class PdfPageU(
@@ -42,11 +49,13 @@ class PdfPageU(
     @Volatile
     internal var isClosed = false
 
-    private val nativePage: NativePage = nativeFactory.getNativePage()
+    private val nativePage: NativePageContract = nativeFactory.getNativePage()
 
     /**
-     * Open a text page
-     * @return the opened [PdfTextPage]
+     * Open a text page.
+     * For internal use only.
+     *
+     * @return the opened [PdfTextPageU]
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
     @Suppress("DEPRECATION")
@@ -54,6 +63,8 @@ class PdfPageU(
 
     /**
      * Get page width in pixels.
+     * For internal use only.
+     *
      * @param screenDpi screen DPI (Dots Per Inch)
      * @return page width in pixels
      *  @throws IllegalStateException If the page or document is closed
@@ -65,6 +76,8 @@ class PdfPageU(
 
     /**
      * Get page height in pixels.
+     * For internal use only.
+     *
      * @param screenDpi screen DPI (Dots Per Inch)
      * @return page height in pixels
      *  @throws IllegalStateException If the page or document is closed
@@ -76,6 +89,8 @@ class PdfPageU(
 
     /**
      * Get page width in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
      * @return page width in points
      *  @throws IllegalStateException If the page or document is closed
      */
@@ -85,7 +100,9 @@ class PdfPageU(
     }
 
     /**
-     * Get page height in PostScript points (1/72th of an inch)
+     * Get page height in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
      * @return page height in points
      *  @throws IllegalStateException If the page or document is closed
      */
@@ -94,6 +111,12 @@ class PdfPageU(
         return nativePage.getPageHeightPoint(pagePtr)
     }
 
+    /**
+     * Get the page's transformation matrix.
+     * For internal use only.
+     *
+     * @return A [Matrix] representing the page's transformation, or `null` if an error occurs.
+     */
     @Suppress("LongParameterList", "MagicNumber")
     fun getPageMatrix(): Matrix? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
@@ -102,7 +125,9 @@ class PdfPageU(
     }
 
     /**
-     * Get page rotation in degrees
+     * Get page rotation in degrees.
+     * For internal use only.
+     *
      * @return
      *  -1 - Error
      *  0 - No rotation.
@@ -118,8 +143,10 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's crop box in PostScript points (1/72th of an inch)
-     *  @return page crop box in points or RectF(-1, -1, -1, -1) if not present
+     * Get the page's crop box in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
+     * @return page crop box in points or RectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageCropBox(): RectF {
@@ -128,8 +155,10 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's media box in PostScript points (1/72th of an inch)
-     *  @return page media box in points or RectF(-1, -1, -1, -1) if not present
+     * Get the page's media box in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
+     * @return page media box in points or RectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageMediaBox(): RectF {
@@ -138,8 +167,10 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's bleed box in PostScript points (1/72th of an inch)
-     *  @return page bleed box in pointsor RectF(-1, -1, -1, -1) if not present
+     * Get the page's bleed box in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
+     * @return page bleed box in pointsor RectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBleedBox(): RectF {
@@ -148,8 +179,10 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's trim box in PostScript points (1/72th of an inch)
-     *  @return page trim box in points or RectF(-1, -1, -1, -1) if not present
+     * Get the page's trim box in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
+     * @return page trim box in points or RectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageTrimBox(): RectF {
@@ -158,8 +191,10 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's art box in PostScript points (1/72th of an inch)
-     *  @return page art box in points or RectF(-1, -1, -1, -1) if not present
+     * Get the page's art box in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
+     * @return page art box in points or RectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageArtBox(): RectF {
@@ -168,8 +203,10 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's bounding box in PostScript points (1/72th of an inch)
-     *  @return page bounding box in points or RectF(-1, -1, -1, -1) if not present
+     * Get the page's bounding box in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
+     * @return page bounding box in points or RectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageBoundingBox(): RectF {
@@ -178,8 +215,11 @@ class PdfPageU(
     }
 
     /**
-     *  Get the page's size in pixels
-     *  @return page size in pixels
+     * Get the page's size in pixels.
+     * For internal use only.
+     *
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return page size in pixels
      *  @throws IllegalStateException If the page or document is closed
      */
     fun getPageSize(screenDpi: Int): Size {
@@ -195,7 +235,9 @@ class PdfPageU(
     }
 
     /**
-     * Render page fragment on [Surface].<br></br>
+     * Render page fragment on [Surface]'s buffer.
+     * For internal use only.
+     *
      * @param bufferPtr Surface's buffer on which to render page
      * @param startX left position of the page in the surface
      * @param startY top position of the page in the surface
@@ -205,6 +247,7 @@ class PdfPageU(
      * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
      * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
      * You almost always want this to be white (the default)
+     * @return `true` if rendering was successful, `false` otherwise.
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList", "TooGenericExceptionCaught", "ReturnCount")
@@ -243,7 +286,9 @@ class PdfPageU(
     }
 
     /**
-     * Render page fragment on [Surface].<br></br>
+     * Render page fragment on [Surface]'s buffer with a transformation matrix.
+     * For internal use only.
+     *
      * @param bufferPtr Surface's buffer on which to render page
      * @param matrix The matrix to map the page to the surface
      * @param clipRect The rectangle to clip the page to
@@ -252,6 +297,7 @@ class PdfPageU(
      * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
      * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
      * You almost always want this to be white (the default)
+     * @return `true` if rendering was successful, `false` otherwise.
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -281,6 +327,21 @@ class PdfPageU(
         )
     }
 
+    /**
+     * Render page fragment directly on a [Surface] with a transformation matrix.
+     * For internal use only.
+     *
+     * @param surface The [Surface] on which to render the page.
+     * @param matrix The matrix to map the page to the surface.
+     * @param clipRect The rectangle to clip the page to.
+     * @param renderAnnot whether render annotation.
+     * @param textMask whether to render text as image mask - currently ignored.
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     * You almost always want this to be white (the default).
+     * @return `true` if rendering was successful, `false` otherwise.
+     * @throws IllegalStateException If the page or document is closed.
+     */
     @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface,
@@ -305,7 +366,9 @@ class PdfPageU(
     }
 
     /**
-     * Render page fragment on [Bitmap].<br></br>
+     * Render page fragment on a [Bitmap].
+     * For internal use only.
+     *
      * @param bitmap Bitmap on which to render page
      * @param startX left position of the page in the bitmap
      * @param startY top position of the page in the bitmap
@@ -322,7 +385,6 @@ class PdfPageU(
      *
      *  * ARGB_8888 - best quality, high memory usage, higher possibility of OutOfMemoryError
      *  * RGB_565 - little worse quality, 1/2 the memory usage.  Much more expensive to render
-     *
      */
     @Suppress("LongParameterList")
     fun renderPageBitmap(
@@ -353,7 +415,9 @@ class PdfPageU(
     }
 
     /**
-     * Render page fragment on [Bitmap].<br></br>
+     * Render page fragment on a [Bitmap] with a transformation matrix.
+     * For internal use only.
+     *
      * @param bitmap Bitmap on which to render page
      * @param matrix The matrix to map the page to the surface
      * @param clipRect The rectangle to clip the page to
@@ -368,7 +432,6 @@ class PdfPageU(
      *
      *  * ARGB_8888 - best quality, high memory usage, higher possibility of OutOfMemoryError
      *  * RGB_565 - little worse quality, 1/2 the memory usage.  Much more expensive to render
-     *
      */
     @Suppress("LongParameterList")
     fun renderPageBitmap(
@@ -393,7 +456,13 @@ class PdfPageU(
         )
     }
 
-    /** Get all links from given page  */
+    /**
+     * Get all links from given page.
+     * For internal use only.
+     *
+     * @return A list of [PdfDocument.Link] found on the page.
+     * @throws IllegalStateException If the page or document is closed.
+     */
     fun getPageLinks(): List<PdfDocument.Link> {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return emptyList()
         val linkPtrs = nativePage.getPageLinks(pagePtr)
@@ -413,17 +482,18 @@ class PdfPageU(
     }
 
     /**
-     * Map page coordinates to device screen coordinates
+     * Map page coordinates to device screen coordinates.
+     * For internal use only.
      *
      * @param startX    left pixel position of the display area in device coordinates
      * @param startY    top pixel position of the display area in device coordinates
      * @param sizeX     horizontal size (in pixels) for displaying the page
      * @param sizeY     vertical size (in pixels) for displaying the page
      * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
-     * 2 (rotated 180 degrees), 3 (rotated 90 degrees counter-clockwise)
+     * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param pageX     X value in page coordinates
      * @param pageY     Y value in page coordinate
-     * @return mapped coordinates
+     * @return mapped coordinates as a [Point]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -453,17 +523,18 @@ class PdfPageU(
     }
 
     /**
-     * Map device screen coordinates to page coordinates
+     * Map device screen coordinates to page coordinates.
+     * For internal use only.
      *
      * @param startX    left pixel position of the display area in device coordinates
      * @param startY    top pixel position of the display area in device coordinates
      * @param sizeX     horizontal size (in pixels) for displaying the page
      * @param sizeY     vertical size (in pixels) for displaying the page
      * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
-     * 2 (rotated 180 degrees), 3 (rotated 90 degrees counter-clockwise)
+     * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param deviceX   X value in page coordinates
      * @param deviceY   Y value in page coordinate
-     * @return mapped coordinates
+     * @return mapped coordinates as a [PointF]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -493,17 +564,18 @@ class PdfPageU(
     }
 
     /**
-     * maps a rectangle from page space to device space
+     * Maps a rectangle from page space to device space.
+     * For internal use only.
      *
      * @param startX    left pixel position of the display area in device coordinates
      * @param startY    top pixel position of the display area in device coordinates
      * @param sizeX     horizontal size (in pixels) for displaying the page
      * @param sizeY     vertical size (in pixels) for displaying the page
      * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
-     * 2 (rotated 180 degrees), 3 (rotated 90 degrees counter-clockwise)
+     * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param coords    rectangle to map
      *
-     * @return mapped coordinates
+     * @return mapped coordinates as a [Rect]
      *
      * @throws IllegalStateException If the page or document is closed
      */
@@ -546,15 +618,17 @@ class PdfPageU(
     }
 
     /**
-     * Maps a rectangle from device space to page space
+     * Maps a rectangle from device space to page space.
+     * For internal use only.
+     *
      * @param startX    left pixel position of the display area in device coordinates
      * @param startY    top pixel position of the display area in device coordinates
      * @param sizeX     horizontal size (in pixels) for displaying the page
      * @param sizeY     vertical size (in pixels) for displaying the page
      * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
-     * 2 (rotated 180 degrees), 3 (rotated 90 degrees counter-clockwise)
+     * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param coords    rectangle to map
-     * @return mapped coordinates
+     * @return mapped coordinates as a [RectF]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -592,6 +666,10 @@ class PdfPageU(
 
     /**
      * Get all attributes of a page in a single call.
+     * For internal use only.
+     *
+     * @return A [PageAttributes] object containing various properties of the page.
+     * @throws IllegalStateException If the page or document is closed.
      */
     @Suppress("MagicNumber")
     fun getPageAttributes(): PageAttributes {
@@ -642,7 +720,8 @@ class PdfPageU(
     }
 
     /**
-     * Close the page and release all resources
+     * Close the page and release all resources.
+     * For internal use only.
      */
     override fun close() {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return
@@ -663,6 +742,15 @@ class PdfPageU(
         }
     }
 
+    /**
+     * Locks the surface and retrieves its dimensions and buffer pointers.
+     * For internal use only.
+     *
+     * @param surface The [Surface] to lock.
+     * @param dimensions An [IntArray] to store the width and height of the locked surface.
+     * @param ptrs A [LongArray] to store the native window and buffer pointers.
+     * @return `true` if the surface was successfully locked, `false` otherwise.
+     */
     fun lockSurface(
         surface: Surface,
         dimensions: IntArray,
@@ -672,6 +760,12 @@ class PdfPageU(
             nativePage.lockSurface(surface, dimensions, ptrs)
         }
 
+    /**
+     * Unlocks the surface and releases the native window.
+     * For internal use only.
+     *
+     * @param ptrs A [LongArray] containing the native window and buffer pointers obtained from [lockSurface].
+     */
     fun unlockSurface(ptrs: LongArray) =
         wrapLock {
             nativePage.unlockSurface(ptrs)
@@ -680,6 +774,14 @@ class PdfPageU(
     companion object {
         private const val TAG = "PdfPage"
 
+        /**
+         * Calculates a transformation matrix to map a source rectangle to a destination rectangle.
+         * For internal use only.
+         *
+         * @param from The source [RectF].
+         * @param to The destination [RectF].
+         * @param result The [Matrix] object to store the calculated transformation. Will be reset before calculation.
+         */
         fun calculateRectTranslateMatrix(
             from: RectF?,
             to: RectF?,

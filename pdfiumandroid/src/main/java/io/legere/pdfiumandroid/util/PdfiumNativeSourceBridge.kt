@@ -3,7 +3,7 @@ package io.legere.pdfiumandroid.util
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfiumSource
 
-internal class PdfiumNativeSourceBridge(
+class PdfiumNativeSourceBridge(
     private val source: PdfiumSource,
 ) {
     private var buffer: ByteArray? = null

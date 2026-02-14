@@ -19,7 +19,7 @@ import io.legere.pdfiumandroid.util.PdfPageCacheBase
  * ```
  * val pageCache = PdfPageCache(pdfDocument) { page, textPage ->
  *     PageHolder(page, textPage)
- * }
+ * * }
  * ```
  *
  * Example usage with a custom holder:
@@ -36,10 +36,6 @@ import io.legere.pdfiumandroid.util.PdfPageCacheBase
  *             page.close()
  *         }
  *     }
- * }
- *
- * val pageCache = PdfPageCache(pdfDocument) { page, textPage ->
- *     CustomPageHolder(page, textPage, "some other data")
  * }
  * ```
  *
@@ -61,10 +57,24 @@ class PdfPageCache<H : AutoCloseable>(
     }
 }
 
+/**
+ * A generic data class that holds a [PdfPage] and its corresponding [PdfTextPage].
+ * This class implements [AutoCloseable] to ensure that both the page and text page
+ * resources are properly released when this holder is closed.
+ *
+ * @param TPage The type of the PDF page, which must implement [AutoCloseable].
+ * @param TTextPage The type of the PDF text page, which must implement [AutoCloseable].
+ * @property page The PDF page held by this instance.
+ * @property textPage The PDF text page corresponding to the held PDF page.
+ */
 data class PageHolder<TPage : AutoCloseable, TTextPage : AutoCloseable>(
     val page: TPage,
     val textPage: TTextPage,
 ) : AutoCloseable {
+    /**
+     * Closes both the [textPage] and the [page], ensuring that native resources are released.
+     * The text page is closed before the page.
+     */
     override fun close() {
         try {
             textPage.close()

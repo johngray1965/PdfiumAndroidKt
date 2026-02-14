@@ -11,8 +11,6 @@ import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument.Bookmark
 import io.legere.pdfiumandroid.PdfDocument.Meta
 import io.legere.pdfiumandroid.PdfDocument.PageCount
-import io.legere.pdfiumandroid.PdfPage
-import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.jni.NativeFactory
@@ -28,7 +26,12 @@ import java.io.Closeable
 private const val MAX_RECURSION = 16
 
 /**
- * PdfDocument represents a PDF file and allows you to load pages from it.
+ * Represents an **unlocked** PDF document and provides raw access to its pages and metadata.
+ * This class is for **internal use only** within the PdfiumAndroid library.
+ * Direct use from outside the library is not recommended as it bypasses thread-safety mechanisms.
+ *
+ * @property mNativeDocPtr The native pointer to the FPDF_DOCUMENT object.
+ * @property nativeFactory The factory to provide native interface implementations.
  */
 @Suppress("TooManyFunctions")
 class PdfDocumentU(
@@ -38,7 +41,17 @@ class PdfDocumentU(
     private val pageMap = mutableMapOf<Int, PageCount>()
     private val textPageMap = mutableMapOf<Int, PageCount>()
 
-    data class MatrixKey(
+    /**
+     * Represents a key for caching transformation matrices.
+     * For internal use only.
+     *
+     * @property pageWidth The width of the page in pixels.
+     * @property pageHeight The height of the page in pixels.
+     * @property rotation The rotation of the page.
+     * @property right The right boundary for the matrix calculation.
+     * @property bottom The bottom boundary for the matrix calculation.
+     */
+    internal data class MatrixKey(
         val pageWidth: Int,
         val pageHeight: Int,
         val rotation: Int,
@@ -48,6 +61,14 @@ class PdfDocumentU(
 
     private val matrixCache = mutableMapOf<MatrixKey, Matrix>()
 
+    /**
+     * Retrieves a cached transformation matrix or computes and caches a new one.
+     * For internal use only.
+     *
+     * @param key The [MatrixKey] used to identify the cached matrix.
+     * @param calculate A lambda function that takes a [Matrix] and computes its values if not cached.
+     * @return The cached or newly computed [Matrix].
+     */
     internal fun getCachedMatrix(
         key: MatrixKey,
         calculate: (Matrix) -> Unit,
@@ -66,8 +87,11 @@ class PdfDocumentU(
     var source: PdfiumSource? = null
 
     /**
-     *  Get the page count of the PDF document
-     *  @return the number of pages
+     * Get the page count of the PDF document.
+     * For internal use only.
+     *
+     * @return the number of pages
+     * @throws IllegalStateException if document is closed
      */
     fun getPageCount(): Int {
         if (handleAlreadyClosed(isClosed)) return 0
@@ -75,8 +99,11 @@ class PdfDocumentU(
     }
 
     /**
-     *  Get the page character counts for every page of the PDF document
-     *  @return an array of character counts
+     * Get the page character counts for every page of the PDF document.
+     * For internal use only.
+     *
+     * @return an array of character counts
+     * @throws IllegalStateException if document is closed
      */
     fun getPageCharCounts(): IntArray {
         if (handleAlreadyClosed(isClosed)) return IntArray(0)
@@ -84,10 +111,12 @@ class PdfDocumentU(
     }
 
     /**
-     * Open page and store native pointer in [PdfDocumentU]
+     * Open page and store native pointer in [PdfDocumentU].
+     * For internal use only.
+     *
      * @param pageIndex the page index
-     * @return the opened page [PdfPage]
-     * @throws IllegalArgumentException if  document is closed or the page cannot be loaded,
+     * @return the opened page [PdfPageU], or `null` if the document is closed or the page cannot be loaded.
+     * @throws IllegalArgumentException if document is closed or the page cannot be loaded,
      * RuntimeException if the page cannot be loaded
      */
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
@@ -110,7 +139,9 @@ class PdfDocumentU(
     }
 
     /**
-     * Delete page
+     * Delete page.
+     * For internal use only.
+     *
      * @param pageIndex the page index
      * @throws IllegalArgumentException if document is closed
      */
@@ -120,10 +151,13 @@ class PdfDocumentU(
     }
 
     /**
-     * Open range of pages and store native pointers in [PdfDocumentU]
+     * Open range of pages and store native pointers in [PdfDocumentU].
+     * For internal use only.
+     *
      * @param fromIndex the start index of the range
      * @param toIndex the end index of the range
-     * @return the opened pages [PdfPage]
+     * @return the opened pages [PdfPageU] list, or an empty list if the document is closed
+     * or the pages cannot be loaded.
      * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
      */
     fun openPages(
@@ -141,17 +175,22 @@ class PdfDocumentU(
     }
 
     /**
-     * Render page fragment on [Surface].<br></br>
-     * @param bufferPtr Surface's buffer on which to render page
-     * @param pages The pages to render
-     * @param matrices The matrices to map the pages to the surface
-     * @param clipRects The rectangles to clip the pages to
-     * @param renderAnnot whether render annotation
-     * @param textMask whether to render text as image mask - currently ignored
+     * Render multiple page fragments on a [Surface]'s buffer.
+     * For internal use only.
+     *
+     * @param bufferPtr Surface's buffer on which to render pages.
+     * @param drawSizeX horizontal size of the rendering area on the surface.
+     * @param drawSizeY vertical size of the rendering area on the surface.
+     * @param pages The list of [PdfPageU] to render.
+     * @param matrices The list of transformation [Matrix] for each page, mapping page coordinates
+     * to surface coordinates.
+     * @param clipRects The list of [RectF] for each page, defining the clipping area in surface coordinates.
+     * @param renderAnnot whether to render annotations.
+     * @param textMask whether to render text as an image mask - currently ignored.
      * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
      * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
-     * You almost always want this to be white (the default)
-     * @throws IllegalStateException If the page or document is closed
+     *                            You almost always want this to be white (the default).
+     * @throws IllegalStateException If the page or document is closed.
      */
     @Suppress("LongParameterList")
     fun renderPages(
@@ -181,6 +220,23 @@ class PdfDocumentU(
         )
     }
 
+    /**
+     * Render multiple page fragments directly on a [Surface].
+     * For internal use only.
+     *
+     * @param surface The [Surface] on which to render the pages.
+     * @param pages The list of [PdfPageU] to render.
+     * @param matrices The list of transformation [Matrix] for each page, mapping page coordinates
+     * to surface coordinates.
+     * @param clipRects The list of [RectF] for each page, defining the clipping area in surface coordinates.
+     * @param renderAnnot whether to render annotations.
+     * @param textMask whether to render text as an image mask - currently ignored.
+     * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
+     * @param pageBackgroundColor The color for the page background. Use 0 to not fill the background.
+     *                            You almost always want this to be white (the default).
+     * @return `true` if rendering was successful, `false` otherwise.
+     * @throws IllegalStateException If the page or document is closed.
+     */
     @Suppress("LongParameterList")
     fun renderPages(
         surface: Surface,
@@ -206,7 +262,9 @@ class PdfDocumentU(
     }
 
     /**
-     * Get metadata for given document
+     * Get metadata for given document.
+     * For internal use only.
+     *
      * @return the [Meta] data
      * @throws IllegalArgumentException if document is closed
      */
@@ -224,6 +282,14 @@ class PdfDocumentU(
         return meta
     }
 
+    /**
+     * Recursively retrieves bookmarks from the PDF document.
+     * For internal use only.
+     *
+     * @param tree The mutable list to populate with [Bookmark] objects.
+     * @param bookmarkPtr The native pointer to the current FPDF_BOOKMARK object.
+     * @param level The current recursion level to prevent stack overflow.
+     */
     internal fun recursiveGetBookmark(
         tree: MutableList<Bookmark>,
         bookmarkPtr: Long,
@@ -249,7 +315,9 @@ class PdfDocumentU(
     }
 
     /**
-     * Get table of contents (bookmarks) for given document
+     * Get table of contents (bookmarks) for given document.
+     * For internal use only.
+     *
      * @return the [Bookmark] list
      * @throws IllegalArgumentException if document is closed
      */
@@ -265,10 +333,12 @@ class PdfDocumentU(
     }
 
     /**
-     * Open a text page
-     * @param page the [PdfPage]
-     * @return the opened [PdfTextPage]
-     * @throws IllegalArgumentException if document is closed or the page cannot be loaded
+     * Open a text page.
+     * For internal use only. Prefer [PdfPageU.openTextPage].
+     *
+     * @param page the [PdfPageU]
+     * @return the opened [PdfTextPageU]
+     * @throws IllegalStateException if document is closed or the page cannot be loaded
      */
     @Deprecated("Use PdfPage.openTextPage instead", ReplaceWith("page.openTextPage()"))
     @OpenForTesting
@@ -288,10 +358,12 @@ class PdfDocumentU(
     }
 
     /**
-     * Open a range of text pages
+     * Open a range of text pages.
+     * For internal use only.
+     *
      * @param fromIndex the start index of the range
      * @param toIndex the end index of the range
-     * @return the opened [PdfTextPage] list
+     * @return the opened [PdfTextPageU] list, or an empty list if the document is closed or the pages cannot be loaded.
      * @throws IllegalArgumentException if document is closed or the pages cannot be loaded
      */
     fun openTextPages(
@@ -312,10 +384,12 @@ class PdfDocumentU(
     }
 
     /**
-     * Save document as a copy
+     * Save document as a copy.
+     * For internal use only.
+     *
      * @param callback the [PdfWriteCallback] to be called with the data
      * @param flags must be one of [FPDF_INCREMENTAL], [FPDF_NO_INCREMENTAL] or [FPDF_REMOVE_SECURITY]
-     * @return true if the document was successfully saved
+     * @return `true` if the document was successfully saved, `false` otherwise.
      * @throws IllegalArgumentException if document is closed
      */
     fun saveAsCopy(
@@ -327,7 +401,9 @@ class PdfDocumentU(
     }
 
     /**
-     * Close the document
+     * Close the document and release all resources.
+     * For internal use only.
+     *
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
@@ -344,8 +420,13 @@ class PdfDocumentU(
     companion object {
         private val TAG = PdfDocumentU::class.java.name
 
+        /** Flag for incremental save. */
         const val FPDF_INCREMENTAL = 1
+
+        /** Flag for non-incremental save. */
         const val FPDF_NO_INCREMENTAL = 2
+
+        /** Flag to remove security from the document during save. */
         const val FPDF_REMOVE_SECURITY = 3
     }
 }

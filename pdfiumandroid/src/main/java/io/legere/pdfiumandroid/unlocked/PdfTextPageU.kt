@@ -8,7 +8,7 @@ import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.WordRangeRect
 import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativeTextPage
+import io.legere.pdfiumandroid.jni.NativeTextPageContract
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.util.handleAlreadyClosed
 import java.io.Closeable
@@ -28,11 +28,15 @@ private const val RANGE_LENGTH_OFFSET = 5
 private const val RANGE_RECT_DATA_SIZE = 6
 
 /**
- * PdfTextPage is a wrapper around the native PdfiumCore text page
- * It is used to get text and other information about the text on a page
- * @property doc the PdfDocument this page belongs to
- * @property pageIndex the index of this page in the document
- * @property pagePtr the pointer to the native page
+ * Represents an **unlocked** text layer of a single page in a [PdfDocumentU].
+ * This class is for **internal use only** within the PdfiumAndroid library.
+ * Direct use from outside the library is not recommended as it bypasses thread-safety mechanisms.
+ *
+ * @property doc The parent [PdfDocumentU] this text page belongs to.
+ * @property pageIndex The 0-based index of the page this text layer corresponds to.
+ * @property pagePtr The native pointer to the FPDF_TEXTPAGE object.
+ * @property pageMap A mutable map used internally to track open page counts for the parent document.
+ * @property nativeTextPage The native interface for text page operations.
  */
 @Suppress("TooManyFunctions")
 class PdfTextPageU(
@@ -45,10 +49,12 @@ class PdfTextPageU(
     @Volatile
     private var isClosed = false
 
-    val nativeTextPage: NativeTextPage = nativeFactory.getNativeTextPage()
+    val nativeTextPage: NativeTextPageContract = nativeFactory.getNativeTextPage()
 
     /**
-     * Get character count of the page
+     * Get character count of the page.
+     * For internal use only.
+     *
      * @return the number of characters on the page
      * @throws IllegalStateException if the page or document is closed
      */
@@ -58,7 +64,9 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the text on the page
+     * Get the text on the page using a legacy method.
+     * For internal use only. Prefer `textPageGetText`.
+     *
      * @param startIndex the index of the first character to get
      * @param length the number of characters to get
      * @return the text
@@ -105,6 +113,15 @@ class PdfTextPageU(
         return null
     }
 
+    /**
+     * Get the text on the page.
+     * For internal use only.
+     *
+     * @param startIndex the index of the first character to get
+     * @param length the number of characters to get
+     * @return the text
+     * @throws IllegalStateException if the page or document is closed
+     */
     @Suppress("ReturnCount")
     fun textPageGetText(
         startIndex: Int,
@@ -128,7 +145,9 @@ class PdfTextPageU(
     }
 
     /**
-     * Get a unicode character on the page
+     * Get a unicode character on the page.
+     * For internal use only.
+     *
      * @param index the index of the character to get
      * @return the character
      * @throws IllegalStateException if the page or document is closed
@@ -143,9 +162,11 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the bounding box of a character on the page
+     * Get the bounding box of a character on the page.
+     * For internal use only.
+     *
      * @param index the index of the character to get
-     * @return the bounding box
+     * @return the bounding box as a [RectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount", "MagicNumber")
@@ -170,12 +191,14 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the index of the character at a given position on the page
-     * @param x the x position
-     * @param y the y position
+     * Get the index of the character at a given position on the page.
+     * For internal use only.
+     *
+     * @param x the x position in page coordinates
+     * @param y the y position in page coordinates
      * @param xTolerance the x tolerance
      * @param yTolerance the y tolerance
-     * @return the index of the character at the position
+     * @return the 0-based index of the character at the position, or -1 if no character is found
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
@@ -201,8 +224,10 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the count of rectangles that bound the text on the page in a given range
-     * @param startIndex the index of the first character to get
+     * Get the count of rectangles that bound the text on the page in a given range.
+     * For internal use only.
+     *
+     * @param startIndex the 0-based index of the first character to get
      * @param count the number of characters to get
      * @return the number of rectangles
      * @throws IllegalStateException if the page or document is closed
@@ -228,9 +253,11 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the bounding box of a text on the page
-     * @param rectIndex the index of the rectangle to get
-     * @return the bounding box
+     * Get the bounding box of a text rectangle on the page.
+     * For internal use only.
+     *
+     * @param rectIndex the 0-based index of the rectangle to get
+     * @return the bounding box as a [RectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("MagicNumber")
@@ -254,10 +281,13 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the bounding box of a range of texts on the page
+     * Get the bounding boxes of a range of texts on the page.
+     * For internal use only.
+     *
      * @param wordRanges an array of word ranges to get the bounding boxes for.
-     * Even indices are the start index, odd indices are the length
-     * @return list of bounding boxes with their start and length
+     *                    Even indices are the start index, odd indices are the length.
+     * @return a list of [WordRangeRect] containing bounding boxes with their start and length,
+     * or `null` if an error occurs.
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
@@ -266,7 +296,7 @@ class PdfTextPageU(
         val data = nativeTextPage.textGetRects(pagePtr, wordRanges)
         if (data != null) {
             val count = data.size / RANGE_RECT_DATA_SIZE
-// Pre-allocating the exact size avoids "resizing" overhead
+            // Pre-allocating the exact size avoids "resizing" overhead
             val wordRangeRects =
                 Array(count) { i ->
                     val offset = i * RANGE_RECT_DATA_SIZE
@@ -288,10 +318,12 @@ class PdfTextPageU(
     }
 
     /**
-     * Get the text bounded by the given rectangle
+     * Get the text bounded by the given rectangle.
+     * For internal use only.
+     *
      * @param rect the rectangle to bound the text
      * @param length the maximum number of characters to get
-     * @return the text bounded by the rectangle
+     * @return the text bounded by the rectangle as a [String], or `null` if an error occurs.
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetBoundedText(
@@ -328,7 +360,9 @@ class PdfTextPageU(
     }
 
     /**
-     * Get character font size in PostScript points (1/72th of an inch).<br></br>
+     * Get character font size in PostScript points (1/72th of an inch).
+     * For internal use only.
+     *
      * @param charIndex the index of the character to get
      * @return the font size
      * @throws IllegalStateException if the page or document is closed
@@ -338,6 +372,16 @@ class PdfTextPageU(
         return nativeTextPage.getFontSize(pagePtr, charIndex)
     }
 
+    /**
+     * Initiates a text search operation on the page.
+     * For internal use only.
+     *
+     * @param findWhat The string to search for.
+     * @param flags A set of [FindFlags] to control the search behavior.
+     * @param startIndex The 0-based index to start the search from.
+     * @return A [FindResultU] object representing the search session, or `null` if the page or document is closed.
+     * @throws IllegalStateException if the page or document is closed.
+     */
     fun findStart(
         findWhat: String,
         flags: Set<FindFlags>,
@@ -348,6 +392,13 @@ class PdfTextPageU(
         return FindResultU(nativeTextPage.findStart(pagePtr, findWhat, apiFlags, startIndex))
     }
 
+    /**
+     * Loads web links from the text page.
+     * For internal use only.
+     *
+     * @return A [PdfPageLinkU] object containing the web links, or `null` if the page or document is closed.
+     * @throws IllegalStateException if the page or document is closed.
+     */
     fun loadWebLink(): PdfPageLinkU? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         val linkPtr = nativeTextPage.loadWebLink(pagePtr)
@@ -355,7 +406,8 @@ class PdfTextPageU(
     }
 
     /**
-     * Close the page and release all resources
+     * Close the text page and release all resources.
+     * For internal use only.
      */
     override fun close() {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return

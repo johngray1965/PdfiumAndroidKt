@@ -3,7 +3,7 @@ package io.legere.pdfiumandroid.unlocked
 import android.graphics.RectF
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativePageLink
+import io.legere.pdfiumandroid.jni.NativePageLinkContract
 import io.legere.pdfiumandroid.jni.defaultNativeFactory
 import java.io.Closeable
 import java.nio.charset.StandardCharsets
@@ -13,7 +13,7 @@ class PdfPageLinkU(
     private val pageLinkPtr: Long,
     nativeFactory: NativeFactory = defaultNativeFactory,
 ) : Closeable {
-    private val nativePageLink: NativePageLink = nativeFactory.getNativePageLink()
+    private val nativePageLink: NativePageLinkContract = nativeFactory.getNativePageLink()
 
     fun countWebLinks(): Int = nativePageLink.countWebLinks(pageLinkPtr)
 

@@ -1,30 +1,30 @@
 package io.legere.pdfiumandroid.jni
 
 interface NativeFactory {
-    fun getNativeCore(): NativeCore
+    fun getNativeCore(): NativeCoreContract
 
-    fun getNativeDocument(): NativeDocument
+    fun getNativeDocument(): NativeDocumentContract
 
-    fun getNativePage(): NativePage
+    fun getNativePage(): NativePageContract
 
-    fun getNativeTextPage(): NativeTextPage
+    fun getNativeTextPage(): NativeTextPageContract
 
-    fun getNativePageLink(): NativePageLink
+    fun getNativePageLink(): NativePageLinkContract
 
-    fun getNativeFindResult(): NativeFindResult
+    fun getNativeFindResult(): NativeFindResultContract
 }
 
-val defaultNativeFactory =
+internal val defaultNativeFactory =
     object : NativeFactory {
-        override fun getNativeCore(): NativeCore = NativeCore()
+        override fun getNativeCore(): NativeCoreContract = NativeCore()
 
-        override fun getNativeDocument(): NativeDocument = NativeDocument()
+        override fun getNativeDocument(): NativeDocumentContract = NativeDocument()
 
-        override fun getNativePage(): NativePage = NativePage()
+        override fun getNativePage(): NativePageContract = NativePage()
 
-        override fun getNativeTextPage(): NativeTextPage = NativeTextPage()
+        override fun getNativeTextPage(): NativeTextPageContract = NativeTextPage()
 
-        override fun getNativePageLink(): NativePageLink = NativePageLink()
+        override fun getNativePageLink(): NativePageLinkContract = NativePageLink()
 
-        override fun getNativeFindResult(): NativeFindResult = NativeFindResult()
+        override fun getNativeFindResult(): NativeFindResultContract = NativeFindResult()
     }
