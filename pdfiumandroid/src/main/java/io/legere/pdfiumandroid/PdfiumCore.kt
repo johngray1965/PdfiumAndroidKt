@@ -546,6 +546,9 @@ class PdfiumCore(
         lock = lockManager
     }
 
+    /**
+     * @suppress
+     */
     companion object {
         private val TAG = PdfiumCore::class.java.name
 

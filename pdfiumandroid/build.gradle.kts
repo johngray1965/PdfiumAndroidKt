@@ -10,10 +10,14 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kover)
     alias(libs.plugins.gradle.publish)
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
+
     jacoco
     `maven-publish`
     signing
 }
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_21)
@@ -197,6 +201,7 @@ configure<LibraryExtension> {
 }
 
 dependencies {
+    dokkaPlugin(libs.android.documentation.plugin)
 
     compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.androidx.annotation.jvm)

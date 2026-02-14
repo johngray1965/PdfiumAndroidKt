@@ -123,7 +123,7 @@ class PdfDocumentKtF(
         }
 
     /**
-     * suspend version of [PdfDocument.openTextPages]
+     * suspend version of [PdfDocumentU.openTextPages]
      */
     suspend fun openTextPages(
         fromIndex: Int,

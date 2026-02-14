@@ -771,6 +771,9 @@ class PdfPageU(
             nativePage.unlockSurface(ptrs)
         }
 
+    /**
+     * @suppress
+     */
     companion object {
         private const val TAG = "PdfPage"
 

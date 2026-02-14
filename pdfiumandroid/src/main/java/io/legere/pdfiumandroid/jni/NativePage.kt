@@ -679,6 +679,9 @@ internal class NativePage : NativePageContract {
 
     override fun getPageAttributes(pagePtr: Long) = nativeGetPageAttributes(pagePtr)
 
+    /**
+     * @suppress
+     */
     companion object {
         @JvmStatic
         private external fun nativeClosePage(pagePtr: Long)

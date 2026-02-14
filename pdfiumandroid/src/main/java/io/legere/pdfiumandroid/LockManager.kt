@@ -18,9 +18,14 @@ interface LockManager {
      * Executes the given [block] function while holding the lock.
      */
     fun <T> withLockBlocking(block: () -> T): T
+
+    /**
+     * Returns the status of the lock.
+     */
+    fun status(): Boolean
 }
 
-class LockManagerReentrantLockImpl : LockManager {
+class LockManagerReentrantLock : LockManager {
     private val lock = ReentrantLock()
 
     override suspend fun <T> withLock(block: suspend () -> T): T {
@@ -41,10 +46,10 @@ class LockManagerReentrantLockImpl : LockManager {
         }
     }
 
-    fun status() = lock.isLocked
+    override fun status() = lock.isLocked
 }
 
-class LockManagerSplitLockImpl : LockManager {
+class LockManagerSplitLock : LockManager {
     private val lock = ReentrantLock()
     private val mutex = Mutex()
 
@@ -69,10 +74,10 @@ class LockManagerSplitLockImpl : LockManager {
         }
     }
 
-    fun status() = lock.isLocked
+    override fun status() = lock.isLocked
 }
 
-class LockManagerSuspendOnlyImpl : LockManager {
+class LockManagerSuspendOnly : LockManager {
     private val lock = ReentrantLock()
     private val mutex = Mutex()
 
@@ -92,10 +97,10 @@ class LockManagerSuspendOnlyImpl : LockManager {
         error("Not supported")
     }
 
-    fun status() = lock.isLocked
+    override fun status() = lock.isLocked
 }
 
-class LockManagerSuspendWithBlockingImpl : LockManager {
+class LockManagerSuspendWithBlocking : LockManager {
     private val lock = ReentrantLock()
     private val mutex = Mutex()
 
@@ -116,5 +121,5 @@ class LockManagerSuspendWithBlockingImpl : LockManager {
             withLock(block)
         }
 
-    fun status() = lock.isLocked
+    override fun status() = lock.isLocked
 }

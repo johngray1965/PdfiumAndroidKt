@@ -64,6 +64,9 @@ class PdfPageLinkU(
         nativePageLink.closePageLink(pageLinkPtr)
     }
 
+    /**
+     * @suppress
+     */
     companion object {
         private val TAG = PdfPageLinkU::class.java.name
     }

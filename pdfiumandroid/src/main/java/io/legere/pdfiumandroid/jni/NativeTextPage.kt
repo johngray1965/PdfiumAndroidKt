@@ -311,6 +311,9 @@ internal class NativeTextPage : NativeTextPageContract {
         charIndex: Int,
     ) = nativeGetFontSize(textPagePtr, charIndex)
 
+    /**
+     * @suppress
+     */
     companion object {
         @JvmStatic
         private external fun nativeCloseTextPage(textPagePtr: Long)

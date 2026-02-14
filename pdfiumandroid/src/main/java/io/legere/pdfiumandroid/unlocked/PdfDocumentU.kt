@@ -417,6 +417,9 @@ class PdfDocumentU(
         matrixCache.clear()
     }
 
+    /**
+     * @suppress
+     */
     companion object {
         private val TAG = PdfDocumentU::class.java.name
 

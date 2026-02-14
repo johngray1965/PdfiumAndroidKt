@@ -424,6 +424,9 @@ class PdfTextPageU(
         }
     }
 
+    /**
+     * @suppress
+     */
     companion object {
         private val TAG = PdfTextPageU::class.java.name
     }

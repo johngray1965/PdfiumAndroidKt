@@ -251,6 +251,9 @@ class PdfDocument(
         var count: Int,
     )
 
+    /**
+     * @suppress
+     */
     companion object {
         private val TAG = PdfDocument::class.java.name
 

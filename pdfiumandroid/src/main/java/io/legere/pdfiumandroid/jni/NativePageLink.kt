@@ -111,6 +111,9 @@ internal class NativePageLink : NativePageLinkContract {
         index: Int,
     ) = nativeGetTextRange(pageLinkPtr, index)
 
+    /**
+     * @suppress
+     */
     companion object {
         @JvmStatic
         private external fun nativeClosePageLink(pageLinkPtr: Long)

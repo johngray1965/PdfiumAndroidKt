@@ -7,7 +7,7 @@ import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import io.legere.pdfiumandroid.LockManager
-import io.legere.pdfiumandroid.LockManagerReentrantLockImpl
+import io.legere.pdfiumandroid.LockManagerReentrantLock
 import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfiumSource
 import io.legere.pdfiumandroid.jni.NativeCoreContract
@@ -33,7 +33,7 @@ import java.io.IOException
  * @property libraryLoader The [LibraryLoader] responsible for loading native libraries.
  */
 @Suppress("TooManyFunctions")
-class PdfiumCoreU(
+class PdfiumCoreU internal constructor(
     context: Context? = null,
     val config: Config = Config(),
     val nativeFactory: NativeFactory = defaultNativeFactory,
@@ -196,11 +196,14 @@ class PdfiumCoreU(
         lock = lockManager
     }
 
+    /**
+     * @suppress
+     */
     companion object {
         private val TAG = PdfiumCoreU::class.java.name
 
         /** The global [LockManager] instance used for thread synchronization. */
-        var lock: LockManager = LockManagerReentrantLockImpl()
+        var lock: LockManager = LockManagerReentrantLock()
 
         /** An [InitLock] to signal when native libraries are ready. */
         internal val isReady = InitLock()

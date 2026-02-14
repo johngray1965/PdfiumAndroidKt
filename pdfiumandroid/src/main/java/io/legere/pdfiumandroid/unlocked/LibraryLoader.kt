@@ -1,10 +1,10 @@
 package io.legere.pdfiumandroid.unlocked
 
-interface LibraryLoader {
+internal interface LibraryLoader {
     fun load(libName: String)
 }
 
-object SystemLibraryLoader : LibraryLoader {
+internal object SystemLibraryLoader : LibraryLoader {
     override fun load(libName: String) {
         System.loadLibrary(libName)
     }

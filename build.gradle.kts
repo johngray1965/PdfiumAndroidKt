@@ -10,4 +10,6 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.gradle.publish)
     alias(libs.plugins.benchmark) apply false
+    id("org.jetbrains.dokka") version "2.1.0"
+    id("org.jetbrains.dokka-javadoc") version "2.1.0"
 }
