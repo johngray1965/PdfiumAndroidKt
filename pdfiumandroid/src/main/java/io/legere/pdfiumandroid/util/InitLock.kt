@@ -2,7 +2,7 @@ package io.legere.pdfiumandroid.util
 
 import java.util.concurrent.CountDownLatch
 
-class InitLock {
+internal class InitLock {
     private val latch = CountDownLatch(1)
 
     fun markReady() {

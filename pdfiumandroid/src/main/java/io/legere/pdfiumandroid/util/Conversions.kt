@@ -5,7 +5,7 @@ import android.graphics.RectF
 
 private const val THREE_BY_THREE = 9
 
-fun matrixToFloatArray(matrix: Matrix): FloatArray {
+internal fun matrixToFloatArray(matrix: Matrix): FloatArray {
     val matrixValues = FloatArray(THREE_BY_THREE)
     matrix.getValues(matrixValues)
     return floatArrayOf(
@@ -18,7 +18,7 @@ fun matrixToFloatArray(matrix: Matrix): FloatArray {
     )
 }
 
-fun floatArrayToMatrix(matrixValues: FloatArray): Matrix {
+internal fun floatArrayToMatrix(matrixValues: FloatArray): Matrix {
     // Translation is performed with [1 0 0 1 tx ty].
     // Scaling is performed with [sx 0 0 sy 0 0].
     // Matrix for transformation, in the form [a b c d e f], equivalent to:
@@ -48,10 +48,10 @@ fun floatArrayToMatrix(matrixValues: FloatArray): Matrix {
     return matrix
 }
 
-fun matricesToFloatArray(matrices: Collection<Matrix>): FloatArray =
+internal fun matricesToFloatArray(matrices: Collection<Matrix>): FloatArray =
     matrices.flatMap { matrix -> matrixToFloatArray(matrix).asIterable() }.toFloatArray()
 
-fun rectToFloatArray(rect: RectF): FloatArray =
+internal fun rectToFloatArray(rect: RectF): FloatArray =
     floatArrayOf(
         rect.left,
         rect.top,
@@ -59,7 +59,7 @@ fun rectToFloatArray(rect: RectF): FloatArray =
         rect.bottom,
     )
 
-fun floatArrayToRect(rectValues: FloatArray): RectF {
+internal fun floatArrayToRect(rectValues: FloatArray): RectF {
     var i = 0
     return RectF(
         rectValues[i++],
@@ -69,7 +69,7 @@ fun floatArrayToRect(rectValues: FloatArray): RectF {
     )
 }
 
-fun rectsToFloatArray(rects: Collection<RectF>): FloatArray =
+internal fun rectsToFloatArray(rects: Collection<RectF>): FloatArray =
     rects
         .flatMap { rect ->
             rectToFloatArray(rect).asIterable()

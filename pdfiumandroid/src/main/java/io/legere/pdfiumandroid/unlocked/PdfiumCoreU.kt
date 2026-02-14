@@ -203,7 +203,7 @@ class PdfiumCoreU(
         var lock: LockManager = LockManagerReentrantLockImpl()
 
         /** An [InitLock] to signal when native libraries are ready. */
-        val isReady = InitLock()
+        internal val isReady = InitLock()
 
         // Flag to prevent double-loading
         private var isLibraryLoaded = false
