@@ -15,7 +15,7 @@ import java.io.Closeable
  * @property findResult The underlying unlocked native find result object.
  */
 @Suppress("TooManyFunctions")
-class FindResult(
+class FindResult internal constructor(
     internal val findResult: FindResultU,
 ) : Closeable {
     /**

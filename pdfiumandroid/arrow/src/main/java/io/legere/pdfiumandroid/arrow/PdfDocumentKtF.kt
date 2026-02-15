@@ -25,7 +25,7 @@ import java.io.Closeable
  * @constructor create a [PdfDocumentKtF] from a [PdfDocument]
  */
 @Suppress("TooManyFunctions", "CanBeVal")
-class PdfDocumentKtF(
+class PdfDocumentKtF internal constructor(
     internal val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {

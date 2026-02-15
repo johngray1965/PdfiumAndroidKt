@@ -30,7 +30,7 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 @Keep
-class PdfPageKt(
+class PdfPageKt internal constructor(
     internal val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {

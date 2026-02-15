@@ -17,8 +17,8 @@ import java.io.Closeable
  * @property pageLink The underlying unlocked native page link object.
  */
 @Suppress("TooManyFunctions")
-class PdfPageLink(
-    val pageLink: PdfPageLinkU,
+class PdfPageLink internal constructor(
+    internal val pageLink: PdfPageLinkU,
 ) : Closeable {
     /**
      * Counts the number of web links found on the page.

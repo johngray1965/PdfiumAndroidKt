@@ -17,7 +17,7 @@ import java.io.Closeable
  * @property pageLink The underlying unlocked native page link object.
  * @property dispatcher The [CoroutineDispatcher] to use for suspending calls.
  */
-class PdfPageLinkKt(
+class PdfPageLinkKt internal constructor(
     internal val pageLink: PdfPageLinkU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {

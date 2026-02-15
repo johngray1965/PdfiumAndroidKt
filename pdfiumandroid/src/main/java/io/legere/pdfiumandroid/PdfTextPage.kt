@@ -26,7 +26,7 @@ private const val RANGE_RECT_DATA_SIZE = 6
  * @property page the unlock page interface
  */
 @Suppress("TooManyFunctions")
-class PdfTextPage(
+class PdfTextPage internal constructor(
     internal val page: PdfTextPageU,
 ) : Closeable {
     @Volatile

@@ -30,7 +30,7 @@ private const val RECT_SIZE = 4
  * Represents a single page in a [PdfDocument].
  */
 @Suppress("TooManyFunctions")
-class PdfPage(
+class PdfPage internal constructor(
     internal val page: PdfPageU,
 ) : Closeable {
     val pageIndex: Int

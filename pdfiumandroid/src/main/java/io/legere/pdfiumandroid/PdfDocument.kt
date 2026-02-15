@@ -22,8 +22,8 @@ private const val THREE_BY_THREE = 9
  * PdfDocument represents a PDF file and allows you to load pages from it.
  */
 @Suppress("TooManyFunctions")
-class PdfDocument(
-    val document: PdfDocumentU,
+class PdfDocument internal constructor(
+    internal val document: PdfDocumentU,
 ) : Closeable {
     /**
      *  Get the page count of the PDF document

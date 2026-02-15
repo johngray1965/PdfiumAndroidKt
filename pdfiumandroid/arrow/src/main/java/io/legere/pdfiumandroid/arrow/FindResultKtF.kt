@@ -19,7 +19,7 @@ import java.io.Closeable
  * @property dispatcher The [CoroutineDispatcher] to use for suspending calls.
  */
 @Suppress("unused")
-class FindResultKtF(
+class FindResultKtF internal constructor(
     internal val findResult: FindResultU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
