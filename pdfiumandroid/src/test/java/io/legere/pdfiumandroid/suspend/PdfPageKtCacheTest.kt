@@ -1,6 +1,7 @@
 package io.legere.pdfiumandroid.suspend
 
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.CACHE_SIZE
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -8,6 +9,8 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.BeforeEach
@@ -145,4 +148,52 @@ class PdfPageKtCacheTest {
             cache.get(0)
             coVerify(exactly = 2) { pdfDocument.openPage(0) }
         }
+
+    @Test
+    fun getIfPresent() =
+        runTest {
+            val result = cache.getIfPresent(0)
+            assertThat(result).isNull()
+
+            cache.get(0)
+            val result2 = cache.getIfPresent(0)
+            assertThat(result2).isNotNull()
+
+            cache.close()
+
+//        verify(exactly = 1) { item0.page.close() }
+
+            // Fetching 0 again should trigger re-open
+            coVerify(exactly = 1) { pdfDocument.openPage(0) }
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun peek() =
+        runTest {
+            val result = cache.peek(0)
+            assertThat(result).isNull()
+
+            advanceUntilIdle()
+
+            val result2 = cache.peek(0)
+            assertThat(result2).isNotNull()
+
+            cache.close()
+
+//        verify(exactly = 1) { item0.page.close() }
+
+            // Fetching 0 again should trigger re-open
+            coVerify(exactly = 1) { pdfDocument.openPage(0) }
+        }
+
+    @Test
+    fun `cache with default size`() {
+        cache =
+            PdfPageKtCache(pdfDocument) { page, textPage ->
+                PageHolderKt(page, textPage)
+            }
+
+        assertThat(cache.maxSize).isEqualTo(CACHE_SIZE)
+    }
 }

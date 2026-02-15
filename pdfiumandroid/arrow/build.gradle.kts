@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kover)
     alias(libs.plugins.gradle.publish)
+    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka-javadoc")
     jacoco
     `maven-publish`
     signing
@@ -72,7 +74,11 @@ configure<LibraryExtension> {
 }
 
 dependencies {
+    dokkaPlugin(libs.android.documentation.plugin)
     implementation(project(":pdfiumandroid"))
+    implementation(project(":pdfiumandroid:core"))
+    dokka(project(":pdfiumandroid:api:"))
+
     compileOnly(libs.arrow.core)
     compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.androidx.annotation.jvm)

@@ -1,11 +1,11 @@
-package io.legere.pdfiumandroid.unlocked
+package io.legere.pdfiumandroid.core.unlocked
 
 import android.content.Context
 import android.os.ParcelFileDescriptor
-import io.legere.pdfiumandroid.PdfiumSource
-import io.legere.pdfiumandroid.jni.NativeCore
-import io.legere.pdfiumandroid.jni.NativeDocument
-import io.legere.pdfiumandroid.jni.NativeFactory
+import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.core.jni.NativeCore
+import io.legere.pdfiumandroid.core.jni.NativeDocument
+import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -79,7 +79,8 @@ class PdfiumCoreUTest {
     @Test
     fun `newDocument PdfiumSource  successful load`() {
         println("start newDocument PdfiumSource  successful load")
-        // Verify that a valid PdfiumSource returns a valid PdfDocumentU instance and that document.source is set to the passed source.
+        // Verify that a valid PdfiumSource returns a valid PdfDocumentU instance and that
+        // document.source is set to the passed source.
         pdfiumCore = PdfiumCoreU(context = context, nativeFactory = mockNativeFactory, libraryLoader = libraryLoader)
         every { nativeCore.openCustomDocument(any(), any(), any()) } returns 1
         every { libraryLoader.load(any()) } just runs
@@ -102,7 +103,8 @@ class PdfiumCoreUTest {
     @Test
     fun `newDocument native crash resilience`() {
         println("start newDocument native crash resilience")
-        // (Advanced) Test with malformed inputs designed to trigger native crashes (e.g. fuzzing inputs) to ensure the JNI
+        // (Advanced) Test with malformed inputs designed to trigger native crashes
+        // (e.g. fuzzing inputs) to ensure the JNI
         // layer doesn't crash the entire JVM.
         every { libraryLoader.load(any()) } throws Exception()
 

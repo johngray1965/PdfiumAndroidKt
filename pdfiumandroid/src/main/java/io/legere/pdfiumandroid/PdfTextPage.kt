@@ -3,7 +3,10 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
 
 typealias FindHandle = Long
@@ -196,18 +199,3 @@ class PdfTextPage(
         }
     }
 }
-
-@Suppress("MagicNumber")
-enum class FindFlags(
-    val value: Int,
-) {
-    MatchCase(0x00000001),
-    MatchWholeWord(0x00000002),
-    Consecutive(0x00000004),
-}
-
-data class WordRangeRect(
-    val rangeStart: Int,
-    val rangeLength: Int,
-    val rect: RectF,
-)

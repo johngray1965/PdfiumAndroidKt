@@ -1,5 +1,6 @@
 package io.legere.pdfiumandroid
 
+import com.google.common.truth.Truth.assertThat
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -138,5 +139,15 @@ class PdfPageCacheTest {
         // Fetching 0 again should trigger re-open
         cache.get(0)
         verify(exactly = 2) { pdfDocument.openPage(0) }
+    }
+
+    @Test
+    fun `cache with default size`() {
+        cache =
+            PdfPageCache(pdfDocument) { page, textPage ->
+                PageHolder(page, textPage)
+            }
+
+        assertThat(cache.maxSize).isEqualTo(CACHE_SIZE)
     }
 }

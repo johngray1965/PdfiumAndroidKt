@@ -7,14 +7,14 @@ import androidx.core.graphics.createBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.legere.pdfiumandroid.LoggerInterface
-import io.legere.pdfiumandroid.PageAttributes
+import io.legere.pdfiumandroid.api.Config
+import io.legere.pdfiumandroid.api.LoggerInterface
+import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.suspend.PdfDocumentKt
 import io.legere.pdfiumandroid.suspend.PdfPageKt
 import io.legere.pdfiumandroid.suspend.PdfPageKtCache
 import io.legere.pdfiumandroid.suspend.PdfTextPageKt
 import io.legere.pdfiumandroid.suspend.PdfiumCoreKt
-import io.legere.pdfiumandroid.util.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -10,14 +10,14 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.Logger
-import io.legere.pdfiumandroid.PageAttributes
-import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.util.Size
-import io.legere.pdfiumandroid.wrapLock
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.Logger
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -321,7 +321,7 @@ class PdfPageKt(
     /**
      * suspend version of [PdfPage.getPageLinks]
      */
-    suspend fun getPageLinks(): List<PdfDocument.Link> =
+    suspend fun getPageLinks(): List<Link> =
         wrapSuspend(dispatcher) {
             page.getPageLinks()
         }

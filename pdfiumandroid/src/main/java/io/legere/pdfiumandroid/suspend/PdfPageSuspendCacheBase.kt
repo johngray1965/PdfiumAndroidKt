@@ -10,15 +10,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
-private const val CACHE_SIZE = 64L
-
 /**
  * A thread-safe, concurrent LRU cache for PDF page objects.
  * This base class holds the core Guava LoadingCache logic.
  */
 abstract class PdfPageSuspendCacheBase<H : AutoCloseable>(
     dispatcher: CoroutineDispatcher,
-    maxSize: Long = CACHE_SIZE,
+    val maxSize: Long = CACHE_SIZE,
 ) : AutoCloseable {
     private val scope: CoroutineScope = CoroutineScope(dispatcher)
 

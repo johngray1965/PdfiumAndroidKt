@@ -1,7 +1,7 @@
 package io.legere.pdfiumandroid.arrow
 
 import arrow.core.Either
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU.Companion.lock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 

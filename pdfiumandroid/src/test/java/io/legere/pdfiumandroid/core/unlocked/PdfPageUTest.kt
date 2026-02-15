@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid.unlocked
+package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -9,17 +9,17 @@ import android.graphics.RectF
 import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PageAttributes
-import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.jni.NativeDocument
-import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativePage
-import io.legere.pdfiumandroid.jni.NativeTextPage
-import io.legere.pdfiumandroid.unlocked.testing.ClosableTestContext
-import io.legere.pdfiumandroid.unlocked.testing.closableTest
-import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
-import io.legere.pdfiumandroid.util.Size
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.api.pdfiumConfig
+import io.legere.pdfiumandroid.core.jni.NativeDocument
+import io.legere.pdfiumandroid.core.jni.NativeFactory
+import io.legere.pdfiumandroid.core.jni.NativePage
+import io.legere.pdfiumandroid.core.jni.NativeTextPage
+import io.legere.pdfiumandroid.core.unlocked.testing.ClosableTestContext
+import io.legere.pdfiumandroid.core.unlocked.testing.closableTest
+import io.legere.pdfiumandroid.core.util.PageCount
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
@@ -31,8 +31,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
-import java.lang.NullPointerException
-import kotlin.collections.emptyList
 
 @RunWith(AndroidJUnit4::class)
 @Config(manifest = Config.NONE)
@@ -73,7 +71,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun setUp() {
         PdfiumCoreU.resetForTesting()
         pdfiumConfig =
-            io.legere.pdfiumandroid.util
+            io.legere.pdfiumandroid.api
                 .Config(alreadyClosedBehavior = getBehavior())
         every { mockNativePage.closePage(any()) } just runs
         every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument
@@ -85,7 +83,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfDocumentU,
                 0,
                 0,
-                pageMap = mutableMapOf(0 to PdfDocument.PageCount(0, 2)),
+                pageMap = mutableMapOf(0 to PageCount(0, 2)),
                 nativeFactory = mockNativeFactory,
             )
         setupClosedState()
@@ -836,7 +834,8 @@ class PdfPageHappyTest : PdfPageUBaseTest() {
 
     @Test
     fun `isClosed and setClosed getter setter verification`() {
-        // Verify that setting the isClosed property updates the internal state correctly and the getter reflects this change.
+        // Verify that setting the isClosed property updates the internal state correctly
+        // and the getter reflects this change.
         assertThat(pdfPage.isClosed).isFalse()
         pdfPage.isClosed = true
         assertThat(pdfPage.isClosed).isTrue()

@@ -13,3 +13,12 @@ plugins {
     id("org.jetbrains.dokka") version "2.1.0"
     id("org.jetbrains.dokka-javadoc") version "2.1.0"
 }
+
+// Configure the root 'dokkaGenerateHtml' task for the entire project.
+// This task will automatically depend on and aggregate all 'html' publications
+// from subprojects that also have the Dokka plugin applied and configured with dokkaPublications.html.
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(layout.buildDirectory.dir("dokka/html"))
+    }
+}

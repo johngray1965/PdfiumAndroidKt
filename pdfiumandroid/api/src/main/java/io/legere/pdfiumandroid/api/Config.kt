@@ -1,8 +1,6 @@
-package io.legere.pdfiumandroid.util
+package io.legere.pdfiumandroid.api
 
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.DefaultLogger
-import io.legere.pdfiumandroid.LoggerInterface
 
 var pdfiumConfig = Config()
 
@@ -24,8 +22,9 @@ enum class AlreadyClosedBehavior {
 /**
  * Configuration class for the PdfiumAndroid library.
  *
- * @property logger The [LoggerInterface] implementation to use for logging within the library.
- *                  Defaults to [DefaultLogger].
+ * @property logger The [io.legere.pdfiumandroid.api.LoggerInterface] implementation to use for
+ * logging within the library.
+ *                  Defaults to [io.legere.pdfiumandroid.api.DefaultLogger].
  * @property alreadyClosedBehavior Defines how the library reacts when an operation is attempted
  *                                 on a PDFium object that has already been closed.
  *                                 Defaults to [AlreadyClosedBehavior.EXCEPTION].

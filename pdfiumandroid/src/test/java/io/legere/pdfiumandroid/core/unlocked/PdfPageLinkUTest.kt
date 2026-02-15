@@ -1,10 +1,10 @@
-package io.legere.pdfiumandroid.unlocked
+package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativePageLink
+import io.legere.pdfiumandroid.core.jni.NativeFactory
+import io.legere.pdfiumandroid.core.jni.NativePageLink
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule

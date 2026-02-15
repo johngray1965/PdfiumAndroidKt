@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid
+package io.legere.pdfiumandroid.api
 
 import android.util.Log
 import androidx.annotation.Keep

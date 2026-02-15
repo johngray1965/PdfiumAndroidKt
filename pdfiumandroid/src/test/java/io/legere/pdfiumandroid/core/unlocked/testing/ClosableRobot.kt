@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid.unlocked.testing
+package io.legere.pdfiumandroid.core.unlocked.testing
 
 import org.junit.jupiter.api.assertThrows
 

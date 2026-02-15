@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid
+package io.legere.pdfiumandroid.api
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex

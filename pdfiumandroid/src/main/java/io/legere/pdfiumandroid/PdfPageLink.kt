@@ -1,14 +1,17 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
 
 /**
  * Represents a collection of web links on a PDF page.
  *
- * This class wraps the native [PdfPageLinkU] object and provides thread-safe access to its methods
- * using the [wrapLock] mechanism. It allows for querying the number of web links, their URLs,
+ * This class wraps the native [io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU] object and
+ * provides thread-safe access to its methods
+ * using the [io.legere.pdfiumandroid.core.util.wrapLock] mechanism. It allows for querying the
+ * number of web links, their URLs,
  * and the bounding rectangles and text ranges associated with them.
  *
  * @property pageLink The underlying unlocked native page link object.

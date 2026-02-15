@@ -2,12 +2,13 @@ package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.FindFlags
-import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.PdfTextPage
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.core.unlocked.FindResultU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.FindResultU
-import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
-class PdfTextPageTest {
+class PdfTextPageKtTest {
     lateinit var pdfTextPage: PdfTextPageKt
 
     @MockK
@@ -34,6 +35,16 @@ class PdfTextPageTest {
         // or Main for testing, assuming PdfPageKt uses the passed dispatcher.
         pdfTextPage = PdfTextPageKt(pdfTextPageU, Dispatchers.Unconfined)
     }
+
+    @Test
+    fun testAlterConstructor() =
+        runTest {
+            val textPage = PdfTextPage(pdfTextPageU)
+            pdfTextPage = PdfTextPageKt(textPage, Dispatchers.Unconfined)
+            every { pdfTextPageU.pageIndex } returns 100
+            assertThat(pdfTextPage.pageIndex).isEqualTo(100)
+            verify { pdfTextPageU.pageIndex }
+        }
 
     @Test
     fun pageIndex() =
@@ -175,6 +186,15 @@ class PdfTextPageTest {
         runTest {
             every { pdfTextPageU.close() } just runs
             pdfTextPage.close()
+            verify { pdfTextPageU.close() }
+        }
+
+    @Test
+    fun safeCloseNormal() =
+        runTest {
+            every { pdfTextPageU.close() } just runs
+            // Verify safeClose swallows the exception
+            assertThat(pdfTextPage.safeClose()).isTrue()
             verify { pdfTextPageU.close() }
         }
 

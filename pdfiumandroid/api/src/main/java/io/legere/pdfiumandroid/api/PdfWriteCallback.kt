@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid
+package io.legere.pdfiumandroid.api
 
 /**
  * PdfWriteCallback is the calback interface for saveAsCopy

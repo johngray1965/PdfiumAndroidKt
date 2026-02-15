@@ -2,7 +2,7 @@ package io.legere.pdfiumandroid.arrow
 
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.FindResultU
+import io.legere.pdfiumandroid.core.unlocked.FindResultU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension

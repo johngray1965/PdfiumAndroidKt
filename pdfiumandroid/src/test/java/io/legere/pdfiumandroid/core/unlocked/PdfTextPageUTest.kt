@@ -1,18 +1,18 @@
-package io.legere.pdfiumandroid.unlocked
+package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.jni.NativeDocument
-import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativePage
-import io.legere.pdfiumandroid.jni.NativeTextPage
-import io.legere.pdfiumandroid.unlocked.testing.ClosableTestContext
-import io.legere.pdfiumandroid.unlocked.testing.closableTest
-import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
-import io.legere.pdfiumandroid.util.Config
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
+import io.legere.pdfiumandroid.api.Config
+import io.legere.pdfiumandroid.api.pdfiumConfig
+import io.legere.pdfiumandroid.core.jni.NativeDocument
+import io.legere.pdfiumandroid.core.jni.NativeFactory
+import io.legere.pdfiumandroid.core.jni.NativePage
+import io.legere.pdfiumandroid.core.jni.NativeTextPage
+import io.legere.pdfiumandroid.core.unlocked.testing.ClosableTestContext
+import io.legere.pdfiumandroid.core.unlocked.testing.closableTest
+import io.legere.pdfiumandroid.core.util.PageCount
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -76,7 +76,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
         // Instance creation
         pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
 
-        val pageMap = mutableMapOf(0 to PdfDocument.PageCount(100L, 2))
+        val pageMap = mutableMapOf(0 to PageCount(100L, 2))
         pdfPage = PdfPageU(pdfDocumentU, 0, 0, pageMap, mockNativeFactory)
         pdfTextPage = PdfTextPageU(pdfDocumentU, 0, 0, pageMap, mockNativeFactory)
 
@@ -370,7 +370,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
         // Logic test, generally unaffected by "state" unless setupClosedState() forced a close already
         if (isStateClosed()) return
 
-        val map = mutableMapOf(0 to PdfDocument.PageCount(100L, 2))
+        val map = mutableMapOf(0 to PageCount(100L, 2))
         val page = PdfTextPageU(pdfDocumentU, 0, 100L, map, mockNativeFactory)
 
         every { mockNativeTextPage.closeTextPage(any()) } just runs
@@ -414,7 +414,8 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
     @Test
     fun `textPageGetTextLegacy null pointer exception`() {
-        // Verify that textPageGetTextLegacy returns null and logs an error if a NullPointerException occurs (e.g., context null).
+        // Verify that textPageGetTextLegacy returns null and logs an error if a
+        // NullPointerException occurs (e.g., context null).
         every { mockNativeTextPage.textGetText(any(), any(), any(), any()) } throws NullPointerException()
         val result = pdfTextPage.textPageGetTextLegacy(0, 10)
         assertThat(result).isNull()
@@ -422,7 +423,8 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
     @Test
     fun `textPageGetTextLegacy general exception`() {
-        // Verify that textPageGetTextLegacy returns null and logs an error if the native method throws a general exception.
+        // Verify that textPageGetTextLegacy returns null and logs an error if the native method
+        // throws a general exception.
         every { mockNativeTextPage.textGetText(any(), any(), any(), any()) } throws Exception()
         val result = pdfTextPage.textPageGetTextLegacy(0, 10)
         assertThat(result).isNull()
@@ -432,7 +434,7 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
     fun `textPageGetText empty result`() {
         // Verify that textPageGetText returns an empty string if the native call returns a non-positive value.
         val expectedString = ""
-        val length = expectedString.length
+        val length = 0
 
         every { mockNativeTextPage.textGetTextByteArray(any(), any(), any(), any()) } answers {
             val buffer = arg<ByteArray>(3) // Get the ByteArray passed to the function
@@ -460,7 +462,8 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
     @Test(expected = IllegalArgumentException::class)
     fun `textPageGetUnicode invalid index`() {
-        // Verify behavior when an invalid index is provided (likely returns 0/null char or throws depending on native impl).
+        // Verify behavior when an invalid index is provided (likely returns 0/null char or throws
+        // depending on native impl).
         every { mockNativeTextPage.textGetUnicode(any(), any()) } throws IllegalArgumentException()
         val result = pdfTextPage.textPageGetUnicode(0)
         assertThat(result).isNull()
@@ -468,7 +471,8 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
     @Test
     fun `textPageGetCharBox native order correction`() {
-        // Verify that textPageGetCharBox returns a correctly populated RectF (left, top, right, bottom) for a valid character index.
+        // Verify that textPageGetCharBox returns a correctly populated
+        // RectF (left, top, right, bottom) for a valid character index.
         every { mockNativeTextPage.textGetCharBox(any(), any()) } returns
             doubleArrayOf(
                 90.314415,
@@ -494,7 +498,8 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
     @Test
     fun `textPageGetCharIndexAtPos no character found`() {
-        // Verify that textPageGetCharIndexAtPos returns -1 if no character exists at the given position within tolerance.
+        // Verify that textPageGetCharIndexAtPos returns -1 if no character exists at the given
+        // position within tolerance.
         every { mockNativeTextPage.textGetCharIndexAtPos(any(), any(), any(), any(), any()) } returns -1
 
         val result = pdfTextPage.textPageGetCharIndexAtPos(50.0, 50.0, 50.0, 50.0)

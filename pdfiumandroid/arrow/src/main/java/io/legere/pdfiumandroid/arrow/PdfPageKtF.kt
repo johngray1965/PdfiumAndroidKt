@@ -12,14 +12,14 @@ import android.view.Surface
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.legere.pdfiumandroid.Logger
-import io.legere.pdfiumandroid.PageAttributes
-import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.util.Size
-import io.legere.pdfiumandroid.wrapLock
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.Logger
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -310,7 +310,7 @@ class PdfPageKtF(
     /**
      * suspend version of [PdfPage.getPageLinks]
      */
-    suspend fun getPageLinks(): Either<PdfiumKtFErrors, List<PdfDocument.Link>> =
+    suspend fun getPageLinks(): Either<PdfiumKtFErrors, List<Link>> =
         wrapEither(dispatcher) {
             page.getPageLinks()
         }

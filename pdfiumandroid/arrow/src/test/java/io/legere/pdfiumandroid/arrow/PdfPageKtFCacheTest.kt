@@ -2,9 +2,9 @@ package io.legere.pdfiumandroid.arrow
 
 import arrow.core.right
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify

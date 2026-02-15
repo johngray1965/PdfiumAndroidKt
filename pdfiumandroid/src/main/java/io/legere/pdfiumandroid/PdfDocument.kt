@@ -8,7 +8,11 @@ import android.view.Surface
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_REMOVE_SECURITY
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
 
 private const val MAX_RECURSION = 16
@@ -165,7 +169,7 @@ class PdfDocument(
 
     /**
      * Save document as a copy
-     * @param callback the [PdfWriteCallback] to be called with the data
+     * @param callback the [io.legere.pdfiumandroid.api.PdfWriteCallback] to be called with the data
      * @param flags must be one of [FPDF_INCREMENTAL], [FPDF_NO_INCREMENTAL] or [FPDF_REMOVE_SECURITY]
      * @return true if the document was successfully saved
      * @throws IllegalArgumentException if document is closed
@@ -187,69 +191,6 @@ class PdfDocument(
             document.close()
         }
     }
-
-    /**
-     * Represents the metadata of a PDF document.
-     *
-     * @property title The document's title.
-     * @property author The document's author.
-     * @property subject The document's subject.
-     * @property keywords Keywords associated with the document.
-     * @property creator The application that created the original document.
-     * @property producer The application that converted the original document to PDF.
-     * @property creationDate The date and time the document was created.
-     * @property modDate The date and time the document was last modified.
-     */
-    data class Meta(
-        var title: String? = null,
-        var author: String? = null,
-        var subject: String? = null,
-        var keywords: String? = null,
-        var creator: String? = null,
-        var producer: String? = null,
-        var creationDate: String? = null,
-        var modDate: String? = null,
-    )
-
-    /**
-     * Represents a bookmark (table of contents entry) within a PDF document.
-     *
-     * @property children A mutable list of child bookmarks, allowing for a hierarchical structure.
-     * @property title The title of the bookmark.
-     * @property pageIdx The 0-based page index that this bookmark points to.
-     * @property mNativePtr The native pointer to the underlying FPDF_BOOKMARK object.
-     */
-    data class Bookmark(
-        val children: MutableList<Bookmark> = ArrayList(),
-        var title: String? = null,
-        var pageIdx: Long = 0,
-        var mNativePtr: Long = 0,
-    )
-
-    /**
-     * Represents a link (e.g., internal page link or URI link) found on a PDF page.
-     *
-     * @property bounds The bounding rectangle of the link on the page.
-     * @property destPageIdx The 0-based destination page index if this is an internal link,
-     * or `null` if it's a URI link.
-     * @property uri The URI string if this is a web link, or `null` if it's an internal page link.
-     */
-    class Link(
-        val bounds: RectF,
-        val destPageIdx: Int?,
-        val uri: String?,
-    )
-
-    /**
-     * A data class used internally, potentially for counting pages related to a native pointer.
-     *
-     * @property pagePtr The native pointer to a PDF page.
-     * @property count An integer count, possibly related to the number of references or similar.
-     */
-    data class PageCount(
-        val pagePtr: Long,
-        var count: Int,
-    )
 
     /**
      * @suppress

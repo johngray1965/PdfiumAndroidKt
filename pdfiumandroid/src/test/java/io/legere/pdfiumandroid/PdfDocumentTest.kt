@@ -1,8 +1,11 @@
 package io.legere.pdfiumandroid
 
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfPageU
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -54,7 +57,7 @@ class PdfDocumentTest {
     @Test
     fun deletePage() {
         every { document.deletePage(any()) } just runs
-        assertThat(pdfDocument.deletePage(0))
+        pdfDocument.deletePage(0)
         verify { document.deletePage(0) }
     }
 
@@ -80,14 +83,14 @@ class PdfDocumentTest {
 
     @Test
     fun getDocumentMeta() {
-        val expected = PdfDocument.Meta()
+        val expected = Meta()
         every { document.getDocumentMeta() } returns expected
         assertThat(pdfDocument.getDocumentMeta()).isEqualTo(expected)
     }
 
     @Test
     fun getTableOfContents() {
-        val expected = listOf(PdfDocument.Bookmark(), PdfDocument.Bookmark())
+        val expected = listOf(Bookmark(), Bookmark())
         every { document.getTableOfContents() } returns expected
         assertThat(pdfDocument.getTableOfContents()).isEqualTo(expected)
     }
@@ -109,7 +112,7 @@ class PdfDocumentTest {
     @Test
     fun close() {
         every { document.close() } just runs
-        assertThat(pdfDocument.close())
+        pdfDocument.close()
         verify { document.close() }
     }
 }

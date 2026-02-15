@@ -1,8 +1,8 @@
-package io.legere.pdfiumandroid.unlocked
+package io.legere.pdfiumandroid.core.unlocked
 
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativeFindResult
+import io.legere.pdfiumandroid.core.jni.NativeFactory
+import io.legere.pdfiumandroid.core.jni.NativeFindResult
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension

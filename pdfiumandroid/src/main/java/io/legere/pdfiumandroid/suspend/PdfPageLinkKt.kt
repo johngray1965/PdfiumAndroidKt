@@ -1,7 +1,7 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -9,7 +9,7 @@ import java.io.Closeable
  * Suspending version of [io.legere.pdfiumandroid.PdfPageLink] that provides asynchronous access
  * to web link information on a PDF page.
  *
- * This class wraps the native [PdfPageLinkU] object and dispatches its operations
+ * This class wraps the native [io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU] object and dispatches its operations
  * to a [CoroutineDispatcher] to ensure non-blocking execution.
  * It allows for querying the number of web links, their URLs, and the bounding rectangles
  * and text ranges associated with them in a suspendable manner.

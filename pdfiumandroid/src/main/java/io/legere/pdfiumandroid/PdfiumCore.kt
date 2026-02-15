@@ -8,9 +8,15 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
-import io.legere.pdfiumandroid.util.Config
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Config
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.LockManager
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU.Companion.lock
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.sync.Mutex
 import java.io.IOException
 
@@ -21,11 +27,14 @@ import java.io.IOException
  *
  * This class handles thread synchronization internally using a global lock, ensuring
  * that native PDFium calls are executed safely without race conditions.
- * For raw, unlocked access to the native API, refer to [PdfiumCoreU] (for internal library use only).
+ * For raw, unlocked access to the native API, refer to [io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU]
+ * (for internal library use only).
  *
  * @param context An Android [Context] for retrieving display metrics and other resources.
- * @param config A [Config] object to customize library behavior, such as logging and error handling.
- * @param coreInternal An internal [PdfiumCoreU] instance for raw native access. Defaults to a new instance.
+ * @param config A [io.legere.pdfiumandroid.api.Config] object to customize library behavior, such
+ * as logging and error handling.
+ * @param coreInternal An internal [io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU] instance for
+ * raw native access. Defaults to a new instance.
  */
 @Suppress("TooManyFunctions")
 class PdfiumCore(
@@ -92,7 +101,7 @@ class PdfiumCore(
         }
 
     /**
-     * Creates a new [PdfDocument] from a custom [PdfiumSource].
+     * Creates a new [PdfDocument] from a custom [io.legere.pdfiumandroid.api.PdfiumSource].
      * The document is opened without a password.
      *
      * @param data The custom data source to read the PDF file content from.
@@ -141,7 +150,7 @@ class PdfiumCore(
         ReplaceWith("pdfDocument.getTableOfContents()"),
         DeprecationLevel.WARNING,
     )
-    fun getTableOfContents(pdfDocument: PdfDocument): List<PdfDocument.Bookmark> = pdfDocument.getTableOfContents()
+    fun getTableOfContents(pdfDocument: PdfDocument): List<Bookmark> = pdfDocument.getTableOfContents()
 
     /**
      * @deprecated Use [PdfPage.openTextPage] after obtaining a [PdfPage] from [PdfDocument.openPage].
@@ -261,7 +270,7 @@ class PdfiumCore(
         ReplaceWith("pdfDocument.getDocumentMeta()"),
         DeprecationLevel.WARNING,
     )
-    fun getDocumentMeta(pdfDocument: PdfDocument): PdfDocument.Meta = pdfDocument.getDocumentMeta()
+    fun getDocumentMeta(pdfDocument: PdfDocument): Meta = pdfDocument.getDocumentMeta()
 
     /**
      * @deprecated Use [PdfPage.getPageWidthPoint] after obtaining a [PdfPage] from [PdfDocument.openPage].
@@ -477,7 +486,7 @@ class PdfiumCore(
     fun getPageLinks(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): List<PdfDocument.Link> {
+    ): List<Link> {
         pdfDocument.openPage(pageIndex).use { page ->
             return page?.getPageLinks() ?: emptyList()
         }
@@ -537,10 +546,11 @@ class PdfiumCore(
     }
 
     /**
-     * Sets the global [LockManager] for PdfiumAndroidKt.
+     * Sets the global [io.legere.pdfiumandroid.api.LockManager] for PdfiumAndroidKt.
      * This method allows custom synchronization strategies to be injected into the library.
      *
-     * @param lockManager The [LockManager] implementation to use for thread synchronization.
+     * @param lockManager The [io.legere.pdfiumandroid.api.LockManager] implementation to use for
+     * thread synchronization.
      */
     fun setLockManager(lockManager: LockManager) {
         lock = lockManager

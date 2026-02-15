@@ -2,12 +2,13 @@ package io.legere.pdfiumandroid.suspend
 
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -20,7 +21,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import kotlin.IllegalStateException
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
 class PdfDocumentTest {
@@ -111,7 +111,7 @@ class PdfDocumentTest {
     @Test
     fun getDocumentMeta() =
         runTest {
-            val expected = mockk<PdfDocument.Meta>()
+            val expected = mockk<Meta>()
             coEvery { pdfDocumentU.getDocumentMeta() } returns expected
             val result = pdfDocument.getDocumentMeta()
             assertThat(result).isEqualTo(expected)
@@ -121,7 +121,7 @@ class PdfDocumentTest {
     @Test
     fun getTableOfContents() =
         runTest {
-            val expected = listOf(mockk<PdfDocument.Bookmark>())
+            val expected = listOf(mockk<Bookmark>())
             coEvery { pdfDocumentU.getTableOfContents() } returns expected
             val result = pdfDocument.getTableOfContents()
             assertThat(result).isEqualTo(expected)

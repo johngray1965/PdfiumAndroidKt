@@ -2,7 +2,7 @@ package io.legere.pdfiumandroid.arrow
 
 import android.graphics.RectF
 import arrow.core.Either
-import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -10,7 +10,7 @@ import java.io.Closeable
  * Arrow-based suspending version of [io.legere.pdfiumandroid.PdfPageLink] that provides asynchronous
  * access to web link information on a PDF page with functional error handling.
  *
- * This class wraps the native [PdfPageLinkU] object and dispatches its operations
+ * This class wraps the native [io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU] object and dispatches its operations
  * to a [CoroutineDispatcher] using the [wrapEither] function. This ensures non-blocking
  * execution and provides robust error handling by returning results as [Either<PdfiumKtFErrors, T>].
  * It allows for querying the number of web links, their URLs, and the bounding rectangles
@@ -27,7 +27,8 @@ class PdfPageLinkKtF(
      * Suspending and Arrow-based version of [io.legere.pdfiumandroid.PdfPageLink.countWebLinks].
      * Counts the number of web links found on the page asynchronously.
      *
-     * @return An [Either] containing `PdfiumKtFErrors` on the left or the total number of web links on the page on the right.
+     * @return An [Either] containing `PdfiumKtFErrors` on the left or the total number of web links
+     * on the page on the right.
      */
     suspend fun countWebLinks(): Either<PdfiumKtFErrors, Int> =
         wrapEither(dispatcher) {
@@ -69,7 +70,8 @@ class PdfPageLinkKtF(
      *
      * @param linkIndex The 0-based index of the web link.
      * @param rectIndex The 0-based index of the rectangle within that web link.
-     * @return An [Either] containing `PdfiumKtFErrors` on the left or a [RectF] representing the bounding box on the right.
+     * @return An [Either] containing `PdfiumKtFErrors` on the left or a [RectF] representing
+     * the bounding box on the right.
      */
     suspend fun getRect(
         linkIndex: Int,

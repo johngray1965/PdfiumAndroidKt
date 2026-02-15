@@ -2,10 +2,12 @@ package io.legere.pdfiumandroid.suspend
 
 import android.os.ParcelFileDescriptor
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PdfiumSource
+import io.legere.pdfiumandroid.api.LockManager
+import io.legere.pdfiumandroid.api.LockManagerReentrantLock
+import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
@@ -30,6 +32,7 @@ class PdfiumCoreTest {
     @BeforeEach
     fun setUp() {
         core = PdfiumCoreKt(Dispatchers.Main, coreInternal = coreInternal)
+        core.setLockManager(LockManagerReentrantLock())
     }
 
     @Test
@@ -90,5 +93,14 @@ class PdfiumCoreTest {
             val result = core.newDocument(pdfiumSource, "password")
             assertThat(result.document).isEqualTo(document)
             coVerify { coreInternal.newDocument(any<PdfiumSource>(), any()) }
+        }
+
+    @Test
+    fun setLockManager() =
+        runTest {
+            val expected = mockk<LockManager>()
+            core.setLockManager(expected)
+
+            assertThat(PdfiumCoreU.lock).isEqualTo(expected)
         }
 }

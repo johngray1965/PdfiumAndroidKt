@@ -7,10 +7,16 @@ import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.LockManager
+import io.legere.pdfiumandroid.api.LockManagerReentrantLock
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.testing.ClosableTestContext
 import io.legere.pdfiumandroid.testing.nullableTest
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
@@ -18,6 +24,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,6 +49,11 @@ class PdfiumCoreBasicTest {
     @Before
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
+    }
+
+    @After
+    fun tearDown() {
+        pdfiumCore.setLockManager(LockManagerReentrantLock())
     }
 
     @Test
@@ -89,7 +101,7 @@ class PdfiumCoreBasicTest {
 
     @Test
     fun getTableOfContents() {
-        val bookmarks = listOf(mockk<PdfDocument.Bookmark>())
+        val bookmarks = listOf(mockk<Bookmark>())
         every { pdfiumCore.getTableOfContents(document) } returns bookmarks
         val result = pdfiumCore.getTableOfContents(document)
         assertThat(result).isEqualTo(bookmarks)
@@ -113,7 +125,7 @@ class PdfiumCoreBasicTest {
 
     @Test
     fun getDocumentMeta() {
-        val meta = mockk<PdfDocument.Meta>()
+        val meta = mockk<Meta>()
         every { pdfiumCore.getDocumentMeta(document) } returns meta
         val results = pdfiumCore.getDocumentMeta(document)
         assertThat(results).isEqualTo(meta)
@@ -473,7 +485,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun getPageLinks() =
         nullableTest {
-            val expected = listOf(mockk<PdfDocument.Link>())
+            val expected = listOf(mockk<Link>())
             setup {
                 every { page.getPageLinks() } returns expected
                 every { page.close() } just runs
@@ -553,6 +565,27 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
             verifyDefault {
                 assertThat(it).isEqualTo(Rect(-1, -1, -1, -1))
                 verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
+    fun setLockManager() =
+        nullableTest {
+            val expected = mockk<LockManager>()
+            setup {
+                every { page.close() } just runs
+            }
+
+            apiCall = {
+                pdfiumCore.setLockManager(expected)
+            }
+
+            verifyHappy {
+                assertThat(PdfiumCoreU.lock).isEqualTo(expected)
+            }
+
+            verifyDefault {
+                assertThat(PdfiumCoreU.lock).isEqualTo(expected)
             }
         }
 }

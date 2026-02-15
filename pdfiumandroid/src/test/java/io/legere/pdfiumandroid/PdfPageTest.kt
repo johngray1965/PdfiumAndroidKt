@@ -8,9 +8,11 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -369,7 +371,7 @@ class PdfPageTest {
 
     @Test
     fun getPageLinks() {
-        val expected = listOf(mockk<PdfDocument.Link>())
+        val expected = listOf(mockk<Link>())
         every { page.getPageLinks() } returns expected
         val result = pdfPage.getPageLinks()
         assertThat(result).isEqualTo(expected)

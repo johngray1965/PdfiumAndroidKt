@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid
+package io.legere.pdfiumandroid.api
 
 /**
  * An interface for providing custom data source to Pdfium.

@@ -7,10 +7,12 @@ import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfWriteCallback
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.wrapLock
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -109,7 +111,7 @@ class PdfDocumentKtF(
     /**
      * suspend version of [PdfDocument.getDocumentMeta]
      */
-    suspend fun getDocumentMeta(): Either<PdfiumKtFErrors, PdfDocument.Meta> =
+    suspend fun getDocumentMeta(): Either<PdfiumKtFErrors, Meta> =
         wrapEither(dispatcher) {
             document.getDocumentMeta()
         }
@@ -117,13 +119,13 @@ class PdfDocumentKtF(
     /**
      * suspend version of [PdfDocument.getTableOfContents]
      */
-    suspend fun getTableOfContents(): Either<PdfiumKtFErrors, List<PdfDocument.Bookmark>> =
+    suspend fun getTableOfContents(): Either<PdfiumKtFErrors, List<Bookmark>> =
         wrapEither(dispatcher) {
             document.getTableOfContents()
         }
 
     /**
-     * suspend version of [PdfDocumentU.openTextPages]
+     * suspend version of [io.legere.pdfiumandroid.core.unlocked.PdfDocumentU.openTextPages]
      */
     suspend fun openTextPages(
         fromIndex: Int,

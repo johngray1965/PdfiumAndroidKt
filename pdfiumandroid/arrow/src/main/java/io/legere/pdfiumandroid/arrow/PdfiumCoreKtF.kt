@@ -4,12 +4,12 @@ package io.legere.pdfiumandroid.arrow
 
 import android.os.ParcelFileDescriptor
 import arrow.core.Either
-import io.legere.pdfiumandroid.LockManager
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.PdfiumSource
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU
-import io.legere.pdfiumandroid.unlocked.PdfiumCoreU.Companion.lock
-import io.legere.pdfiumandroid.util.Config
+import io.legere.pdfiumandroid.api.Config
+import io.legere.pdfiumandroid.api.LockManager
+import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
+import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU.Companion.lock
 import kotlinx.coroutines.CoroutineDispatcher
 
 /**

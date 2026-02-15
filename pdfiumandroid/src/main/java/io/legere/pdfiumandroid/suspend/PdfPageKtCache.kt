@@ -2,9 +2,10 @@
 
 package io.legere.pdfiumandroid.suspend
 
-import io.legere.pdfiumandroid.util.CACHE_SIZE
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+
+internal const val CACHE_SIZE = 64L
 
 /**
  * A cache for pages of a PDF document, designed to be used with coroutines.

@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid
+package io.legere.pdfiumandroid.api
 
 import android.graphics.Matrix
 import android.graphics.RectF
@@ -20,7 +20,7 @@ data class PageAttributes(
     val trimBox: RectF,
     val artBox: RectF,
     val boundingBox: RectF,
-    val links: List<PdfDocument.Link>,
+    val links: List<Link>,
     val pageMatrix: Matrix,
 ) {
     companion object {

@@ -10,8 +10,11 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
 
 private const val THREE_BY_THREE = 9
@@ -359,7 +362,7 @@ class PdfPage(
     }
 
     /** Get all links from given page  */
-    fun getPageLinks(): List<PdfDocument.Link> =
+    fun getPageLinks(): List<Link> =
         wrapLock {
             page.getPageLinks()
         }
@@ -505,7 +508,7 @@ class PdfPage(
 
     /**
      * Get all attributes of a page in a single call.
-     * @return [PageAttributes]
+     * @return [io.legere.pdfiumandroid.api.PageAttributes]
      */
     fun getPageAttributes(): PageAttributes =
         wrapLock {

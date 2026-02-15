@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid.util
+package io.legere.pdfiumandroid.api
 
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
@@ -12,7 +12,7 @@ internal const val CACHE_SIZE = 64L
  * This base class holds the core Guava LoadingCache logic.
  */
 abstract class PdfPageCacheBase<H : AutoCloseable>(
-    maxSize: Long = CACHE_SIZE,
+    val maxSize: Long = CACHE_SIZE,
 ) : AutoCloseable {
     private val removalListener =
         RemovalListener<Int, H> {

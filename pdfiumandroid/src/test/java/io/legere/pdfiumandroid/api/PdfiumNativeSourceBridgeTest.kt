@@ -1,7 +1,7 @@
-package io.legere.pdfiumandroid.util
+package io.legere.pdfiumandroid.api
 
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PdfiumSource
+import io.legere.pdfiumandroid.core.util.PdfiumNativeSourceBridge
 import junit.framework.TestCase.fail
 import org.junit.Test
 
@@ -28,7 +28,7 @@ class PdfiumNativeSourceBridgeTest {
             assertThat(lastPosition).isEqualTo(1)
             assertThat(lastBufferSize).isEqualTo(2)
             assertThat(lastSize).isEqualTo(2)
-        } catch (t: Exception) {
+        } catch (_: Exception) {
             fail("Should not throw exception")
         }
     }
@@ -40,7 +40,7 @@ class PdfiumNativeSourceBridgeTest {
 
         try {
             assertThat(bridge.read(0, Long.MAX_VALUE)).isEqualTo(0)
-        } catch (t: Exception) {
+        } catch (_: Exception) {
             fail("Should not throw exception")
         }
     }
@@ -52,7 +52,7 @@ class PdfiumNativeSourceBridgeTest {
 
         try {
             assertThat(bridge.read(0, 1)).isEqualTo(0)
-        } catch (t: Exception) {
+        } catch (_: Exception) {
             fail("Should not throw exception")
         }
     }
@@ -64,7 +64,7 @@ class PdfiumNativeSourceBridgeTest {
 
         try {
             assertThat(bridge.read(0, 1)).isEqualTo(0)
-        } catch (t: Exception) {
+        } catch (_: Exception) {
             fail("Should not throw exception")
         }
     }
@@ -88,7 +88,7 @@ class PdfiumNativeSourceBridgeTest {
 
             assertThat(bridge.read(0, 2)).isEqualTo(2)
             assertThat(lastBufferSize).isEqualTo(2)
-        } catch (t: Exception) {
+        } catch (_: Exception) {
             fail("Should not throw exception")
         }
     }

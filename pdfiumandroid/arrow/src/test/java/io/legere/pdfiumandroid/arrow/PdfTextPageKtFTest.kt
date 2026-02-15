@@ -2,12 +2,12 @@ package io.legere.pdfiumandroid.arrow
 
 import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.FindFlags
-import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.WordRangeRect
 import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.FindResultU
-import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.unlocked.FindResultU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension

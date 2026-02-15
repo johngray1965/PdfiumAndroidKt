@@ -2,12 +2,13 @@ package io.legere.pdfiumandroid.arrow
 
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.PdfDocumentU
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -198,7 +199,7 @@ class PdfDocumentKtFTest {
     @Test
     fun getDocumentMeta() =
         runTest {
-            val expected = mockk<PdfDocument.Meta>()
+            val expected = mockk<Meta>()
             coEvery { pdfDocumentU.getDocumentMeta() } returns expected
             val result = pdfDocument.getDocumentMeta().getOrNull()
             assertThat(result).isEqualTo(expected)
@@ -208,7 +209,7 @@ class PdfDocumentKtFTest {
     @Test
     fun getTableOfContents() =
         runTest {
-            val expected = listOf(mockk<PdfDocument.Bookmark>())
+            val expected = listOf(mockk<Bookmark>())
             coEvery { pdfDocumentU.getTableOfContents() } returns expected
             val result = pdfDocument.getTableOfContents().getOrNull()
             assertThat(result).isEqualTo(expected)

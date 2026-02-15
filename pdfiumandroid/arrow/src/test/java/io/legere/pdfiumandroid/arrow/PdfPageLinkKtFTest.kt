@@ -3,7 +3,7 @@ package io.legere.pdfiumandroid.arrow
 import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension

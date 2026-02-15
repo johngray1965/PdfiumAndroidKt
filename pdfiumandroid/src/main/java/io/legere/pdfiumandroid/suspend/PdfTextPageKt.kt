@@ -4,12 +4,12 @@ package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.FindFlags
-import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfTextPage
-import io.legere.pdfiumandroid.WordRangeRect
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.wrapLock
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.Logger
+import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 

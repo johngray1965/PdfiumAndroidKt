@@ -1,6 +1,5 @@
 import com.android.build.api.dsl.LibraryExtension
-import com.android.build.api.dsl.ManagedVirtualDevice
-import org.gradle.kotlin.dsl.create
+import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -28,19 +27,10 @@ kotlin {
 detekt {
     config.setFrom(files("${rootProject.projectDir}/config/detekt.yml"))
 }
-val numShards: String = System.getenv("CIRCLE_NODE_TOTAL") ?: "0"
-val shardIndex: String = System.getenv("CIRCLE_NODE_INDEX") ?: "0"
-
-fun isHostArm(): Boolean {
-    val osArch = System.getProperty("os.arch")
-    return osArch.contains("aarch64") || osArch.contains("arm64")
-}
 
 configure<LibraryExtension> {
     namespace = "io.legere.pdfiumandroid"
     compileSdk = 36
-
-    ndkVersion = "29.0.13846066"
 
     defaultConfig {
         minSdk = 24
@@ -48,84 +38,12 @@ configure<LibraryExtension> {
         testInstrumentationRunnerArguments["useTestStorageService"] = "true"
 
         consumerProguardFiles("consumer-rules.pro")
-        @Suppress("UnstableApiUsage")
-        externalNativeBuild {
-            cmake {
-                cppFlags("")
-            }
-        }
         testOptions {
             execution = "ANDROIDX_TEST_ORCHESTRATOR"
             animationsDisabled = true
             unitTests {
                 isIncludeAndroidResources = true
                 isReturnDefaultValues = true
-            }
-            @Suppress("UnstableApiUsage")
-            managedDevices {
-                allDevices {
-                    create("pixel2Aosp", ManagedVirtualDevice::class) {
-                        device = "Pixel 2"
-                        apiLevel = 34
-//                        systemImageSource = "google-atd"
-                        systemImageSource = "aosp-atd"
-                    }
-                    create("pixel7GoogleApis", ManagedVirtualDevice::class) {
-                        device = "Pixel 7"
-                        apiLevel = 32
-                        systemImageSource = "google-atd"
-//                        systemImageSource = "google-atd"
-//                        systemImageSource = "aosp-atd"
-                        testedAbi =
-                            if (isHostArm()) {
-                                // On ARM hosts, prefer arm64-v8a for this device if your app supports it
-                                "arm64-v8a"
-                            } else {
-                                // On x86_64 hosts, use x86_64 to avoid translation warning
-                                "x86_64"
-                            }
-                    }
-                    create("pixelPhone", ManagedVirtualDevice::class) {
-                        device = "Pixel 7"
-                        apiLevel = 34
-                        systemImageSource = "google-atd"
-                        testedAbi =
-                            if (isHostArm()) {
-                                // On ARM hosts, prefer arm64-v8a for this device if your app supports it
-                                "arm64-v8a"
-                            } else {
-                                // On x86_64 hosts, use x86_64 to avoid translation warning
-                                "x86_64"
-                            }
-                    }
-                    // 7" Tablet
-                    create("pixelTablet7", ManagedVirtualDevice::class) {
-                        device = "Pixel Tablet" // Or a specific 7" tablet definition like "Nexus 7"
-                        apiLevel = 34
-                        systemImageSource = "google-atd"
-                    }
-                    // 10" Tablet
-                    create("pixelTablet10", ManagedVirtualDevice::class) {
-                        device = "Pixel C" // A good 10" tablet example
-                        apiLevel = 34
-                        systemImageSource = "google-atd"
-                    }
-                    // Chromebook
-//                    create("pixelbook", ManagedVirtualDevice::class) {
-//                        device = "Desktop" // A good 10" tablet example
-//                        apiLevel = 34
-//                        systemImageSource = "google-atd"
-//                    }
-                }
-                groups {
-                    // Group all the devices needed for screenshots
-                    create("screenshotDevices") {
-                        targetDevices.add(allDevices.getByName("pixelPhone"))
-                        targetDevices.add(allDevices.getByName("pixelTablet7"))
-                        targetDevices.add(allDevices.getByName("pixelTablet10"))
-//                        targetDevices.add(allDevices.getByName("pixelbook"))
-                    }
-                }
             }
         }
 
@@ -141,18 +59,6 @@ configure<LibraryExtension> {
                     )
             }
         }
-
-        testInstrumentationRunnerArguments.putAll(
-            mapOf(
-                "grant_permission_rule" to "true",
-                "clearPackageData" to "true",
-                "coverage" to "true",
-                "disableAnalytics" to "true",
-                "useTestStorageService" to "true",
-                "numShards" to numShards,
-                "shardIndex" to shardIndex,
-            ),
-        )
     }
     buildFeatures {
         buildConfig = true
@@ -172,12 +78,6 @@ configure<LibraryExtension> {
 //            isMinifyEnabled = true
 //            signingConfig = signingConfigs.getByName("debug")
 //        }
-    }
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-//            version = "4.0.3"
-        }
     }
     compileOptions {
         sourceCompatibility(JavaVersion.VERSION_21)
@@ -202,6 +102,10 @@ configure<LibraryExtension> {
 
 dependencies {
     dokkaPlugin(libs.android.documentation.plugin)
+    api(project(":pdfiumandroid:api"))
+    dokka(project(":pdfiumandroid:api:"))
+
+    implementation(project(":pdfiumandroid:core"))
 
     compileOnly(libs.kotlinx.coroutines.android)
     compileOnly(libs.androidx.annotation.jvm)
@@ -223,17 +127,8 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.truth)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.core.testing)
-    androidTestImplementation(libs.bundles.instrumented.non.ui.test)
-    androidTestImplementation(libs.ext.junit)
-    androidTestUtil(libs.androidx.orchestrator)
-    androidTestUtil(libs.androidx.test.services)
-
     kover(project(":pdfiumandroid:arrow"))
+    kover(project(":pdfiumandroid:api"))
 }
 kover {
     reports {
@@ -241,9 +136,9 @@ kover {
         filters {
             excludes {
 //                androidGeneratedClasses()
-                packages(
-                    "io.legere.pdfiumandroid.jni",
-                )
+//                packages(
+//                    "io.legere.pdfiumandroid.core.jni",
+//                )
 //                annotatedBy(
                 // compose preview
 //                    "androidx.compose.ui.tooling.preview.Preview",
@@ -261,9 +156,10 @@ kover {
                     "*.BuildConfig",
                     "*.Manifest",
                     "*.Manifest$*",
-                    "io.legere.pdfiumandroid.unlocked.SystemLibraryLoader",
-                    "io.legere.pdfiumandroid.LockManagerSplitLockImpl",
-                    "io.legere.pdfiumandroid.LockManagerSuspendOnlyImpl",
+                    "io.legere.pdfiumandroid.core.unlocked.SystemLibraryLoader",
+                    "io.legere.pdfiumandroid.api.LockManagerSplitLock",
+                    "io.legere.pdfiumandroid.api.LockManagerSuspendOnly",
+                    "io.legere.pdfiumandroid.api.LockManagerSuspendWithBlocking",
                 )
             }
         }
@@ -367,86 +263,80 @@ publishOnCentral {
 // }
 }
 
-tasks.register<JacocoReport>("jacocoAndroidTestReport") {
-    group = "Reporting"
-    description = "Generates JaCoCo coverage report for Android instrumentation tests."
+dokka {
+    dokkaPublications.html {
+        moduleName.set(project.name) // Sets the module name in the docs navigation
+        moduleVersion.set(project.version.toString()) // Optional: sets the version
 
-    // Set the execution data file from the Android instrumentation tests
-    executionData.setFrom(
-        fileTree(
-            layout.buildDirectory.dir(
-                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
-            ),
-        ) {
-            include("**/*.ec") // Adjust based on your Android Gradle Plugin version/setup
-        },
-    )
+        // ***** IMPORTANT: DO NOT set outputDirectory.set(...) here in submodules. *****
+        // The root Dokka task will handle the overall aggregated output directory.
 
-    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+        failOnWarning.set(false)
+        suppressInheritedMembers.set(false)
+        suppressObviousFunctions.set(true)
+        offlineMode.set(true)
 
-    // Set the class directories to analyze
-    classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/compileDebugJavaWithJavac/classes")) {
-            exclude("**/*")
+        // Include Markdown files if you have them for this module
+        includes.from(
+            fileTree("src/main/java") {
+                include("**/*.kt")
+            },
+        )
 
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
-            exclude($$"**/*$DefaultImpls.class") // Exclude DefaultImpls
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-            // Legacy/Fallback
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("intermediates/classes/debug")) {
-            // Fallback for newer AGP if classes are merged here
-            exclude("**/*")
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-    )
-
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
+        // Configure source sets *within* this publication for module-specific exclusions
+//        dokkaSourceSets {
+//            named("main") {
+//                // Exclude BuildConfig.kt from this module's documentation
+//                exclude("**/BuildConfig.kt")
+//                // Add other exclusion patterns here if needed
+//            }
+//            // named("test") { suppress.set(true) } // Example: suppress test docs
+//        }
     }
+    dokkaSourceSets {
+        // Example: Configuration exclusive to the 'linux' source set
 
-    dependsOn("pixelPhoneDebugAndroidTest") // Ensure instrumentation tests run before report generation
-}
+        configureEach {
+            suppress.set(false)
+            displayName.set(name)
+            documentedVisibilities.set(setOf(VisibilityModifier.Public))
+            reportUndocumented.set(false)
+            skipEmptyPackages.set(true)
+            skipDeprecated.set(false)
+            suppressGeneratedFiles.set(true)
+//            jdkVersion.set(8)
+//            languageVersion.set("1.7")
+//            apiVersion.set("1.7")
+            sourceRoots.from(file("src"))
+//            classpath.from(file("libs/dependency.jar"))
+//            samples.from("samples/Basic.kt", "samples/Advanced.kt")
 
-tasks.register<JacocoCoverageVerification>("jacocoAndroidTestCoverageVerification") {
-    group = "Reporting"
-    description = "Verifies JaCoCo coverage for Android instrumentation tests."
+            sourceLink {
+                localDirectory.set(file("src/main/java"))
+                remoteUrl("https://example.com/src")
+                remoteLineSuffix.set("#L")
+            }
 
-    executionData.setFrom(
-        fileTree(
-            layout.buildDirectory.dir(
-                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
-            ),
-        ) {
-            include("**/*.ec")
-        },
-    )
+//            externalDocumentationLinks {
+//                url = URL("https://example.com/docs/")
+//                packageListUrl = File("/path/to/package-list").toURI().toURL()
+//            }
 
-    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
-
-    classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
-            exclude("**/*")
-            include("**/io/legere/pdfiumandroid/jni/**/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-            include("**/io/legere/pdfiumandroid/jni/**/*.class")
-        },
-    )
-
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.95.toBigDecimal()
+            perPackageOption {
+//                matchingRegex.set(".*api.*")
+                suppress.set(false)
+                skipDeprecated.set(false)
+                reportUndocumented.set(false)
+                documentedVisibilities.set(
+                    setOf(
+                        VisibilityModifier.Public,
+//                        VisibilityModifier.Private,
+//                        VisibilityModifier.Protected,
+//                        VisibilityModifier.Internal,
+//                        VisibilityModifier.Package,
+                    ),
+                )
             }
         }
     }
-
-    dependsOn("pixelPhoneDebugAndroidTest")
 }

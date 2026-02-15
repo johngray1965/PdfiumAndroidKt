@@ -2,8 +2,9 @@
 
 package io.legere.pdfiumandroid
 
-import io.legere.pdfiumandroid.util.CACHE_SIZE
-import io.legere.pdfiumandroid.util.PdfPageCacheBase
+import io.legere.pdfiumandroid.api.PdfPageCacheBase
+
+internal const val CACHE_SIZE = 64L
 
 /**
  * A cache for pages of a PDF document.

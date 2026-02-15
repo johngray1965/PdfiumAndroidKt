@@ -1,6 +1,6 @@
 package io.legere.pdfiumandroid.suspend
 
-import io.legere.pdfiumandroid.unlocked.FindResultU
+import io.legere.pdfiumandroid.core.unlocked.FindResultU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -8,7 +8,7 @@ import java.io.Closeable
  * Suspending version of [io.legere.pdfiumandroid.FindResult] that provides asynchronous access
  * to text search results within a PDF page.
  *
- * This class wraps the native [FindResultU] object and dispatches its operations
+ * This class wraps the native [io.legere.pdfiumandroid.core.unlocked.FindResultU] object and dispatches its operations
  * to a [CoroutineDispatcher] to ensure non-blocking execution.
  * It allows for navigating through search results, getting the current result index,
  * and the total count of results in a suspendable manner.

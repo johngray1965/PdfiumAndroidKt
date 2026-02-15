@@ -8,12 +8,13 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PageAttributes
-import io.legere.pdfiumandroid.PdfDocument
+import io.legere.pdfiumandroid.PdfPage
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.util.Size
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -25,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
@@ -52,6 +54,22 @@ class PdfPageTest {
             // If openTextPage returns PdfTextPageKt, we need to adjust the assertion.
             // Assuming based on setup it returns a wrapper.
 
+            every { pdfPageU.openTextPage() } returns pdfTextPageU
+
+            val result = pdfPage.openTextPage()
+
+            // Result should be a suspend wrapper (PdfTextPageKt) holding the unlocked text page
+            assertThat(result).isNotNull()
+            // assertThat(result.page).isEqualTo(pdfTextPageU) // If accessing the inner prop is possible
+
+            verify { pdfPageU.openTextPage() }
+        }
+
+    @Test
+    fun testAlterConstructor() =
+        runTest {
+            val page = PdfPage(pdfPageU)
+            pdfPage = PdfPageKt(page, Dispatchers.Unconfined)
             every { pdfPageU.openTextPage() } returns pdfTextPageU
 
             val result = pdfPage.openTextPage()
@@ -261,7 +279,7 @@ class PdfPageTest {
     @Test
     fun getPageLinks() =
         runTest {
-            val links = listOf(PdfDocument.Link(bounds = mockk(), uri = "uri", destPageIdx = 1))
+            val links = listOf(Link(bounds = mockk(), uri = "uri", destPageIdx = 1))
             every { pdfPageU.getPageLinks() } returns links
 
             assertThat(pdfPage.getPageLinks()).isEqualTo(links)
@@ -334,21 +352,20 @@ class PdfPageTest {
     }
 
     @Test
-    fun safeClose() {
-        // Assuming safeClose exists as an extension or utility
-        // If it's part of the API, verify it catches exceptions
-        every { pdfPageU.close() } throws RuntimeException("Boom")
-
+    fun safeCloseNormal() =
         runTest {
-            // verify it doesn't throw
-            try {
-                pdfPage.close()
-                // If you have a specific safeClose method:
-                // pdfPage.safeClose()
-            } catch (_: Exception) {
-                // If testing 'close' behavior on exception
-            }
+            every { pdfPageU.close() } just runs
+            // Verify safeClose swallows the exception
+            assertThat(pdfPage.safeClose()).isTrue()
+            verify { pdfPageU.close() }
         }
-        // Assert logic based on your safeClose implementation
-    }
+
+    @Test
+    fun safeClose() =
+        runTest {
+            every { pdfPageU.close() } throws RuntimeException("Close failed")
+            // Verify safeClose swallows the exception
+            assertThrows<RuntimeException> { pdfPage.safeClose() }
+            verify { pdfPageU.close() }
+        }
 }

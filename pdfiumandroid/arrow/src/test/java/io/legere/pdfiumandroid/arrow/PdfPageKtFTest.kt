@@ -8,12 +8,12 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PageAttributes
-import io.legere.pdfiumandroid.PdfDocument
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
-import io.legere.pdfiumandroid.unlocked.PdfPageU
-import io.legere.pdfiumandroid.unlocked.PdfTextPageU
-import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -663,7 +663,7 @@ class PdfPageKtFTest {
     @Test
     fun getPageLinks() =
         runTest {
-            val links = listOf(PdfDocument.Link(bounds = mockk(), uri = "uri", destPageIdx = 1))
+            val links = listOf(Link(bounds = mockk(), uri = "uri", destPageIdx = 1))
             every { pdfPageU.getPageLinks() } returns links
 
             assertThat(pdfPage.getPageLinks().getOrNull()).isEqualTo(links)

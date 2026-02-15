@@ -1,17 +1,18 @@
-package io.legere.pdfiumandroid.unlocked
+package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.Matrix
 import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.PdfDocument.Meta
-import io.legere.pdfiumandroid.jni.NativeDocument
-import io.legere.pdfiumandroid.jni.NativeFactory
-import io.legere.pdfiumandroid.jni.NativeTextPage
-import io.legere.pdfiumandroid.unlocked.testing.ClosableTestContext
-import io.legere.pdfiumandroid.unlocked.testing.closableTest
-import io.legere.pdfiumandroid.util.AlreadyClosedBehavior
-import io.legere.pdfiumandroid.util.Config
-import io.legere.pdfiumandroid.util.pdfiumConfig
+import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
+import io.legere.pdfiumandroid.api.Config
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.pdfiumConfig
+import io.legere.pdfiumandroid.core.jni.NativeDocument
+import io.legere.pdfiumandroid.core.jni.NativeFactory
+import io.legere.pdfiumandroid.core.jni.NativeTextPage
+import io.legere.pdfiumandroid.core.unlocked.testing.ClosableTestContext
+import io.legere.pdfiumandroid.core.unlocked.testing.closableTest
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -549,7 +550,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
     @Test
     fun `saveAsCopy flag transmission`() =
         closableTest {
-            val mockWriter = mockk<io.legere.pdfiumandroid.PdfWriteCallback>(relaxed = true)
+            val mockWriter = mockk<PdfWriteCallback>(relaxed = true)
             val flags = 123 // Arbitrary flag
             setupHappy {
                 // Verify saveAsCopy passes the correct flags and callback
