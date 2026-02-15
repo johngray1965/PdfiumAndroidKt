@@ -7,12 +7,12 @@ import java.io.Closeable
 /**
  * Represents the result of a text search operation within a PDF page.
  *
- * This class wraps the native [io.legere.pdfiumandroid.core.unlocked.FindResultU] object and
+ * This class wraps the native find result object and
  * provides thread-safe access to its methods using the [io.legere.pdfiumandroid.core.util.wrapLock]
  * mechanism. It allows for navigating through search results, getting the current result index, and
  * the total count of results.
  *
- * @property findResult The underlying unlocked native find result object.
+ * @property findResult The underlying native find result object.
  */
 @Suppress("TooManyFunctions")
 class FindResult internal constructor(

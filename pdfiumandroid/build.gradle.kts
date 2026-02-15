@@ -101,11 +101,11 @@ configure<LibraryExtension> {
 
 dependencies {
 //    dokkaPlugin(libs.android.documentation.plugin)
-    api(project(":pdfiumandroid:api"))
 
     dokka(project(":pdfiumandroid"))
     dokka(project(":pdfiumandroid:api"))
 
+    api(project(":pdfiumandroid:api"))
     implementation(project(":pdfiumandroid:core"))
 
     compileOnly(libs.kotlinx.coroutines.android)

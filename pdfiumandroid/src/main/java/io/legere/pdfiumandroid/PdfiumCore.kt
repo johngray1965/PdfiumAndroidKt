@@ -27,7 +27,7 @@ import java.io.IOException
  *
  * This class handles thread synchronization internally using a global lock, ensuring
  * that native PDFium calls are executed safely without race conditions.
- * For raw, unlocked access to the native API, refer to [io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU]
+ * For raw access to the native API, refer to [io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU]
  * (for internal library use only).
  *
  * @param context An Android [Context] for retrieving display metrics and other resources.

@@ -8,13 +8,11 @@ import java.io.Closeable
 /**
  * Represents a collection of web links on a PDF page.
  *
- * This class wraps the native [io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU] object and
- * provides thread-safe access to its methods
- * using the [io.legere.pdfiumandroid.core.util.wrapLock] mechanism. It allows for querying the
- * number of web links, their URLs,
+ * This class provides access to web link information on a PDF page.
+ * It allows for querying the number of web links, their URLs,
  * and the bounding rectangles and text ranges associated with them.
  *
- * @property pageLink The underlying unlocked native page link object.
+ * @property pageLink The underlying native page link object.
  */
 @Suppress("TooManyFunctions")
 class PdfPageLink internal constructor(
