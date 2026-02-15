@@ -1,35 +1,21 @@
 import com.android.build.api.dsl.LibraryExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.kover)
+    id("io.legere.convention.library")
+    id("io.legere.convention.static.analysis")
+    id("io.legere.convention.kover")
     alias(libs.plugins.gradle.publish)
-    id("org.jetbrains.dokka")
-    id("org.jetbrains.dokka-javadoc")
+//    id("org.jetbrains.dokka")
+//    id("org.jetbrains.dokka-javadoc")
 
     jacoco
     `maven-publish`
     signing
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-        freeCompilerArgs.add("-Xstring-concat=inline")
-    }
-}
-
-detekt {
-    config.setFrom(files("${rootProject.projectDir}/config/detekt.yml"))
-}
-
 configure<LibraryExtension> {
     namespace = "io.legere.pdfiumandroid"
-    compileSdk = 36
 
     defaultConfig {
         minSdk = 24
@@ -102,8 +88,8 @@ configure<LibraryExtension> {
 dependencies {
 //    dokkaPlugin(libs.android.documentation.plugin)
 
-    dokka(project(":pdfiumandroid"))
-    dokka(project(":pdfiumandroid:api"))
+//    dokka(project(":pdfiumandroid"))
+//    dokka(project(":pdfiumandroid:api"))
 
     api(project(":pdfiumandroid:api"))
     implementation(project(":pdfiumandroid:core"))

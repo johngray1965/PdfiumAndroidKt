@@ -1,0 +1,3 @@
+<lint>
+    <issue id="LogNotTimber"  severity="ignore"/>
+</lint>

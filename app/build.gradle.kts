@@ -1,18 +1,10 @@
 import com.android.build.api.dsl.ApplicationExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    id("com.android.application")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.ktlint)
-}
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-    }
+    id("io.legere.convention.application.compose")
+    id("io.legere.convention.hilt")
+    id("io.legere.convention.static.analysis")
+    id("io.legere.convention.kover")
 }
 
 configure<ApplicationExtension> {
@@ -45,29 +37,6 @@ configure<ApplicationExtension> {
 //            matchingFallbacks += listOf("release")
 //        }
     }
-    compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_21)
-        targetCompatibility(JavaVersion.VERSION_21)
-    }
-
-    buildFeatures {
-        resValues = true
-        compose = true
-    }
-
-    packaging {
-        resources {
-            excludes +=
-                setOf(
-                    "/META-INF/{AL2.0,LGPL2.1}",
-                )
-        }
-    }
-
-    lint {
-        abortOnError = true
-        disable += "NotificationPermission"
-    }
 }
 configurations {
     configureEach {
@@ -76,6 +45,7 @@ configurations {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(project(":pdfiumandroid"))
     implementation(libs.androidx.core.ktx)
@@ -83,11 +53,6 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.graphics)
-    implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material3)
 
     implementation(libs.coil.compose)
     implementation(libs.compose.glide)
@@ -100,10 +65,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(platform(libs.compose.bom))
-    androidTestImplementation(libs.compose.ui.test.junit4)
-    debugImplementation(libs.compose.ui.tooling)
-    debugImplementation(libs.compose.ui.test.manifest)
 }
 
 // allprojects {

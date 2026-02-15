@@ -9,7 +9,7 @@ detekt_version = "1.23.8"
 kover_version = "0.9.7"
 ktlint_version = "14.0.1"
 activity-compose = "1.12.4"
-compose-bom = "2026.02.00"
+compose_bom_version = "2026.02.00"
 androidx-junit = "1.3.0"
 appcompat = "1.7.1"
 coil-compose = "2.7.0"
@@ -37,17 +37,32 @@ testServices = "1.6.0"
 mockk = "1.14.9"
 
 benchmark = "1.5.0-alpha03"
+googleServices = "4.4.4"
+detektGradlePlugin = "1.23.8"
+
+firebaseCrashlyticsGradle = "3.0.6"
+navigationSafeArgsGradlePlugin = "2.9.7"
+androidJunit5 = "2.0.1"
+desugar_jdk_libs = "2.1.5"
+lifecycleVersion = "2.10.0"
+hiltCompiler = "1.3.0"
+
+slf4jAndroid = "2.0.17-0"
+slf4jApi = "2.0.17"
 
 [libraries]
 android-documentation-plugin = { module = "org.jetbrains.dokka:android-documentation-plugin", version.ref = "androidDocumentationPlugin" }
-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
-compose-ui = { module = "androidx.compose.ui:ui" }
-compose-ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-bom= { module = "androidx.compose:compose-bom", version.ref = "compose_bom_version" }
+androidx-compose-ui =  { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+androidx-compose-ui-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleVersion" }
+
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
@@ -58,8 +73,6 @@ ext-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-junit"
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil-compose" }
 compose-glide = { module = "com.github.bumptech.glide:compose", version.ref = "glide" }
-hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt-android" }
-hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-android" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin-stdlib" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-android" }
@@ -86,6 +99,31 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine" }
 junit-platform-launcher = { group = "org.junit.platform",  name="junit-platform-launcher" }
 junit-vintage-engine = { group = "org.junit.vintage",  name="junit-vintage-engine" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "gradleplugin" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin_version" }
+detekt-gradlePlugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detektGradlePlugin" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
+com-google-devtools-ksp-gradle-plugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp_version" }
+androidx-baselineprofile-gradle-plugin = { module = "androidx.baselineprofile:androidx.baselineprofile.gradle.plugin", version.ref = "benchmark" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover_version" }
+kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin_version" }
+android-test-extensions = { module = "de.mannodermaus.junit5:android-test-extensions", version.ref = "androidJunit5" }
+
+firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
+navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationSafeArgsGradlePlugin" }
+android-junit5 = { module = "de.mannodermaus.gradle.plugins:android-junit5", version.ref = "androidJunit5" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
+
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt-android" }
+
+androidx-hilt-compiler = { module = "androidx.hilt:hilt-compiler", version.ref = "hiltCompiler" }
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt_version" }
+hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hilt_version" }
+hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hilt_version" }
+hilt-android-testing = { module = "com.google.dagger:hilt-android-testing", version.ref = "hilt_version" }
+
+slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
 
 [bundles]
 test = ["junit","truth","mockk-android",  "mockk-agent",  "kotlinx-coroutines-test", "robolectric"]

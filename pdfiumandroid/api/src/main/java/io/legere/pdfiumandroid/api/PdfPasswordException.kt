@@ -1,4 +1,4 @@
-package io.legere.pdfiumandroid.core.util
+package io.legere.pdfiumandroid.api
 
 import java.io.IOException
 

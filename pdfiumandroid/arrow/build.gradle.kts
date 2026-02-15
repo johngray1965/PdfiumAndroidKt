@@ -1,15 +1,15 @@
 import com.android.build.api.dsl.LibraryExtension
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.kover)
+    id("io.legere.convention.library")
+    id("io.legere.convention.static.analysis")
+    id("io.legere.convention.kover")
+    id("io.legere.convention.junit5")
+
     alias(libs.plugins.gradle.publish)
-    id("org.jetbrains.dokka")
-    id("org.jetbrains.dokka-javadoc")
+//    id("org.jetbrains.dokka")
+//    id("org.jetbrains.dokka-javadoc")
     jacoco
     `maven-publish`
     signing
@@ -18,51 +18,10 @@ jacoco {
     toolVersion = "0.8.13"
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-    }
-}
-
 configure<LibraryExtension> {
     namespace = "io.legere.pdfiumandroid.arrow"
-    compileSdk = 36
-
     defaultConfig {
-        minSdk = 24
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-
-        testOptions {
-            animationsDisabled = true
-            unitTests {
-                isIncludeAndroidResources = true
-                isReturnDefaultValues = true
-            }
-        }
-    }
-
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-        }
-        debug {
-            enableAndroidTestCoverage = true
-        }
-    }
-    compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_21)
-        targetCompatibility(JavaVersion.VERSION_21)
-    }
-    testOptions {
-        unitTests.all {
-            it.useJUnitPlatform()
-        }
     }
     publishing {
         singleVariant("release") {
@@ -74,10 +33,11 @@ configure<LibraryExtension> {
 }
 
 dependencies {
-    dokkaPlugin(libs.android.documentation.plugin)
+//    dokkaPlugin(libs.android.documentation.plugin)
+//    dokka(project(":pdfiumandroid:api:"))
     implementation(project(":pdfiumandroid"))
+    api(project(":pdfiumandroid:api"))
     implementation(project(":pdfiumandroid:core"))
-    dokka(project(":pdfiumandroid:api:"))
 
     compileOnly(libs.arrow.core)
     compileOnly(libs.kotlinx.coroutines.android)
