@@ -1,5 +1,4 @@
 import com.android.build.api.dsl.LibraryExtension
-import org.jetbrains.dokka.gradle.engine.parameters.VisibilityModifier
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -101,9 +100,11 @@ configure<LibraryExtension> {
 }
 
 dependencies {
-    dokkaPlugin(libs.android.documentation.plugin)
+//    dokkaPlugin(libs.android.documentation.plugin)
     api(project(":pdfiumandroid:api"))
-    dokka(project(":pdfiumandroid:api:"))
+
+    dokka(project(":pdfiumandroid"))
+    dokka(project(":pdfiumandroid:api"))
 
     implementation(project(":pdfiumandroid:core"))
 
@@ -263,80 +264,108 @@ publishOnCentral {
 // }
 }
 
-dokka {
-    dokkaPublications.html {
-        moduleName.set(project.name) // Sets the module name in the docs navigation
-        moduleVersion.set(project.version.toString()) // Optional: sets the version
-
-        // ***** IMPORTANT: DO NOT set outputDirectory.set(...) here in submodules. *****
-        // The root Dokka task will handle the overall aggregated output directory.
-
-        failOnWarning.set(false)
-        suppressInheritedMembers.set(false)
-        suppressObviousFunctions.set(true)
-        offlineMode.set(true)
-
-        // Include Markdown files if you have them for this module
-        includes.from(
-            fileTree("src/main/java") {
-                include("**/*.kt")
-            },
-        )
-
-        // Configure source sets *within* this publication for module-specific exclusions
-//        dokkaSourceSets {
-//            named("main") {
-//                // Exclude BuildConfig.kt from this module's documentation
-//                exclude("**/BuildConfig.kt")
-//                // Add other exclusion patterns here if needed
-//            }
-//            // named("test") { suppress.set(true) } // Example: suppress test docs
+// dokka {
+//    dokkaPublications.html {
+// //        moduleName.set(project.name)
+// //        moduleVersion.set(project.version.toString())
+//        outputDirectory.set(layout.buildDirectory.dir("dokka/html"))
+//        failOnWarning.set(false)
+//        suppressInheritedMembers.set(false)
+//        suppressObviousFunctions.set(true)
+//        offlineMode.set(true)
+//        Configuring
+//    }
+//    dokkaSourceSets {
+// //        named("debug") {
+// //            sourceRoots.from(file("src/main/java"))
+// //        }
+//        configureEach {
+//            println("Configuring $name")
+//            suppress.set(false)
+//            displayName.set(name)
+//            documentedVisibilities.set(setOf(VisibilityModifier.Public))
+//            reportUndocumented.set(false)
+//            skipEmptyPackages.set(true)
+//            skipDeprecated.set(false)
+//            suppressGeneratedFiles.set(true)
 //        }
-    }
-    dokkaSourceSets {
-        // Example: Configuration exclusive to the 'linux' source set
+//    }
+// }
 
-        configureEach {
-            suppress.set(false)
-            displayName.set(name)
-            documentedVisibilities.set(setOf(VisibilityModifier.Public))
-            reportUndocumented.set(false)
-            skipEmptyPackages.set(true)
-            skipDeprecated.set(false)
-            suppressGeneratedFiles.set(true)
-//            jdkVersion.set(8)
-//            languageVersion.set("1.7")
-//            apiVersion.set("1.7")
-            sourceRoots.from(file("src"))
-//            classpath.from(file("libs/dependency.jar"))
-//            samples.from("samples/Basic.kt", "samples/Advanced.kt")
-
-            sourceLink {
-                localDirectory.set(file("src/main/java"))
-                remoteUrl("https://example.com/src")
-                remoteLineSuffix.set("#L")
-            }
-
-//            externalDocumentationLinks {
-//                url = URL("https://example.com/docs/")
-//                packageListUrl = File("/path/to/package-list").toURI().toURL()
-//            }
-
-            perPackageOption {
-//                matchingRegex.set(".*api.*")
-                suppress.set(false)
-                skipDeprecated.set(false)
-                reportUndocumented.set(false)
-                documentedVisibilities.set(
-                    setOf(
-                        VisibilityModifier.Public,
-//                        VisibilityModifier.Private,
-//                        VisibilityModifier.Protected,
-//                        VisibilityModifier.Internal,
-//                        VisibilityModifier.Package,
-                    ),
-                )
-            }
-        }
-    }
-}
+// dokka {
+//    dokkaPublications.html {
+// //        moduleName.set(project.name) // Sets the module name in the docs navigation
+// //        moduleVersion.set(project.version.toString()) // Optional: sets the version
+// //
+// //        // ***** IMPORTANT: DO NOT set outputDirectory.set(...) here in submodules. *****
+// //        // The root Dokka task will handle the overall aggregated output directory.
+// //
+// //        failOnWarning.set(false)
+// //        suppressInheritedMembers.set(false)
+// //        suppressObviousFunctions.set(true)
+// //        offlineMode.set(true)
+//
+//        // Include Markdown files if you have them for this module
+//        includes.from(
+//            fileTree("src/main/java") {
+//                include("**/*.kt")
+//            },
+//        )
+//
+//        // Configure source sets *within* this publication for module-specific exclusions
+// //        dokkaSourceSets {
+// //            named("main") {
+// //                // Exclude BuildConfig.kt from this module's documentation
+// // //                exclude("**/BuildConfig.kt")
+// //                // Add other exclusion patterns here if needed
+// //            }
+// //            named("test") { suppress.set(true) } // Example: suppress test docs
+// //        }
+//    }
+// //    dokkaSourceSets {
+// //        // Example: Configuration exclusive to the 'linux' source set
+// //
+// //        configureEach {
+// //            suppress.set(false)
+// //            displayName.set(name)
+// //            documentedVisibilities.set(setOf(VisibilityModifier.Public))
+// //            reportUndocumented.set(false)
+// //            skipEmptyPackages.set(true)
+// //            skipDeprecated.set(false)
+// //            suppressGeneratedFiles.set(true)
+// // //            jdkVersion.set(8)
+// // //            languageVersion.set("1.7")
+// // //            apiVersion.set("1.7")
+// //            sourceRoots.from(file("src"))
+// // //            classpath.from(file("libs/dependency.jar"))
+// // //            samples.from("samples/Basic.kt", "samples/Advanced.kt")
+// //
+// //            sourceLink {
+// //                localDirectory.set(file("src/main/java"))
+// //                remoteUrl("https://example.com/src")
+// //                remoteLineSuffix.set("#L")
+// //            }
+// //
+// // //            externalDocumentationLinks {
+// // //                url = URL("https://example.com/docs/")
+// // //                packageListUrl = File("/path/to/package-list").toURI().toURL()
+// // //            }
+// //
+// //            perPackageOption {
+// // //                matchingRegex.set(".*api.*")
+// //                suppress.set(false)
+// //                skipDeprecated.set(false)
+// //                reportUndocumented.set(false)
+// //                documentedVisibilities.set(
+// //                    setOf(
+// //                        VisibilityModifier.Public,
+// // //                        VisibilityModifier.Private,
+// // //                        VisibilityModifier.Protected,
+// // //                        VisibilityModifier.Internal,
+// // //                        VisibilityModifier.Package,
+// //                    ),
+// //                )
+// //            }
+// //        }
+// //    }
+// }
