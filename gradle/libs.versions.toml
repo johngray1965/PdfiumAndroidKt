@@ -108,7 +108,7 @@ androidx-baselineprofile-gradle-plugin = { module = "androidx.baselineprofile:an
 kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover_version" }
 kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin_version" }
 android-test-extensions = { module = "de.mannodermaus.junit5:android-test-extensions", version.ref = "androidJunit5" }
-
+publish-on-central-gradle-plugin = { module = "org.danilopianini.publish-on-central:org.danilopianini.publish-on-central.gradle.plugin", version.ref = "publish_on_central" }
 firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
 navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationSafeArgsGradlePlugin" }
 android-junit5 = { module = "de.mannodermaus.gradle.plugins:android-junit5", version.ref = "androidJunit5" }

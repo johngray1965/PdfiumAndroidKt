@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.com.google.devtools.ksp.gradle.plugin)
     implementation(libs.androidx.baselineprofile.gradle.plugin)
     implementation(libs.kover.gradle.plugin)
+    implementation(libs.publish.on.central.gradle.plugin)
 }
 
 gradlePlugin {
@@ -83,6 +84,11 @@ gradlePlugin {
         create("junit5") {
             id = "io.legere.convention.junit5"
             implementationClass = "io.legere.convention.Junit5ConventionPlugin"
+        }
+
+        create("publish") {
+            id = "io.legere.convention.publish"
+            implementationClass = "io.legere.convention.PublishConventionPlugin"
         }
     }
 }
