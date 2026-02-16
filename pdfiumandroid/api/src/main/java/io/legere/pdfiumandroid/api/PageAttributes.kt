@@ -1,6 +1,5 @@
 package io.legere.pdfiumandroid.api
 
-import android.graphics.Matrix
 import android.graphics.RectF
 import androidx.annotation.Keep
 
@@ -21,7 +20,7 @@ data class PageAttributes(
     val artBox: RectF,
     val boundingBox: RectF,
     val links: List<Link>,
-    val pageMatrix: Matrix,
+    val pageMatrix: ImmutableMatrix,
 ) {
     companion object {
         /**
@@ -41,7 +40,7 @@ data class PageAttributes(
                 artBox = RectF(),
                 boundingBox = RectF(),
                 links = emptyList(),
-                pageMatrix = Matrix(),
+                pageMatrix = ImmutableMatrix(),
             )
     }
 }

@@ -8,6 +8,7 @@ import android.os.ParcelFileDescriptor
 import android.view.Surface
 import androidx.annotation.OpenForTesting
 import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.ImmutableMatrix
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
@@ -59,7 +60,7 @@ class PdfDocumentU(
         val bottom: Int,
     )
 
-    private val matrixCache = mutableMapOf<MatrixKey, Matrix>()
+    private val matrixCache = mutableMapOf<MatrixKey, ImmutableMatrix>()
 
     /**
      * Retrieves a cached transformation matrix or computes and caches a new one.
@@ -72,9 +73,9 @@ class PdfDocumentU(
     internal fun getCachedMatrix(
         key: MatrixKey,
         calculate: (Matrix) -> Unit,
-    ): Matrix =
+    ): ImmutableMatrix =
         matrixCache.getOrPut(key) {
-            Matrix().also(calculate)
+            ImmutableMatrix(Matrix().also(calculate))
         }
 
     private val nativeDocument = nativeFactory.getNativeDocument()

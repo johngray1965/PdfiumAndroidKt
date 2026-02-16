@@ -10,6 +10,7 @@ import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
+import io.legere.pdfiumandroid.api.ImmutableMatrix
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.pdfiumConfig
@@ -799,21 +800,23 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                         RectF(20.0f, 21.0f, 22.0f, 23.0f),
                         RectF(24.0f, 25.0f, 26.0f, 27.0f),
                         emptyList(),
-                        Matrix().apply {
-                            setValues(
-                                floatArrayOf(
-                                    2.0f,
-                                    0.0f,
-                                    28.0f,
-                                    0.0f,
-                                    1.0f,
-                                    29.0f,
-                                    0.0f,
-                                    0.0f,
-                                    1.0f,
-                                ),
-                            )
-                        },
+                        ImmutableMatrix(
+                            Matrix().apply {
+                                setValues(
+                                    floatArrayOf(
+                                        2.0f,
+                                        0.0f,
+                                        28.0f,
+                                        0.0f,
+                                        1.0f,
+                                        29.0f,
+                                        0.0f,
+                                        0.0f,
+                                        1.0f,
+                                    ),
+                                )
+                            },
+                        ),
                     ),
                 )
             }
