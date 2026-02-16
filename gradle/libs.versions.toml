@@ -19,7 +19,7 @@ core-testing = "2.2.0"
 espresso-core = "3.7.0"
 hilt-android = "2.59.1"
 junit = "4.13.2"
-junitBom = "6.0.2"
+junitBom = "6.0.3"
 robolectric = "4.16.1"
 
 kotlinx-coroutines-android = "1.10.2"

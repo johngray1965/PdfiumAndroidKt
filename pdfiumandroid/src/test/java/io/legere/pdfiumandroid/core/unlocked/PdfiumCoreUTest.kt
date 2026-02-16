@@ -49,10 +49,10 @@ class PdfiumCoreUTest {
     }
 
     @Test
-    fun `newDocument fd  successful load`() {
+    fun `newDocument fd successful load`() {
         // Verify that a valid, unencrypted PDF loaded via ParcelFileDescriptor returns a non-null PdfDocumentU instance
         // and that the document.parcelFileDescriptor property is correctly set.
-        println("start newDocument fd  successful load")
+        println("start newDocument fd successful load")
         pdfiumCore = PdfiumCoreU(context = context, nativeFactory = mockNativeFactory, libraryLoader = libraryLoader)
         every { nativeCore.openDocument(any(), any()) } returns 1
         pdfiumCore.newDocument(
@@ -62,35 +62,34 @@ class PdfiumCoreUTest {
                 every { close() } just runs
             },
         )
-        println("end newDocument fd  successful load")
+        println("end newDocument fd successful load")
     }
 
     @Test
-    fun `newDocument byteArray  successful load`() {
-        println("start newDocument byteArray  successful load")
+    fun `newDocument byteArray successful load`() {
+        println("start newDocument byteArray successful load")
         // Verify that a valid PDF byte array returns a valid PdfDocumentU instance and that document.source is null.
         pdfiumCore = PdfiumCoreU(context = context, nativeFactory = mockNativeFactory, libraryLoader = libraryLoader)
         val byteArray = byteArrayOf(1, 2, 3)
         every { nativeCore.openMemDocument(any(), any()) } returns 1
         pdfiumCore.newDocument(byteArray)
-        println("end newDocument byteArray  successful load")
+        println("end newDocument byteArray successful load")
     }
 
     @Test
-    fun `newDocument PdfiumSource  successful load`() {
-        println("start newDocument PdfiumSource  successful load")
+    fun `newDocument PdfiumSource successful load`() {
+        println("start newDocument PdfiumSource successful load")
         // Verify that a valid PdfiumSource returns a valid PdfDocumentU instance and that
         // document.source is set to the passed source.
         pdfiumCore = PdfiumCoreU(context = context, nativeFactory = mockNativeFactory, libraryLoader = libraryLoader)
         every { nativeCore.openCustomDocument(any(), any(), any()) } returns 1
-        every { libraryLoader.load(any()) } just runs
         pdfiumCore.newDocument(
             mockk<PdfiumSource> {
                 every { length } returns 100
                 every { read(any(), any(), any()) } returns 123
             },
         )
-        println("end newDocument PdfiumSource  successful load")
+        println("end newDocument PdfiumSource successful load")
     }
 
     @Test
