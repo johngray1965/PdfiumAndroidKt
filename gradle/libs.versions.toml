@@ -139,3 +139,5 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover_version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint_version" }
 benchmark = { id = "androidx.benchmark", version.ref = "benchmark" }
 gradle-publish = { id = "org.danilopianini.publish-on-central", version.ref = "publish_on_central"}
+gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:7.0.12"
+

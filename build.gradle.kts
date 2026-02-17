@@ -35,6 +35,7 @@ plugins {
     alias(libs.plugins.kover) apply false
     // alias(libs.plugins.ktlint)
     alias(libs.plugins.gradle.publish)
+    alias(libs.plugins.gitSemVer)
     alias(libs.plugins.benchmark) apply false
 //    id("org.jetbrains.dokka") version "2.2.0-Beta"
 //    id("org.jetbrains.dokka-javadoc") version "2.2.0-Beta"
@@ -48,3 +49,7 @@ plugins {
 //        outputDirectory.set(layout.buildDirectory.dir("dokka/html"))
 //    }
 // }
+
+gitSemVer {
+    buildMetadataSeparator.set("-")
+}

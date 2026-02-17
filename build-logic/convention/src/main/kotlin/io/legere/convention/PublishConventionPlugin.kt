@@ -100,6 +100,11 @@ class PublishConventionPlugin : Plugin<Project> {
                 licenseUrl.set("http://www.apache.org/licenses/LICENSE-2.0")
                 projectUrl.set("https://github.com/${repoOwner.get()}/${project.name}")
                 scmConnection.set("scm:git:https://github.com/${repoOwner.get()}/${project.name}")
+
+                repository("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt", "GitHub") {
+                    user.set(System.getenv("GITHUB_USERNAME"))
+                    password.set(System.getenv("GITHUB_TOKEN"))
+                }
             }
         }
     }
