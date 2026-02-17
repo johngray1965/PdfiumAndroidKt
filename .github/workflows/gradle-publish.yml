@@ -16,7 +16,7 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write # Needed to upload assets to the release
       packages: write
 
     steps:
@@ -45,3 +45,10 @@ jobs:
       env:
         GITHUB_USERNAME: ${{ github.actor }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          **/build/outputs/aar/*.aar
+          **/build/outputs/apk/**/*.apk

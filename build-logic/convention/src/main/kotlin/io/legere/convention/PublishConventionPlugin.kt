@@ -37,7 +37,7 @@ class PublishConventionPlugin : Plugin<Project> {
                 publications {
                     create<MavenPublication>("maven") {
                         groupId = "io.legere"
-                        version = project.property("VERSION_NAME") as String
+                        version = project.version.toString()
 
                         pom {
                             url.set(rootProject.properties["POM_URL"] as String)
