@@ -3,8 +3,6 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.RectF
-import io.legere.pdfiumandroid.api.FindFlags
-import io.legere.pdfiumandroid.api.WordRangeRect
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -29,6 +27,21 @@ private const val RANGE_RECT_DATA_SIZE = 6
 class PdfTextPage internal constructor(
     internal val page: PdfTextPageU,
 ) : Closeable {
+    @Deprecated(
+        "Moved to io.legere.pdfiumandroid.api.FindFlags",
+        ReplaceWith("io.legere.pdfiumandroid.api.FindFlags", "io.legere.pdfiumandroid.api.FindFlags"),
+    )
+    typealias FindFlags = io.legere.pdfiumandroid.api.FindFlags
+
+    @Deprecated(
+        "Moved to io.legere.pdfiumandroid.api.WordRangeRect",
+        ReplaceWith(
+            "io.legere.pdfiumandroid.api.WordRangeRect",
+            "io.legere.pdfiumandroid.api.WordRangeRect",
+        ),
+    )
+    typealias WordRangeRect = io.legere.pdfiumandroid.api.WordRangeRect
+
     @Volatile
     private var isClosed = false
 
@@ -145,7 +158,7 @@ class PdfTextPage internal constructor(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<io.legere.pdfiumandroid.api.WordRangeRect>? =
         wrapLock {
             page.textPageGetRectsForRanges(wordRanges)
         }
@@ -178,7 +191,7 @@ class PdfTextPage internal constructor(
 
     fun findStart(
         findWhat: String,
-        flags: Set<FindFlags>,
+        flags: Set<io.legere.pdfiumandroid.api.FindFlags>,
         startIndex: Int,
     ): FindResult? =
         wrapLock {

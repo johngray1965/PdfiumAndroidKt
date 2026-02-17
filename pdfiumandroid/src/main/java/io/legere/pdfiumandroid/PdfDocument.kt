@@ -8,8 +8,6 @@ import android.view.Surface
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_REMOVE_SECURITY
-import io.legere.pdfiumandroid.api.Bookmark
-import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
@@ -25,6 +23,24 @@ private const val THREE_BY_THREE = 9
 class PdfDocument internal constructor(
     internal val document: PdfDocumentU,
 ) : Closeable {
+    @Deprecated(
+        "Moved to io.legere.pdfiumandroid.api.Meta",
+        ReplaceWith("io.legere.pdfiumandroid.api.Meta", "io.legere.pdfiumandroid.api.Meta"),
+    )
+    typealias Meta = io.legere.pdfiumandroid.api.Meta
+
+    @Deprecated(
+        "Moved to io.legere.pdfiumandroid.api.Bookmark",
+        ReplaceWith("io.legere.pdfiumandroid.api.Bookmark", "io.legere.pdfiumandroid.api.Bookmark"),
+    )
+    typealias Bookmark = io.legere.pdfiumandroid.api.Bookmark
+
+    @Deprecated(
+        "Moved to io.legere.pdfiumandroid.api.Link",
+        ReplaceWith("io.legere.pdfiumandroid.api.Link", "io.legere.pdfiumandroid.api.Link"),
+    )
+    typealias Link = io.legere.pdfiumandroid.api.Link
+
     /**
      *  Get the page count of the PDF document
      *  @return the number of pages
@@ -152,7 +168,7 @@ class PdfDocument internal constructor(
      * @return the [Meta] data
      * @throws IllegalArgumentException if document is closed
      */
-    fun getDocumentMeta(): Meta =
+    fun getDocumentMeta(): io.legere.pdfiumandroid.api.Meta =
         wrapLock {
             document.getDocumentMeta()
         }
@@ -162,7 +178,7 @@ class PdfDocument internal constructor(
      * @return the [Bookmark] list
      * @throws IllegalArgumentException if document is closed
      */
-    fun getTableOfContents(): List<Bookmark> =
+    fun getTableOfContents(): List<io.legere.pdfiumandroid.api.Bookmark> =
         wrapLock {
             document.getTableOfContents()
         }
