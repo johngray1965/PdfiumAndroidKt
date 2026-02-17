@@ -24,30 +24,30 @@ internal fun configureBuildTypes(commonExtension: CommonExtension) {
             isMinifyEnabled = false
             proguardFiles(
                 commonExtension.getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
         getByName("debug") {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
         }
-        maybeCreate("qa")
-        getByName("qa") {
-            isMinifyEnabled = false
-            proguardFiles(
-                commonExtension.getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-
-            commonExtension.signingConfigs.maybeCreate("qa").initWith(commonExtension.signingConfigs.getByName("debug"))
-
-            matchingFallbacks += listOf("release")
-        }
-        maybeCreate("benchmark")
-        getByName("benchmark") {
-            initWith(getByName("release"))
-            commonExtension.signingConfigs.maybeCreate("benchmark").initWith(commonExtension.signingConfigs.getByName("debug"))
-            matchingFallbacks += listOf("release")
-        }
+//        maybeCreate("qa")
+//        getByName("qa") {
+//            isMinifyEnabled = false
+//            proguardFiles(
+//                commonExtension.getDefaultProguardFile("proguard-android-optimize.txt"),
+//                "proguard-rules.pro"
+//            )
+//
+//            commonExtension.signingConfigs.maybeCreate("qa").initWith(commonExtension.signingConfigs.getByName("debug"))
+//
+//            matchingFallbacks += listOf("release")
+//        }
+//        maybeCreate("benchmark")
+//        getByName("benchmark") {
+//            initWith(getByName("release"))
+//            commonExtension.signingConfigs.maybeCreate("benchmark").initWith(commonExtension.signingConfigs.getByName("debug"))
+//            matchingFallbacks += listOf("release")
+//        }
     }
 }
