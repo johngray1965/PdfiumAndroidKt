@@ -106,7 +106,6 @@ google-services = { module = "com.google.gms:google-services", version.ref = "go
 com-google-devtools-ksp-gradle-plugin = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "ksp_version" }
 androidx-baselineprofile-gradle-plugin = { module = "androidx.baselineprofile:androidx.baselineprofile.gradle.plugin", version.ref = "benchmark" }
 kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover_version" }
-kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin_version" }
 android-test-extensions = { module = "de.mannodermaus.junit5:android-test-extensions", version.ref = "androidJunit5" }
 publish-on-central-gradle-plugin = { module = "org.danilopianini.publish-on-central:org.danilopianini.publish-on-central.gradle.plugin", version.ref = "publish_on_central" }
 firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }

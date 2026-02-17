@@ -19,15 +19,12 @@ class AndroidHiltConventionPlugin : Plugin<Project> {
                 "implementation"(libs.findLibrary("hilt.android").get())
                 "ksp"(libs.findLibrary("hilt.compiler").get())
                 "ksp"(libs.findLibrary("androidx.hilt.compiler").get())
-                "ksp"(libs.findLibrary("kotlin.metadata.jvm").get())
 
                 "testImplementation"(libs.findLibrary("hilt.android.testing").get())
                 "kspTest"(libs.findLibrary("hilt.android.compiler").get())
-                "kspTest"(libs.findLibrary("kotlin.metadata.jvm").get())
 
                 "androidTestImplementation"(libs.findLibrary("hilt.android.testing").get())
                 "kspAndroidTest"(libs.findLibrary("hilt.android.compiler").get())
-                "kspAndroidTest"(libs.findLibrary("kotlin.metadata.jvm").get())
 
                 "testFixturesImplementation"(libs.findLibrary("hilt.android.testing").get())
                 "kspTestFixtures"(libs.findLibrary("hilt.android.compiler").get())

@@ -149,10 +149,6 @@ configure<LibraryExtension> {
 
 dependencies {
     api(project(":pdfiumandroid:api"))
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.material)
-
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.truth)

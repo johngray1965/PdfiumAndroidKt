@@ -82,10 +82,6 @@ dependencies {
 
     api(project(":pdfiumandroid:api"))
     implementation(project(":pdfiumandroid:core"))
-
-    compileOnly(libs.kotlinx.coroutines.android)
-    compileOnly(libs.androidx.annotation.jvm)
-    compileOnly(libs.kotlin.stdlib)
     implementation(libs.guava)
 
     testImplementation(libs.junit)

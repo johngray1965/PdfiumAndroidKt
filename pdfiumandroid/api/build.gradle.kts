@@ -38,7 +38,6 @@ configure<LibraryExtension> {
 
 dependencies {
 //    dokkaPlugin(libs.android.documentation.plugin)
-    implementation(libs.androidx.core.ktx)
     implementation(libs.guava)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

@@ -13,8 +13,6 @@ internal fun Project.common() {
     val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
     dependencies {
-        add("implementation", libs.findLibrary("timber").get())
-        add("implementation", libs.findLibrary("androidx.core.ktx").get())
-        add("implementation", libs.findLibrary("kotlinx.coroutines.android").get())
+        add("compileOnly", libs.findLibrary("androidx.core.ktx").get())
     }
 }
