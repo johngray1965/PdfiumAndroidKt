@@ -5,7 +5,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,6 +16,8 @@
  * limitations under the License.
  *
  */
+@file:Suppress("unused")
+
 package io.legere.pdfiumandroid.util
 
 import io.legere.pdfiumandroid.api.Config as NewConfig
@@ -23,12 +25,12 @@ import io.legere.pdfiumandroid.api.Size as NewSize
 
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.Size",
-    ReplaceWith("io.legere.pdfiumandroid.api.Size", "io.legere.pdfiumandroid.api.Size"),
+    ReplaceWith("Size", "io.legere.pdfiumandroid.api.Size"),
 )
 typealias Size = NewSize
 
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.Config",
-    ReplaceWith("io.legere.pdfiumandroid.api.Config", "io.legere.pdfiumandroid.api.Config"),
+    ReplaceWith("Config", "io.legere.pdfiumandroid.api.Config"),
 )
 typealias Config = NewConfig

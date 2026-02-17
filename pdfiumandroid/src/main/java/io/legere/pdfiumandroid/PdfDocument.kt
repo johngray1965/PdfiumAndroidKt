@@ -5,7 +5,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -43,19 +43,19 @@ class PdfDocument internal constructor(
 ) : Closeable {
     @Deprecated(
         "Moved to io.legere.pdfiumandroid.api.Meta",
-        ReplaceWith("io.legere.pdfiumandroid.api.Meta", "io.legere.pdfiumandroid.api.Meta"),
+        ReplaceWith("Meta", "io.legere.pdfiumandroid.api.Meta"),
     )
     typealias Meta = io.legere.pdfiumandroid.api.Meta
 
     @Deprecated(
         "Moved to io.legere.pdfiumandroid.api.Bookmark",
-        ReplaceWith("io.legere.pdfiumandroid.api.Bookmark", "io.legere.pdfiumandroid.api.Bookmark"),
+        ReplaceWith("Bookmark", "io.legere.pdfiumandroid.api.Bookmark"),
     )
     typealias Bookmark = io.legere.pdfiumandroid.api.Bookmark
 
     @Deprecated(
         "Moved to io.legere.pdfiumandroid.api.Link",
-        ReplaceWith("io.legere.pdfiumandroid.api.Link", "io.legere.pdfiumandroid.api.Link"),
+        ReplaceWith("Link", "io.legere.pdfiumandroid.api.Link"),
     )
     typealias Link = io.legere.pdfiumandroid.api.Link
 

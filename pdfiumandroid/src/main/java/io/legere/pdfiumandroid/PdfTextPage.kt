@@ -5,7 +5,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -47,14 +47,14 @@ class PdfTextPage internal constructor(
 ) : Closeable {
     @Deprecated(
         "Moved to io.legere.pdfiumandroid.api.FindFlags",
-        ReplaceWith("io.legere.pdfiumandroid.api.FindFlags", "io.legere.pdfiumandroid.api.FindFlags"),
+        ReplaceWith("FindFlags", "io.legere.pdfiumandroid.api.FindFlags"),
     )
     typealias FindFlags = io.legere.pdfiumandroid.api.FindFlags
 
     @Deprecated(
         "Moved to io.legere.pdfiumandroid.api.WordRangeRect",
         ReplaceWith(
-            "io.legere.pdfiumandroid.api.WordRangeRect",
+            "WordRangeRect",
             "io.legere.pdfiumandroid.api.WordRangeRect",
         ),
     )
@@ -176,7 +176,7 @@ class PdfTextPage internal constructor(
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<io.legere.pdfiumandroid.api.WordRangeRect>? =
         wrapLock {
             page.textPageGetRectsForRanges(wordRanges)
         }

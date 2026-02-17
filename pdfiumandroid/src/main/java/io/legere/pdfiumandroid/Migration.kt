@@ -15,6 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+@file:Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
+
 package io.legere.pdfiumandroid
 
 import io.legere.pdfiumandroid.suspend.PdfPageKt
@@ -27,14 +30,14 @@ import io.legere.pdfiumandroid.api.WordRangeRect as NewWordRangeRect
 
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.Logger",
-    ReplaceWith("io.legere.pdfiumandroid.api.Logger", "io.legere.pdfiumandroid.api.Logger"),
+    ReplaceWith("Logger", "io.legere.pdfiumandroid.api.Logger"),
 )
 typealias Logger = NewLogger
 
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.PdfPasswordException",
     ReplaceWith(
-        "io.legere.pdfiumandroid.api.PdfPasswordException",
+        "PdfPasswordException",
         "io.legere.pdfiumandroid.api.PdfPasswordException",
     ),
 )
@@ -43,7 +46,7 @@ typealias PdfPasswordException = NewPdfPasswordException
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.PdfWriteCallback",
     ReplaceWith(
-        "io.legere.pdfiumandroid.api.PdfWriteCallback",
+        "PdfWriteCallback",
         "io.legere.pdfiumandroid.api.PdfWriteCallback",
     ),
 )
@@ -51,13 +54,13 @@ typealias PdfWriteCallback = NewPdfWriteCallback
 
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.PdfiumSource",
-    ReplaceWith("io.legere.pdfiumandroid.api.PdfiumSource", "io.legere.pdfiumandroid.api.PdfiumSource"),
+    ReplaceWith("PdfiumSource", "io.legere.pdfiumandroid.api.PdfiumSource"),
 )
 typealias PdfiumSource = NewPdfiumSource
 
 @Deprecated(
     "Moved to io.legere.pdfiumandroid.api.WordRangeRect",
-    ReplaceWith("io.legere.pdfiumandroid.api.WordRangeRect", "io.legere.pdfiumandroid.api.WordRangeRect"),
+    ReplaceWith("WordRangeRect", "io.legere.pdfiumandroid.api.WordRangeRect"),
 )
 typealias WordRangeRect = NewWordRangeRect
 
