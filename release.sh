@@ -21,7 +21,6 @@ fi
 echo "🚀 Starting Release Process for $VERSION"
 
 # 1. Extract Release Notes from CHANGELOG.md
-# This simple parser looks for "## [VERSION]" and reads until the next "## ["
 NOTES_FILE="release_notes_temp.txt"
 awk "/^## \[$VERSION\]/{flag=1; next} /^## \[/{flag=0} flag" CHANGELOG.md | sed '/^$/d' > "$NOTES_FILE"
 
@@ -38,17 +37,9 @@ cat "$NOTES_FILE"
 echo "---------------------------------------------------"
 read -p "Press Enter to continue or Ctrl+C to cancel..."
 
-# 2. Run Deployment to Maven Central
-echo "📦 Deploying to Maven Central..."
-./deploy.sh
-if [ $? -ne 0 ]; then
-    echo "❌ Deployment failed."
-    rm "$NOTES_FILE"
-    exit 1
-fi
-
-# 3. Git Tag and Push
-echo "🏷️  Tagging release..."
+# 2. Tag (Locally) FIRST so Gradle sees the version
+# We delete the tag if deployment fails
+echo "🏷️  Tagging release locally..."
 git tag "$VERSION"
 if [ $? -ne 0 ]; then
     echo "❌ Failed to create tag. Does it already exist?"
@@ -56,10 +47,21 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# 3. Run Deployment to Maven Central
+echo "📦 Deploying to Maven Central..."
+./deploy.sh
+if [ $? -ne 0 ]; then
+    echo "❌ Deployment failed. Deleting local tag..."
+    git tag -d "$VERSION"
+    rm "$NOTES_FILE"
+    exit 1
+fi
+
+# 4. Push Tag
 echo "⬆️  Pushing tag..."
 git push origin "$VERSION"
 
-# 4. Create GitHub Release
+# 5. Create GitHub Release
 echo "🐙 Creating GitHub Release..."
 
 # Auto-detect pre-release based on hyphen (semver)

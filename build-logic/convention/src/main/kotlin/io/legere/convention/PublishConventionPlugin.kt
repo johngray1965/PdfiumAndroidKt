@@ -37,7 +37,19 @@ class PublishConventionPlugin : Plugin<Project> {
                 publications {
                     create<MavenPublication>("maven") {
                         groupId = "io.legere"
-                        version = project.version.toString()
+                        
+                        // Resolve version robustly
+                        val ver = project.version.toString()
+                        val finalVersion = if (ver == "unspecified") {
+                            val rootVer = project.rootProject.version.toString()
+                            if (rootVer == "unspecified") {
+                                error("Project version is 'unspecified'. Check git-sensitive-semantic-versioning configuration or tags.")
+                            }
+                            rootVer
+                        } else {
+                            ver
+                        }
+                        version = finalVersion
 
                         pom {
                             url.set(rootProject.properties["POM_URL"] as String)
@@ -102,8 +114,8 @@ class PublishConventionPlugin : Plugin<Project> {
                 scmConnection.set("scm:git:https://github.com/${repoOwner.get()}/${project.name}")
 
                 repository("https://maven.pkg.github.com/johngray1965/PdfiumAndroidKt", "GitHub") {
-                    user.set(System.getenv("GITHUB_USERNAME"))
-                    password.set(System.getenv("GITHUB_TOKEN"))
+                    user.set(System.getenv("GITHUB_USERNAME") ?: project.findProperty("GITHUB_USERNAME") as? String ?: "")
+                    password.set(System.getenv("GITHUB_TOKEN") ?: project.findProperty("GITHUB_TOKEN") as? String ?: "")
                 }
             }
         }
