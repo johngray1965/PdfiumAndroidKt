@@ -45,8 +45,6 @@ configurations {
 }
 
 dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
-
     implementation(project(":pdfiumandroid"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

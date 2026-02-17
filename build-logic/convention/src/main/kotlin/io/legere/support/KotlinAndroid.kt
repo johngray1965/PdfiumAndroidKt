@@ -23,8 +23,6 @@ internal fun Project.configureKotlinAndroid(commonExtension: CommonExtension) {
 
         compileOptions.sourceCompatibility = JavaVersion.VERSION_21
         compileOptions.targetCompatibility = JavaVersion.VERSION_21
-        compileOptions.isCoreLibraryDesugaringEnabled = true
-
     }
 
     configureKotlin()
@@ -32,7 +30,6 @@ internal fun Project.configureKotlinAndroid(commonExtension: CommonExtension) {
     val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
     dependencies {
-        add("coreLibraryDesugaring", libs.findLibrary("desugar.jdk.libs").get())
     }
 }
 
@@ -72,9 +69,9 @@ private fun Project.configureKotlin() {
             // Add your standard opt-ins
             compilerArgs.addAll(
                 listOf(
-                    "-opt-in=kotlin.RequiresOptIn"
+                    "-opt-in=kotlin.RequiresOptIn",
                     // Enable experimental coroutines APIs, including Flow
-                )
+                ),
             )
 
             // Add the new opt-in

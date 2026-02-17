@@ -20,7 +20,6 @@ internal fun Project.configureAndroidCompose(commonExtension: CommonExtension) {
 
         compileOptions.sourceCompatibility = JavaVersion.VERSION_21
         compileOptions.targetCompatibility = JavaVersion.VERSION_21
-        compileOptions.isCoreLibraryDesugaringEnabled = true
 
 //        composeOptions {
 // //            kotlinCompilerExtensionVersion =
