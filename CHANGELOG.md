@@ -26,3 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improvements
 - Just a better deploy process
+
+## [2.0.0-beta28] - 2025-02-23
+
+### Improvements
+- An even better deploy process
