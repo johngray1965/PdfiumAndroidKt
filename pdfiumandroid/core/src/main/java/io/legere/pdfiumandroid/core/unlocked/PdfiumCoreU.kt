@@ -246,15 +246,7 @@ class PdfiumCoreU(
                 isLibraryLoaded = false
                 libraryLoadError = null
                 lock = LockManagerReentrantLock()
-                // We need to recreate the InitLock because the old one might be counted down already
-                // Note: In a real app, we never "unload", but for tests we need to "re-wait"
-                // Reflectively swapping the val or assuming tests create new ClassLoaders't safe.
-                // Since 'val isReady' cannot be reassigned, we have to be careful.
-
-                // However, if a previous test FAILED, isReady is open (count=0), but libraryLoadError is set.
-                // We just need to clear the error so the next test can try again.
-                // But we also need to set isLibraryLoaded = false so the next test triggers the thread again.
-                // AND we need a new Latch because the old one is already open (count=0).
+                isReady.reset()
             }
         }
     }

@@ -51,8 +51,6 @@ import org.junit.runner.RunWith
 import org.robolectric.annotation.Config
 
 @Suppress("DEPRECATION")
-@RunWith(AndroidJUnit4::class)
-@Config(manifest = Config.NONE)
 class PdfiumCoreBasicTest {
     @get:Rule
     val mockkRule: MockKRule = MockKRule(this)

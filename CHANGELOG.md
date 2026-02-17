@@ -41,3 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improvements
 - Fix CI NDK issue
+
+## [2.0.0-beta32] - 2025-02-23
+
+### Improvements
+- New CI test

@@ -29,12 +29,15 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PdfPageKtCacheTest {
     private lateinit var cache: PdfPageKtCache<PageHolderKt<PdfPageKt, PdfTextPageKt>>
 
@@ -47,8 +50,6 @@ class PdfPageKtCacheTest {
     @MockK
     lateinit var pdfTextPage: PdfTextPageKt
 
-    // A simple data class to act as the "Value" in the cache
-
     @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
@@ -58,17 +59,23 @@ class PdfPageKtCacheTest {
         coEvery { pdgPage.openTextPage() } returns pdfTextPage
         every { pdfTextPage.close() } returns Unit
         every { pdgPage.close() } returns Unit
+    }
 
-        // Initialize cache with a capacity of 2 for easy testing of eviction
-        cache =
-            PdfPageKtCache(pdfDocument, maxSize = 2) { page, textPage ->
-                PageHolderKt(page, textPage)
-            }
+    // Helper to initialize cache with the test's dispatcher
+    private fun TestScope.initCache(size: Long = 2) {
+        cache = PdfPageKtCache(
+            pdfDocument,
+            maxSize = size,
+            dispatcher = StandardTestDispatcher(testScheduler)
+        ) { page, textPage ->
+            PageHolderKt(page, textPage)
+        }
     }
 
     @Test
     fun `get loads item using factory if not present`() =
         runTest {
+            initCache()
             val index = 0
             val pageMock = mockk<PdfPageKt>(relaxed = true)
             val textPageMock = mockk<PdfTextPageKt>(relaxed = true)
@@ -86,11 +93,14 @@ class PdfPageKtCacheTest {
             // Verify factory calls (document methods)
             coVerify(exactly = 1) { pdfDocument.openPage(index) }
             coVerify(exactly = 1) { pageMock.openTextPage() }
+            
+            cache.close()
         }
 
     @Test
     fun `get returns cached item without calling factory`() =
         runTest {
+            initCache()
             val index = 1
 
             // 1. First fetch
@@ -103,12 +113,14 @@ class PdfPageKtCacheTest {
 
             // Verify factory was only called once
             coVerify(exactly = 1) { pdfDocument.openPage(index) }
+            
+            cache.close()
         }
 
     @Test
     fun `cache evicts oldest item when limit exceeded`() =
         runTest {
-            // Cache limit is set to 2 in setUp()
+            initCache(size = 2)
 
             // Load Item 0
             val item0 = cache.get(0)
@@ -120,18 +132,20 @@ class PdfPageKtCacheTest {
             // Load Item 2 -> Should evict Item 0 (LRU)
             cache.get(2)
 
+            // Closing is async, wait for it
+            advanceUntilIdle()
+
             // Item 0 should be closed
             verify(exactly = 1) { item0.page.close() }
             verify(exactly = 1) { item0.textPage.close() }
-
-            // Item 1 should NOT be closed yet
-//        verify(exactly = 0) { item1.page.close() }
+            
+            cache.close()
         }
 
     @Test
     fun `accessing an item updates its LRU status`() =
         runTest {
-            // Cache limit 2
+            initCache(size = 2)
 
             cache.get(0) // [0]
             cache.get(1) // [0, 1]
@@ -141,25 +155,33 @@ class PdfPageKtCacheTest {
 
             // Add new item 2. Should evict 1, not 0.
             cache.get(2) // [0, 2]
+            
+            advanceUntilIdle()
 
             // Verify item 1 was closed (evicted)
-            // We can't check the exact instance easily without capturing, but we can check logic:
-            // If 0 is still in cache, asking for it should not trigger a re-open.
+            // We can't check the exact instance of item 1 easily as we didn't capture it,
+            // but we can check calls on the document/mocks if we were tracking instances better.
+            // However, the test logic below relies on re-opening.
 
+            // If 0 is still in cache, asking for it should not trigger a re-open.
             coVerify(exactly = 1) { pdfDocument.openPage(0) } // Still only opened once
 
             // If 1 was evicted, getting it again should trigger a 2nd open
             cache.get(1)
             coVerify(exactly = 2) { pdfDocument.openPage(1) }
+            
+            cache.close()
         }
 
     @Test
     fun `clear closes all items and empties cache`() =
         runTest {
+            initCache()
             cache.get(0)
             cache.get(1)
 
             cache.close()
+            advanceUntilIdle()
 
 //        verify(exactly = 1) { item0.page.close() }
 
@@ -171,6 +193,7 @@ class PdfPageKtCacheTest {
     @Test
     fun getIfPresent() =
         runTest {
+            initCache()
             val result = cache.getIfPresent(0)
             assertThat(result).isNull()
 
@@ -179,17 +202,16 @@ class PdfPageKtCacheTest {
             assertThat(result2).isNotNull()
 
             cache.close()
-
-//        verify(exactly = 1) { item0.page.close() }
+            advanceUntilIdle()
 
             // Fetching 0 again should trigger re-open
             coVerify(exactly = 1) { pdfDocument.openPage(0) }
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun peek() =
         runTest {
+            initCache()
             val result = cache.peek(0)
             assertThat(result).isNull()
 
@@ -199,20 +221,26 @@ class PdfPageKtCacheTest {
             assertThat(result2).isNotNull()
 
             cache.close()
+            advanceUntilIdle()
 
-//        verify(exactly = 1) { item0.page.close() }
-
-            // Fetching 0 again should trigger re-open
             coVerify(exactly = 1) { pdfDocument.openPage(0) }
         }
 
     @Test
-    fun `cache with default size`() {
-        cache =
-            PdfPageKtCache(pdfDocument) { page, textPage ->
-                PageHolderKt(page, textPage)
-            }
+    fun `cache with default size`() = runTest {
+        // Need a scope to init cache, but this test just checks default size.
+        // We can init with any dispatcher or just check default constructor behavior?
+        // To test default size, we should call the constructor without size arg.
+        // But we still want to inject dispatcher for safety if it does anything in init.
+        // PdfPageKtCache constructor: (pdfDocument, maxSize, dispatcher, factory)
+        
+        // We want to test that default maxSize is CACHE_SIZE.
+        // We can pass the test dispatcher just in case.
+        val testCache = PdfPageKtCache(
+            pdfDocument, 
+            dispatcher = StandardTestDispatcher(testScheduler)
+        ) { page, textPage -> PageHolderKt(page, textPage) }
 
-        assertThat(cache.maxSize).isEqualTo(CACHE_SIZE)
+        assertThat(testCache.maxSize).isEqualTo(CACHE_SIZE)
     }
 }

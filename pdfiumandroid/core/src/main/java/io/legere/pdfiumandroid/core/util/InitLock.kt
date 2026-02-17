@@ -19,10 +19,11 @@
 
 package io.legere.pdfiumandroid.core.util
 
+import androidx.annotation.VisibleForTesting
 import java.util.concurrent.CountDownLatch
 
 class InitLock {
-    private val latch = CountDownLatch(1)
+    private var latch = CountDownLatch(1)
 
     fun markReady() {
         latch.countDown() // Decrements count to 0, releasing all waiting threads
@@ -33,5 +34,11 @@ class InitLock {
     @Synchronized
     fun waitForReady() {
         latch.await() // Blocks until count is 0. If already 0, returns immediately.
+    }
+
+    @VisibleForTesting
+    @Synchronized
+    fun reset() {
+        latch = CountDownLatch(1)
     }
 }
