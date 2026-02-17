@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improvements
 - An even better deploy process
 
-## [2.0.0-beta29] - 2025-02-23
+## [2.0.0-beta30] - 2025-02-23
 
 ### Improvements
 - An even better yet, deploy process
