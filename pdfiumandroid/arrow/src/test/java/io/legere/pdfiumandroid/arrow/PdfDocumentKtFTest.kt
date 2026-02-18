@@ -31,27 +31,25 @@ import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class PdfDocumentKtFTest {
-    private lateinit var pdfDocument: PdfDocumentKtF
+    val pdfDocumentU: PdfDocumentU = mockk()
 
-    @MockK
-    private lateinit var pdfDocumentU: PdfDocumentU
+    val pdfDocument: PdfDocumentKtF = PdfDocumentKtF(document = pdfDocumentU, dispatcher = Dispatchers.Main)
+    val callback: PdfWriteCallback = mockk()
 
-    @BeforeEach
-    fun setUp() {
-        pdfDocument = PdfDocumentKtF(document = pdfDocumentU, dispatcher = Dispatchers.Main)
-    }
+    val surface = mockk<Surface>()
 
     @Test
     fun getPageCount() =
@@ -152,7 +150,7 @@ class PdfDocumentKtFTest {
         } returns true
         val result =
             pdfDocument.renderPages(
-                mockk<Surface>(),
+                surface,
                 emptyList(),
                 emptyList(),
                 emptyList(),
@@ -194,7 +192,7 @@ class PdfDocumentKtFTest {
             } returns true
             val result =
                 pdfDocument.renderPages(
-                    mockk<Surface>(),
+                    surface,
                     emptyList(),
                     emptyList(),
                     emptyList(),
@@ -262,7 +260,6 @@ class PdfDocumentKtFTest {
     @Test
     fun saveAsCopy() =
         runTest {
-            val callback: PdfWriteCallback = mockk()
             coEvery { pdfDocumentU.saveAsCopy(any()) } returns true
             val result = pdfDocument.saveAsCopy(callback).getOrNull()
             assertThat(result).isTrue()

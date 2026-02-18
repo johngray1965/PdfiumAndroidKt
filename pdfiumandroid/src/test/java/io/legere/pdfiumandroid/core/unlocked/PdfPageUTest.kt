@@ -39,8 +39,8 @@ import io.legere.pdfiumandroid.core.jni.NativeTextPage
 import io.legere.pdfiumandroid.core.unlocked.testing.ClosableTestContext
 import io.legere.pdfiumandroid.core.unlocked.testing.closableTest
 import io.legere.pdfiumandroid.core.util.PageCount
+import io.mockk.clearAllMocks
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
@@ -53,17 +53,13 @@ import org.junit.jupiter.api.extension.ExtendWith
 @Suppress("LargeClass")
 @ExtendWith(MockKExtension::class)
 abstract class PdfPageUBaseTest : ClosableTestContext {
-    @MockK
-    lateinit var mockNativeFactory: NativeFactory
+    val mockNativeFactory: NativeFactory = mockk()
 
-    @MockK
-    lateinit var mockNativeDocument: NativeDocument
+    val mockNativeDocument: NativeDocument = mockk()
 
-    @MockK
-    lateinit var mockNativePage: NativePage
+    val mockNativePage: NativePage = mockk()
 
-    @MockK
-    lateinit var mockNativeTextPage: NativeTextPage
+    val mockNativeTextPage: NativeTextPage = mockk()
 
     lateinit var pdfDocumentU: PdfDocumentU
 
@@ -83,6 +79,8 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
     @BeforeEach
     fun setUp() {
+        clearAllMocks(currentThreadOnly = true)
+
         PdfiumCoreU.resetForTesting()
         pdfiumConfig =
             io.legere.pdfiumandroid.api

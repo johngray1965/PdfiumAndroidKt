@@ -34,7 +34,6 @@ import io.legere.pdfiumandroid.arrow.testing.StandardTestDispatcherExtension
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
@@ -42,27 +41,20 @@ import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
 @Suppress("LargeClass")
 class PdfPageKtFTest {
-    lateinit var pdfPage: PdfPageKtF
+    val pdfPageU: PdfPageU = mockk()
+    val pdfTextPageU: PdfTextPageU = mockk()
 
-    @MockK
-    lateinit var pdfPageU: PdfPageU
+    val pdfPage = PdfPageKtF(pdfPageU, Dispatchers.Unconfined)
 
-    @MockK
-    lateinit var pdfTextPageU: PdfTextPageU
+    val surface = mockk<Surface>()
 
-    @BeforeEach
-    fun setUp() {
-        // Using UnconfinedTestDispatcher (via StandardTestDispatcherExtension logic usually)
-        // or Main for testing, assuming PdfPageKt uses the passed dispatcher.
-        pdfPage = PdfPageKtF(pdfPageU, Dispatchers.Unconfined)
-    }
+    val bitmap = mockk<Bitmap>()
 
     @Test
     fun openTextPage() =
@@ -226,7 +218,6 @@ class PdfPageKtFTest {
     @Test
     fun renderPage() =
         runTest {
-            val surface = mockk<Surface>()
             every {
                 pdfPageU.pageIndex
             } returns 0
@@ -279,7 +270,6 @@ class PdfPageKtFTest {
     @Test
     fun `renderPage surface null`() =
         runTest {
-            val surface = mockk<Surface>()
             every {
                 pdfPageU.pageIndex
             } returns 0
@@ -334,7 +324,6 @@ class PdfPageKtFTest {
     @Test
     fun `renderPage bad surface`() =
         runTest {
-            val surface = mockk<Surface>()
             every {
                 pdfPageU.pageIndex
             } returns 0
@@ -389,7 +378,6 @@ class PdfPageKtFTest {
     @Test
     fun `renderPage bad surface 2`() =
         runTest {
-            val surface = mockk<Surface>()
             every {
                 pdfPageU.pageIndex
             } returns 0
@@ -444,7 +432,6 @@ class PdfPageKtFTest {
     @Test
     fun `renderPage return false`() =
         runTest {
-            val surface = mockk<Surface>()
             every {
                 pdfPageU.pageIndex
             } returns 0
@@ -500,7 +487,6 @@ class PdfPageKtFTest {
     fun testRenderPage() =
         runTest {
             // Variant with Surface and Matrix
-            val surface = mockk<Surface>()
             val matrix = Matrix()
             val clip = RectF()
             every {
@@ -580,7 +566,6 @@ class PdfPageKtFTest {
     fun `testRenderPage return false`() =
         runTest {
             // Variant with Surface and Matrix
-            val surface = mockk<Surface>()
             val matrix = Matrix()
             val clip = RectF()
             every {
@@ -620,7 +605,6 @@ class PdfPageKtFTest {
     fun `testRenderPage throws exception`() =
         runTest {
             // Variant with Surface and Matrix
-            val surface = mockk<Surface>()
             val matrix = Matrix()
             val clip = RectF()
             every {
@@ -659,7 +643,6 @@ class PdfPageKtFTest {
     @Test
     fun renderPageBitmap() =
         runTest {
-            val bitmap = mockk<Bitmap>()
             every { pdfPageU.renderPageBitmap(bitmap, 0, 0, 100, 100) } just runs
 
             pdfPage.renderPageBitmap(bitmap, 0, 0, 100, 100)
@@ -670,7 +653,6 @@ class PdfPageKtFTest {
     fun testRenderPageBitmap() =
         runTest {
             // Variant with Matrix
-            val bitmap = mockk<Bitmap>()
             val matrix = Matrix()
             val clip = RectF()
             every { pdfPageU.renderPageBitmap(bitmap, matrix, clip) } just runs

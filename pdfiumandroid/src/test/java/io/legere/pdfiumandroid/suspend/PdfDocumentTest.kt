@@ -31,27 +31,24 @@ import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class PdfDocumentTest {
-    private lateinit var pdfDocument: PdfDocumentKt
+    val pdfDocumentU: PdfDocumentU = mockk()
 
-    @MockK
-    private lateinit var pdfDocumentU: PdfDocumentU
+    val pdfDocument = PdfDocumentKt(document = pdfDocumentU, dispatcher = Dispatchers.Main)
 
-    @BeforeEach
-    fun setUp() {
-        pdfDocument = PdfDocumentKt(document = pdfDocumentU, dispatcher = Dispatchers.Main)
-    }
+    val surface: Surface = mockk()
 
     @Test
     fun getPageCount() =
@@ -116,7 +113,7 @@ class PdfDocumentTest {
             coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
             val result =
                 pdfDocument.renderPages(
-                    mockk<Surface>(),
+                    surface,
                     emptyList(),
                     emptyList(),
                     emptyList(),

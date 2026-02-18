@@ -26,7 +26,6 @@ import io.legere.pdfiumandroid.core.jni.NativeCore
 import io.legere.pdfiumandroid.core.jni.NativeDocument
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
@@ -34,21 +33,24 @@ import io.mockk.runs
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class PdfiumCoreUTest {
     lateinit var pdfiumCore: PdfiumCoreU
 
-    @MockK lateinit var mockNativeFactory: NativeFactory
+    val mockNativeFactory: NativeFactory = mockk()
 
-    @MockK lateinit var nativeCore: NativeCore
+    val nativeCore: NativeCore = mockk()
 
-    @MockK lateinit var nativeDocument: NativeDocument
+    val nativeDocument: NativeDocument = mockk()
 
-    @MockK lateinit var context: Context
+    val context: Context = mockk()
 
-    @MockK lateinit var libraryLoader: LibraryLoader
+    val libraryLoader: LibraryLoader = mockk()
 
     @BeforeEach
     fun setup() {

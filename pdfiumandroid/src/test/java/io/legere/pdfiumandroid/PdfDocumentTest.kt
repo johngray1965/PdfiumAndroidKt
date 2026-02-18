@@ -26,26 +26,22 @@ import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class PdfDocumentTest {
-    lateinit var pdfDocument: PdfDocument
+    val document: PdfDocumentU = mockk()
 
-    @MockK lateinit var document: PdfDocumentU
-
-    @BeforeEach
-    fun setUp() {
-        pdfDocument = PdfDocument(document)
-    }
+    val pdfDocument: PdfDocument = PdfDocument(document)
 
     @Test
     fun getPageCount() {

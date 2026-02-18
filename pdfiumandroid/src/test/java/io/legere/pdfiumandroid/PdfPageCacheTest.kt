@@ -20,9 +20,9 @@
 package io.legere.pdfiumandroid
 
 import com.google.common.truth.Truth.assertThat
-import io.mockk.MockKAnnotations
+import io.mockk.clearAllMocks
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -30,26 +30,27 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+import org.junit.jupiter.api.extension.ExtendWith
 
+@ExtendWith(MockKExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class PdfPageCacheTest {
     // The class under test
     private lateinit var cache: PdfPageCache<PageHolder<PdfPage, PdfTextPage>>
 
-    @MockK
-    lateinit var pdfDocument: PdfDocument
+    val pdfDocument: PdfDocument = mockk()
 
-    @MockK
-    lateinit var pdgPage: PdfPage
+    val pdgPage: PdfPage = mockk()
 
-    @MockK
-    lateinit var pdfTextPage: PdfTextPage
+    val pdfTextPage: PdfTextPage = mockk()
 
     // A simple data class to act as the "Value" in the cache
 
     @BeforeEach
     fun setUp() {
-        MockKAnnotations.init(this)
-
+        clearAllMocks(currentThreadOnly = true)
         // Default behaviors for the document
         every { pdfDocument.openPage(any()) } returns pdgPage
         every { pdgPage.openTextPage() } returns pdfTextPage

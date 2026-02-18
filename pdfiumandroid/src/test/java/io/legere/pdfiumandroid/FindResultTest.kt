@@ -22,23 +22,20 @@ package io.legere.pdfiumandroid
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.core.unlocked.FindResultU
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
+@TestInstance(Lifecycle.PER_CLASS)
 class FindResultTest {
-    lateinit var findResult: FindResult
+    val findResultU: FindResultU = mockk()
 
-    @MockK lateinit var findResultU: FindResultU
-
-    @BeforeEach
-    fun setUp() {
-        findResult = FindResult(findResultU)
-    }
+    val findResult = FindResult(findResultU)
 
     @Test
     fun `findNext successful`() {

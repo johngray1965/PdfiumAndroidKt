@@ -21,6 +21,20 @@
 package android.graphics
 
 class Matrix {
+    constructor(src: Matrix?) {
+        src?.getValues(values)
+    }
+
+    constructor() {
+    }
+
+    enum class ScaleToFit {
+        FILL,
+        START,
+        CENTER,
+        END,
+    }
+
     private val values =
         FloatArray(9).apply {
             this[0] = 1f
@@ -73,6 +87,170 @@ class Matrix {
         values[0] = sx
         values[4] = sy
     }
+
+    fun isAffine(): Boolean = throw RuntimeException("Stub!")
+
+    fun isIdentity(): Boolean = throw RuntimeException("Stub!")
+
+    fun mapPoints(pts: FloatArray?): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun mapPoints(
+        dst: FloatArray?,
+        src: FloatArray?,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun mapPoints(
+        dst: FloatArray?,
+        dstIndex: Int,
+        src: FloatArray?,
+        srcIndex: Int,
+        pointCount: Int,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun mapRadius(radius: Float): Float = throw java.lang.RuntimeException("Stub!")
+
+    fun mapRect(rect: RectF?): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun mapRect(
+        dst: RectF?,
+        src: RectF?,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun mapVectors(vecs: FloatArray?): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun mapVectors(
+        dst: FloatArray?,
+        src: FloatArray?,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun mapVectors(
+        dst: FloatArray?,
+        dstIndex: Int,
+        src: FloatArray?,
+        srcIndex: Int,
+        vectorCount: Int,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun postConcat(other: Matrix?): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun postRotate(degrees: Float): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun postRotate(
+        degrees: Float,
+        px: Float,
+        py: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun postSkew(
+        kx: Float,
+        ky: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun postSkew(
+        kx: Float,
+        ky: Float,
+        px: Float,
+        py: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preConcat(other: Matrix?): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preRotate(degrees: Float): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preRotate(
+        degrees: Float,
+        px: Float,
+        py: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preScale(
+        sx: Float,
+        sy: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preScale(
+        sx: Float,
+        sy: Float,
+        px: Float,
+        py: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preSkew(
+        kx: Float,
+        ky: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preSkew(
+        kx: Float,
+        ky: Float,
+        px: Float,
+        py: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun preTranslate(
+        dx: Float,
+        dy: Float,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun rectStaysRect(): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun set(src: Matrix?): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setConcat(
+        a: Matrix?,
+        b: Matrix?,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun setPolyToPoly(
+        src: FloatArray?,
+        srcIndex: Int,
+        dst: FloatArray?,
+        dstIndex: Int,
+        pointCount: Int,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun setRectToRect(
+        src: RectF?,
+        dst: RectF?,
+        stf: ScaleToFit?,
+    ): Boolean = throw java.lang.RuntimeException("Stub!")
+
+    fun setRotate(degrees: Float): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setRotate(
+        degrees: Float,
+        px: Float,
+        py: Float,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setSinCos(
+        sinValue: Float,
+        cosValue: Float,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setSinCos(
+        sinValue: Float,
+        cosValue: Float,
+        px: Float,
+        py: Float,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setSkew(
+        kx: Float,
+        ky: Float,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setSkew(
+        kx: Float,
+        ky: Float,
+        px: Float,
+        py: Float,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
+
+    fun setTranslate(
+        dx: Float,
+        dy: Float,
+    ): Unit = throw java.lang.RuntimeException("Stub!")
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
