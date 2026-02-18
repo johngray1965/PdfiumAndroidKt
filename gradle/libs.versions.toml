@@ -124,7 +124,7 @@ slf4j-android = { module = "uk.uuid.slf4j:slf4j-android", version.ref = "slf4jAn
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
 
 [bundles]
-test = ["junit","truth","mockk-android",  "mockk-agent",  "kotlinx-coroutines-test", "robolectric"]
+test = ["junit","truth","mockk-android",  "mockk-agent",  "kotlinx-coroutines-test"]
 
 instrumented-non-ui-test = ["junit",  "mockk", "mockk-android", "mockk-agent", ]
 

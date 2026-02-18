@@ -20,7 +20,6 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.RectF
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.api.Config
@@ -35,26 +34,21 @@ import io.legere.pdfiumandroid.core.util.PageCount
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit4.MockKRule
+import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.annotation.Config as RoboConfig
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 
 // =================================================================================================
 // 1. Abstract Base Class (JUnit 4 Style)
 // =================================================================================================
 
-@RunWith(AndroidJUnit4::class)
-@RoboConfig(manifest = RoboConfig.NONE)
+@ExtendWith(MockKExtension::class)
 abstract class PdfTextPageBaseTest : ClosableTestContext {
-    @get:Rule
-    val mockkRule: MockKRule = MockKRule(this)
-
     @MockK lateinit var mockNativeFactory: NativeFactory
 
     @MockK lateinit var mockNativeDocument: NativeDocument
@@ -78,7 +72,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
 
     override fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
 
-    @Before
+    @BeforeEach
     fun setUp() {
         MockKAnnotations.init(this)
         PdfiumCoreU.resetForTesting()
@@ -479,13 +473,12 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
         assertThat(result).isNull()
     }
 
-    @Test(expected = IllegalArgumentException::class)
+    @Test
     fun `textPageGetUnicode invalid index`() {
         // Verify behavior when an invalid index is provided (likely returns 0/null char or throws
         // depending on native impl).
         every { mockNativeTextPage.textGetUnicode(any(), any()) } throws IllegalArgumentException()
-        val result = pdfTextPage.textPageGetUnicode(0)
-        assertThat(result).isNull()
+        assertThrows<IllegalArgumentException> { pdfTextPage.textPageGetUnicode(0) }
     }
 
     @Test

@@ -20,35 +20,28 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.RectF
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePageLink
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit4.MockKRule
+import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.annotation.Config
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
-@RunWith(AndroidJUnit4::class)
-@Config(manifest = Config.NONE)
+@ExtendWith(MockKExtension::class)
 class PdfPageLinkUTest {
-    @get:Rule
-    val mockkRule: MockKRule = MockKRule(this)
-
     lateinit var pdfPageLink: PdfPageLinkU
 
     @MockK lateinit var mockNativeFactory: NativeFactory
 
     @MockK lateinit var mockNativePageLink: NativePageLink
 
-    @Before
+    @BeforeEach
     fun setUp() {
         PdfiumCoreU.resetForTesting()
         every { mockNativeFactory.getNativePageLink() } returns mockNativePageLink

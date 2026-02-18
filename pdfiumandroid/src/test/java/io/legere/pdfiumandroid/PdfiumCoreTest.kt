@@ -24,7 +24,6 @@ import android.graphics.Point
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.ParcelFileDescriptor
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Link
@@ -38,23 +37,19 @@ import io.legere.pdfiumandroid.testing.ClosableTestContext
 import io.legere.pdfiumandroid.testing.nullableTest
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit4.MockKRule
+import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.annotation.Config
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 
 @Suppress("DEPRECATION")
+@ExtendWith(MockKExtension::class)
 class PdfiumCoreBasicTest {
-    @get:Rule
-    val mockkRule: MockKRule = MockKRule(this)
-
     lateinit var pdfiumCore: PdfiumCore
 
     @MockK
@@ -63,12 +58,12 @@ class PdfiumCoreBasicTest {
     @MockK
     lateinit var document: PdfDocument
 
-    @Before
+    @BeforeEach
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         pdfiumCore.setLockManager(LockManagerReentrantLock())
     }
@@ -151,10 +146,8 @@ class PdfiumCoreBasicTest {
 }
 
 @Suppress("DEPRECATION")
+@ExtendWith(MockKExtension::class)
 abstract class PdfiumCoreBaseTest : ClosableTestContext {
-    @get:Rule
-    val mockkRule: MockKRule = MockKRule(this)
-
     lateinit var pdfiumCore: PdfiumCore
 
     @MockK
@@ -169,7 +162,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @MockK
     lateinit var textPage: PdfTextPage
 
-    @Before
+    @BeforeEach
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
         setupRules()
@@ -607,8 +600,6 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
         }
 }
 
-@RunWith(AndroidJUnit4::class)
-@Config(manifest = Config.NONE)
 class PdfiumCoreHappyPathTest : PdfiumCoreBaseTest() {
     override fun shouldReturnDefault(): Boolean = false
 
@@ -618,8 +609,6 @@ class PdfiumCoreHappyPathTest : PdfiumCoreBaseTest() {
     }
 }
 
-@RunWith(AndroidJUnit4::class)
-@Config(manifest = Config.NONE)
 class PdfiumCoreNullPageTest : PdfiumCoreBaseTest() {
     override fun shouldReturnDefault(): Boolean = true
 

@@ -26,7 +26,6 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.api.ImmutableMatrix
@@ -42,23 +41,18 @@ import io.legere.pdfiumandroid.core.unlocked.testing.closableTest
 import io.legere.pdfiumandroid.core.util.PageCount
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.junit4.MockKRule
+import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.runs
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.annotation.Config
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
 
-@RunWith(AndroidJUnit4::class)
-@Config(manifest = Config.NONE)
 @Suppress("LargeClass")
+@ExtendWith(MockKExtension::class)
 abstract class PdfPageUBaseTest : ClosableTestContext {
-    @get:Rule
-    val mockkRule: MockKRule = MockKRule(this)
-
     @MockK
     lateinit var mockNativeFactory: NativeFactory
 
@@ -87,7 +81,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
     val invalidRectF = RectF(-1.0f, -1.0f, -1.0f, -1.0f)
 
-    @Before
+    @BeforeEach
     fun setUp() {
         PdfiumCoreU.resetForTesting()
         pdfiumConfig =
@@ -900,14 +894,15 @@ class PdfPageHappyTest : PdfPageUBaseTest() {
         assertThat(pdfPage2.isClosed).isTrue()
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test
     fun `close idempotent check`() {
         // Verify that calling close() multiple times on an already closed page does not cause errors
         // or double-free native resources.
         pdfPage.close()
         pdfPage.close()
-        pdfPage.close()
-        assertThat(pdfPage.isClosed).isFalse()
+        assertThrows<IllegalStateException> {
+            pdfPage.close()
+        }
     }
 
     @Test
