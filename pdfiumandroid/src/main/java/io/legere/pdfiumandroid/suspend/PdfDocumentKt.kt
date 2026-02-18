@@ -21,8 +21,6 @@
 
 package io.legere.pdfiumandroid.suspend
 
-import android.graphics.Matrix
-import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
 import io.legere.pdfiumandroid.PdfDocument
@@ -31,6 +29,8 @@ import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -103,8 +103,8 @@ class PdfDocumentKt internal constructor(
     suspend fun renderPages(
         surface: Surface,
         pages: List<PdfPageKt>,
-        matrices: List<Matrix>,
-        clipRects: List<RectF>,
+        matrices: List<PdfMatrix>,
+        clipRects: List<PdfRectF>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),

@@ -21,11 +21,11 @@
 
 package io.legere.pdfiumandroid.core.unlocked
 
-import android.graphics.RectF
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.WordRangeRect
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativeTextPageContract
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
@@ -185,22 +185,22 @@ class PdfTextPageU(
      * For internal use only.
      *
      * @param index the index of the character to get
-     * @return the bounding box as a [RectF], or `null` if an error occurs
+     * @return the bounding box as a [PdfRectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("ReturnCount", "MagicNumber")
-    fun textPageGetCharBox(index: Int): RectF? {
+    fun textPageGetCharBox(index: Int): PdfRectF? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         try {
             val o = nativeTextPage.textGetCharBox(pagePtr, index)
             // Note these are in an odd order left, right, bottom, top
             // what what Pdfium native code returns
-            val r = RectF()
-            r.left = o[0].toFloat()
-            r.right = o[1].toFloat()
-            r.bottom = o[2].toFloat()
-            r.top = o[3].toFloat()
-            return r
+            return PdfRectF(
+                o[0].toFloat(),
+                o[3].toFloat(),
+                o[1].toFloat(),
+                o[2].toFloat(),
+            )
         } catch (e: NullPointerException) {
             Logger.e(TAG, e, "mContext may be null")
         } catch (e: Exception) {
@@ -276,15 +276,15 @@ class PdfTextPageU(
      * For internal use only.
      *
      * @param rectIndex the 0-based index of the rectangle to get
-     * @return the bounding box as a [RectF], or `null` if an error occurs
+     * @return the bounding box as a [PdfRectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
     @Suppress("MagicNumber")
-    fun textPageGetRect(rectIndex: Int): RectF? {
+    fun textPageGetRect(rectIndex: Int): PdfRectF? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         return try {
             val o = nativeTextPage.textGetRect(pagePtr, rectIndex)
-            RectF(
+            PdfRectF(
                 o[LEFT_OFFSET],
                 o[TOP_OFFSET],
                 o[RIGHT_OFFSET],
@@ -323,7 +323,7 @@ class PdfTextPageU(
                         rangeStart = data[offset + RANGE_START_OFFSET].toInt(),
                         rangeLength = data[offset + RANGE_LENGTH_OFFSET].toInt(),
                         rect =
-                            RectF(
+                            PdfRectF(
                                 data[offset + LEFT_OFFSET],
                                 data[offset + TOP_OFFSET],
                                 data[offset + RIGHT_OFFSET],
@@ -346,7 +346,7 @@ class PdfTextPageU(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetBoundedText(
-        rect: RectF,
+        rect: PdfRectF,
         length: Int,
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null

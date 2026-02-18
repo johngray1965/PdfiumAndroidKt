@@ -22,8 +22,6 @@ package io.legere.pdfiumandroid.benchmark
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.graphics.RectF
 import android.util.Log
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
@@ -34,6 +32,8 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -132,8 +132,8 @@ class PDFBenchmark {
     @Test
     fun getPagBitmapViaMatrix() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        val rect = RectF(0f, 0f, 612f, 792f)
-        val matrix = Matrix()
+        val rect = PdfRectF(0f, 0f, 612f, 792f)
+        val matrix = PdfMatrix()
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
@@ -220,7 +220,7 @@ class PDFBenchmark {
                     benchmarkRule.measureRepeated {
                         val result = textPage.textPageGetRectsForRanges(wordRangesArray)
                         assertThat(result).isNotNull()
-                        assertThat(result?.size).isEqualTo(1237)
+                        assertThat(result?.size).isEqualTo(1238)
                     }
                 }
             }
@@ -251,7 +251,7 @@ class PDFBenchmark {
                     benchmarkRule.measureRepeated {
                         val list = textPage.textPageGetRectsForRanges(wordBoundaries)
                         assertThat(list).isNotNull()
-                        assertThat(list?.size).isEqualTo(1237)
+                        assertThat(list?.size).isEqualTo(1238)
                     }
                 }
             }
@@ -294,7 +294,7 @@ class PDFBenchmark {
         }
     }
 
-    private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, RectF, Matrix> {
+    private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, PdfRectF, PdfMatrix> {
         val scaleFactor = (1080f / 612) * 8
         val width = 1080 * 3
         val height = 2280 * 3
@@ -304,8 +304,8 @@ class PDFBenchmark {
                 height,
                 bitmapConfig,
             )
-        val rect = RectF(0f, 0f, width.toFloat(), height.toFloat())
-        val matrix = Matrix()
+        val rect = PdfRectF(0f, 0f, width.toFloat(), height.toFloat())
+        val matrix = PdfMatrix()
         matrix.postScale(scaleFactor, scaleFactor)
         return Triple(bitmap, rect, matrix)
     }

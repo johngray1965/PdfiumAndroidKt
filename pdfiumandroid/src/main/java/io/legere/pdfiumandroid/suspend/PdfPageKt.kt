@@ -22,11 +22,6 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.Point
-import android.graphics.PointF
-import android.graphics.Rect
-import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
 import io.legere.pdfiumandroid.PdfPage
@@ -35,6 +30,11 @@ import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfPoint
+import io.legere.pdfiumandroid.api.types.PdfPointF
+import io.legere.pdfiumandroid.api.types.PdfRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -105,7 +105,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageMatrix]
      */
-    suspend fun getPageMatrix(): Matrix? =
+    suspend fun getPageMatrix(): PdfMatrix? =
         wrapSuspend(dispatcher) {
             page.getPageMatrix()
         }
@@ -122,7 +122,7 @@ class PdfPageKt internal constructor(
      * suspend version of [PdfPage.getPageCropBox]
      */
     @Suppress("LongParameterList")
-    suspend fun getPageCropBox(): RectF =
+    suspend fun getPageCropBox(): PdfRectF =
         wrapSuspend(dispatcher) {
             page.getPageCropBox()
         }
@@ -130,7 +130,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageMediaBox]
      */
-    suspend fun getPageMediaBox(): RectF =
+    suspend fun getPageMediaBox(): PdfRectF =
         wrapSuspend(dispatcher) {
             page.getPageMediaBox()
         }
@@ -138,7 +138,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageBleedBox]
      */
-    suspend fun getPageBleedBox(): RectF =
+    suspend fun getPageBleedBox(): PdfRectF =
         wrapSuspend(dispatcher) {
             page.getPageBleedBox()
         }
@@ -146,7 +146,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageTrimBox]
      */
-    suspend fun getPageTrimBox(): RectF =
+    suspend fun getPageTrimBox(): PdfRectF =
         wrapSuspend(dispatcher) {
             page.getPageTrimBox()
         }
@@ -154,7 +154,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageArtBox]
      */
-    suspend fun getPageArtBox(): RectF =
+    suspend fun getPageArtBox(): PdfRectF =
         wrapSuspend(dispatcher) {
             page.getPageArtBox()
         }
@@ -162,7 +162,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageBoundingBox]
      */
-    suspend fun getPageBoundingBox(): RectF =
+    suspend fun getPageBoundingBox(): PdfRectF =
         wrapSuspend(dispatcher) {
             page.getPageBoundingBox()
         }
@@ -235,8 +235,8 @@ class PdfPageKt internal constructor(
     @Suppress("LongParameterList", "ComplexMethod", "ComplexCondition")
     suspend fun renderPage(
         surface: Surface?,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -319,8 +319,8 @@ class PdfPageKt internal constructor(
     @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -357,7 +357,7 @@ class PdfPageKt internal constructor(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): Point =
+    ): PdfPoint =
         wrapSuspend(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
@@ -374,7 +374,7 @@ class PdfPageKt internal constructor(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): PointF =
+    ): PdfPointF =
         wrapSuspend(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
@@ -389,8 +389,8 @@ class PdfPageKt internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF,
-    ): Rect =
+        coords: PdfRectF,
+    ): PdfRect =
         wrapSuspend(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
@@ -405,8 +405,8 @@ class PdfPageKt internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect,
-    ): RectF =
+        coords: PdfRect,
+    ): PdfRectF =
         wrapSuspend(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }

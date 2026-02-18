@@ -19,11 +19,11 @@
 
 package io.legere.pdfiumandroid.suspend
 
-import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.FindResultU
 import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
@@ -103,7 +103,7 @@ class PdfTextPageKtTest {
     @Test
     fun textPageGetCharBox() =
         runTest {
-            val expected = RectF(0f, 0f, 10f, 10f)
+            val expected = PdfRectF(0f, 0f, 10f, 10f)
             every { pdfTextPageU.textPageGetCharBox(1) } returns expected
             assertThat(pdfTextPage.textPageGetCharBox(1)).isEqualTo(expected)
             verify { pdfTextPageU.textPageGetCharBox(1) }
@@ -132,7 +132,7 @@ class PdfTextPageKtTest {
     @Test
     fun textPageGetRect() =
         runTest {
-            val expected = RectF(5f, 5f, 15f, 15f)
+            val expected = PdfRectF(5f, 5f, 15f, 15f)
             every { pdfTextPageU.textPageGetRect(3) } returns expected
             assertThat(pdfTextPage.textPageGetRect(3)).isEqualTo(expected)
             verify { pdfTextPageU.textPageGetRect(3) }
@@ -142,7 +142,7 @@ class PdfTextPageKtTest {
     fun textPageGetRectsForRanges() =
         runTest {
             val starts = intArrayOf(0)
-            val expected = listOf(WordRangeRect(5, 0, RectF(0f, 0f, 10f, 10f)))
+            val expected = listOf(WordRangeRect(5, 0, PdfRectF(0f, 0f, 10f, 10f)))
 
             every { pdfTextPageU.textPageGetRectsForRanges(starts) } returns expected
 
@@ -153,7 +153,7 @@ class PdfTextPageKtTest {
     @Test
     fun textPageGetBoundedText() =
         runTest {
-            val rect = RectF(0f, 0f, 100f, 100f)
+            val rect = PdfRectF(0f, 0f, 100f, 100f)
             val expected = "Bounded"
             every { pdfTextPageU.textPageGetBoundedText(rect, 100) } returns expected
 

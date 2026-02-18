@@ -19,11 +19,11 @@
 
 package io.legere.pdfiumandroid.core.jni
 
-import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
@@ -129,11 +129,7 @@ class NativeTextPageTest : BasePDFTest() {
                             data?.let {
                                 val wordRangeRects = mutableListOf<WordRangeRect>()
                                 for (i in data.indices step 6) {
-                                    val r = RectF()
-                                    r.left = data[i + 0]
-                                    r.top = data[i + 1]
-                                    r.right = data[i + 2]
-                                    r.bottom = data[i + 3]
+                                    val r = PdfRectF(data[i + 0], data[i + 1], data[i + 2], data[i + 3])
                                     val rangeStart = data[i + 4].toInt()
                                     val rangeLength = data[i + 5].toInt()
                                     WordRangeRect(rangeStart, rangeLength, r).let {

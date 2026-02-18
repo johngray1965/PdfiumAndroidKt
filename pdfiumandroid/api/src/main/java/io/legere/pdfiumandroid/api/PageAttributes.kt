@@ -19,8 +19,9 @@
 
 package io.legere.pdfiumandroid.api
 
-import android.graphics.RectF
 import androidx.annotation.Keep
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfRectF
 
 /**
  * PageAttributes contains various attributes of a PDF page.
@@ -31,15 +32,15 @@ data class PageAttributes(
     val pageWidth: Int,
     val pageHeight: Int,
     val pageRotation: Int,
-    val rect: RectF,
-    val mediaBox: RectF,
-    val cropBox: RectF,
-    val bleedBox: RectF,
-    val trimBox: RectF,
-    val artBox: RectF,
-    val boundingBox: RectF,
+    val rect: PdfRectF,
+    val mediaBox: PdfRectF,
+    val cropBox: PdfRectF,
+    val bleedBox: PdfRectF,
+    val trimBox: PdfRectF,
+    val artBox: PdfRectF,
+    val boundingBox: PdfRectF,
     val links: List<Link>,
-    val pageMatrix: ImmutableMatrix,
+    val pageMatrix: PdfMatrix,
 ) {
     companion object {
         /**
@@ -51,15 +52,15 @@ data class PageAttributes(
                 pageWidth = 0,
                 pageHeight = 0,
                 pageRotation = 0,
-                rect = RectF(),
-                mediaBox = RectF(),
-                cropBox = RectF(),
-                bleedBox = RectF(),
-                trimBox = RectF(),
-                artBox = RectF(),
-                boundingBox = RectF(),
+                rect = PdfRectF(0f, 0f, 0f, 0f),
+                mediaBox = PdfRectF(0f, 0f, 0f, 0f),
+                cropBox = PdfRectF(0f, 0f, 0f, 0f),
+                bleedBox = PdfRectF(0f, 0f, 0f, 0f),
+                trimBox = PdfRectF(0f, 0f, 0f, 0f),
+                artBox = PdfRectF(0f, 0f, 0f, 0f),
+                boundingBox = PdfRectF(0f, 0f, 0f, 0f),
                 links = emptyList(),
-                pageMatrix = ImmutableMatrix(),
+                pageMatrix = PdfMatrix(),
             )
     }
 }

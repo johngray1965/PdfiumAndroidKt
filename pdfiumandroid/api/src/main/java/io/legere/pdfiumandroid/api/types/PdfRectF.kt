@@ -16,29 +16,25 @@
  * limitations under the License.
  *
  */
-@file:Suppress("unused")
 
-package android.graphics
+package io.legere.pdfiumandroid.api.types
 
-data class RectF(
-    @JvmField var left: Float = 0f,
-    @JvmField var top: Float = 0f,
-    @JvmField var right: Float = 0f,
-    @JvmField var bottom: Float = 0f,
+import androidx.annotation.Keep
+
+@Keep
+data class PdfRectF(
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float,
 ) {
-    fun set(
-        l: Float,
-        t: Float,
-        r: Float,
-        b: Float,
-    ) {
-        left = l
-        top = t
-        right = r
-        bottom = b
+    fun toFloatArray(): FloatArray = floatArrayOf(left, top, right, bottom)
+
+    fun width(): Float = right - left
+
+    fun height(): Float = bottom - top
+
+    companion object {
+        val EMPTY = PdfRectF(0f, 0f, 0f, 0f)
     }
-
-    fun width() = right - left
-
-    fun height() = bottom - top
 }

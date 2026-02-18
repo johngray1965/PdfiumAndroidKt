@@ -16,13 +16,19 @@
  * limitations under the License.
  *
  */
-@file:Suppress("unused")
 
-package android.graphics
+package io.legere.pdfiumandroid.api.types
 
-data class PointF(
-    @JvmField var x: Float = 0f,
-    @JvmField var y: Float = 0f,
+import androidx.annotation.Keep
+
+@Keep
+data class PdfPointF(
+    val x: Float,
+    val y: Float,
 ) {
-    constructor(src: PointF) : this(src.x, src.y)
+    fun toFloatArray(): FloatArray = floatArrayOf(x, y)
+
+    companion object {
+        val ZERO = PdfPointF(0f, 0f)
+    }
 }

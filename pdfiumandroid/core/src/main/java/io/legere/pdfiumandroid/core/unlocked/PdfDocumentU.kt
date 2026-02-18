@@ -21,18 +21,17 @@
 
 package io.legere.pdfiumandroid.core.unlocked
 
-import android.graphics.Matrix
-import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.view.Surface
 import androidx.annotation.OpenForTesting
 import io.legere.pdfiumandroid.api.Bookmark
-import io.legere.pdfiumandroid.api.ImmutableMatrix
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.api.PdfiumSource
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU.Companion.FPDF_INCREMENTAL
@@ -78,24 +77,6 @@ class PdfDocumentU(
         val right: Int,
         val bottom: Int,
     )
-
-    private val matrixCache = mutableMapOf<MatrixKey, ImmutableMatrix>()
-
-    /**
-     * Retrieves a cached transformation matrix or computes and caches a new one.
-     * For internal use only.
-     *
-     * @param key The [MatrixKey] used to identify the cached matrix.
-     * @param calculate A lambda function that takes a [Matrix] and computes its values if not cached.
-     * @return The cached or newly computed [Matrix].
-     */
-    internal fun getCachedMatrix(
-        key: MatrixKey,
-        calculate: (Matrix) -> Unit,
-    ): ImmutableMatrix =
-        matrixCache.getOrPut(key) {
-            ImmutableMatrix(Matrix().also(calculate))
-        }
 
     private val nativeDocument = nativeFactory.getNativeDocument()
 
@@ -218,8 +199,8 @@ class PdfDocumentU(
         drawSizeX: Int,
         drawSizeY: Int,
         pages: List<PdfPageU>,
-        matrices: List<Matrix>,
-        clipRects: List<RectF>,
+        matrices: List<PdfMatrix>,
+        clipRects: List<PdfRectF>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -246,9 +227,9 @@ class PdfDocumentU(
      *
      * @param surface The [Surface] on which to render the pages.
      * @param pages The list of [PdfPageU] to render.
-     * @param matrices The list of transformation [Matrix] for each page, mapping page coordinates
+     * @param matrices The list of transformation [PdfMatrix] for each page, mapping page coordinates
      * to surface coordinates.
-     * @param clipRects The list of [RectF] for each page, defining the clipping area in surface coordinates.
+     * @param clipRects The list of [PdfRectF] for each page, defining the clipping area in surface coordinates.
      * @param renderAnnot whether to render annotations.
      * @param textMask whether to render text as an image mask - currently ignored.
      * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
@@ -261,8 +242,8 @@ class PdfDocumentU(
     fun renderPages(
         surface: Surface,
         pages: List<PdfPageU>,
-        matrices: List<Matrix>,
-        clipRects: List<RectF>,
+        matrices: List<PdfMatrix>,
+        clipRects: List<PdfRectF>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -434,7 +415,6 @@ class PdfDocumentU(
         parcelFileDescriptor = null
         source?.close()
         source = null
-        matrixCache.clear()
     }
 
     /**

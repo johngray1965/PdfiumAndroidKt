@@ -17,20 +17,24 @@
  *
  */
 
-package io.legere.pdfiumandroid.api
+package io.legere.pdfiumandroid.api.types
 
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import androidx.annotation.Keep
 
-/**
- * Represents a link (e.g., internal page link or URI link) found on a PDF page.
- *
- * @property bounds The bounding rectangle of the link on the page.
- * @property destPageIdx The 0-based destination page index if this is an internal link,
- * or `null` if it's a URI link.
- * @property uri The URI string if this is a web link, or `null` if it's an internal page link.
- */
-class Link(
-    val bounds: PdfRectF,
-    val destPageIdx: Int?,
-    val uri: String?,
-)
+@Keep
+data class PdfRect(
+    val left: Int,
+    val top: Int,
+    val right: Int,
+    val bottom: Int,
+) {
+    fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
+
+    fun width(): Int = right - left
+
+    fun height(): Int = bottom - top
+
+    companion object {
+        val EMPTY = PdfRect(0, 0, 0, 0)
+    }
+}

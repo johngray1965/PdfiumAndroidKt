@@ -19,10 +19,10 @@
 
 package io.legere.pdfiumandroid
 
-import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.FindResultU
 import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
@@ -91,7 +91,7 @@ class PdfTextPageTest {
 
     @Test
     fun textPageGetCharBox() {
-        val expected = RectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(0f, 0f, 10f, 10f)
         every { pdfTextPageU.textPageGetCharBox(5) } returns expected
         assertThat(page.textPageGetCharBox(5)).isEqualTo(expected)
         verify { pdfTextPageU.textPageGetCharBox(5) }
@@ -115,7 +115,7 @@ class PdfTextPageTest {
 
     @Test
     fun textPageGetRect() {
-        val expected = RectF(5f, 5f, 20f, 20f)
+        val expected = PdfRectF(5f, 5f, 20f, 20f)
         every { pdfTextPageU.textPageGetRect(3) } returns expected
         assertThat(page.textPageGetRect(3)).isEqualTo(expected)
         verify { pdfTextPageU.textPageGetRect(3) }
@@ -133,7 +133,7 @@ class PdfTextPageTest {
 
     @Test
     fun textPageGetBoundedText() {
-        val rect = RectF(0f, 0f, 100f, 100f)
+        val rect = PdfRectF(0f, 0f, 100f, 100f)
         val expected = "Bounded"
         every { pdfTextPageU.textPageGetBoundedText(rect, 50) } returns expected
         assertThat(page.textPageGetBoundedText(rect, 50)).isEqualTo(expected)

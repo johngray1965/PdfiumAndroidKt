@@ -19,8 +19,8 @@
 
 package io.legere.pdfiumandroid.arrow
 
-import android.graphics.RectF
 import arrow.core.Either
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
@@ -89,13 +89,13 @@ class PdfPageLinkKtF internal constructor(
      *
      * @param linkIndex The 0-based index of the web link.
      * @param rectIndex The 0-based index of the rectangle within that web link.
-     * @return An [Either] containing `PdfiumKtFErrors` on the left or a [RectF] representing
+     * @return An [Either] containing `PdfiumKtFErrors` on the left or a [PdfRectF] representing
      * the bounding box on the right.
      */
     suspend fun getRect(
         linkIndex: Int,
         rectIndex: Int,
-    ): Either<PdfiumKtFErrors, RectF> =
+    ): Either<PdfiumKtFErrors, PdfRectF> =
         wrapEither(dispatcher) {
             pageLink.getRect(linkIndex, rectIndex)
         }

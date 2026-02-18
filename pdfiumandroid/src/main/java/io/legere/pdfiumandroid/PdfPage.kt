@@ -22,16 +22,16 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.Point
-import android.graphics.PointF
-import android.graphics.Rect
-import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfPoint
+import io.legere.pdfiumandroid.api.types.PdfPointF
+import io.legere.pdfiumandroid.api.types.PdfRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -106,7 +106,7 @@ class PdfPage internal constructor(
         }
 
     @Suppress("LongParameterList", "MagicNumber")
-    fun getPageMatrix(): Matrix? =
+    fun getPageMatrix(): PdfMatrix? =
         wrapLock {
             page.getPageMatrix()
         }
@@ -129,60 +129,60 @@ class PdfPage internal constructor(
 
     /**
      *  Get the page's crop box in PostScript points (1/72th of an inch)
-     *  @return page crop box in points or RectF(-1, -1, -1, -1) if not present
+     *  @return page crop box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageCropBox(): RectF =
+    fun getPageCropBox(): PdfRectF =
         wrapLock {
             page.getPageCropBox()
         }
 
     /**
      *  Get the page's media box in PostScript points (1/72th of an inch)
-     *  @return page media box in points or RectF(-1, -1, -1, -1) if not present
+     *  @return page media box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageMediaBox(): RectF =
+    fun getPageMediaBox(): PdfRectF =
         wrapLock {
             page.getPageMediaBox()
         }
 
     /**
      *  Get the page's bleed box in PostScript points (1/72th of an inch)
-     *  @return page bleed box in pointsor RectF(-1, -1, -1, -1) if not present
+     *  @return page bleed box in pointsor PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBleedBox(): RectF =
+    fun getPageBleedBox(): PdfRectF =
         wrapLock {
             page.getPageBleedBox()
         }
 
     /**
      *  Get the page's trim box in PostScript points (1/72th of an inch)
-     *  @return page trim box in points or RectF(-1, -1, -1, -1) if not present
+     *  @return page trim box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageTrimBox(): RectF =
+    fun getPageTrimBox(): PdfRectF =
         wrapLock {
             page.getPageTrimBox()
         }
 
     /**
      *  Get the page's art box in PostScript points (1/72th of an inch)
-     *  @return page art box in points or RectF(-1, -1, -1, -1) if not present
+     *  @return page art box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageArtBox(): RectF =
+    fun getPageArtBox(): PdfRectF =
         wrapLock {
             page.getPageArtBox()
         }
 
     /**
      *  Get the page's bounding box in PostScript points (1/72th of an inch)
-     *  @return page bounding box in points or RectF(-1, -1, -1, -1) if not present
+     *  @return page bounding box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBoundingBox(): RectF =
+    fun getPageBoundingBox(): PdfRectF =
         wrapLock {
             page.getPageBoundingBox()
         }
@@ -253,8 +253,8 @@ class PdfPage internal constructor(
         bufferPtr: Long,
         drawSizeX: Int,
         drawSizeY: Int,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -277,8 +277,8 @@ class PdfPage internal constructor(
     @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -362,8 +362,8 @@ class PdfPage internal constructor(
     @Suppress("LongParameterList")
     fun renderPageBitmap(
         bitmap: Bitmap?,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -409,7 +409,7 @@ class PdfPage internal constructor(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): Point =
+    ): PdfPoint =
         wrapLock {
             page.mapPageCoordsToDevice(
                 startX,
@@ -445,7 +445,7 @@ class PdfPage internal constructor(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): PointF =
+    ): PdfPointF =
         wrapLock {
             page.mapDeviceCoordsToPage(
                 startX,
@@ -480,8 +480,8 @@ class PdfPage internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF,
-    ): Rect =
+        coords: PdfRectF,
+    ): PdfRect =
         wrapLock {
             page.mapRectToDevice(
                 startX,
@@ -512,8 +512,8 @@ class PdfPage internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect,
-    ): RectF =
+        coords: PdfRect,
+    ): PdfRectF =
         wrapLock {
             page.mapRectToPage(
                 startX,

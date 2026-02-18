@@ -5,7 +5,7 @@
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *  You may obtain a copy of the License at
  *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
@@ -16,34 +16,29 @@
  * limitations under the License.
  *
  */
-@file:Suppress("unused", "MemberVisibilityCanBePrivate", "TooGenericExceptionCaught")
+
+@file:Suppress("unused", "MemberVisibilityCanBePrivate")
 
 package io.legere.pdfiumandroid
 
-import android.graphics.RectF
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
 
-typealias FindHandle = Long
+private const val LEFT = 0
+private const val TOP = 1
+private const val RIGHT = 2
+private const val BOTTOM = 3
 
-private const val LEFT_OFFSET = 0
-private const val TOP_OFFSET = 1
-private const val RIGHT_OFFSET = 2
-private const val BOTTOM_OFFSET = 3
-private const val RANGE_START_OFFSET = 4
-private const val RANGE_LENGTH_OFFSET = 5
-
-private const val RANGE_RECT_DATA_SIZE = 6
+private const val RECT_SIZE = 4
 
 /**
- * PdfTextPage is a wrapper around the native PdfiumCore text page
- * It is used to get text and other information about the text on a page
- * @property page the interface to the native text page object.
+ * Represents a text layer of a single page in a [PdfDocument].
  */
 @Suppress("TooManyFunctions")
 class PdfTextPage internal constructor(
-    internal val page: PdfTextPageU,
+    internal val textPage: PdfTextPageU,
 ) : Closeable {
     @Deprecated(
         "Moved to io.legere.pdfiumandroid.api.FindFlags",
@@ -60,11 +55,8 @@ class PdfTextPage internal constructor(
     )
     typealias WordRangeRect = io.legere.pdfiumandroid.api.WordRangeRect
 
-    @Volatile
-    private var isClosed = false
-
     val pageIndex: Int
-        get() = page.pageIndex
+        get() = textPage.pageIndex
 
     /**
      * Get character count of the page
@@ -73,64 +65,71 @@ class PdfTextPage internal constructor(
      */
     fun textPageCountChars(): Int =
         wrapLock {
-            page.textPageCountChars()
+            textPage.textPageCountChars()
         }
 
     /**
-     * Get the text on the page
+     * Get the text on the page using a legacy method.
+     * Prefer `textPageGetText`.
      * @param startIndex the index of the first character to get
      * @param length the number of characters to get
      * @return the text
      * @throws IllegalStateException if the page or document is closed
      */
-    @Suppress("ReturnCount")
     fun textPageGetTextLegacy(
         startIndex: Int,
         length: Int,
     ): String? =
         wrapLock {
-            page.textPageGetTextLegacy(startIndex, length)
+            textPage.textPageGetTextLegacy(startIndex, length)
         }
 
-    @Suppress("ReturnCount")
+    /**
+     * Get the text on the page.
+     * @param startIndex the index of the first character to get
+     * @param length the number of characters to get
+     * @return the text
+     * @throws IllegalStateException if the page or document is closed
+     */
     fun textPageGetText(
         startIndex: Int,
         length: Int,
     ): String? =
         wrapLock {
-            page.textPageGetText(startIndex, length)
+            textPage.textPageGetText(startIndex, length)
         }
 
     /**
-     * Get a unicode character on the page
+     * Get a unicode character on the page.
      * @param index the index of the character to get
      * @return the character
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetUnicode(index: Int): Char =
         wrapLock {
-            page.textPageGetUnicode(index)
+            textPage.textPageGetUnicode(index)
         }
 
     /**
-     * Get the bounding box of a character on the page
+     * Get the bounding box of a character on the page.
      * @param index the index of the character to get
-     * @return the bounding box
+     * @return the bounding box as a [PdfRectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
-    @Suppress("ReturnCount", "MagicNumber")
-    fun textPageGetCharBox(index: Int): RectF? = page.textPageGetCharBox(index)
+    fun textPageGetCharBox(index: Int): PdfRectF? =
+        wrapLock {
+            textPage.textPageGetCharBox(index)
+        }
 
     /**
-     * Get the index of the character at a given position on the page
-     * @param x the x position
-     * @param y the y position
+     * Get the index of the character at a given position on the page.
+     * @param x the x position in page coordinates
+     * @param y the y position in page coordinates
      * @param xTolerance the x tolerance
      * @param yTolerance the y tolerance
-     * @return the index of the character at the position
+     * @return the 0-based index of the character at the position, or -1 if no character is found
      * @throws IllegalStateException if the page or document is closed
      */
-    @Suppress("ReturnCount")
     fun textPageGetCharIndexAtPos(
         x: Double,
         y: Double,
@@ -138,12 +137,12 @@ class PdfTextPage internal constructor(
         yTolerance: Double,
     ): Int =
         wrapLock {
-            page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
+            textPage.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
 
     /**
-     * Get the count of rectangles that bound the text on the page in a given range
-     * @param startIndex the index of the first character to get
+     * Get the count of rectangles that bound the text on the page in a given range.
+     * @param startIndex the 0-based index of the first character to get
      * @param count the number of characters to get
      * @return the number of rectangles
      * @throws IllegalStateException if the page or document is closed
@@ -153,80 +152,92 @@ class PdfTextPage internal constructor(
         count: Int,
     ): Int =
         wrapLock {
-            page.textPageCountRects(startIndex, count)
+            textPage.textPageCountRects(startIndex, count)
         }
 
     /**
-     * Get the bounding box of a text on the page
-     * @param rectIndex the index of the rectangle to get
-     * @return the bounding box
+     * Get the bounding box of a text rectangle on the page.
+     * @param rectIndex the 0-based index of the rectangle to get
+     * @return the bounding box as a [PdfRectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
-    @Suppress("MagicNumber")
-    fun textPageGetRect(rectIndex: Int): RectF? =
+    fun textPageGetRect(rectIndex: Int): PdfRectF? =
         wrapLock {
-            page.textPageGetRect(rectIndex)
+            textPage.textPageGetRect(rectIndex)
         }
 
     /**
-     * Get the bounding box of a range of texts on the page
+     * Get the bounding boxes of a range of texts on the page.
      * @param wordRanges an array of word ranges to get the bounding boxes for.
-     * Even indices are the start index, odd indices are the length
-     * @return list of bounding boxes with their start and length
+     *                    Even indices are the start index, odd indices are the length.
+     * @return a list of [io.legere.pdfiumandroid.api.WordRangeRect] containing bounding boxes
+     * with their start and length or `null` if an error occurs.
      * @throws IllegalStateException if the page or document is closed
      */
-    @Suppress("ReturnCount")
-    fun textPageGetRectsForRanges(wordRanges: IntArray): List<io.legere.pdfiumandroid.api.WordRangeRect>? =
+    fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
         wrapLock {
-            page.textPageGetRectsForRanges(wordRanges)
+            textPage.textPageGetRectsForRanges(wordRanges)
         }
 
     /**
-     * Get the text bounded by the given rectangle
+     * Get the text bounded by the given rectangle.
      * @param rect the rectangle to bound the text
      * @param length the maximum number of characters to get
-     * @return the text bounded by the rectangle
+     * @return the text bounded by the rectangle as a [String], or `null` if an error occurs.
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetBoundedText(
-        rect: RectF,
+        rect: PdfRectF,
         length: Int,
     ): String? =
         wrapLock {
-            page.textPageGetBoundedText(rect, length)
+            textPage.textPageGetBoundedText(rect, length)
         }
 
     /**
-     * Get character font size in PostScript points (1/72th of an inch).<br></br>
+     * Get character font size in PostScript points (1/72th of an inch).
      * @param charIndex the index of the character to get
      * @return the font size
      * @throws IllegalStateException if the page or document is closed
      */
     fun getFontSize(charIndex: Int): Double =
         wrapLock {
-            page.getFontSize(charIndex)
-        }
-
-    fun findStart(
-        findWhat: String,
-        flags: Set<io.legere.pdfiumandroid.api.FindFlags>,
-        startIndex: Int,
-    ): FindResult? =
-        wrapLock {
-            page.findStart(findWhat, flags, startIndex)?.let { FindResult(it) }
-        }
-
-    fun loadWebLink(): PdfPageLink? =
-        wrapLock {
-            page.loadWebLink()?.let { PdfPageLink(it) }
+            textPage.getFontSize(charIndex)
         }
 
     /**
-     * Close the page and release all resources
+     * Initiates a text search operation on the page.
+     * @param findWhat The string to search for.
+     * @param flags A set of [io.legere.pdfiumandroid.api.FindFlags] to control the search behavior.
+     * @param startIndex The 0-based index to start the search from.
+     * @return A [FindResult] object representing the search session, or `null` if the page or document is closed.
+     * @throws IllegalStateException if the page or document is closed.
+     */
+    fun findStart(
+        findWhat: String,
+        flags: Set<FindFlags>,
+        startIndex: Int,
+    ): FindResult? =
+        wrapLock {
+            textPage.findStart(findWhat, flags, startIndex)?.let { FindResult(it) }
+        }
+
+    /**
+     * Loads web links from the text page.
+     * @return A [PdfPageLink] object containing the web links, or `null` if the page or document is closed.
+     * @throws IllegalStateException if the page or document is closed.
+     */
+    fun loadWebLink(): PdfPageLink? =
+        wrapLock {
+            textPage.loadWebLink()?.let { PdfPageLink(it) }
+        }
+
+    /**
+     * Close the text page and release all resources
      */
     override fun close() {
         wrapLock {
-            page.close()
+            textPage.close()
         }
     }
 }

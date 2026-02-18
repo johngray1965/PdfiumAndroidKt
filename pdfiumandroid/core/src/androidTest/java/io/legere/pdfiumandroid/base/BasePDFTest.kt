@@ -19,10 +19,10 @@
 
 package io.legere.pdfiumandroid.base
 
-import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import org.junit.After
 import java.io.File
 
@@ -32,7 +32,7 @@ open class BasePDFTest {
     // set to false to force unimplemented tests to fail
     val notImplementedAssetValue = false
 
-    val noResultRect = RectF(-1f, -1f, -1f, -1f)
+    val noResultRect = PdfRectF(-1f, -1f, -1f, -1f)
     val noResultFloatArray = floatArrayOf(-1f, -1f, -1f, -1f)
 
     @After

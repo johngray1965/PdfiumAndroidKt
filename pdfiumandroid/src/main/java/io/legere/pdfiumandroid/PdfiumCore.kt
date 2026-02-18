@@ -23,9 +23,6 @@ package io.legere.pdfiumandroid
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Point
-import android.graphics.Rect
-import android.graphics.RectF
 import android.os.ParcelFileDescriptor
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Config
@@ -33,6 +30,9 @@ import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.LockManager
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.api.types.PdfPoint
+import io.legere.pdfiumandroid.api.types.PdfRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU.Companion.lock
 import io.legere.pdfiumandroid.core.util.wrapLock
@@ -61,6 +61,8 @@ class PdfiumCore(
     val config: Config = Config(),
     private val coreInternal: PdfiumCoreU = PdfiumCoreU(config = config),
 ) {
+    val invalidRect = PdfRectF(-1f, -1f, -1f, -1f)
+
     /**
      * Creates a new [PdfDocument] from a [ParcelFileDescriptor].
      * The document is opened without a password.
@@ -204,9 +206,9 @@ class PdfiumCore(
     fun getPageMediaBox(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): RectF {
+    ): PdfRectF {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.getPageMediaBox() ?: RectF(-1f, -1f, -1f, -1f)
+            return page?.getPageMediaBox() ?: invalidRect
         }
     }
 
@@ -367,7 +369,7 @@ class PdfiumCore(
         pdfDocument: PdfDocument,
         pageIndex: Int,
         index: Int,
-    ): RectF? {
+    ): PdfRectF? {
         pdfDocument.openPage(pageIndex).use { page ->
             return page?.openTextPage()?.use { textPage ->
                 textPage.textPageGetRect(index)
@@ -388,7 +390,7 @@ class PdfiumCore(
     fun textPageGetBoundedText(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-        sourceRect: RectF,
+        sourceRect: PdfRectF,
         size: Int,
     ): String? {
         pdfDocument.openPage(pageIndex).use { page ->
@@ -417,10 +419,10 @@ class PdfiumCore(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect,
-    ): RectF {
+        coords: PdfRect,
+    ): PdfRectF {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: RectF(-1f, -1f, -1f, -1f)
+            return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: invalidRect
         }
     }
 
@@ -532,9 +534,9 @@ class PdfiumCore(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): Point {
+    ): PdfPoint {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: Point(-1, -1)
+            return page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: PdfPoint(-1, -1)
         }
     }
 
@@ -557,10 +559,10 @@ class PdfiumCore(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF,
-    ): Rect {
+        coords: PdfRectF,
+    ): PdfRect {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: Rect(-1, -1, -1, -1)
+            return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: PdfRect(-1, -1, -1, -1)
         }
     }
 

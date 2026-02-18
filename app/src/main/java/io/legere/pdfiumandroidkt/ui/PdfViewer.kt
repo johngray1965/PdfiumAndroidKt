@@ -4,7 +4,6 @@ package io.legere.pdfiumandroidkt.ui
 
 import android.graphics.Matrix
 import android.graphics.Rect
-import android.graphics.RectF
 import android.view.Surface
 import androidx.compose.foundation.AndroidEmbeddedExternalSurface
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.suspend.PdfPageKtCache
 import io.legere.pdfiumandroidkt.PdfHolder
 import timber.log.Timber
@@ -95,13 +96,20 @@ suspend fun drawPdf(
         matrix.postScale(scaleFactor, scaleFactor)
         matrix.postTranslate(startX.toFloat(), startY.toFloat())
         val clipRect =
-            RectF(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat())
+            PdfRectF(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat())
         pageHolder.page.renderPage(
             surface = surface,
-            matrix,
+            matrix.toPdfMatrix(),
             clipRect,
         )
     } catch (e: Exception) {
         Timber.d(e)
     }
+}
+
+@Suppress("MagicNumber")
+private fun Matrix.toPdfMatrix(): PdfMatrix {
+    val values = FloatArray(9)
+    this.getValues(values)
+    return PdfMatrix(values)
 }

@@ -19,6 +19,7 @@
 
 package io.legere.pdfiumandroid.api
 
+import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.core.util.PdfiumNativeSourceBridge
 import org.junit.jupiter.api.Assertions
@@ -44,9 +45,9 @@ class PdfiumNativeSourceBridgeTest {
 
         try {
             assertThat(bridge.read(1, 2)).isEqualTo(2)
-            assertThat(lastPosition).isEqualTo(1)
-            assertThat(lastBufferSize).isEqualTo(2)
-            assertThat(lastSize).isEqualTo(2)
+            Truth.assertThat(lastPosition).isEqualTo(1)
+            Truth.assertThat(lastBufferSize).isEqualTo(2)
+            Truth.assertThat(lastSize).isEqualTo(2)
         } catch (_: Exception) {
             Assertions.fail("Should not throw exception")
         }
@@ -103,10 +104,10 @@ class PdfiumNativeSourceBridgeTest {
 
         try {
             assertThat(bridge.read(0, 1)).isEqualTo(1)
-            assertThat(lastBufferSize).isEqualTo(1)
+            Truth.assertThat(lastBufferSize).isEqualTo(1)
 
             assertThat(bridge.read(0, 2)).isEqualTo(2)
-            assertThat(lastBufferSize).isEqualTo(2)
+            Truth.assertThat(lastBufferSize).isEqualTo(2)
         } catch (_: Exception) {
             Assertions.fail("Should not throw exception")
         }

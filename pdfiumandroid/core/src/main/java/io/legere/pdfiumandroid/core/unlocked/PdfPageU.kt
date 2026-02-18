@@ -22,11 +22,6 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.Point
-import android.graphics.PointF
-import android.graphics.Rect
-import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.pdfiumandroid.api.Link
@@ -34,12 +29,17 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfPoint
+import io.legere.pdfiumandroid.api.types.PdfPointF
+import io.legere.pdfiumandroid.api.types.PdfRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePageContract
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.core.util.PageCount
-import io.legere.pdfiumandroid.core.util.floatArrayToMatrix
-import io.legere.pdfiumandroid.core.util.floatArrayToRect
+import io.legere.pdfiumandroid.core.util.floatArrayToPdfMatrix
+import io.legere.pdfiumandroid.core.util.floatArrayToPdfRect
 import io.legere.pdfiumandroid.core.util.matrixToFloatArray
 import io.legere.pdfiumandroid.core.util.rectToFloatArray
 import io.legere.pdfiumandroid.core.util.wrapLock
@@ -68,6 +68,8 @@ class PdfPageU(
 ) : Closeable {
     @Volatile
     var isClosed = false
+
+    val invalidRect = PdfRectF(-1f, -1f, -1f, -1f)
 
     private val nativePage: NativePageContract = nativeFactory.getNativePage()
 
@@ -135,13 +137,13 @@ class PdfPageU(
      * Get the page's transformation matrix.
      * For internal use only.
      *
-     * @return A [Matrix] representing the page's transformation, or `null` if an error occurs.
+     * @return A [PdfMatrix] representing the page's transformation, or `null` if an error occurs.
      */
     @Suppress("LongParameterList", "MagicNumber")
-    fun getPageMatrix(): Matrix? {
+    fun getPageMatrix(): PdfMatrix? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
 
-        return floatArrayToMatrix(nativePage.getPageMatrix(pagePtr))
+        return floatArrayToPdfMatrix(nativePage.getPageMatrix(pagePtr))
     }
 
     /**
@@ -166,72 +168,72 @@ class PdfPageU(
      * Get the page's crop box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page crop box in points or RectF(-1, -1, -1, -1) if not present
+     * @return page crop box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageCropBox(): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        return floatArrayToRect(nativePage.getPageCropBox(pagePtr))
+    fun getPageCropBox(): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
+        return floatArrayToPdfRect(nativePage.getPageCropBox(pagePtr))
     }
 
     /**
      * Get the page's media box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page media box in points or RectF(-1, -1, -1, -1) if not present
+     * @return page media box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageMediaBox(): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        return floatArrayToRect(nativePage.getPageMediaBox(pagePtr))
+    fun getPageMediaBox(): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
+        return floatArrayToPdfRect(nativePage.getPageMediaBox(pagePtr))
     }
 
     /**
      * Get the page's bleed box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page bleed box in pointsor RectF(-1, -1, -1, -1) if not present
+     * @return page bleed box in pointsor PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBleedBox(): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        return floatArrayToRect(nativePage.getPageBleedBox(pagePtr))
+    fun getPageBleedBox(): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
+        return floatArrayToPdfRect(nativePage.getPageBleedBox(pagePtr))
     }
 
     /**
      * Get the page's trim box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page trim box in points or RectF(-1, -1, -1, -1) if not present
+     * @return page trim box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageTrimBox(): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        return floatArrayToRect(nativePage.getPageTrimBox(pagePtr))
+    fun getPageTrimBox(): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
+        return floatArrayToPdfRect(nativePage.getPageTrimBox(pagePtr))
     }
 
     /**
      * Get the page's art box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page art box in points or RectF(-1, -1, -1, -1) if not present
+     * @return page art box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageArtBox(): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        return floatArrayToRect(nativePage.getPageArtBox(pagePtr))
+    fun getPageArtBox(): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
+        return floatArrayToPdfRect(nativePage.getPageArtBox(pagePtr))
     }
 
     /**
      * Get the page's bounding box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page bounding box in points or RectF(-1, -1, -1, -1) if not present
+     * @return page bounding box in points or PdfRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBoundingBox(): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
-        return floatArrayToRect(nativePage.getPageBoundingBox(pagePtr))
+    fun getPageBoundingBox(): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
+        return floatArrayToPdfRect(nativePage.getPageBoundingBox(pagePtr))
     }
 
     /**
@@ -325,8 +327,8 @@ class PdfPageU(
         bufferPtr: Long,
         drawSizeX: Int,
         drawSizeY: Int,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -365,8 +367,8 @@ class PdfPageU(
     @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -456,8 +458,8 @@ class PdfPageU(
     @Suppress("LongParameterList")
     fun renderPageBitmap(
         bitmap: Bitmap?,
-        matrix: Matrix,
-        clipRect: RectF,
+        matrix: PdfMatrix,
+        clipRect: PdfRectF,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -486,19 +488,18 @@ class PdfPageU(
     fun getPageLinks(): List<Link> {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return emptyList()
         val linkPtrs = nativePage.getPageLinks(pagePtr)
-        val links =
-            Array(linkPtrs.size) { i ->
-                val linkPtr = linkPtrs[i]
-                val index = nativePage.getDestPageIndex(doc.mNativeDocPtr, linkPtr)
-                val uri = nativePage.getLinkURI(doc.mNativeDocPtr, linkPtr)
-                val rect = nativePage.getLinkRect(doc.mNativeDocPtr, linkPtr)
-                Link(
-                    floatArrayToRect(rect),
-                    index,
-                    uri,
-                )
-            }
-        return links.toList()
+        if (linkPtrs.isEmpty()) return emptyList()
+        return List(linkPtrs.size) { i ->
+            val linkPtr = linkPtrs[i]
+            val index = nativePage.getDestPageIndex(doc.mNativeDocPtr, linkPtr)
+            val uri = nativePage.getLinkURI(doc.mNativeDocPtr, linkPtr)
+            val rect = nativePage.getLinkRect(doc.mNativeDocPtr, linkPtr)
+            Link(
+                floatArrayToPdfRect(rect),
+                index,
+                uri,
+            )
+        }
     }
 
     /**
@@ -513,7 +514,7 @@ class PdfPageU(
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param pageX     X value in page coordinates
      * @param pageY     Y value in page coordinate
-     * @return mapped coordinates as a [Point]
+     * @return mapped coordinates as a [PdfPoint]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -525,8 +526,8 @@ class PdfPageU(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): Point {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return Point(-1, -1)
+    ): PdfPoint {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfPoint.ZERO
         return nativePage
             .pageCoordsToDevice(
                 pagePtr,
@@ -538,7 +539,7 @@ class PdfPageU(
                 pageX,
                 pageY,
             ).let {
-                Point(it[0], it[1])
+                PdfPoint(it[0], it[1])
             }
     }
 
@@ -554,7 +555,7 @@ class PdfPageU(
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param deviceX   X value in page coordinates
      * @param deviceY   Y value in page coordinate
-     * @return mapped coordinates as a [PointF]
+     * @return mapped coordinates as a [PdfPointF]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -566,8 +567,8 @@ class PdfPageU(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): PointF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PointF(-1f, -1f)
+    ): PdfPointF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfPointF.ZERO
         return nativePage
             .deviceCoordsToPage(
                 pagePtr,
@@ -579,7 +580,7 @@ class PdfPageU(
                 deviceX,
                 deviceY,
             ).let {
-                PointF(it[0], it[1])
+                PdfPointF(it[0], it[1])
             }
     }
 
@@ -595,7 +596,7 @@ class PdfPageU(
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param coords    rectangle to map
      *
-     * @return mapped coordinates as a [Rect]
+     * @return mapped coordinates as a [PdfRect]
      *
      * @throws IllegalStateException If the page or document is closed
      */
@@ -606,9 +607,9 @@ class PdfPageU(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: RectF,
-    ): Rect {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return Rect(-1, -1, -1, -1)
+        coords: PdfRectF,
+    ): PdfRect {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfRect.EMPTY
         val leftTop =
             mapPageCoordsToDevice(
                 startX,
@@ -629,7 +630,7 @@ class PdfPageU(
                 coords.right.toDouble(),
                 coords.bottom.toDouble(),
             )
-        return Rect(
+        return PdfRect(
             leftTop.x,
             leftTop.y,
             rightBottom.x,
@@ -648,7 +649,7 @@ class PdfPageU(
      * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param coords    rectangle to map
-     * @return mapped coordinates as a [RectF]
+     * @return mapped coordinates as a [PdfRectF]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -658,9 +659,9 @@ class PdfPageU(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: Rect,
-    ): RectF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return RectF(-1f, -1f, -1f, -1f)
+        coords: PdfRect,
+    ): PdfRectF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         val leftTop =
             mapDeviceCoordsToPage(
                 startX,
@@ -681,7 +682,7 @@ class PdfPageU(
                 coords.right,
                 coords.bottom,
             )
-        return RectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
+        return PdfRectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
     }
 
     /**
@@ -700,40 +701,32 @@ class PdfPageU(
 
         val pageWidth = data[0]
         val pageHeight = data[1]
-        val pageWidthInt = pageWidth.toInt()
-        val pageHeightInt = pageHeight.toInt()
-        val pageRotation = data[2].toInt()
-        val left = data[27]
-        val top = data[28]
-        val right = data[29]
-        val bottom = data[30]
 
-        val key = PdfDocumentU.MatrixKey(pageWidthInt, pageHeightInt, pageRotation, right.toInt(), bottom.toInt())
-
-        val pageRectF = RectF(0f, 0f, pageWidth, pageHeight)
-        val mappedRect = RectF(left, top, right, bottom)
-
-        val matrix =
-            doc.getCachedMatrix(key) { m ->
-                calculateRectTranslateMatrix(
-                    pageRectF,
-                    mappedRect,
-                    result = m,
-                )
-            }
+        val matrix = PdfMatrix(FloatArray(9))
+        calculateRectTranslateMatrix(
+            0f,
+            0f,
+            pageWidth,
+            pageHeight,
+            data[27],
+            data[28],
+            data[29],
+            data[30],
+            result = matrix,
+        )
 
         return PageAttributes(
             page = pageIndex,
-            pageWidth = pageWidthInt,
-            pageHeight = pageHeightInt,
-            pageRotation = pageRotation,
-            rect = pageRectF,
-            mediaBox = RectF(data[3], data[4], data[5], data[6]),
-            cropBox = RectF(data[7], data[8], data[9], data[10]),
-            bleedBox = RectF(data[11], data[12], data[13], data[14]),
-            trimBox = RectF(data[15], data[16], data[17], data[18]),
-            artBox = RectF(data[19], data[20], data[21], data[22]),
-            boundingBox = RectF(data[23], data[24], data[25], data[26]),
+            pageWidth = pageWidth.toInt(),
+            pageHeight = pageHeight.toInt(),
+            pageRotation = data[2].toInt(),
+            rect = PdfRectF(0f, 0f, pageWidth, pageHeight),
+            mediaBox = PdfRectF(data[3], data[4], data[5], data[6]),
+            cropBox = PdfRectF(data[7], data[8], data[9], data[10]),
+            bleedBox = PdfRectF(data[11], data[12], data[13], data[14]),
+            trimBox = PdfRectF(data[15], data[16], data[17], data[18]),
+            artBox = PdfRectF(data[19], data[20], data[21], data[22]),
+            boundingBox = PdfRectF(data[23], data[24], data[25], data[26]),
             pageMatrix = matrix,
             links = getPageLinks(),
         )
@@ -801,25 +794,68 @@ class PdfPageU(
          * Calculates a transformation matrix to map a source rectangle to a destination rectangle.
          * For internal use only.
          *
-         * @param from The source [RectF].
-         * @param to The destination [RectF].
-         * @param result The [Matrix] object to store the calculated transformation. Will be reset before calculation.
+         * @param from The source [PdfRectF].
+         * @param to The destination [PdfRectF].
+         * @param result The [PdfMatrix] object to store the calculated transformation. Will be reset before calculation.
          */
         fun calculateRectTranslateMatrix(
-            from: RectF?,
-            to: RectF?,
-            result: Matrix?,
+            from: PdfRectF?,
+            to: PdfRectF?,
+            result: PdfMatrix?,
         ) {
             if (from == null || to == null || result == null) {
                 return
             }
-            if (from.width() == 0f || from.height() == 0f) {
+            calculateRectTranslateMatrix(
+                from.left,
+                from.top,
+                from.right,
+                from.bottom,
+                to.left,
+                to.top,
+                to.right,
+                to.bottom,
+                result,
+            )
+        }
+
+        /**
+         * Optimized version of calculateRectTranslateMatrix that avoids object allocations.
+         */
+        fun calculateRectTranslateMatrix(
+            fromLeft: Float,
+            fromTop: Float,
+            fromRight: Float,
+            fromBottom: Float,
+            toLeft: Float,
+            toTop: Float,
+            toRight: Float,
+            toBottom: Float,
+            result: PdfMatrix,
+        ) {
+            val fromWidth = fromRight - fromLeft
+            val fromHeight = fromBottom - fromTop
+            if (fromWidth == 0f || fromHeight == 0f) {
+                result.reset()
                 return
             }
-            result.reset()
-            result.postTranslate(-from.left, -from.top)
-            result.postScale(to.width() / from.width(), to.height() / from.height())
-            result.postTranslate(to.left, to.top)
+
+            val sx = (toRight - toLeft) / fromWidth
+            val sy = (toBottom - toTop) / fromHeight
+
+            val tx = toLeft - sx * fromLeft
+            val ty = toTop - sy * fromTop
+
+            val v = result.values
+            v[0] = sx + 0.0f
+            v[1] = 0f
+            v[2] = tx + 0.0f
+            v[3] = 0f
+            v[4] = sy + 0.0f
+            v[5] = ty + 0.0f
+            v[6] = 0f
+            v[7] = 0f
+            v[8] = 1f
         }
     }
 }

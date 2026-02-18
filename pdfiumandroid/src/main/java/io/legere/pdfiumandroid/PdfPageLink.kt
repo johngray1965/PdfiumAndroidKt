@@ -19,7 +19,7 @@
 
 package io.legere.pdfiumandroid
 
-import android.graphics.RectF
+import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -80,13 +80,13 @@ class PdfPageLink internal constructor(
      *
      * @param linkIndex The 0-based index of the web link.
      * @param rectIndex The 0-based index of the rectangle within that web link.
-     * @return A [RectF] representing the bounding box of the specified rectangle.
+     * @return A [PdfRectF] representing the bounding box of the specified rectangle.
      */
     @Suppress("MagicNumber")
     fun getRect(
         linkIndex: Int,
         rectIndex: Int,
-    ): RectF =
+    ): PdfRectF =
         wrapLock {
             pageLink.getRect(linkIndex, rectIndex)
         }
