@@ -73,6 +73,7 @@ extern "C" {
 #include "include/fpdf_formfill.h"
 #include <vector>
 #include <mutex>
+#include <algorithm> // For std::min
 
 static std::mutex sLibraryLock;
 
@@ -2487,6 +2488,44 @@ static jfloatArray NativeTextPage_nativeTextGetRectsFloat(JNIEnv *env, jclass cl
 
 }
 
+static jfloatArray NativeTextPage_nativeTextPageGetRects(JNIEnv *env, jclass clazz, jlong text_page_ptr, jint offset, jint limit) {
+    return runSafe(env, (jfloatArray) nullptr, [&]() {
+        auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
+
+        // Get total number of characters to get total number of rects for the whole page
+        int totalChars = FPDFText_CountChars(textPage);
+        int totalRectCount = FPDFText_CountRects(textPage, 0, totalChars);
+
+        // Determine the actual number of rectangles to fetch
+        int end_index = std::min((int)(offset + limit), totalRectCount);
+        int countToFetch = end_index - offset;
+
+        if (countToFetch <= 0) {
+            return env->NewFloatArray(0); // Return an empty array if no rects to fetch
+        }
+
+        std::vector<float> data;
+        data.reserve(countToFetch * RECT_VALUES_LEN); // Pre-allocate memory
+
+        for (jsize rect_index = offset; rect_index < end_index; ++rect_index) {
+            double left, top, right, bottom;
+            FPDFText_GetRect(textPage, (int) rect_index, &left, &top, &right, &bottom);
+            data.push_back((float)left);
+            data.push_back((float)top);
+            data.push_back((float)right);
+            data.push_back((float)bottom);
+        }
+
+        jfloatArray result = env->NewFloatArray(static_cast<jsize>(data.size()));
+        if (result == nullptr) {
+            return (jfloatArray) nullptr; // Out of memory error
+        }
+        env->SetFloatArrayRegion(result, 0, static_cast<jsize>(data.size()), data.data());
+
+        return result;
+    });
+}
+
 static jint NativePage_nativeGetPageRotation(JNIEnv *env, jclass,
                                                            jlong page_ptr) {
     return runSafe(env, -1, [&]() {
@@ -2553,6 +2592,8 @@ static const JNINativeMethod textPageMethods[] = {
         {"nativeTextGetUnicode",        "(JI)I",                    (void *) NativeTextPage_nativeTextGetUnicode},
         {"nativeTextCountRects",        "(JII)I",                   (void *) NativeTextPage_nativeTextCountRects},
         {"nativeGetFontSize",           "(JI)D",                    (void *) NativeTextPage_nativeGetFontSize},
+        {"nativeTextPageGetRects",      "(JII)[F",                   (void *) NativeTextPage_nativeTextPageGetRects},
+
 };
 
 static const JNINativeMethod documentMethods[] = {

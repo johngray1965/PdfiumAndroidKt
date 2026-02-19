@@ -103,6 +103,15 @@ class PdfTextPageKtF internal constructor(
             page.textPageCountRects(startIndex, count)
         }
 
+    suspend fun textPageGetRects(
+        textPagePtr: Long,
+        offset: Int,
+        limit: Int,
+    ): Either<PdfiumKtFErrors, List<PdfRectF>?> =
+        wrapEither(dispatcher) {
+            page.textPageGetRects(textPagePtr, offset, limit)
+        }
+
     /**
      * suspend version of [PdfTextPage.textPageGetRect]
      */

@@ -118,6 +118,15 @@ class PdfTextPageKt internal constructor(
             page.textPageGetRect(rectIndex)
         }
 
+    suspend fun textPageGetRects(
+        textPagePtr: Long,
+        offset: Int,
+        limit: Int,
+    ): List<PdfRectF>? =
+        wrapSuspend(dispatcher) {
+            page.textPageGetRects(textPagePtr, offset, limit)
+        }
+
     /**
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */

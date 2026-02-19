@@ -166,6 +166,15 @@ class PdfTextPage internal constructor(
             textPage.textPageGetRect(rectIndex)
         }
 
+    fun textPageGetRects(
+        textPagePtr: Long,
+        offset: Int,
+        limit: Int,
+    ): List<PdfRectF>? =
+        wrapLock {
+            textPage.textPageGetRects(textPagePtr, offset, limit)
+        }
+
     /**
      * Get the bounding boxes of a range of texts on the page.
      * @param wordRanges an array of word ranges to get the bounding boxes for.

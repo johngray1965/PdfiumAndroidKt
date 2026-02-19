@@ -46,6 +46,8 @@ private const val RANGE_LENGTH_OFFSET = 5
 
 private const val RANGE_RECT_DATA_SIZE = 6
 
+private const val PAGE_RECT_DATA_SIZE = 4
+
 /**
  * Represents an **unlocked** text layer of a single page in a [PdfDocumentU].
  * This class is for **internal use only** within the PdfiumAndroid library.
@@ -409,6 +411,32 @@ class PdfTextPageU(
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
         val apiFlags = flags.fold(0) { acc, flag -> acc or flag.value }
         return FindResultU(nativeTextPage.findStart(pagePtr, findWhat, apiFlags, startIndex))
+    }
+
+    @Suppress("ReturnCount")
+    fun textPageGetRects(
+        textPagePtr: Long,
+        offset: Int,
+        limit: Int,
+    ): List<PdfRectF>? {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
+        val data = nativeTextPage.textPageGetRects(textPagePtr, offset, limit)
+        if (data != null) {
+            val count = data.size / PAGE_RECT_DATA_SIZE
+            // Pre-allocating the exact size avoids "resizing" overhead
+            val pageRects =
+                Array(count) { i ->
+                    val offset = i * PAGE_RECT_DATA_SIZE
+                    PdfRectF(
+                        data[offset + LEFT_OFFSET],
+                        data[offset + TOP_OFFSET],
+                        data[offset + RIGHT_OFFSET],
+                        data[offset + BOTTOM_OFFSET],
+                    )
+                }
+            return pageRects.toList()
+        }
+        return null
     }
 
     /**
