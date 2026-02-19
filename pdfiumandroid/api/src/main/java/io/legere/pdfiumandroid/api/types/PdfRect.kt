@@ -23,31 +23,33 @@ import androidx.annotation.Keep
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * Interface defining common operations for integer rectangles.
+ * Shared between Immutable and Mutable versions to avoid code duplication.
+ */
+interface IntRectValues {
+    val left: Int
+    val top: Int
+    val right: Int
+    val bottom: Int
+}
+
+val IntRectValues.width get() = right - left
+val IntRectValues.height get() = bottom - top
+val IntRectValues.centerX get() = (left + right) / 2
+val IntRectValues.centerY get() = (top + bottom) / 2
+val IntRectValues.isEmpty get() = left >= right || top >= bottom
+
 @Keep
-@Suppress("MemberVisibilityCanBePrivate")
 data class PdfRect(
-    val left: Int,
-    val top: Int,
-    val right: Int,
-    val bottom: Int,
-) {
-    constructor(values: IntArray) : this(values[0], values[1], values[2], values[3])
-
-    fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
-
-    fun width(): Int = right - left
-
-    fun height(): Int = bottom - top
-
-    fun isEmpty(): Boolean = left >= right || top >= bottom
-
-    fun centerX(): Int = (left + right) / 2
-
-    fun centerY(): Int = (top + bottom) / 2
-
-    fun union(other: PdfRect): PdfRect {
-        if (other.isEmpty()) return this
-        if (this.isEmpty()) return other
+    override val left: Int,
+    override val top: Int,
+    override val right: Int,
+    override val bottom: Int,
+) : IntRectValues {
+    fun union(other: IntRectValues): PdfRect {
+        if (other.isEmpty) return this
+        if (this.isEmpty) return if (other is PdfRect) other else PdfRect(other.left, other.top, other.right, other.bottom)
         return PdfRect(
             left = min(left, other.left),
             top = min(top, other.top),
@@ -56,12 +58,73 @@ data class PdfRect(
         )
     }
 
-    fun intersects(other: PdfRect): Boolean {
-        if (this.isEmpty() || other.isEmpty()) return false
+    fun intersects(other: IntRectValues): Boolean {
+        if (this.isEmpty || other.isEmpty) return false
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }
 
+    fun toMutable() = MutablePdfRect(left, top, right, bottom)
+
+    fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
+
     companion object {
         val EMPTY = PdfRect(0, 0, 0, 0)
+    }
+}
+
+@Keep
+class MutablePdfRect(
+    override var left: Int = 0,
+    override var top: Int = 0,
+    override var right: Int = 0,
+    override var bottom: Int = 0,
+) : IntRectValues {
+    fun set(
+        l: Int,
+        t: Int,
+        r: Int,
+        b: Int,
+    ) {
+        left = l
+        top = t
+        right = r
+        bottom = b
+    }
+
+    fun set(src: IntRectValues) {
+        set(src.left, src.top, src.right, src.bottom)
+    }
+
+    fun union(other: IntRectValues) {
+        if (other.isEmpty) return
+        if (this.isEmpty) {
+            set(other)
+            return
+        }
+        left = min(left, other.left)
+        top = min(top, other.top)
+        right = max(right, other.right)
+        bottom = max(bottom, other.bottom)
+    }
+
+    fun intersects(other: IntRectValues): Boolean {
+        if (this.isEmpty || other.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
+    fun toImmutable() = PdfRect(left, top, right, bottom)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is IntRectValues) return false
+        return left == other.left && top == other.top && right == other.right && bottom == other.bottom
+    }
+
+    override fun hashCode(): Int {
+        var result = left
+        result = 31 * result + top
+        result = 31 * result + right
+        result = 31 * result + bottom
+        return result
     }
 }

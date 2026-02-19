@@ -25,14 +25,14 @@ import org.junit.jupiter.api.Test
 class PdfMatrixTest {
     @Test
     fun `default constructor creates identity matrix`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         assertThat(matrix.isIdentity()).isTrue()
         assertThat(matrix.isAffine()).isTrue()
     }
 
     @Test
     fun `reset sets matrix to identity`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 20f)
         assertThat(matrix.isIdentity()).isFalse()
 
@@ -42,17 +42,17 @@ class PdfMatrixTest {
 
     @Test
     fun `set copies values`() {
-        val src = PdfMatrix()
+        val src = MutablePdfMatrix()
         src.setTranslate(10f, 20f)
-        val dst = PdfMatrix()
-        dst.set(src)
+        val dst = MutablePdfMatrix()
+        dst.set(src.toImmutable())
         assertThat(dst).isEqualTo(src)
         assertThat(dst.values[MTRANS_X]).isEqualTo(10f)
     }
 
     @Test
     fun `setTranslate sets correct values`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 20f)
 
         val values = matrix.values
@@ -64,7 +64,7 @@ class PdfMatrixTest {
 
     @Test
     fun `setScale sets correct values`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setScale(2f, 3f)
 
         val values = matrix.values
@@ -76,7 +76,7 @@ class PdfMatrixTest {
 
     @Test
     fun `setScale with pivot sets correct values`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setScale(2f, 3f, 10f, 10f)
         // px - sx*px = 10 - 2*10 = -10
         // py - sy*py = 10 - 3*10 = -20
@@ -90,7 +90,7 @@ class PdfMatrixTest {
 
     @Test
     fun `setRotate sets correct values`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setRotate(90f)
 
         val values = matrix.values
@@ -103,7 +103,7 @@ class PdfMatrixTest {
 
     @Test
     fun `setSkew sets correct values`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setSkew(0.5f, 0.5f)
 
         val values = matrix.values
@@ -115,10 +115,10 @@ class PdfMatrixTest {
     @Test
     fun `setConcat multiplies matrices`() {
         // A: translate(10, 0)
-        val a = PdfMatrix()
+        val a = MutablePdfMatrix()
         a.setTranslate(10f, 0f)
         // B: scale(2, 1)
-        val b = PdfMatrix()
+        val b = MutablePdfMatrix()
         b.setScale(2f, 1f)
 
         // C = A * B
@@ -138,8 +138,7 @@ class PdfMatrixTest {
         // | 0 0 1  |   | 0 0 1 |   | 0 0 1  |
         // result: ScaleX=2, TransX=10.
 
-        val c = PdfMatrix()
-        c.setConcat(a, b)
+        val c = a.toImmutable().concat(b.toImmutable())
 
         assertThat(c.values[MSCALE_X]).isEqualTo(2f)
         assertThat(c.values[MTRANS_X]).isEqualTo(10f)
@@ -147,7 +146,7 @@ class PdfMatrixTest {
 
     @Test
     fun `preTranslate modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f) // Start at 10,10
         matrix.preTranslate(5f, 5f) // M' = M * T
         // M = Translate(10,10)
@@ -161,7 +160,7 @@ class PdfMatrixTest {
 
     @Test
     fun `postTranslate modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         // M' = T * M = Translate(5,5) * Translate(10,10) = Translate(15,15)
         matrix.postTranslate(5f, 5f)
@@ -173,7 +172,7 @@ class PdfMatrixTest {
 
     @Test
     fun `preScale modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.preScale(2f, 2f)
         // M' = M * S
@@ -190,7 +189,7 @@ class PdfMatrixTest {
 
     @Test
     fun `postScale modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.postScale(2f, 2f)
         // M' = S * M
@@ -207,7 +206,7 @@ class PdfMatrixTest {
 
     @Test
     fun `preSkew modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.preSkew(1f, 0f)
         // M = Translate(10, 10)
@@ -224,7 +223,7 @@ class PdfMatrixTest {
 
     @Test
     fun `postSkew modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.postSkew(1f, 0f)
         // M = Translate(10, 10)
@@ -241,7 +240,7 @@ class PdfMatrixTest {
 
     @Test
     fun `preRotate modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 0f)
         matrix.preRotate(90f)
         // M' = M * R
@@ -257,7 +256,7 @@ class PdfMatrixTest {
 
     @Test
     fun `postRotate modifies matrix correctly`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 0f)
         matrix.postRotate(90f)
         // M' = R * M
@@ -272,7 +271,7 @@ class PdfMatrixTest {
 
     @Test
     fun `isIdentity checks all fields`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         assertThat(matrix.isIdentity()).isTrue()
 
         matrix.values[MPERSP_0] = 0.1f
@@ -281,7 +280,7 @@ class PdfMatrixTest {
 
     @Test
     fun `isAffine checks perspective fields`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         assertThat(matrix.isAffine()).isTrue()
 
         matrix.values[MPERSP_0] = 0.1f
@@ -294,22 +293,22 @@ class PdfMatrixTest {
 
     @Test
     fun `invert calculates correct inverse`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setScale(2f, 2f)
         matrix.postTranslate(10f, 20f)
 
-        val inverse = matrix.invert()
+        val inverse = MutablePdfMatrix()
+        matrix.invert(inverse)
         assertThat(inverse).isNotNull()
 
-        val product = PdfMatrix()
-        product.setConcat(matrix, inverse!!)
+        val product = matrix.toImmutable().concat(inverse.toImmutable())
         assertThat(product.isIdentity()).isTrue()
     }
 
     @Test
     fun `invert returns null for non-invertible matrix`() {
-        val matrix = PdfMatrix()
+        val matrix = MutablePdfMatrix()
         matrix.setScale(0f, 2f)
-        assertThat(matrix.invert()).isNull()
+        assertThat(matrix.toImmutable().invert()).isNull()
     }
 }

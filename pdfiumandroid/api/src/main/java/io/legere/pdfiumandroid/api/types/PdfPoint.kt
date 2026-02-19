@@ -21,14 +21,51 @@ package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
 
+interface IntPointValues {
+    val x: Int
+    val y: Int
+}
+
 @Keep
 data class PdfPoint(
-    val x: Int,
-    val y: Int,
-) {
+    override val x: Int,
+    override val y: Int,
+) : IntPointValues {
     fun toIntArray(): IntArray = intArrayOf(x, y)
+
+    fun toMutable() = MutablePdfPoint(x, y)
 
     companion object {
         val ZERO = PdfPoint(0, 0)
+    }
+}
+
+@Keep
+class MutablePdfPoint(
+    override var x: Int = 0,
+    override var y: Int = 0,
+) : IntPointValues {
+    fun set(x: Int, y: Int) {
+        this.x = x
+        this.y = y
+    }
+
+    fun set(src: IntPointValues) {
+        this.x = src.x
+        this.y = src.y
+    }
+
+    fun toImmutable() = PdfPoint(x, y)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is IntPointValues) return false
+        return x == other.x && y == other.y
+    }
+
+    override fun hashCode(): Int {
+        var result = x
+        result = 31 * result + y
+        return result
     }
 }

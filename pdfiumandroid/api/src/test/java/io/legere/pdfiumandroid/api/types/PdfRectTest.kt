@@ -75,97 +75,97 @@ class PdfRectTest {
     fun `width with positive integers`() {
         // Check if the width is calculated correctly for a standard case where right > left.
         val rect = PdfRect(10, 20, 30, 40)
-        assertThat(rect.width()).isEqualTo(20)
+        assertThat(rect.width).isEqualTo(20)
     }
 
     @Test
     fun `width resulting in zero`() {
         // Check if the width is calculated as 0 when right equals left.
         val rect = PdfRect(10, 20, 10, 40)
-        assertThat(rect.width()).isEqualTo(0)
+        assertThat(rect.width).isEqualTo(0)
     }
 
     @Test
     fun `width with negative coordinates`() {
         // Check if the width is calculated correctly when both right and left are negative.
         val rect = PdfRect(-10, 20, -30, 40)
-        assertThat(rect.width()).isEqualTo(-20)
+        assertThat(rect.width).isEqualTo(-20)
     }
 
     @Test
     fun `width with inverted coordinates`() {
         // Check if the width is calculated as a negative value when left > right.
         val rect = PdfRect(30, 20, 10, 40)
-        assertThat(rect.width()).isEqualTo(-20)
+        assertThat(rect.width).isEqualTo(-20)
     }
 
     @Test
     fun `width integer overflow check`() {
         // Test for integer overflow when calculating width, e.g., right = Int.MAX_VALUE and left = Int.MIN_VALUE. [16]
         val rect = PdfRect(Int.MIN_VALUE, 20, Int.MAX_VALUE, 40)
-        assertThat(rect.width()).isEqualTo(-1)
+        assertThat(rect.width).isEqualTo(-1)
     }
 
     @Test
     fun `width integer underflow check`() {
         // Test for integer underflow when calculating width, e.g., right = Int.MIN_VALUE and left = Int.MAX_VALUE.
         val rect = PdfRect(Int.MAX_VALUE, 20, Int.MIN_VALUE, 40)
-        assertThat(rect.width()).isEqualTo(1)
+        assertThat(rect.width).isEqualTo(1)
     }
 
     @Test
     fun `height with positive integers`() {
         // Check if the height is calculated correctly for a standard case where bottom > top.
         val rect = PdfRect(10, 20, 30, 40)
-        assertThat(rect.height()).isEqualTo(20)
+        assertThat(rect.height).isEqualTo(20)
     }
 
     @Test
     fun `height resulting in zero`() {
         // Check if the height is calculated as 0 when bottom equals top.
         val rect = PdfRect(10, 20, 30, 20)
-        assertThat(rect.height()).isEqualTo(0)
+        assertThat(rect.height).isEqualTo(0)
     }
 
     @Test
     fun `height with negative coordinates`() {
         // Check if the height is calculated correctly when both bottom and top are negative.
         val rect = PdfRect(10, -20, 30, -40)
-        assertThat(rect.height()).isEqualTo(-20)
+        assertThat(rect.height).isEqualTo(-20)
     }
 
     @Test
     fun `height with inverted coordinates`() {
         // Check if the height is calculated as a negative value when top > bottom.
         val rect = PdfRect(10, 40, 30, 20)
-        assertThat(rect.height()).isEqualTo(-20)
+        assertThat(rect.height).isEqualTo(-20)
     }
 
     @Test
     fun `height integer overflow check`() {
         // Test for integer overflow when calculating height, e.g., bottom = Int.MAX_VALUE and top = Int.MIN_VALUE. [16]
         val rect = PdfRect(10, Int.MIN_VALUE, 30, Int.MAX_VALUE)
-        assertThat(rect.height()).isEqualTo(-1)
+        assertThat(rect.height).isEqualTo(-1)
     }
 
     @Test
     fun `height integer underflow check`() {
         // Test for integer underflow when calculating height, e.g., bottom = Int.MIN_VALUE and top = Int.MAX_VALUE.
         val rect = PdfRect(10, Int.MAX_VALUE, 30, Int.MIN_VALUE)
-        assertThat(rect.height()).isEqualTo(1)
+        assertThat(rect.height).isEqualTo(1)
     }
 
     @Test
     fun `EMPTY object width calculation`() {
         // Verify that the width of the PdfRect.EMPTY companion object is 0.
         val rect = PdfRect.EMPTY
-        assertThat(rect.width()).isEqualTo(0)
+        assertThat(rect.width).isEqualTo(0)
     }
 
     @Test
     fun `EMPTY object height calculation`() {
         // Verify that the height of the PdfRect.EMPTY companion object is 0.
         val rect = PdfRect.EMPTY
-        assertThat(rect.height()).isEqualTo(0)
+        assertThat(rect.height).isEqualTo(0)
     }
 }

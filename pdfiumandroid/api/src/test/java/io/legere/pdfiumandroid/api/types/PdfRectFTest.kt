@@ -67,83 +67,83 @@ class PdfRectFTest {
     fun `width with positive coordinates`() {
         // Calculate width for a standard rectangle where right is greater than left.
         val rect = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
-        assertThat(rect.width()).isEqualTo(20.0f)
+        assertThat(rect.width).isEqualTo(20.0f)
     }
 
     @Test
     fun `width with a zero width rectangle`() {
         // Test width calculation when right and left coordinates are equal, expecting a result of 0.
         val rect = PdfRectF(10.5f, 20.5f, 10.5f, 40.5f)
-        assertThat(rect.width()).isEqualTo(0.0f)
+        assertThat(rect.width).isEqualTo(0.0f)
     }
 
     @Test
     fun `width resulting in a negative value`() {
         // Check the width calculation for a rectangle where the left coordinate is greater than the right coordinate.
         val rect = PdfRectF(30.5f, 20.5f, 10.5f, 40.5f)
-        assertThat(rect.width()).isEqualTo(-20.0f)
+        assertThat(rect.width).isEqualTo(-20.0f)
     }
 
     @Test
     fun `width with negative coordinates`() {
         // Verify width calculation when both left and right coordinates are negative.
         val rect = PdfRectF(-10.5f, 20.5f, -30.5f, 40.5f)
-        assertThat(rect.width()).isEqualTo(-20.0f)
+        assertThat(rect.width).isEqualTo(-20.0f)
     }
 
     @Test
     fun `width spanning the zero axis`() {
         // Calculate width for a rectangle that crosses the y-axis (e.g., left is negative, right is positive).
         val rect = PdfRectF(-10.5f, 20.5f, 10.5f, 40.5f)
-        assertThat(rect.width()).isEqualTo(21.0f)
+        assertThat(rect.width).isEqualTo(21.0f)
     }
 
     @Test
     fun `width with floating point precision`() {
         // Test width calculation with floating-point numbers that require high precision to ensure accuracy.
         val rect = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
-        assertThat(rect.width()).isEqualTo(20.0f)
+        assertThat(rect.width).isEqualTo(20.0f)
     }
 
     @Test
     fun `height with positive coordinates`() {
         // Calculate height for a standard rectangle where bottom is greater than top.
         val rect = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
-        assertThat(rect.height()).isEqualTo(20.0f)
+        assertThat(rect.height).isEqualTo(20.0f)
     }
 
     @Test
     fun `height with a zero height rectangle`() {
         // Test height calculation when bottom and top coordinates are equal, expecting a result of 0.
         val rect = PdfRectF(10.5f, 20.5f, 30.5f, 20.5f)
-        assertThat(rect.height()).isEqualTo(0.0f)
+        assertThat(rect.height).isEqualTo(0.0f)
     }
 
     @Test
     fun `height resulting in a negative value`() {
         // Check the height calculation for a rectangle where the top coordinate is greater than the bottom coordinate (inverted rectangle).
         val rect = PdfRectF(10.5f, 40.5f, 30.5f, 20.5f)
-        assertThat(rect.height()).isEqualTo(-20.0f)
+        assertThat(rect.height).isEqualTo(-20.0f)
     }
 
     @Test
     fun `height with negative coordinates`() {
         // Verify height calculation when both top and bottom coordinates are negative.
         val rect = PdfRectF(10.5f, -20.5f, 30.5f, -40.5f)
-        assertThat(rect.height()).isEqualTo(-20.0f)
+        assertThat(rect.height).isEqualTo(-20.0f)
     }
 
     @Test
     fun `height spanning the zero axis`() {
         // Calculate height for a rectangle that crosses the x-axis (e.g., top is negative, bottom is positive).
         val rect = PdfRectF(10.5f, -20.5f, 30.5f, 40.5f)
-        assertThat(rect.height()).isEqualTo(61.0f)
+        assertThat(rect.height).isEqualTo(61.0f)
     }
 
     @Test
     fun `height with floating point precision`() {
         // Test height calculation with floating-point numbers that require high precision to ensure accuracy.
         val rect = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
-        assertThat(rect.height()).isEqualTo(20.0f)
+        assertThat(rect.height).isEqualTo(20.0f)
     }
 }
