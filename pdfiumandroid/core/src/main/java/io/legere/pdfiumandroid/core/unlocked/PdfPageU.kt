@@ -29,6 +29,15 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.MPERSP_0
+import io.legere.pdfiumandroid.api.types.MPERSP_1
+import io.legere.pdfiumandroid.api.types.MPERSP_2
+import io.legere.pdfiumandroid.api.types.MSCALE_X
+import io.legere.pdfiumandroid.api.types.MSCALE_Y
+import io.legere.pdfiumandroid.api.types.MSKEW_X
+import io.legere.pdfiumandroid.api.types.MSKEW_Y
+import io.legere.pdfiumandroid.api.types.MTRANS_X
+import io.legere.pdfiumandroid.api.types.MTRANS_Y
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
 import io.legere.pdfiumandroid.api.types.PdfPointF
@@ -485,6 +494,7 @@ class PdfPageU(
      * @return A list of [io.legere.pdfiumandroid.api.Link] found on the page.
      * @throws IllegalStateException If the page or document is closed.
      */
+    @Suppress("ReturnCount")
     fun getPageLinks(): List<Link> {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return emptyList()
         val linkPtrs = nativePage.getPageLinks(pagePtr)
@@ -822,6 +832,7 @@ class PdfPageU(
         /**
          * Optimized version of calculateRectTranslateMatrix that avoids object allocations.
          */
+        @Suppress("LongParameterList")
         fun calculateRectTranslateMatrix(
             fromLeft: Float,
             fromTop: Float,
@@ -847,15 +858,15 @@ class PdfPageU(
             val ty = toTop - sy * fromTop
 
             val v = result.values
-            v[0] = sx + 0.0f
-            v[1] = 0f
-            v[2] = tx + 0.0f
-            v[3] = 0f
-            v[4] = sy + 0.0f
-            v[5] = ty + 0.0f
-            v[6] = 0f
-            v[7] = 0f
-            v[8] = 1f
+            v[MSCALE_X] = sx + 0.0f
+            v[MSKEW_X] = 0f
+            v[MTRANS_X] = tx + 0.0f
+            v[MSKEW_Y] = 0f
+            v[MSCALE_Y] = sy + 0.0f
+            v[MTRANS_Y] = ty + 0.0f
+            v[MPERSP_0] = 0f
+            v[MPERSP_1] = 0f
+            v[MPERSP_2] = 1f
         }
     }
 }

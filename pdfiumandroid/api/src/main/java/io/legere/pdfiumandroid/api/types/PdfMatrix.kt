@@ -92,6 +92,7 @@ data class PdfMatrix(
         values[MSCALE_Y] = sy
         values[MTRANS_X] = px - sx * px
         values[MTRANS_Y] = py - sy * py
+        normalize()
     }
 
     fun setRotate(
@@ -119,6 +120,7 @@ data class PdfMatrix(
         values[MSCALE_Y] = cos
         values[MTRANS_X] = px - cos * px + sin * py
         values[MTRANS_Y] = py - sin * px - cos * py
+        normalize()
     }
 
     fun setSkew(
@@ -134,25 +136,7 @@ data class PdfMatrix(
         values[MSCALE_Y] = 1f
         values[MTRANS_X] = -kx * py
         values[MTRANS_Y] = -ky * px
-        // Adjust for pivot (Android Matrix setSkew(kx, ky, px, py) implementation behavior)
-        // Android docs: "Set the matrix to skew by sx and sy, with a pivot point at (px, py)"
-        // M = T(px, py) * K(kx, ky) * T(-px, -py)
-        // K = | 1 kx 0 |
-        //     | ky 1 0 |
-        //     | 0 0 1 |
-        // T(-px, -py) -> x-px, y-py
-        // Apply K: x' = (x-px) + kx*(y-py), y' = ky*(x-px) + (y-py)
-        // Apply T(px, py): x'' = x' + px, y'' = y' + py
-        // x'' = x - px + kx*y - kx*py + px = x + kx*y - kx*py
-        // y'' = ky*x - ky*px + y - py + py = ky*x + y - ky*px
-        // Matrix:
-        // | 1  kx  -kx*py |
-        // | ky 1   -ky*px |
-        // | 0  0   1      |
-
-        // My manual calc matches above.
-        values[MTRANS_X] = -kx * py
-        values[MTRANS_Y] = -ky * px
+        normalize()
     }
 
     fun setConcat(
@@ -187,6 +171,7 @@ data class PdfMatrix(
         values[MPERSP_0] = persp0
         values[MPERSP_1] = persp1
         values[MPERSP_2] = persp2
+        normalize()
     }
 
     fun preTranslate(
@@ -194,7 +179,6 @@ data class PdfMatrix(
         dy: Float,
     ) {
         // M' = M * T
-        // T has 1, 0, dx; 0, 1, dy; 0, 0, 1 in columns? No rows.
         // T = | 1 0 dx |
         //     | 0 1 dy |
         //     | 0 0 1  |
@@ -208,6 +192,7 @@ data class PdfMatrix(
         values[MTRANS_X] += values[MSCALE_X] * dx + values[MSKEW_X] * dy
         values[MTRANS_Y] += values[MSKEW_Y] * dx + values[MSCALE_Y] * dy
         values[MPERSP_2] += values[MPERSP_0] * dx + values[MPERSP_1] * dy
+        normalize()
     }
 
     fun preScale(
@@ -279,6 +264,7 @@ data class PdfMatrix(
         values[MSKEW_Y] += dy * g
         values[MSCALE_Y] += dy * h
         values[MTRANS_Y] += dy * i
+        normalize()
     }
 
     fun postScale(
@@ -326,6 +312,15 @@ data class PdfMatrix(
         values[MSCALE_X] == 1f && values[MSKEW_X] == 0f && values[MTRANS_X] == 0f &&
             values[MSKEW_Y] == 0f && values[MSCALE_Y] == 1f && values[MTRANS_Y] == 0f &&
             values[MPERSP_0] == 0f && values[MPERSP_1] == 0f && values[MPERSP_2] == 1f
+
+    @Suppress("MagicNumber")
+    private fun normalize() {
+        for (i in values.indices) {
+            if (values[i] == -0.0f) {
+                values[i] = 0.0f
+            }
+        }
+    }
 
     companion object {
         val IDENTITY = PdfMatrix()
