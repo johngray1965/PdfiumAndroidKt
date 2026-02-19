@@ -21,6 +21,7 @@ package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
 import kotlin.math.PI
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -54,7 +55,7 @@ data class PdfMatrix(
             1f,
         ),
 ) {
-    constructor(other: PdfMatrix) : this(other.values)
+    constructor(other: PdfMatrix) : this(other.values.copyOf())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -244,6 +245,7 @@ data class PdfMatrix(
     }
 
     fun preConcat(other: PdfMatrix) {
+        // M' = M * other
         val temp = PdfMatrix()
         temp.setConcat(this, other)
         set(temp)
@@ -291,6 +293,7 @@ data class PdfMatrix(
     }
 
     fun postConcat(other: PdfMatrix) {
+        // M' = other * M
         val temp = PdfMatrix()
         temp.setConcat(other, this)
         set(temp)
@@ -364,6 +367,36 @@ data class PdfMatrix(
         val px = values[MSCALE_X] * x + values[MSKEW_X] * y
         val py = values[MSKEW_Y] * x + values[MSCALE_Y] * y
         return PdfPointF(px, py)
+    }
+
+    /**
+     * Inverts this matrix and returns the new inverted matrix.
+     * Returns null if the matrix cannot be inverted (determinant is 0).
+     */
+    fun invert(): PdfMatrix? {
+        val v = values
+        val det = v[0] * (v[4] * v[8] - v[5] * v[7]) -
+            v[1] * (v[3] * v[8] - v[5] * v[6]) +
+            v[2] * (v[3] * v[7] - v[4] * v[6])
+
+        if (abs(det) < 1e-10) return null
+
+        val invDet = 1.0f / det
+        val resultValues = FloatArray(THREE_BY_THREE)
+
+        resultValues[0] = (v[4] * v[8] - v[5] * v[7]) * invDet
+        resultValues[1] = (v[2] * v[7] - v[1] * v[8]) * invDet
+        resultValues[2] = (v[1] * v[5] - v[2] * v[4]) * invDet
+        resultValues[3] = (v[5] * v[6] - v[3] * v[8]) * invDet
+        resultValues[4] = (v[0] * v[8] - v[2] * v[6]) * invDet
+        resultValues[5] = (v[2] * v[3] - v[0] * v[5]) * invDet
+        resultValues[6] = (v[3] * v[7] - v[4] * v[6]) * invDet
+        resultValues[7] = (v[1] * v[6] - v[0] * v[7]) * invDet
+        resultValues[8] = (v[0] * v[4] - v[1] * v[3]) * invDet
+
+        val result = PdfMatrix(resultValues)
+        result.normalize()
+        return result
     }
 
     companion object {

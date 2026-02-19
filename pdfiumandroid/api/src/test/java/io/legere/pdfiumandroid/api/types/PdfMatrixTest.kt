@@ -291,4 +291,25 @@ class PdfMatrixTest {
         matrix.values[MPERSP_2] = 0.5f
         assertThat(matrix.isAffine()).isFalse()
     }
+
+    @Test
+    fun `invert calculates correct inverse`() {
+        val matrix = PdfMatrix()
+        matrix.setScale(2f, 2f)
+        matrix.postTranslate(10f, 20f)
+
+        val inverse = matrix.invert()
+        assertThat(inverse).isNotNull()
+
+        val product = PdfMatrix()
+        product.setConcat(matrix, inverse!!)
+        assertThat(product.isIdentity()).isTrue()
+    }
+
+    @Test
+    fun `invert returns null for non-invertible matrix`() {
+        val matrix = PdfMatrix()
+        matrix.setScale(0f, 2f)
+        assertThat(matrix.invert()).isNull()
+    }
 }
