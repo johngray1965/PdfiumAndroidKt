@@ -26,6 +26,7 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.core.graphics.toRect
+import kotlin.math.roundToInt
 
 fun PdfPointF.toPointF(): PointF = PointF(x, y)
 
@@ -43,6 +44,10 @@ fun RectF.toPdfRect(): PdfRect {
     val rect = this.toRect()
     return PdfRect(rect.left, rect.top, rect.right, rect.bottom)
 }
+
+fun PdfRectF.toPdfRect(): PdfRect = PdfRect(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
+
+fun PdfRect.toPdfRectF(): PdfRectF = PdfRectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
 
 fun PdfMatrix.toMatrix(): Matrix =
     Matrix().apply {
