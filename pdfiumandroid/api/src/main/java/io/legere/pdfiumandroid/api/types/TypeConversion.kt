@@ -22,11 +22,16 @@
 package io.legere.pdfiumandroid.api.types
 
 import android.graphics.Matrix
+import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.core.graphics.toRect
 import kotlin.math.roundToInt
+
+fun PdfPoint.toPoint(): Point = Point(x, y)
+
+fun Point.toPdfPoint(): PdfPoint = PdfPoint(x, y)
 
 fun PdfPointF.toPointF(): PointF = PointF(x, y)
 

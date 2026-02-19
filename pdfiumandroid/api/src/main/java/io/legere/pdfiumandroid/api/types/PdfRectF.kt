@@ -20,8 +20,11 @@
 package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
+import kotlin.math.max
+import kotlin.math.min
 
 @Keep
+@Suppress("MemberVisibilityCanBePrivate")
 data class PdfRectF(
     val left: Float,
     val top: Float,
@@ -33,6 +36,23 @@ data class PdfRectF(
     fun width(): Float = right - left
 
     fun height(): Float = bottom - top
+
+    fun isEmpty(): Boolean = left >= right || top >= bottom
+
+    fun centerX(): Float = (left + right) / 2f
+
+    fun centerY(): Float = (top + bottom) / 2f
+
+    fun union(other: PdfRectF): PdfRectF {
+        if (other.isEmpty()) return this
+        if (this.isEmpty()) return other
+        return PdfRectF(
+            left = min(left, other.left),
+            top = min(top, other.top),
+            right = max(right, other.right),
+            bottom = max(bottom, other.bottom),
+        )
+    }
 
     companion object {
         val EMPTY = PdfRectF(0f, 0f, 0f, 0f)
