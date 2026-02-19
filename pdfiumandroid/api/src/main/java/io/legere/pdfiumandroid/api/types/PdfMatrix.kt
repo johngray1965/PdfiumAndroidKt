@@ -20,8 +20,12 @@
 package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
+import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 const val THREE_BY_THREE = 9
 const val MPERSP_0 = 6
@@ -50,6 +54,8 @@ data class PdfMatrix(
             1f,
         ),
 ) {
+    constructor(other: PdfMatrix) : this(other.values)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -101,25 +107,25 @@ data class PdfMatrix(
         py: Float = 0f,
     ) {
         reset()
-        val radians = Math.toRadians(degrees.toDouble())
-        val sin = sin(radians).toFloat()
-        val cos = cos(radians).toFloat()
-        setSinCos(sin, cos, px, py)
+        val radians = degrees.toDouble() * PI / 180.0
+        val sinVal = sin(radians).toFloat()
+        val cosVal = cos(radians).toFloat()
+        setSinCos(sinVal, cosVal, px, py)
     }
 
     fun setSinCos(
-        sin: Float,
-        cos: Float,
+        sinVal: Float,
+        cosVal: Float,
         px: Float = 0f,
         py: Float = 0f,
     ) {
         reset()
-        values[MSCALE_X] = cos
-        values[MSKEW_X] = -sin
-        values[MSKEW_Y] = sin
-        values[MSCALE_Y] = cos
-        values[MTRANS_X] = px - cos * px + sin * py
-        values[MTRANS_Y] = py - sin * px - cos * py
+        values[MSCALE_X] = cosVal
+        values[MSKEW_X] = -sinVal
+        values[MSKEW_Y] = sinVal
+        values[MSCALE_Y] = cosVal
+        values[MTRANS_X] = px - cosVal * px + sinVal * py
+        values[MTRANS_Y] = py - sinVal * px - cosVal * py
         normalize()
     }
 
@@ -174,25 +180,35 @@ data class PdfMatrix(
         normalize()
     }
 
+    fun setRectToRect(
+        src: PdfRectF,
+        dst: PdfRectF,
+    ): Boolean {
+        if (src.isEmpty()) {
+            reset()
+            return false
+        }
+        val sx = dst.width() / src.width()
+        val sy = dst.height() / src.height()
+        val tx = dst.left - sx * src.left
+        val ty = dst.top - sy * src.top
+
+        reset()
+        values[MSCALE_X] = sx
+        values[MSCALE_Y] = sy
+        values[MTRANS_X] = tx
+        values[MTRANS_Y] = ty
+        normalize()
+        return true
+    }
+
     fun preTranslate(
         dx: Float,
         dy: Float,
     ) {
-        // M' = M * T
-        // T = | 1 0 dx |
-        //     | 0 1 dy |
-        //     | 0 0 1  |
-
-        // M * T
-        // | a b c |   | 1 0 dx |   | a b a*dx+b*dy+c |
-        // | d e f | * | 0 1 dy | = | d e d*dx+e*dy+f |
-        // | g h i |   | 0 0 1  |   | g h g*dx+h*dy+i |
-
-        // Only last column changes.
-        values[MTRANS_X] += values[MSCALE_X] * dx + values[MSKEW_X] * dy
-        values[MTRANS_Y] += values[MSKEW_Y] * dx + values[MSCALE_Y] * dy
-        values[MPERSP_2] += values[MPERSP_0] * dx + values[MPERSP_1] * dy
-        normalize()
+        val temp = PdfMatrix()
+        temp.setTranslate(dx, dy)
+        preConcat(temp)
     }
 
     fun preScale(
@@ -201,7 +217,6 @@ data class PdfMatrix(
         px: Float = 0f,
         py: Float = 0f,
     ) {
-        // M' = M * S(sx, sy, px, py)
         val temp = PdfMatrix()
         temp.setScale(sx, sy, px, py)
         preConcat(temp)
@@ -229,7 +244,6 @@ data class PdfMatrix(
     }
 
     fun preConcat(other: PdfMatrix) {
-        // M' = M * other
         val temp = PdfMatrix()
         temp.setConcat(this, other)
         set(temp)
@@ -239,32 +253,9 @@ data class PdfMatrix(
         dx: Float,
         dy: Float,
     ) {
-        // M' = T * M
-        // T = | 1 0 dx |
-        //     | 0 1 dy |
-        //     | 0 0 1  |
-
-        // | 1 0 dx |   | a b c |   | a+dx*g b+dx*h c+dx*i |
-        // | 0 1 dy | * | d e f | = | d+dy*g e+dy*h f+dy*i |
-        // | 0 0 1  |   | g h i |   | g      h      i      |
-
-        // If persp0 (g) and persp1 (h) are 0, and persp2 (i) is 1 (Affine)
-        // Row 0: a, b, c+dx
-        // Row 1: d, e, f+dy
-
-        // But we should support perspective.
-        val g = values[MPERSP_0]
-        val h = values[MPERSP_1]
-        val i = values[MPERSP_2]
-
-        values[MSCALE_X] += dx * g
-        values[MSKEW_X] += dx * h
-        values[MTRANS_X] += dx * i
-
-        values[MSKEW_Y] += dy * g
-        values[MSCALE_Y] += dy * h
-        values[MTRANS_Y] += dy * i
-        normalize()
+        val temp = PdfMatrix()
+        temp.setTranslate(dx, dy)
+        postConcat(temp)
     }
 
     fun postScale(
@@ -300,7 +291,6 @@ data class PdfMatrix(
     }
 
     fun postConcat(other: PdfMatrix) {
-        // M' = other * M
         val temp = PdfMatrix()
         temp.setConcat(other, this)
         set(temp)
@@ -313,13 +303,67 @@ data class PdfMatrix(
             values[MSKEW_Y] == 0f && values[MSCALE_Y] == 1f && values[MTRANS_Y] == 0f &&
             values[MPERSP_0] == 0f && values[MPERSP_1] == 0f && values[MPERSP_2] == 1f
 
-    @Suppress("MagicNumber")
     private fun normalize() {
-        for (i in values.indices) {
-            if (values[i] == -0.0f) {
-                values[i] = 0.0f
+        for (idx in values.indices) {
+            if (values[idx] == -0.0f) {
+                values[idx] = 0.0f
             }
         }
+    }
+
+    /**
+     * Map the specified point by this matrix, and return the new point.
+     */
+    fun mapPoint(point: PdfPointF): PdfPointF {
+        val x = point.x
+        val y = point.y
+        val w = values[MPERSP_0] * x + values[MPERSP_1] * y + values[MPERSP_2]
+        val px = (values[MSCALE_X] * x + values[MSKEW_X] * y + values[MTRANS_X]) / w
+        val py = (values[MSKEW_Y] * x + values[MSCALE_Y] * y + values[MTRANS_Y]) / w
+        return PdfPointF(px, py)
+    }
+
+    /**
+     * Map the specified rectangle by this matrix, and return a new rectangle
+     * that bounds the transformed points.
+     */
+    fun mapRect(rect: PdfRectF): PdfRectF {
+        val p1 = mapPoint(PdfPointF(rect.left, rect.top))
+        val p2 = mapPoint(PdfPointF(rect.right, rect.top))
+        val p3 = mapPoint(PdfPointF(rect.right, rect.bottom))
+        val p4 = mapPoint(PdfPointF(rect.left, rect.bottom))
+
+        val l = min(p1.x, min(p2.x, min(p3.x, p4.x)))
+        val t = min(p1.y, min(p2.y, min(p3.y, p4.y)))
+        val r = max(p1.x, max(p2.x, max(p3.x, p4.x)))
+        val b = max(p1.y, max(p2.y, max(p3.y, p4.y)))
+
+        return PdfRectF(l, t, r, b)
+    }
+
+    /**
+     * Return the mean radius of a circle after it has been mapped by this matrix.
+     */
+    fun mapRadius(radius: Float): Float {
+        val a = values[MSCALE_X]
+        val b = values[MSKEW_Y]
+        val c = values[MSKEW_X]
+        val d = values[MSCALE_Y]
+        val d1 = sqrt((a * a + b * b).toDouble()).toFloat()
+        val d2 = sqrt((c * c + d * d).toDouble()).toFloat()
+        return radius * (d1 + d2) / 2f
+    }
+
+    /**
+     * Map the specified vector by this matrix, and return the new vector.
+     * Translation is ignored.
+     */
+    fun mapVector(vector: PdfPointF): PdfPointF {
+        val x = vector.x
+        val y = vector.y
+        val px = values[MSCALE_X] * x + values[MSKEW_X] * y
+        val py = values[MSKEW_Y] * x + values[MSCALE_Y] * y
+        return PdfPointF(px, py)
     }
 
     companion object {

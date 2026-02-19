@@ -31,6 +31,8 @@ data class PdfRect(
     val right: Int,
     val bottom: Int,
 ) {
+    constructor(values: IntArray) : this(values[0], values[1], values[2], values[3])
+
     fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
 
     fun width(): Int = right - left
@@ -52,6 +54,11 @@ data class PdfRect(
             right = max(right, other.right),
             bottom = max(bottom, other.bottom),
         )
+    }
+
+    fun intersects(other: PdfRect): Boolean {
+        if (this.isEmpty() || other.isEmpty()) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }
 
     companion object {
