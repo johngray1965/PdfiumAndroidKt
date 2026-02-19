@@ -17,17 +17,32 @@
  *
  */
 
+@file:Suppress("unused")
+
 package io.legere.pdfiumandroid.api.types
 
 import android.graphics.Matrix
 import android.graphics.PointF
+import android.graphics.Rect
 import android.graphics.RectF
-
-fun PdfRectF.toRectF(): RectF = RectF(left, top, right, bottom)
+import androidx.core.graphics.toRect
 
 fun PdfPointF.toPointF(): PointF = PointF(x, y)
 
+fun PointF.toPdfPointF(): PdfPointF = PdfPointF(x, y)
+
+fun PdfRectF.toRectF(): RectF = RectF(left, top, right, bottom)
+
 fun RectF.toPdfRectF(): PdfRectF = PdfRectF(left, top, right, bottom)
+
+fun Rect.toPdfRect(): PdfRect = PdfRect(left, top, right, bottom)
+
+fun PdfRect.toRect(): Rect = Rect(left, top, right, bottom)
+
+fun RectF.toPdfRect(): PdfRect {
+    val rect = this.toRect()
+    return PdfRect(rect.left, rect.top, rect.right, rect.bottom)
+}
 
 fun PdfMatrix.toMatrix(): Matrix =
     Matrix().apply {
