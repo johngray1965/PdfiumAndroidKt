@@ -34,6 +34,8 @@ data class PdfRect(
 
     fun height(): Int = bottom - top
 
+    fun isEmpty(): Boolean = width() == 0 || height() == 0
+
     companion object {
         val EMPTY = PdfRect(0, 0, 0, 0)
     }
