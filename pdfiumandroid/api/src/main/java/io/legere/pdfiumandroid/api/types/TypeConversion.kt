@@ -17,7 +17,7 @@
  *
  */
 
-@file:Suppress("unused")
+@file:Suppress("unused", "TooManyFunctions")
 
 package io.legere.pdfiumandroid.api.types
 
@@ -29,38 +29,63 @@ import android.graphics.RectF
 import androidx.core.graphics.toRect
 import kotlin.math.roundToInt
 
-fun PdfPoint.toPoint(): Point = Point(x, y)
+// --- Point Conversions ---
+
+fun IntPointValues.toPoint(): Point = Point(x, y)
 
 fun Point.toPdfPoint(): PdfPoint = PdfPoint(x, y)
 
-fun PdfPointF.toPointF(): PointF = PointF(x, y)
+fun Point.toMutablePdfPoint(): MutablePdfPoint = MutablePdfPoint(x, y)
+
+fun FloatPointValues.toPointF(): PointF = PointF(x, y)
 
 fun PointF.toPdfPointF(): PdfPointF = PdfPointF(x, y)
 
-fun PdfRectF.toRectF(): RectF = RectF(left, top, right, bottom)
+fun PointF.toMutablePdfPointF(): MutablePdfPointF = MutablePdfPointF(x, y)
+
+// --- Rect Conversions ---
+
+fun FloatRectValues.toRectF(): RectF = RectF(left, top, right, bottom)
 
 fun RectF.toPdfRectF(): PdfRectF = PdfRectF(left, top, right, bottom)
 
+fun RectF.toMutablePdfRectF(): MutablePdfRectF = MutablePdfRectF(left, top, right, bottom)
+
+fun IntRectValues.toRect(): Rect = Rect(left, top, right, bottom)
+
 fun Rect.toPdfRect(): PdfRect = PdfRect(left, top, right, bottom)
 
-fun PdfRect.toRect(): Rect = Rect(left, top, right, bottom)
+fun Rect.toMutablePdfRect(): MutablePdfRect = MutablePdfRect(left, top, right, bottom)
 
 fun RectF.toPdfRect(): PdfRect {
     val rect = this.toRect()
     return PdfRect(rect.left, rect.top, rect.right, rect.bottom)
 }
 
-fun PdfRectF.toPdfRect(): PdfRect = PdfRect(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
+fun FloatRectValues.toPdfRect(): PdfRect = PdfRect(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
 
-fun PdfRect.toPdfRectF(): PdfRectF = PdfRectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+fun IntRectValues.toPdfRectF(): PdfRectF = PdfRectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+
+// --- Matrix Conversions ---
 
 fun PdfMatrix.toMatrix(): Matrix =
     Matrix().apply {
         setValues(values)
     }
 
+fun MutablePdfMatrix.toMatrix(): Matrix =
+    Matrix().apply {
+        setValues(values)
+    }
+
 fun Matrix.toPdfMatrix(): PdfMatrix {
-    val values = FloatArray(9)
+    val values = FloatArray(THREE_BY_THREE)
     getValues(values)
     return PdfMatrix(values)
+}
+
+fun Matrix.toMutablePdfMatrix(): MutablePdfMatrix {
+    val values = FloatArray(THREE_BY_THREE)
+    getValues(values)
+    return MutablePdfMatrix(values)
 }

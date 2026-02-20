@@ -245,8 +245,7 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmapWithMatrix() {
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
@@ -266,8 +265,7 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmapWithMatrixWithDefaults() {
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
@@ -285,8 +283,7 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmapWithMatrixWithAnnotations() {
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
@@ -336,8 +333,7 @@ class NativePageTest : BasePDFTest() {
             surfaceTexture.setDefaultBufferSize(100, 100)
             val surface = Surface(surfaceTexture)
 
-            val matrix = PdfMatrix()
-            matrix.postScale(0.5f, 0.5f)
+            val matrix = PdfMatrix().postScale(0.5f, 0.5f)
             val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
             val result =
@@ -369,8 +365,7 @@ class NativePageTest : BasePDFTest() {
         surfaceTexture.setDefaultBufferSize(100, 100)
         val surface = Surface(surfaceTexture)
 
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -463,8 +458,7 @@ class NativePageTest : BasePDFTest() {
 
         assertThat(bufferPtr).isNotEqualTo(0L)
 
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -501,8 +495,7 @@ class NativePageTest : BasePDFTest() {
 
         assertThat(bufferPtr).isNotEqualTo(0L)
 
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -539,8 +532,7 @@ class NativePageTest : BasePDFTest() {
 
         assertThat(bufferPtr).isNotEqualTo(0L)
 
-        val matrix = PdfMatrix()
-        matrix.postScale(0.5f, 0.5f)
+        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =

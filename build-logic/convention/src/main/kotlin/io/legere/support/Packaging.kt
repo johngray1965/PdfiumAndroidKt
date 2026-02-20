@@ -22,8 +22,6 @@ internal fun configurePackaging(commonExtension: CommonExtension) {
                         "META-INF/notice.txt",
                         "META-INF/LICENSE-notice.md",
                         "META-INF/ASL2.0",
-                        "META-INF/*.kotlin_module",
-                        "META-INF/rxjava.properties"
                     )
             }
         }

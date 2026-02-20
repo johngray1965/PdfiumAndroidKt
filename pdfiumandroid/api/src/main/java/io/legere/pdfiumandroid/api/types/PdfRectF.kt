@@ -56,13 +56,7 @@ data class PdfRectF(
             }
 
             this.isEmpty -> {
-                other as? PdfRectF
-                    ?: PdfRectF(
-                        other.left,
-                        other.top,
-                        other.right,
-                        other.bottom,
-                    )
+                other as? PdfRectF ?: PdfRectF(other.left, other.top, other.right, other.bottom)
             }
 
             else -> {
@@ -75,7 +69,7 @@ data class PdfRectF(
             }
         }
 
-    fun intersects(other: PdfRectF): Boolean {
+    fun intersects(other: FloatRectValues): Boolean {
         if (this.isEmpty || other.isEmpty) return false
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }
@@ -131,7 +125,7 @@ class MutablePdfRectF(
         bottom = max(bottom, other.bottom)
     }
 
-    fun intersects(other: PdfRectF): Boolean {
+    fun intersects(other: FloatRectValues): Boolean {
         if (this.isEmpty || other.isEmpty) return false
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }

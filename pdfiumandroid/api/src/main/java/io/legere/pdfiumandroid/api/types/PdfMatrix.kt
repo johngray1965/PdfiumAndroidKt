@@ -62,7 +62,6 @@ data class PdfMatrix(
         ),
 ) {
     constructor(other: PdfMatrix) : this(other.values.copyOf())
-    constructor(other: MutablePdfMatrix) : this(other.values.copyOf())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -79,91 +78,27 @@ data class PdfMatrix(
 
     // --- Mapping functions ---
 
-    fun mapPoint(point: PdfPointF): PdfPointF = mapPoint(point.x, point.y)
+    fun mapPoint(point: FloatPointValues): PdfPointF = values.mapPoint(point.x, point.y)
 
     fun mapPoint(
         x: Float,
         y: Float,
-    ): PdfPointF {
-        val w = values[MPERSP_0] * x + values[MPERSP_1] * y + values[MPERSP_2]
-        return PdfPointF(
-            x = (values[MSCALE_X] * x + values[MSKEW_X] * y + values[MTRANS_X]) / w,
-            y = (values[MSKEW_Y] * x + values[MSCALE_Y] * y + values[MTRANS_Y]) / w,
-        )
-    }
+    ): PdfPointF = values.mapPoint(x, y)
 
-    fun mapRect(rect: PdfRectF): PdfRectF {
-        val p1 = mapPoint(rect.left, rect.top)
-        val p2 = mapPoint(rect.right, rect.top)
-        val p3 = mapPoint(rect.right, rect.bottom)
-        val p4 = mapPoint(rect.left, rect.bottom)
-        return PdfRectF(
-            left = min(p1.x, min(p2.x, min(p3.x, p4.x))),
-            top = min(p1.y, min(p2.y, min(p3.y, p4.y))),
-            right = max(p1.x, max(p2.x, max(p3.x, p4.x))),
-            bottom = max(p1.y, max(p2.y, max(p3.y, p4.y))),
-        )
-    }
+    fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
 
-    fun mapRect(rect: MutablePdfRectF): MutablePdfRectF {
-        val p1 = mapPoint(rect.left, rect.top)
-        val p2 = mapPoint(rect.right, rect.top)
-        val p3 = mapPoint(rect.right, rect.bottom)
-        val p4 = mapPoint(rect.left, rect.bottom)
-        return MutablePdfRectF(
-            left = min(p1.x, min(p2.x, min(p3.x, p4.x))),
-            top = min(p1.y, min(p2.y, min(p3.y, p4.y))),
-            right = max(p1.x, max(p2.x, max(p3.x, p4.x))),
-            bottom = max(p1.y, max(p2.y, max(p3.y, p4.y))),
-        )
-    }
+    fun mapRadius(radius: Float): Float = values.mapRadius(radius)
 
-    fun mapRadius(radius: Float): Float {
-        val a = values[MSCALE_X]
-        val b = values[MSKEW_Y]
-        val c = values[MSKEW_X]
-        val d = values[MSCALE_Y]
-        val d1 = sqrt((a * a + b * b).toDouble()).toFloat()
-        val d2 = sqrt((c * c + d * d).toDouble()).toFloat()
-        return radius * (d1 + d2) / 2f
-    }
-
-    fun mapVector(vector: PdfPointF): PdfPointF = mapVector(vector.x, vector.y)
+    fun mapVector(vector: FloatPointValues): PdfPointF = values.mapVector(vector.x, vector.y)
 
     fun mapVector(
         x: Float,
         y: Float,
-    ): PdfPointF =
-        PdfPointF(
-            x = values[MSCALE_X] * x + values[MSKEW_X] * y,
-            y = values[MSKEW_Y] * x + values[MSCALE_Y] * y,
-        )
+    ): PdfPointF = values.mapVector(x, y)
 
-    fun mapPoints(src: FloatArray): FloatArray {
-        val dst = FloatArray(src.size)
-        values.mapPoints(dst, 0, src, 0, src.size / 2)
-        return dst
-    }
+    fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
 
-    fun mapPoints(
-        dst: FloatArray,
-        src: FloatArray,
-    ) {
-        values.mapPoints(dst, 0, src, 0, min(dst.size, src.size) / 2)
-    }
-
-    fun mapVectors(src: FloatArray): FloatArray {
-        val dst = FloatArray(src.size)
-        values.mapVectors(dst, 0, src, 0, src.size / 2)
-        return dst
-    }
-
-    fun mapVectors(
-        dst: FloatArray,
-        src: FloatArray,
-    ) {
-        values.mapVectors(dst, 0, src, 0, min(dst.size, src.size) / 2)
-    }
+    fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
 
     /**
      * Returns the inverse of this matrix, or null if it's not invertible.
@@ -199,10 +134,87 @@ data class PdfMatrix(
 
     fun concat(other: PdfMatrix) = PdfMatrix(values.copyOf().apply { preConcat(other.values) })
 
+    fun preTranslate(
+        dx: Float,
+        dy: Float,
+    ) = translate(dx, dy)
+
+    fun preScale(
+        sx: Float,
+        sy: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = scale(sx, sy, px, py)
+
+    fun preRotate(
+        degrees: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = rotate(degrees, px, py)
+
+    fun preSkew(
+        kx: Float,
+        ky: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = skew(kx, ky, px, py)
+
+    fun postTranslate(
+        dx: Float,
+        dy: Float,
+    ) = PdfMatrix(values.copyOf().apply { postTranslate(dx, dy) })
+
+    fun postScale(
+        sx: Float,
+        sy: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = PdfMatrix(values.copyOf().apply { postScale(sx, sy, px, py) })
+
+    fun postRotate(
+        degrees: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = PdfMatrix(values.copyOf().apply { postRotate(degrees, px, py) })
+
+    fun postSkew(
+        kx: Float,
+        ky: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = PdfMatrix(values.copyOf().apply { postSkew(kx, ky, px, py) })
+
+    fun postConcat(other: PdfMatrix) = PdfMatrix(values.copyOf().apply { postConcat(other.values) })
+
     fun toMutable() = MutablePdfMatrix(values.copyOf())
 
     companion object {
         val IDENTITY = PdfMatrix()
+
+        fun translated(
+            dx: Float,
+            dy: Float,
+        ) = IDENTITY.translate(dx, dy)
+
+        fun scaled(
+            sx: Float,
+            sy: Float,
+            px: Float = 0f,
+            py: Float = 0f,
+        ) = IDENTITY.scale(sx, sy, px, py)
+
+        fun rotated(
+            degrees: Float,
+            px: Float = 0f,
+            py: Float = 0f,
+        ) = IDENTITY.rotate(degrees, px, py)
+
+        fun skewed(
+            kx: Float,
+            ky: Float,
+            px: Float = 0f,
+            py: Float = 0f,
+        ) = IDENTITY.skew(kx, ky, px, py)
     }
 }
 
@@ -283,76 +295,6 @@ class MutablePdfMatrix(
         return this
     }
 
-    fun postRotate(
-        degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
-    ): MutablePdfMatrix {
-        values.postRotate(degrees, px, py)
-        return this
-    }
-
-    fun preRotate(
-        degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
-    ): MutablePdfMatrix {
-        values.preRotate(degrees, px, py)
-        return this
-    }
-
-    fun postSkew(
-        kx: Float,
-        ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
-    ): MutablePdfMatrix {
-        values.postSkew(kx, ky, px, py)
-        return this
-    }
-
-    fun preSkew(
-        kx: Float,
-        ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
-    ): MutablePdfMatrix {
-        values.preSkew(kx, ky, px, py)
-        return this
-    }
-
-    fun postTranslate(
-        dx: Float,
-        dy: Float,
-    ): MutablePdfMatrix {
-        values.postTranslate(dx, dy)
-        return this
-    }
-
-    fun preTranslate(
-        dx: Float,
-        dy: Float,
-    ): MutablePdfMatrix {
-        values.preTranslate(dx, dy)
-        return this
-    }
-
-    fun postScale(
-        dx: Float,
-        dy: Float,
-    ): MutablePdfMatrix {
-        values.postScale(dx, dy)
-        return this
-    }
-
-    fun preScale(
-        dx: Float,
-        dy: Float,
-    ): MutablePdfMatrix {
-        values.preScale(dx, dy)
-        return this
-    }
-
     fun invert(target: MutablePdfMatrix): Boolean {
         val inv = values.invert()
         return if (inv != null) {
@@ -362,6 +304,34 @@ class MutablePdfMatrix(
             false
         }
     }
+    // --- Mapping functions (Mutable matrix can still return new values) ---
+
+    fun mapPoint(point: FloatPointValues): PdfPointF = values.mapPoint(point.x, point.y)
+
+    fun mapPoint(
+        x: Float,
+        y: Float,
+    ): PdfPointF = values.mapPoint(x, y)
+
+    fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
+
+    fun mapRect(
+        dst: MutablePdfRectF,
+        src: FloatRectValues,
+    ) = values.mapRect(dst, src)
+
+    fun mapRadius(radius: Float): Float = values.mapRadius(radius)
+
+    fun mapVector(vector: FloatPointValues): PdfPointF = values.mapVector(vector.x, vector.y)
+
+    fun mapVector(
+        x: Float,
+        y: Float,
+    ): PdfPointF = values.mapVector(x, y)
+
+    fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
+
+    fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
 
     fun toImmutable() = PdfMatrix(values.copyOf())
 
@@ -387,7 +357,6 @@ internal fun FloatArray.reset() {
     this[MPERSP_2] = 1f
 }
 
-@Suppress("MagicNumber")
 internal fun FloatArray.normalize() {
     for (i in 0 until THREE_BY_THREE) if (this[i] == -0.0f) this[i] = 0.0f
 }
@@ -414,21 +383,23 @@ internal fun FloatArray.setScale(
     px: Float,
     py: Float,
 ) {
-    reset()
     this[MSCALE_X] = sx
     this[MSCALE_Y] = sy
     this[MTRANS_X] = px - sx * px
     this[MTRANS_Y] = py - sy * py
+    this[MSKEW_X] = 0f
+    this[MSKEW_Y] = 0f
+    this[MPERSP_0] = 0f
+    this[MPERSP_1] = 0f
+    this[MPERSP_2] = 1f
     normalize()
 }
 
-@Suppress("MagicNumber")
 internal fun FloatArray.setRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
-    reset()
     val radians = degrees.toDouble() * PI / 180.0
     val s = sin(radians).toFloat()
     val c = cos(radians).toFloat()
@@ -438,6 +409,9 @@ internal fun FloatArray.setRotate(
     this[MSCALE_Y] = c
     this[MTRANS_X] = px - c * px + s * py
     this[MTRANS_Y] = py - s * px - c * py
+    this[MPERSP_0] = 0f
+    this[MPERSP_1] = 0f
+    this[MPERSP_2] = 1f
     normalize()
 }
 
@@ -447,13 +421,15 @@ internal fun FloatArray.setSkew(
     px: Float,
     py: Float,
 ) {
-    reset()
     this[MSCALE_X] = 1f
     this[MSKEW_X] = kx
     this[MSKEW_Y] = ky
     this[MSCALE_Y] = 1f
     this[MTRANS_X] = -kx * py
     this[MTRANS_Y] = -ky * px
+    this[MPERSP_0] = 0f
+    this[MPERSP_1] = 0f
+    this[MPERSP_2] = 1f
     normalize()
 }
 
@@ -470,10 +446,10 @@ internal fun FloatArray.preTranslate(
 internal fun FloatArray.preScale(
     sx: Float,
     sy: Float,
-    px: Float = 0f,
-    py: Float = 0f,
+    px: Float,
+    py: Float,
 ) {
-    val tmp = FloatArray(THREE_BY_THREE)
+    val tmp = FloatArray(9)
     tmp.setScale(sx, sy, px, py)
     preConcat(tmp)
 }
@@ -483,7 +459,7 @@ internal fun FloatArray.preRotate(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(THREE_BY_THREE)
+    val tmp = FloatArray(9)
     tmp.setRotate(degrees, px, py)
     preConcat(tmp)
 }
@@ -494,7 +470,7 @@ internal fun FloatArray.preSkew(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(THREE_BY_THREE)
+    val tmp = FloatArray(9)
     tmp.setSkew(kx, ky, px, py)
     preConcat(tmp)
 }
@@ -518,10 +494,10 @@ internal fun FloatArray.postTranslate(
 internal fun FloatArray.postScale(
     sx: Float,
     sy: Float,
-    px: Float = 0f,
-    py: Float = 0f,
+    px: Float,
+    py: Float,
 ) {
-    val tmp = FloatArray(THREE_BY_THREE)
+    val tmp = FloatArray(9)
     tmp.setScale(sx, sy, px, py)
     postConcat(tmp)
 }
@@ -531,7 +507,7 @@ internal fun FloatArray.postRotate(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(THREE_BY_THREE)
+    val tmp = FloatArray(9)
     tmp.setRotate(degrees, px, py)
     postConcat(tmp)
 }
@@ -542,7 +518,7 @@ internal fun FloatArray.postSkew(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(THREE_BY_THREE)
+    val tmp = FloatArray(9)
     tmp.setSkew(kx, ky, px, py)
     postConcat(tmp)
 }
@@ -597,7 +573,6 @@ internal fun FloatArray.postConcat(other: FloatArray) {
     normalize()
 }
 
-@Suppress("MagicNumber")
 internal fun FloatArray.invert(): FloatArray? {
     val v = this
     val det =
@@ -606,7 +581,7 @@ internal fun FloatArray.invert(): FloatArray? {
             v[2] * (v[3] * v[7] - v[4] * v[6])
     if (abs(det) < 1e-10) return null
     val invDet = 1.0f / det
-    val res = FloatArray(THREE_BY_THREE)
+    val res = FloatArray(9)
     res[0] = (v[4] * v[8] - v[5] * v[7]) * invDet
     res[1] = (v[2] * v[7] - v[1] * v[8]) * invDet
     res[2] = (v[1] * v[5] - v[2] * v[4]) * invDet
@@ -618,6 +593,89 @@ internal fun FloatArray.invert(): FloatArray? {
     res[8] = (v[0] * v[4] - v[1] * v[3]) * invDet
     res.normalize()
     return res
+}
+
+internal fun FloatArray.mapX(
+    x: Float,
+    y: Float,
+): Float {
+    val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
+    return (this[MSCALE_X] * x + this[MSKEW_X] * y + this[MTRANS_X]) / w
+}
+
+internal fun FloatArray.mapY(
+    x: Float,
+    y: Float,
+): Float {
+    val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
+    return (this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w
+}
+
+internal fun FloatArray.mapPoint(
+    x: Float,
+    y: Float,
+): PdfPointF {
+    val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
+    return PdfPointF(
+        x = (this[MSCALE_X] * x + this[MSKEW_X] * y + this[MTRANS_X]) / w,
+        y = (this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w,
+    )
+}
+
+internal fun FloatArray.mapRect(rect: FloatRectValues): PdfRectF {
+    val x1 = mapX(rect.left, rect.top)
+    val y1 = mapY(rect.left, rect.top)
+    val x2 = mapX(rect.right, rect.top)
+    val y2 = mapY(rect.right, rect.top)
+    val x3 = mapX(rect.right, rect.bottom)
+    val y3 = mapY(rect.right, rect.bottom)
+    val x4 = mapX(rect.left, rect.bottom)
+    val y4 = mapY(rect.left, rect.bottom)
+    return PdfRectF(
+        left = min(x1, min(x2, min(x3, x4))),
+        top = min(y1, min(y2, min(y3, y4))),
+        right = max(x1, max(x2, max(x3, x4))),
+        bottom = max(y1, max(y2, max(y3, y4))),
+    )
+}
+
+internal fun FloatArray.mapRect(
+    dst: MutablePdfRectF,
+    src: FloatRectValues,
+) {
+    val x1 = mapX(src.left, src.top)
+    val y1 = mapY(src.left, src.top)
+    val x2 = mapX(src.right, src.top)
+    val y2 = mapY(src.right, src.top)
+    val x3 = mapX(src.right, src.bottom)
+    val y3 = mapY(src.right, src.bottom)
+    val x4 = mapX(src.left, src.bottom)
+    val y4 = mapY(src.left, src.bottom)
+    dst.set(
+        l = min(x1, min(x2, min(x3, x4))),
+        t = min(y1, min(y2, min(y3, y4))),
+        r = max(x1, max(x2, max(x3, x4))),
+        b = max(y1, max(y2, max(y3, y4))),
+    )
+}
+
+internal fun FloatArray.mapRadius(radius: Float): Float {
+    val d1 = sqrt((this[MSCALE_X] * this[MSCALE_X] + this[MSKEW_Y] * this[MSKEW_Y]).toDouble()).toFloat()
+    val d2 = sqrt((this[MSKEW_X] * this[MSKEW_X] + this[MSCALE_Y] * this[MSCALE_Y]).toDouble()).toFloat()
+    return radius * (d1 + d2) / 2f
+}
+
+internal fun FloatArray.mapVector(
+    x: Float,
+    y: Float,
+): PdfPointF =
+    PdfPointF(
+        x = this[MSCALE_X] * x + this[MSKEW_X] * y,
+        y = this[MSKEW_Y] * x + this[MSCALE_Y] * y,
+    )
+
+internal fun FloatArray.mapPoints(pts: FloatArray) {
+    mapPoints(pts, 0, pts, 0, pts.size / 2)
 }
 
 internal fun FloatArray.mapPoints(
@@ -636,6 +694,10 @@ internal fun FloatArray.mapPoints(
         dst[di] = (this[MSCALE_X] * x + this[MSKEW_X] * y + this[MTRANS_X]) / w
         dst[di + 1] = (this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w
     }
+}
+
+internal fun FloatArray.mapVectors(vecs: FloatArray) {
+    mapVectors(vecs, 0, vecs, 0, vecs.size / 2)
 }
 
 internal fun FloatArray.mapVectors(
