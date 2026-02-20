@@ -107,6 +107,31 @@ data class PdfMatrix(
 
     // --- Immutable modifiers (return new instance) ---
 
+    fun setTranslate(
+        dx: Float,
+        dy: Float,
+    ) = PdfMatrix(FloatArray(THREE_BY_THREE).apply { setTranslate(dx, dy) })
+
+    fun setScale(
+        sx: Float,
+        sy: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = PdfMatrix(FloatArray(THREE_BY_THREE).apply { setScale(sx, sy, px, py) })
+
+    fun setRotate(
+        degrees: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = PdfMatrix(FloatArray(THREE_BY_THREE).apply { setRotate(degrees, px, py) })
+
+    fun setSkew(
+        kx: Float,
+        ky: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ) = PdfMatrix(FloatArray(THREE_BY_THREE).apply { setSkew(kx, ky, px, py) })
+
     fun translate(
         dx: Float,
         dy: Float,
@@ -285,6 +310,80 @@ class MutablePdfMatrix(
         return this
     }
 
+    fun preTranslate(
+        dx: Float,
+        dy: Float,
+    ): MutablePdfMatrix {
+        values.preTranslate(dx, dy)
+        return this
+    }
+
+    fun preScale(
+        sx: Float,
+        sy: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ): MutablePdfMatrix {
+        values.preScale(sx, sy, px, py)
+        return this
+    }
+
+    fun preRotate(
+        degrees: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ): MutablePdfMatrix {
+        values.preRotate(degrees, px, py)
+        return this
+    }
+
+    fun preSkew(
+        kx: Float,
+        ky: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ): MutablePdfMatrix {
+        values.preSkew(kx, ky, px, py)
+        return this
+    }
+
+    fun postTranslate(
+        dx: Float,
+        dy: Float,
+    ): MutablePdfMatrix {
+        values.postTranslate(dx, dy)
+        return this
+    }
+
+    fun postScale(
+        sx: Float,
+        sy: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ): MutablePdfMatrix {
+        values.postScale(sx, sy, px, py)
+        return this
+    }
+
+    fun postRotate(
+        degrees: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ): MutablePdfMatrix {
+        values.postRotate(degrees, px, py)
+        return this
+    }
+
+    fun postSkew(
+        kx: Float,
+        ky: Float,
+        px: Float = 0f,
+        py: Float = 0f,
+    ): MutablePdfMatrix {
+        values.postSkew(kx, ky, px, py)
+        return this
+    }
+
     fun postConcat(other: PdfMatrix): MutablePdfMatrix {
         values.postConcat(other.values)
         return this
@@ -357,6 +456,7 @@ internal fun FloatArray.reset() {
     this[MPERSP_2] = 1f
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.normalize() {
     for (i in 0 until THREE_BY_THREE) if (this[i] == -0.0f) this[i] = 0.0f
 }
@@ -395,6 +495,7 @@ internal fun FloatArray.setScale(
     normalize()
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.setRotate(
     degrees: Float,
     px: Float,
@@ -449,7 +550,7 @@ internal fun FloatArray.preScale(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(9)
+    val tmp = FloatArray(THREE_BY_THREE)
     tmp.setScale(sx, sy, px, py)
     preConcat(tmp)
 }
@@ -459,7 +560,7 @@ internal fun FloatArray.preRotate(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(9)
+    val tmp = FloatArray(THREE_BY_THREE)
     tmp.setRotate(degrees, px, py)
     preConcat(tmp)
 }
@@ -470,7 +571,7 @@ internal fun FloatArray.preSkew(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(9)
+    val tmp = FloatArray(THREE_BY_THREE)
     tmp.setSkew(kx, ky, px, py)
     preConcat(tmp)
 }
@@ -497,7 +598,7 @@ internal fun FloatArray.postScale(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(9)
+    val tmp = FloatArray(THREE_BY_THREE)
     tmp.setScale(sx, sy, px, py)
     postConcat(tmp)
 }
@@ -507,7 +608,7 @@ internal fun FloatArray.postRotate(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(9)
+    val tmp = FloatArray(THREE_BY_THREE)
     tmp.setRotate(degrees, px, py)
     postConcat(tmp)
 }
@@ -518,7 +619,7 @@ internal fun FloatArray.postSkew(
     px: Float,
     py: Float,
 ) {
-    val tmp = FloatArray(9)
+    val tmp = FloatArray(THREE_BY_THREE)
     tmp.setSkew(kx, ky, px, py)
     postConcat(tmp)
 }
@@ -573,6 +674,7 @@ internal fun FloatArray.postConcat(other: FloatArray) {
     normalize()
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.invert(): FloatArray? {
     val v = this
     val det =
@@ -581,7 +683,7 @@ internal fun FloatArray.invert(): FloatArray? {
             v[2] * (v[3] * v[7] - v[4] * v[6])
     if (abs(det) < 1e-10) return null
     val invDet = 1.0f / det
-    val res = FloatArray(9)
+    val res = FloatArray(THREE_BY_THREE)
     res[0] = (v[4] * v[8] - v[5] * v[7]) * invDet
     res[1] = (v[2] * v[7] - v[1] * v[8]) * invDet
     res[2] = (v[1] * v[5] - v[2] * v[4]) * invDet

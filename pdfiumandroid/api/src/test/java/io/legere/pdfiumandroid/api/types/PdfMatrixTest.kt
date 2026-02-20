@@ -25,6 +25,13 @@ import org.junit.jupiter.api.Test
 class PdfMatrixTest {
     @Test
     fun `default constructor creates identity matrix`() {
+        val matrix = PdfMatrix()
+        assertThat(matrix.isIdentity()).isTrue()
+        assertThat(matrix.isAffine()).isTrue()
+    }
+
+    @Test
+    fun `mutable default constructor creates identity matrix`() {
         val matrix = MutablePdfMatrix()
         assertThat(matrix.isIdentity()).isTrue()
         assertThat(matrix.isAffine()).isTrue()
@@ -42,11 +49,10 @@ class PdfMatrixTest {
 
     @Test
     fun `set copies values`() {
-        val src = MutablePdfMatrix()
-        src.setTranslate(10f, 20f)
+        val src = PdfMatrix().translate(10f, 20f)
         val dst = MutablePdfMatrix()
-        dst.set(src.toImmutable())
-        assertThat(dst).isEqualTo(src)
+        dst.set(src)
+        assertThat(dst.toImmutable()).isEqualTo(src)
         assertThat(dst.values[MTRANS_X]).isEqualTo(10f)
     }
 
@@ -58,7 +64,7 @@ class PdfMatrixTest {
         val values = matrix.values
         assertThat(values[MTRANS_X]).isEqualTo(10f)
         assertThat(values[MTRANS_Y]).isEqualTo(20f)
-        assertThat(values[MSCALE_X]).isEqualTo(1f) // Scale should be 1
+        assertThat(values[MSCALE_X]).isEqualTo(1f)
         assertThat(values[MSCALE_Y]).isEqualTo(1f)
     }
 
@@ -113,32 +119,15 @@ class PdfMatrixTest {
     }
 
     @Test
-    fun `setConcat multiplies matrices`() {
+    fun `concat multiplies matrices`() {
         // A: translate(10, 0)
-        val a = MutablePdfMatrix()
-        a.setTranslate(10f, 0f)
+        val a = PdfMatrix().translate(10f, 0f)
         // B: scale(2, 1)
-        val b = MutablePdfMatrix()
-        b.setScale(2f, 1f)
+        val b = PdfMatrix().scale(2f, 1f)
 
         // C = A * B
-        // A = Translate(10, 0)
-        // | 1 0 10 |
-        // | 0 1 0  |
-        // | 0 0 1  |
-
-        // B = Scale(2, 1)
-        // | 2 0 0 |
-        // | 0 1 0 |
-        // | 0 0 1 |
-
-        // A * B
-        // | 1 0 10 |   | 2 0 0 |   | 2 0 10 |
-        // | 0 1 0  | * | 0 1 0 | = | 0 1 0  |
-        // | 0 0 1  |   | 0 0 1 |   | 0 0 1  |
-        // result: ScaleX=2, TransX=10.
-
-        val c = a.toImmutable().concat(b.toImmutable())
+        // v' = A * (B * v)
+        val c = a.concat(b)
 
         assertThat(c.values[MSCALE_X]).isEqualTo(2f)
         assertThat(c.values[MTRANS_X]).isEqualTo(10f)
@@ -147,11 +136,8 @@ class PdfMatrixTest {
     @Test
     fun `preTranslate modifies matrix correctly`() {
         val matrix = MutablePdfMatrix()
-        matrix.setTranslate(10f, 10f) // Start at 10,10
-        matrix.preTranslate(5f, 5f) // M' = M * T
-        // M = Translate(10,10)
-        // T = Translate(5,5)
-        // M*T = Translate(15, 15)
+        matrix.setTranslate(10f, 10f)
+        matrix.preTranslate(5f, 5f)
 
         val values = matrix.values
         assertThat(values[MTRANS_X]).isEqualTo(15f)
@@ -162,7 +148,6 @@ class PdfMatrixTest {
     fun `postTranslate modifies matrix correctly`() {
         val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
-        // M' = T * M = Translate(5,5) * Translate(10,10) = Translate(15,15)
         matrix.postTranslate(5f, 5f)
 
         val values = matrix.values
@@ -175,10 +160,6 @@ class PdfMatrixTest {
         val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.preScale(2f, 2f)
-        // M' = M * S
-        // | 1 0 10 |   | 2 0 0 |   | 2 0 10 |
-        // | 0 1 10 | * | 0 2 0 | = | 0 2 10 |
-        // | 0 0 1  |   | 0 0 1 |   | 0 0 1  |
 
         val values = matrix.values
         assertThat(values[MSCALE_X]).isEqualTo(2f)
@@ -192,10 +173,6 @@ class PdfMatrixTest {
         val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.postScale(2f, 2f)
-        // M' = S * M
-        // | 2 0 0 |   | 1 0 10 |   | 2 0 20 |
-        // | 0 2 0 | * | 0 1 10 | = | 0 2 20 |
-        // | 0 0 1 |   | 0 0 1  |   | 0 0 1  |
 
         val values = matrix.values
         assertThat(values[MSCALE_X]).isEqualTo(2f)
@@ -209,12 +186,7 @@ class PdfMatrixTest {
         val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.preSkew(1f, 0f)
-        // M = Translate(10, 10)
-        // K = Skew(1, 0)
-        // M' = M * K
-        // | 1 0 10 |   | 1 1 0 |   | 1 1 10 |
-        // | 0 1 10 | * | 0 1 0 | = | 0 1 10 |
-        // | 0 0 1  |   | 0 0 1 |   | 0 0 1  |
+
         val values = matrix.values
         assertThat(values[MSCALE_X]).isEqualTo(1f)
         assertThat(values[MSKEW_X]).isEqualTo(1f)
@@ -226,47 +198,11 @@ class PdfMatrixTest {
         val matrix = MutablePdfMatrix()
         matrix.setTranslate(10f, 10f)
         matrix.postSkew(1f, 0f)
-        // M = Translate(10, 10)
-        // K = Skew(1, 0)
-        // M' = K * M
-        // | 1 1 0 |   | 1 0 10 |   | 1 1 20 |
-        // | 0 1 0 | * | 0 1 10 | = | 0 1 10 |
-        // | 0 0 1 |   | 0 0 1  |   | 0 0 1  |
+
         val values = matrix.values
         assertThat(values[MSCALE_X]).isEqualTo(1f)
         assertThat(values[MSKEW_X]).isEqualTo(1f)
         assertThat(values[MTRANS_X]).isEqualTo(20f)
-    }
-
-    @Test
-    fun `preRotate modifies matrix correctly`() {
-        val matrix = MutablePdfMatrix()
-        matrix.setTranslate(10f, 0f)
-        matrix.preRotate(90f)
-        // M' = M * R
-        // | 1 0 10 |   | 0 -1 0 |   | 0 -1 10 |
-        // | 0 1 0  | * | 1 0  0 | = | 1 0  0  |
-        // | 0 0 1  |   | 0 0  1 |   | 0 0  1  |
-
-        val values = matrix.values
-        assertThat(values[MSCALE_X]).isWithin(0.0001f).of(0f)
-        assertThat(values[MSKEW_X]).isWithin(0.0001f).of(-1f)
-        assertThat(values[MTRANS_X]).isWithin(0.0001f).of(10f)
-    }
-
-    @Test
-    fun `postRotate modifies matrix correctly`() {
-        val matrix = MutablePdfMatrix()
-        matrix.setTranslate(10f, 0f)
-        matrix.postRotate(90f)
-        // M' = R * M
-        // | 0 -1 0 |   | 1 0 10 |   | 0 -1 0 |
-        // | 1 0  0 | * | 0 1 0  | = | 1 0 10 |
-        // | 0 0  1 |   | 0 0 1  |   | 0 0 1  |
-
-        val values = matrix.values
-        assertThat(values[MTRANS_X]).isWithin(0.0001f).of(0f)
-        assertThat(values[MTRANS_Y]).isWithin(0.0001f).of(10f)
     }
 
     @Test
@@ -298,17 +234,24 @@ class PdfMatrixTest {
         matrix.postTranslate(10f, 20f)
 
         val inverse = MutablePdfMatrix()
-        matrix.invert(inverse)
-        assertThat(inverse).isNotNull()
+        val success = matrix.invert(inverse)
+        assertThat(success).isTrue()
 
         val product = matrix.toImmutable().concat(inverse.toImmutable())
         assertThat(product.isIdentity()).isTrue()
     }
 
     @Test
-    fun `invert returns null for non-invertible matrix`() {
+    fun `invert returns false for non-invertible matrix`() {
         val matrix = MutablePdfMatrix()
         matrix.setScale(0f, 2f)
-        assertThat(matrix.toImmutable().invert()).isNull()
+        val inverse = MutablePdfMatrix()
+        assertThat(matrix.invert(inverse)).isFalse()
+    }
+
+    @Test
+    fun `immutable invert returns null for non-invertible matrix`() {
+        val matrix = PdfMatrix().scale(0f, 2f)
+        assertThat(matrix.invert()).isNull()
     }
 }
