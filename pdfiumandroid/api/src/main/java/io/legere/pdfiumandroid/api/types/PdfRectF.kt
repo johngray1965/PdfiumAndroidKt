@@ -17,6 +17,8 @@
  *
  */
 
+@file:Suppress("unused", "TooManyFunctions")
+
 package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
@@ -47,16 +49,31 @@ data class PdfRectF(
     override val right: Float,
     override val bottom: Float,
 ) : FloatRectValues {
-    fun union(other: FloatRectValues): PdfRectF {
-        if (other.isEmpty) return this
-        if (this.isEmpty) return if (other is PdfRectF) other else PdfRectF(other.left, other.top, other.right, other.bottom)
-        return PdfRectF(
-            left = min(left, other.left),
-            top = min(top, other.top),
-            right = max(right, other.right),
-            bottom = max(bottom, other.bottom),
-        )
-    }
+    fun union(other: FloatRectValues): PdfRectF =
+        when {
+            other.isEmpty -> {
+                this
+            }
+
+            this.isEmpty -> {
+                other as? PdfRectF
+                    ?: PdfRectF(
+                        other.left,
+                        other.top,
+                        other.right,
+                        other.bottom,
+                    )
+            }
+
+            else -> {
+                PdfRectF(
+                    left = min(left, other.left),
+                    top = min(top, other.top),
+                    right = max(right, other.right),
+                    bottom = max(bottom, other.bottom),
+                )
+            }
+        }
 
     fun intersects(other: PdfRectF): Boolean {
         if (this.isEmpty || other.isEmpty) return false
@@ -89,6 +106,13 @@ class MutablePdfRectF(
         top = t
         right = r
         bottom = b
+    }
+
+    fun reset() {
+        left = 0f
+        top = 0f
+        right = 0f
+        bottom = 0f
     }
 
     fun set(src: FloatRectValues) {

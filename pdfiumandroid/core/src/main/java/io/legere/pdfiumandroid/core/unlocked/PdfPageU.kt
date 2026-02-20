@@ -29,15 +29,6 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
-import io.legere.pdfiumandroid.api.types.MPERSP_0
-import io.legere.pdfiumandroid.api.types.MPERSP_1
-import io.legere.pdfiumandroid.api.types.MPERSP_2
-import io.legere.pdfiumandroid.api.types.MSCALE_X
-import io.legere.pdfiumandroid.api.types.MSCALE_Y
-import io.legere.pdfiumandroid.api.types.MSKEW_X
-import io.legere.pdfiumandroid.api.types.MSKEW_Y
-import io.legere.pdfiumandroid.api.types.MTRANS_X
-import io.legere.pdfiumandroid.api.types.MTRANS_Y
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
 import io.legere.pdfiumandroid.api.types.PdfPointF
@@ -712,18 +703,17 @@ class PdfPageU(
         val pageWidth = data[0]
         val pageHeight = data[1]
 
-        val matrix = PdfMatrix(FloatArray(9))
-        calculateRectTranslateMatrix(
-            0f,
-            0f,
-            pageWidth,
-            pageHeight,
-            data[27],
-            data[28],
-            data[29],
-            data[30],
-            result = matrix,
-        )
+        val matrix =
+            calculateRectTranslateMatrix(
+                0f,
+                0f,
+                pageWidth,
+                pageHeight,
+                data[27],
+                data[28],
+                data[29],
+                data[30],
+            )
 
         return PageAttributes(
             page = pageIndex,
@@ -806,17 +796,17 @@ class PdfPageU(
          *
          * @param from The source [PdfRectF].
          * @param to The destination [PdfRectF].
-         * @param result The [PdfMatrix] object to store the calculated transformation. Will be reset before calculation.
+         * @return The [PdfMatrix] object to store the calculated transformation. Will be
+         * reset before calculation.
          */
         fun calculateRectTranslateMatrix(
             from: PdfRectF?,
             to: PdfRectF?,
-            result: PdfMatrix?,
-        ) {
-            if (from == null || to == null || result == null) {
-                return
+        ): PdfMatrix? {
+            if (from == null || to == null) {
+                return null
             }
-            calculateRectTranslateMatrix(
+            return calculateRectTranslateMatrix(
                 from.left,
                 from.top,
                 from.right,
@@ -825,7 +815,6 @@ class PdfPageU(
                 to.top,
                 to.right,
                 to.bottom,
-                result,
             )
         }
 
@@ -842,13 +831,11 @@ class PdfPageU(
             toTop: Float,
             toRight: Float,
             toBottom: Float,
-            result: PdfMatrix,
-        ) {
+        ): PdfMatrix {
             val fromWidth = fromRight - fromLeft
             val fromHeight = fromBottom - fromTop
             if (fromWidth == 0f || fromHeight == 0f) {
-                result.reset()
-                return
+                return PdfMatrix()
             }
 
             val sx = (toRight - toLeft) / fromWidth
@@ -857,16 +844,19 @@ class PdfPageU(
             val tx = toLeft - sx * fromLeft
             val ty = toTop - sy * fromTop
 
-            val v = result.values
-            v[MSCALE_X] = sx + 0.0f
-            v[MSKEW_X] = 0f
-            v[MTRANS_X] = tx + 0.0f
-            v[MSKEW_Y] = 0f
-            v[MSCALE_Y] = sy + 0.0f
-            v[MTRANS_Y] = ty + 0.0f
-            v[MPERSP_0] = 0f
-            v[MPERSP_1] = 0f
-            v[MPERSP_2] = 1f
+            return PdfMatrix(
+                floatArrayOf(
+                    sx + 0.0f,
+                    0f,
+                    tx + 0.0f,
+                    0f,
+                    sy + 0.0f,
+                    ty + 0.0f,
+                    0f,
+                    0f,
+                    1f,
+                ),
+            )
         }
     }
 }

@@ -17,6 +17,8 @@
  *
  */
 
+@file:Suppress("unused", "TooManyFunctions")
+
 package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
@@ -60,6 +62,7 @@ data class PdfMatrix(
         ),
 ) {
     constructor(other: PdfMatrix) : this(other.values.copyOf())
+    constructor(other: MutablePdfMatrix) : this(other.values.copyOf())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -95,6 +98,19 @@ data class PdfMatrix(
         val p3 = mapPoint(rect.right, rect.bottom)
         val p4 = mapPoint(rect.left, rect.bottom)
         return PdfRectF(
+            left = min(p1.x, min(p2.x, min(p3.x, p4.x))),
+            top = min(p1.y, min(p2.y, min(p3.y, p4.y))),
+            right = max(p1.x, max(p2.x, max(p3.x, p4.x))),
+            bottom = max(p1.y, max(p2.y, max(p3.y, p4.y))),
+        )
+    }
+
+    fun mapRect(rect: MutablePdfRectF): MutablePdfRectF {
+        val p1 = mapPoint(rect.left, rect.top)
+        val p2 = mapPoint(rect.right, rect.top)
+        val p3 = mapPoint(rect.right, rect.bottom)
+        val p4 = mapPoint(rect.left, rect.bottom)
+        return MutablePdfRectF(
             left = min(p1.x, min(p2.x, min(p3.x, p4.x))),
             top = min(p1.y, min(p2.y, min(p3.y, p4.y))),
             right = max(p1.x, max(p2.x, max(p3.x, p4.x))),
@@ -198,12 +214,20 @@ data class PdfMatrix(
 class MutablePdfMatrix(
     val values: FloatArray = FloatArray(THREE_BY_THREE),
 ) {
+    constructor(other: MutablePdfMatrix) : this(other.values.copyOf())
+    constructor(other: PdfMatrix) : this(other.values.copyOf())
+
     init {
         values.reset()
     }
 
     fun reset(): MutablePdfMatrix {
         values.reset()
+        return this
+    }
+
+    fun set(src: MutablePdfMatrix): MutablePdfMatrix {
+        System.arraycopy(src.values, 0, values, 0, THREE_BY_THREE)
         return this
     }
 
@@ -363,6 +387,7 @@ internal fun FloatArray.reset() {
     this[MPERSP_2] = 1f
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.normalize() {
     for (i in 0 until THREE_BY_THREE) if (this[i] == -0.0f) this[i] = 0.0f
 }
@@ -397,6 +422,7 @@ internal fun FloatArray.setScale(
     normalize()
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.setRotate(
     degrees: Float,
     px: Float,
@@ -521,6 +547,7 @@ internal fun FloatArray.postSkew(
     postConcat(tmp)
 }
 
+@Suppress("MagicNumber", "UnnecessaryVariable")
 internal fun FloatArray.preConcat(other: FloatArray) {
     val a = this
     val b = other
@@ -545,6 +572,7 @@ internal fun FloatArray.preConcat(other: FloatArray) {
     normalize()
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.postConcat(other: FloatArray) {
     val a = other
     val b = this
@@ -569,6 +597,7 @@ internal fun FloatArray.postConcat(other: FloatArray) {
     normalize()
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.invert(): FloatArray? {
     val v = this
     val det =
