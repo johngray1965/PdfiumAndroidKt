@@ -41,6 +41,10 @@ const val MPERSP_0 = 6
 const val MPERSP_1 = 7
 const val MPERSP_2 = 8
 
+interface MatrixValues {
+    val values: FloatArray
+}
+
 /**
  * Immutable transformation matrix.
  * Methods return new instances or mapped values instead of modifying the current ones.
@@ -48,7 +52,7 @@ const val MPERSP_2 = 8
 @Keep
 @Suppress("TooManyFunctions")
 data class PdfMatrix(
-    val values: FloatArray =
+    override val values: FloatArray =
         floatArrayOf(
             1f,
             0f,
@@ -60,8 +64,8 @@ data class PdfMatrix(
             0f,
             1f,
         ),
-) {
-    constructor(other: PdfMatrix) : this(other.values.copyOf())
+) : MatrixValues {
+    constructor(other: MatrixValues) : this(other.values.copyOf())
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -157,7 +161,7 @@ data class PdfMatrix(
         py: Float = 0f,
     ) = PdfMatrix(values.copyOf().apply { preSkew(kx, ky, px, py) })
 
-    fun concat(other: PdfMatrix) = PdfMatrix(values.copyOf().apply { preConcat(other.values) })
+    fun concat(other: MatrixValues) = PdfMatrix(values.copyOf().apply { preConcat(other.values) })
 
     fun preTranslate(
         dx: Float,
@@ -209,7 +213,7 @@ data class PdfMatrix(
         py: Float = 0f,
     ) = PdfMatrix(values.copyOf().apply { postSkew(kx, ky, px, py) })
 
-    fun postConcat(other: PdfMatrix) = PdfMatrix(values.copyOf().apply { postConcat(other.values) })
+    fun postConcat(other: MatrixValues) = PdfMatrix(values.copyOf().apply { postConcat(other.values) })
 
     fun toMutable() = MutablePdfMatrix(values.copyOf())
 
@@ -249,10 +253,9 @@ data class PdfMatrix(
 @Keep
 @Suppress("TooManyFunctions")
 class MutablePdfMatrix(
-    val values: FloatArray = FloatArray(THREE_BY_THREE),
-) {
-    constructor(other: MutablePdfMatrix) : this(other.values.copyOf())
-    constructor(other: PdfMatrix) : this(other.values.copyOf())
+    override val values: FloatArray = FloatArray(THREE_BY_THREE),
+) : MatrixValues {
+    constructor(other: MatrixValues) : this(other.values.copyOf())
 
     init {
         values.reset()
@@ -263,12 +266,7 @@ class MutablePdfMatrix(
         return this
     }
 
-    fun set(src: MutablePdfMatrix): MutablePdfMatrix {
-        System.arraycopy(src.values, 0, values, 0, THREE_BY_THREE)
-        return this
-    }
-
-    fun set(src: PdfMatrix): MutablePdfMatrix {
+    fun set(src: MatrixValues): MutablePdfMatrix {
         System.arraycopy(src.values, 0, values, 0, THREE_BY_THREE)
         return this
     }
@@ -384,17 +382,17 @@ class MutablePdfMatrix(
         return this
     }
 
-    fun postConcat(other: PdfMatrix): MutablePdfMatrix {
+    fun postConcat(other: MatrixValues): MutablePdfMatrix {
         values.postConcat(other.values)
         return this
     }
 
-    fun preConcat(other: PdfMatrix): MutablePdfMatrix {
+    fun preConcat(other: MatrixValues): MutablePdfMatrix {
         values.preConcat(other.values)
         return this
     }
 
-    fun invert(target: MutablePdfMatrix): Boolean {
+    fun invert(target: MatrixValues): Boolean {
         val inv = values.invert()
         return if (inv != null) {
             System.arraycopy(inv, 0, target.values, 0, THREE_BY_THREE)

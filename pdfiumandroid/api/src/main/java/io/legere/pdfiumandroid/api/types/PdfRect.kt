@@ -74,6 +74,11 @@ data class PdfRect(
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }
 
+    fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
     fun toMutable() = MutablePdfRect(left, top, right, bottom)
 
     fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
@@ -102,6 +107,10 @@ class MutablePdfRect(
         bottom = b
     }
 
+    fun reset() {
+        set(0, 0, 0, 0)
+    }
+
     fun set(src: IntRectValues) {
         set(src.left, src.top, src.right, src.bottom)
     }
@@ -121,6 +130,26 @@ class MutablePdfRect(
     fun intersects(other: IntRectValues): Boolean {
         if (this.isEmpty || other.isEmpty) return false
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
+    fun contains(other: IntRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
+    fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
+    fun offset(
+        dx: Int,
+        dy: Int,
+    ) {
+        left += dx
+        top += dy
+        right += dx
+        bottom += dy
     }
 
     fun toImmutable() = PdfRect(left, top, right, bottom)

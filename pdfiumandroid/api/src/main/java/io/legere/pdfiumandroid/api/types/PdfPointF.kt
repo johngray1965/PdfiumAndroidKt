@@ -17,6 +17,8 @@
  *
  */
 
+@file:Suppress("unused", "TooManyFunctions")
+
 package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
@@ -35,6 +37,15 @@ data class PdfPointF(
 
     fun toMutable() = MutablePdfPointF(x, y)
 
+    fun offset(
+        dx: Float,
+        dy: Float,
+    ) = PdfPointF(x + dx, y + dy)
+
+    fun negate() = PdfPointF(-x, -y)
+
+    fun length() = kotlin.math.sqrt(x * x + y * y)
+
     companion object {
         val ZERO = PdfPointF(0f, 0f)
     }
@@ -45,7 +56,10 @@ class MutablePdfPointF(
     override var x: Float = 0f,
     override var y: Float = 0f,
 ) : FloatPointValues {
-    fun set(x: Float, y: Float) {
+    fun set(
+        x: Float,
+        y: Float,
+    ) {
         this.x = x
         this.y = y
     }
@@ -56,6 +70,15 @@ class MutablePdfPointF(
     }
 
     fun toImmutable() = PdfPointF(x, y)
+
+    fun offset(
+        dx: Float,
+        dy: Float,
+    ) = MutablePdfPointF(x + dx, y + dy)
+
+    fun negate() = MutablePdfPointF(-x, -y)
+
+    fun length() = kotlin.math.sqrt(x * x + y * y)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

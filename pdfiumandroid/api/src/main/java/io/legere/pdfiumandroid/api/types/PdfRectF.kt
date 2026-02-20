@@ -22,6 +22,8 @@
 package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -69,6 +71,19 @@ data class PdfRectF(
             }
         }
 
+    fun roundOut(): PdfRectF =
+        PdfRectF(
+            left = floor(this.left),
+            top = floor(this.top),
+            right = ceil(this.right),
+            bottom = ceil(this.bottom),
+        )
+
+    fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
     fun intersects(other: FloatRectValues): Boolean {
         if (this.isEmpty || other.isEmpty) return false
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
@@ -102,15 +117,15 @@ class MutablePdfRectF(
         bottom = b
     }
 
+    fun set(src: FloatRectValues) {
+        set(src.left, src.top, src.right, src.bottom)
+    }
+
     fun reset() {
         left = 0f
         top = 0f
         right = 0f
         bottom = 0f
-    }
-
-    fun set(src: FloatRectValues) {
-        set(src.left, src.top, src.right, src.bottom)
     }
 
     fun union(other: FloatRectValues) {
@@ -125,9 +140,37 @@ class MutablePdfRectF(
         bottom = max(bottom, other.bottom)
     }
 
+    fun roundOut(): PdfRect =
+        PdfRect(
+            left = this.left.toInt(),
+            top = this.top.toInt(),
+            right = ceil(this.right).toInt(),
+            bottom = ceil(this.bottom).toInt(),
+        )
+
+    fun contains(other: IntRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
+    fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
     fun intersects(other: FloatRectValues): Boolean {
         if (this.isEmpty || other.isEmpty) return false
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+    }
+
+    fun offset(
+        dx: Float,
+        dy: Float,
+    ) {
+        left += dx
+        top += dy
+        right += dx
+        bottom += dy
     }
 
     fun toImmutable() = PdfRectF(left, top, right, bottom)
@@ -144,5 +187,9 @@ class MutablePdfRectF(
         result = 31 * result + right.hashCode()
         result = 31 * result + bottom.hashCode()
         return result
+    }
+
+    companion object {
+        val EMPTY = MutablePdfRectF(0f, 0f, 0f, 0f)
     }
 }
