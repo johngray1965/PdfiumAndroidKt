@@ -76,29 +76,22 @@ data class PdfMatrix(
 
     override fun hashCode(): Int = values.contentHashCode()
 
+    fun reset(): PdfMatrix = PdfMatrix()
+
     fun isIdentity(): Boolean = values.isIdentity()
 
     fun isAffine(): Boolean = values.isAffine()
 
     // --- Mapping functions ---
 
-    fun mapPoint(point: FloatPointValues): PdfPointF = values.mapPoint(point.x, point.y)
-
-    fun mapPoint(
-        x: Float,
-        y: Float,
-    ): PdfPointF = values.mapPoint(x, y)
-
     fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
 
+    fun mapRect(
+        dst: MutablePdfRectF,
+        src: FloatRectValues,
+    ) = values.mapRect(dst, src)
+
     fun mapRadius(radius: Float): Float = values.mapRadius(radius)
-
-    fun mapVector(vector: FloatPointValues): PdfPointF = values.mapVector(vector.x, vector.y)
-
-    fun mapVector(
-        x: Float,
-        y: Float,
-    ): PdfPointF = values.mapVector(x, y)
 
     fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
 
@@ -245,31 +238,6 @@ data class PdfMatrix(
 
     companion object {
         val IDENTITY = PdfMatrix()
-
-        fun translated(
-            dx: Float,
-            dy: Float,
-        ) = IDENTITY.translate(dx, dy)
-
-        fun scaled(
-            sx: Float,
-            sy: Float,
-            px: Float = 0f,
-            py: Float = 0f,
-        ) = IDENTITY.scale(sx, sy, px, py)
-
-        fun rotated(
-            degrees: Float,
-            px: Float = 0f,
-            py: Float = 0f,
-        ) = IDENTITY.rotate(degrees, px, py)
-
-        fun skewed(
-            kx: Float,
-            ky: Float,
-            px: Float = 0f,
-            py: Float = 0f,
-        ) = IDENTITY.skew(kx, ky, px, py)
     }
 }
 
@@ -434,13 +402,6 @@ class MutablePdfMatrix(
     }
     // --- Mapping functions (Mutable matrix can still return new values) ---
 
-    fun mapPoint(point: FloatPointValues): PdfPointF = values.mapPoint(point.x, point.y)
-
-    fun mapPoint(
-        x: Float,
-        y: Float,
-    ): PdfPointF = values.mapPoint(x, y)
-
     fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
 
     fun mapRect(
@@ -449,13 +410,6 @@ class MutablePdfMatrix(
     ) = values.mapRect(dst, src)
 
     fun mapRadius(radius: Float): Float = values.mapRadius(radius)
-
-    fun mapVector(vector: FloatPointValues): PdfPointF = values.mapVector(vector.x, vector.y)
-
-    fun mapVector(
-        x: Float,
-        y: Float,
-    ): PdfPointF = values.mapVector(x, y)
 
     fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
 
@@ -768,17 +722,6 @@ internal fun FloatArray.mapY(
     return (this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w
 }
 
-internal fun FloatArray.mapPoint(
-    x: Float,
-    y: Float,
-): PdfPointF {
-    val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
-    return PdfPointF(
-        x = (this[MSCALE_X] * x + this[MSKEW_X] * y + this[MTRANS_X]) / w,
-        y = (this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w,
-    )
-}
-
 internal fun FloatArray.mapRect(rect: FloatRectValues): PdfRectF {
     val x1 = mapX(rect.left, rect.top)
     val y1 = mapY(rect.left, rect.top)
@@ -839,15 +782,6 @@ internal fun distance(
     val dy = y1 - y2
     return sqrt(dx * dx + dy * dy)
 }
-
-internal fun FloatArray.mapVector(
-    x: Float,
-    y: Float,
-): PdfPointF =
-    PdfPointF(
-        x = this[MSCALE_X] * x + this[MSKEW_X] * y,
-        y = this[MSKEW_Y] * x + this[MSCALE_Y] * y,
-    )
 
 internal fun FloatArray.mapPoints(pts: FloatArray) {
     mapPoints(pts, 0, pts, 0, pts.size / 2)
