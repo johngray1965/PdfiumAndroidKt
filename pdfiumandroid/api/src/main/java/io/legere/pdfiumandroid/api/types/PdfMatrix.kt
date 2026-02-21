@@ -102,7 +102,33 @@ data class PdfMatrix(
 
     fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
 
+    fun mapPoints(
+        dst: FloatArray,
+        src: FloatArray,
+    ) = values.mapPoints(dst, src)
+
+    fun mapPoints(
+        dst: FloatArray,
+        dstIndex: Int,
+        src: FloatArray,
+        srcIndex: Int,
+        pointCount: Int,
+    ) = values.mapPoints(dst, dstIndex, src, srcIndex, pointCount)
+
     fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
+
+    fun mapVectors(
+        dest: FloatArray,
+        src: FloatArray,
+    ) = values.mapVectors(dest, src)
+
+    fun mapVectors(
+        dst: FloatArray,
+        dstIndex: Int,
+        src: FloatArray,
+        srcIndex: Int,
+        vectorCount: Int,
+    ) = values.mapVectors(dst, dstIndex, src, srcIndex, vectorCount)
 
     /**
      * Returns the inverse of this matrix, or null if it's not invertible.
@@ -271,6 +297,11 @@ class MutablePdfMatrix(
         return this
     }
 
+    fun set(src: FloatArray): MutablePdfMatrix {
+        System.arraycopy(src, 0, values, 0, THREE_BY_THREE)
+        return this
+    }
+
     fun setTranslate(
         dx: Float,
         dy: Float,
@@ -428,7 +459,33 @@ class MutablePdfMatrix(
 
     fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
 
+    fun mapPoints(
+        dst: FloatArray,
+        src: FloatArray,
+    ) = values.mapPoints(dst, src)
+
+    fun mapPoints(
+        dst: FloatArray,
+        dstIndex: Int,
+        src: FloatArray,
+        srcIndex: Int,
+        pointCount: Int,
+    ) = values.mapPoints(dst, dstIndex, src, srcIndex, pointCount)
+
     fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
+
+    fun mapVectors(
+        dest: FloatArray,
+        src: FloatArray,
+    ) = values.mapVectors(dest, src)
+
+    fun mapVectors(
+        dst: FloatArray,
+        dstIndex: Int,
+        src: FloatArray,
+        srcIndex: Int,
+        vectorCount: Int,
+    ) = values.mapVectors(dst, dstIndex, src, srcIndex, vectorCount)
 
     fun toImmutable() = PdfMatrix(values.copyOf())
 
@@ -760,9 +817,27 @@ internal fun FloatArray.mapRect(
 }
 
 internal fun FloatArray.mapRadius(radius: Float): Float {
-    val d1 = sqrt((this[MSCALE_X] * this[MSCALE_X] + this[MSKEW_Y] * this[MSKEW_Y]).toDouble()).toFloat()
-    val d2 = sqrt((this[MSKEW_X] * this[MSKEW_X] + this[MSCALE_Y] * this[MSCALE_Y]).toDouble()).toFloat()
-    return radius * (d1 + d2) / 2f
+    val tmp = FloatArray(4)
+    tmp[0] = radius
+    tmp[1] = 0f
+    tmp[2] = 0f
+    tmp[3] = radius
+    mapVectors(tmp)
+
+    val d1 = distance(0f, 0f, tmp[0], tmp[1])
+    val d2 = distance(0f, 0f, tmp[2], tmp[3])
+    return sqrt(d1 * d2)
+}
+
+internal fun distance(
+    x1: Float,
+    y1: Float,
+    x2: Float,
+    y2: Float,
+): Float {
+    val dx = x1 - x2
+    val dy = y1 - y2
+    return sqrt(dx * dx + dy * dy)
 }
 
 internal fun FloatArray.mapVector(
@@ -776,6 +851,13 @@ internal fun FloatArray.mapVector(
 
 internal fun FloatArray.mapPoints(pts: FloatArray) {
     mapPoints(pts, 0, pts, 0, pts.size / 2)
+}
+
+internal fun FloatArray.mapPoints(
+    dst: FloatArray,
+    src: FloatArray,
+) {
+    mapPoints(dst, 0, src, 0, src.size / 2)
 }
 
 internal fun FloatArray.mapPoints(
@@ -798,6 +880,13 @@ internal fun FloatArray.mapPoints(
 
 internal fun FloatArray.mapVectors(vecs: FloatArray) {
     mapVectors(vecs, 0, vecs, 0, vecs.size / 2)
+}
+
+internal fun FloatArray.mapVectors(
+    dest: FloatArray,
+    src: FloatArray,
+) {
+    mapVectors(dest, 0, src, 0, src.size / 2)
 }
 
 internal fun FloatArray.mapVectors(
