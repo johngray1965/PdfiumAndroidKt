@@ -30,6 +30,8 @@ import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.api.PdfiumSource
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
@@ -183,9 +185,9 @@ class PdfDocumentU(
      * @param drawSizeX horizontal size of the rendering area on the surface.
      * @param drawSizeY vertical size of the rendering area on the surface.
      * @param pages The list of [PdfPageU] to render.
-     * @param matrices The list of transformation [Matrix] for each page, mapping page coordinates
+     * @param matrices The list of transformation [MatrixValues] for each page, mapping page coordinates
      * to surface coordinates.
-     * @param clipRects The list of [RectF] for each page, defining the clipping area in surface coordinates.
+     * @param clipRects The list of [FloatRectValues] for each page, defining the clipping area in surface coordinates.
      * @param renderAnnot whether to render annotations.
      * @param textMask whether to render text as an image mask - currently ignored.
      * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
@@ -199,8 +201,8 @@ class PdfDocumentU(
         drawSizeX: Int,
         drawSizeY: Int,
         pages: List<PdfPageU>,
-        matrices: List<PdfMatrix>,
-        clipRects: List<PdfRectF>,
+        matrices: List<MatrixValues>,
+        clipRects: List<FloatRectValues>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -242,8 +244,8 @@ class PdfDocumentU(
     fun renderPages(
         surface: Surface,
         pages: List<PdfPageU>,
-        matrices: List<PdfMatrix>,
-        clipRects: List<PdfRectF>,
+        matrices: List<MatrixValues>,
+        clipRects: List<FloatRectValues>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),

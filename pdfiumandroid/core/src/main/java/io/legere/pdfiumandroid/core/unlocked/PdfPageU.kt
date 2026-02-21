@@ -29,6 +29,8 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
 import io.legere.pdfiumandroid.api.types.PdfPointF
@@ -327,8 +329,8 @@ class PdfPageU(
         bufferPtr: Long,
         drawSizeX: Int,
         drawSizeY: Int,
-        matrix: PdfMatrix,
-        clipRect: PdfRectF,
+        matrix: MatrixValues,
+        clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -367,8 +369,8 @@ class PdfPageU(
     @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface,
-        matrix: PdfMatrix,
-        clipRect: PdfRectF,
+        matrix: MatrixValues,
+        clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -458,8 +460,8 @@ class PdfPageU(
     @Suppress("LongParameterList")
     fun renderPageBitmap(
         bitmap: Bitmap?,
-        matrix: PdfMatrix,
-        clipRect: PdfRectF,
+        matrix: MatrixValues,
+        clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),

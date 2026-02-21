@@ -23,6 +23,7 @@ package io.legere.pdfiumandroid.core.util
 
 import android.graphics.Matrix
 import android.graphics.RectF
+import io.legere.pdfiumandroid.api.types.FloatRectValues
 import io.legere.pdfiumandroid.api.types.MPERSP_0
 import io.legere.pdfiumandroid.api.types.MPERSP_1
 import io.legere.pdfiumandroid.api.types.MPERSP_2
@@ -32,6 +33,7 @@ import io.legere.pdfiumandroid.api.types.MSKEW_X
 import io.legere.pdfiumandroid.api.types.MSKEW_Y
 import io.legere.pdfiumandroid.api.types.MTRANS_X
 import io.legere.pdfiumandroid.api.types.MTRANS_Y
+import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.api.types.THREE_BY_THREE
@@ -57,7 +59,7 @@ fun matrixToFloatArray(matrix: Matrix): FloatArray {
  * Returns the first 6 values of the PdfMatrix in the order:
  * [MSCALE_X, MSKEW_X, MTRANS_X, MSKEW_Y, MSCALE_Y, MTRANS_Y]
  */
-fun matrixToFloatArray(matrix: PdfMatrix): FloatArray {
+fun matrixToFloatArray(matrix: MatrixValues): FloatArray {
     val values = matrix.values
     return floatArrayOf(
         values[MSCALE_X],
@@ -108,7 +110,7 @@ fun matricesToFloatArray(matrices: Collection<Matrix>): FloatArray =
     matrices.flatMap { matrix -> matrixToFloatArray(matrix).asIterable() }.toFloatArray()
 
 @JvmName("pdfMatricesToFloatArray")
-fun matricesToFloatArray(matrices: Collection<PdfMatrix>): FloatArray =
+fun matricesToFloatArray(matrices: Collection<MatrixValues>): FloatArray =
     matrices.flatMap { matrix -> matrixToFloatArray(matrix).asIterable() }.toFloatArray()
 
 fun rectToFloatArray(rect: RectF): FloatArray =
@@ -119,7 +121,7 @@ fun rectToFloatArray(rect: RectF): FloatArray =
         rect.bottom,
     )
 
-fun rectToFloatArray(rect: PdfRectF): FloatArray =
+fun rectToFloatArray(rect: FloatRectValues): FloatArray =
     floatArrayOf(
         rect.left,
         rect.top,
@@ -154,7 +156,7 @@ fun rectsToFloatArray(rects: Collection<RectF>): FloatArray =
         }.toFloatArray()
 
 @JvmName("pdfRectsToFloatArray")
-fun rectsToFloatArray(rects: Collection<PdfRectF>): FloatArray =
+fun rectsToFloatArray(rects: Collection<FloatRectValues>): FloatArray =
     rects
         .flatMap { rect ->
             rectToFloatArray(rect).asIterable()

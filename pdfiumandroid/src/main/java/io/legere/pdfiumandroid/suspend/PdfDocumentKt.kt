@@ -29,8 +29,8 @@ import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -103,8 +103,8 @@ class PdfDocumentKt internal constructor(
     suspend fun renderPages(
         surface: Surface,
         pages: List<PdfPageKt>,
-        matrices: List<PdfMatrix>,
-        clipRects: List<PdfRectF>,
+        matrices: List<MatrixValues>,
+        clipRects: List<FloatRectValues>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),

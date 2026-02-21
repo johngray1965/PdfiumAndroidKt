@@ -25,8 +25,8 @@ import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_REMOVE_SECURITY
 import io.legere.pdfiumandroid.api.PdfWriteCallback
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -134,8 +134,8 @@ class PdfDocument internal constructor(
         drawSizeX: Int,
         drawSizeY: Int,
         pages: List<PdfPage>,
-        matrices: List<PdfMatrix>,
-        clipRects: List<PdfRectF>,
+        matrices: List<MatrixValues>,
+        clipRects: List<FloatRectValues>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -161,8 +161,8 @@ class PdfDocument internal constructor(
     fun renderPages(
         surface: Surface,
         pages: List<PdfPage>,
-        matrices: List<PdfMatrix>,
-        clipRects: List<PdfRectF>,
+        matrices: List<MatrixValues>,
+        clipRects: List<FloatRectValues>,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
