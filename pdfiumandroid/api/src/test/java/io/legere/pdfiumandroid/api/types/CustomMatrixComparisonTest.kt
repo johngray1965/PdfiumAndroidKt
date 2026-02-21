@@ -600,6 +600,84 @@ class CustomMatrixComparisonTest {
         assertFloatArraysEqual(platformDstVectors, customDstVectors2, 0.001f)
     }
 
+    @Test
+    fun conversions() {
+        val result = pdfMatrix.postTranslate(10f, 10f).postScale(2f, 2f)
+        val matrix = result.toMatrix()
+        val pdfMatrixConverted = matrix.toPdfMatrix()
+        val mutablePdfMatrix = matrix.toMutablePdfMatrix()
+
+        val platformValues = FloatArray(9)
+
+        matrix.getValues(platformValues)
+
+        assertMatrixValuesEqual(result, matrix)
+        assertMatrixValuesEqual(pdfMatrixConverted, matrix)
+        assertMatrixValuesEqual(mutablePdfMatrix, matrix)
+    }
+
+    @Test
+    fun pointFConversions() { // Note testing these function here because are using robolectric
+        val result = PdfPointF(10f, 10f)
+        val point = result.toPointF()
+        val pdfPointF = point.toPdfPointF()
+        val mutablePdfPointF = point.toMutablePdfPointF()
+
+        assertThat(result).isEqualTo(pdfPointF)
+        assertThat(result.toMutable()).isEqualTo(mutablePdfPointF)
+    }
+
+    @Test
+    fun pointConversions() { // Note testing these function here because are using robolectric
+        val result = PdfPoint(10, 10)
+        val point = result.toPoint()
+        val pdfPoint = point.toPdfPoint()
+        val mutablePdfPoint = point.toMutablePdfPoint()
+
+        assertThat(result).isEqualTo(pdfPoint)
+        assertThat(result.toMutable()).isEqualTo(mutablePdfPoint)
+    }
+
+    @Test
+    fun rectConversions() { // Note testing these function here because are using robolectric
+        val result = PdfRect(10, 10, 100, 100)
+        val rect = result.toRect()
+        val pdfRect = rect.toPdfRect()
+        val mutablepdfRectt = rect.toMutablePdfRect()
+
+        assertThat(result).isEqualTo(pdfRect)
+        assertThat(result.toMutable()).isEqualTo(mutablepdfRectt)
+
+        val rectF = result.toPdfRectF()
+        assertThat(rectF.left).isEqualTo(10f)
+        assertThat(rectF.top).isEqualTo(10f)
+        assertThat(rectF.right).isEqualTo(100f)
+        assertThat(rectF.bottom).isEqualTo(100f)
+    }
+
+    @Test
+    fun rectFConversions() { // Note testing these function here because are using robolectric
+        val result = PdfRectF(10f, 10f, 100f, 100f)
+        val rect = result.toRectF()
+        val pdfRect = rect.toPdfRectF()
+        val mutablepdfRectt = rect.toMutablePdfRectF()
+
+        assertThat(result).isEqualTo(pdfRect)
+        assertThat(result.toMutable()).isEqualTo(mutablepdfRectt)
+
+        val rectOut1 = result.toPdfRect()
+        assertThat(rectOut1.left).isEqualTo(10)
+        assertThat(rectOut1.top).isEqualTo(10)
+        assertThat(rectOut1.right).isEqualTo(100)
+        assertThat(rectOut1.bottom).isEqualTo(100)
+
+        val rectOut2 = rect.toPdfRect()
+        assertThat(rectOut2.left).isEqualTo(10)
+        assertThat(rectOut2.top).isEqualTo(10)
+        assertThat(rectOut2.right).isEqualTo(100)
+        assertThat(rectOut2.bottom).isEqualTo(100)
+    }
+
     private fun assertMatrixValuesEqual(
         custom: MatrixValues,
         platform: AndroidPlatformMatrix,

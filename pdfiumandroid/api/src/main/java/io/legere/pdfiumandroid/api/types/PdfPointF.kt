@@ -52,10 +52,12 @@ data class PdfPointF(
 }
 
 @Keep
-class MutablePdfPointF(
+data class MutablePdfPointF(
     override var x: Float = 0f,
     override var y: Float = 0f,
 ) : FloatPointValues {
+    fun toFloatArray(): FloatArray = floatArrayOf(x, y)
+
     fun set(
         x: Float,
         y: Float,
@@ -79,16 +81,4 @@ class MutablePdfPointF(
     fun negate() = MutablePdfPointF(-x, -y)
 
     fun length() = kotlin.math.sqrt(x * x + y * y)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is FloatPointValues) return false
-        return x == other.x && y == other.y
-    }
-
-    override fun hashCode(): Int {
-        var result = x.hashCode()
-        result = 31 * result + y.hashCode()
-        return result
-    }
 }

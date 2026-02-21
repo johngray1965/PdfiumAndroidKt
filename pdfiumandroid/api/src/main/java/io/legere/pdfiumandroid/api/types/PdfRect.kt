@@ -74,9 +74,21 @@ data class PdfRect(
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }
 
-    fun contains(other: FloatRectValues): Boolean {
+    fun contains(
+        x: Int,
+        y: Int,
+    ): Boolean {
         if (this.isEmpty) return false
-        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+        return (x in left..<right && y >= top && y < bottom)
+    }
+
+    fun contains(other: IntRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
     }
 
     fun toMutable() = MutablePdfRect(left, top, right, bottom)
@@ -89,7 +101,7 @@ data class PdfRect(
 }
 
 @Keep
-class MutablePdfRect(
+data class MutablePdfRect(
     override var left: Int = 0,
     override var top: Int = 0,
     override var right: Int = 0,
@@ -132,14 +144,21 @@ class MutablePdfRect(
         return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
     }
 
-    fun contains(other: IntRectValues): Boolean {
+    fun contains(
+        x: Int,
+        y: Int,
+    ): Boolean {
         if (this.isEmpty) return false
-        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+        return (x in left..right && y >= top && y < bottom)
     }
 
-    fun contains(other: FloatRectValues): Boolean {
+    fun contains(other: IntRectValues): Boolean {
         if (this.isEmpty) return false
-        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
     }
 
     fun offset(
@@ -154,17 +173,5 @@ class MutablePdfRect(
 
     fun toImmutable() = PdfRect(left, top, right, bottom)
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is IntRectValues) return false
-        return left == other.left && top == other.top && right == other.right && bottom == other.bottom
-    }
-
-    override fun hashCode(): Int {
-        var result = left
-        result = 31 * result + top
-        result = 31 * result + right
-        result = 31 * result + bottom
-        return result
-    }
+    fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
 }

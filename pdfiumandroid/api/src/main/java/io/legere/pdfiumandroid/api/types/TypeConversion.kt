@@ -68,12 +68,7 @@ fun IntRectValues.toPdfRectF(): PdfRectF = PdfRectF(left.toFloat(), top.toFloat(
 
 // --- Matrix Conversions ---
 
-fun PdfMatrix.toMatrix(): Matrix =
-    Matrix().apply {
-        setValues(values)
-    }
-
-fun MutablePdfMatrix.toMatrix(): Matrix =
+fun MatrixValues.toMatrix(): Matrix =
     Matrix().apply {
         setValues(values)
     }

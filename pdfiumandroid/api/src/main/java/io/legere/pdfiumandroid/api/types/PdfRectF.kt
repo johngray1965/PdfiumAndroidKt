@@ -79,9 +79,21 @@ data class PdfRectF(
             bottom = ceil(this.bottom),
         )
 
+    fun contains(
+        x: Float,
+        y: Float,
+    ): Boolean {
+        if (this.isEmpty) return false
+        return (x in left..<right && y >= top && y < bottom)
+    }
+
     fun contains(other: FloatRectValues): Boolean {
         if (this.isEmpty) return false
-        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
     }
 
     fun intersects(other: FloatRectValues): Boolean {
@@ -99,7 +111,7 @@ data class PdfRectF(
 }
 
 @Keep
-class MutablePdfRectF(
+data class MutablePdfRectF(
     override var left: Float = 0f,
     override var top: Float = 0f,
     override var right: Float = 0f,
@@ -128,34 +140,58 @@ class MutablePdfRectF(
         bottom = 0f
     }
 
-    fun union(other: FloatRectValues) {
-        if (other.isEmpty) return
-        if (this.isEmpty) {
-            set(other)
-            return
-        }
-        left = min(left, other.left)
-        top = min(top, other.top)
-        right = max(right, other.right)
-        bottom = max(bottom, other.bottom)
-    }
+    fun union(other: FloatRectValues): MutablePdfRectF =
+        when {
+            other.isEmpty -> {
+                this
+            }
 
-    fun roundOut(): PdfRect =
-        PdfRect(
-            left = this.left.toInt(),
-            top = this.top.toInt(),
-            right = ceil(this.right).toInt(),
-            bottom = ceil(this.bottom).toInt(),
+            this.isEmpty -> {
+                other as? MutablePdfRectF ?: MutablePdfRectF(other.left, other.top, other.right, other.bottom)
+            }
+
+            else -> {
+                MutablePdfRectF(
+                    left = min(left, other.left),
+                    top = min(top, other.top),
+                    right = max(right, other.right),
+                    bottom = max(bottom, other.bottom),
+                )
+            }
+        }
+
+    fun roundOut(): MutablePdfRectF =
+        MutablePdfRectF(
+            left = floor(this.left),
+            top = floor(this.top),
+            right = ceil(this.right),
+            bottom = ceil(this.bottom),
         )
+
+    fun contains(
+        x: Float,
+        y: Float,
+    ): Boolean {
+        if (this.isEmpty) return false
+        return (x >= left && x < right && y >= top && y < bottom)
+    }
 
     fun contains(other: IntRectValues): Boolean {
         if (this.isEmpty) return false
-        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
     }
 
     fun contains(other: FloatRectValues): Boolean {
         if (this.isEmpty) return false
-        return !(right < other.left || left > other.right || bottom < other.top || top > other.bottom)
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
     }
 
     fun intersects(other: FloatRectValues): Boolean {
@@ -175,19 +211,7 @@ class MutablePdfRectF(
 
     fun toImmutable() = PdfRectF(left, top, right, bottom)
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is FloatRectValues) return false
-        return left == other.left && top == other.top && right == other.right && bottom == other.bottom
-    }
-
-    override fun hashCode(): Int {
-        var result = left.hashCode()
-        result = 31 * result + top.hashCode()
-        result = 31 * result + right.hashCode()
-        result = 31 * result + bottom.hashCode()
-        return result
-    }
+    fun toFloatArray(): FloatArray = floatArrayOf(left, top, right, bottom)
 
     companion object {
         val EMPTY = MutablePdfRectF(0f, 0f, 0f, 0f)

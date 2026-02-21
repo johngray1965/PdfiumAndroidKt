@@ -247,13 +247,20 @@ data class PdfMatrix(
 @Keep
 @Suppress("TooManyFunctions")
 class MutablePdfMatrix(
-    override val values: FloatArray = FloatArray(THREE_BY_THREE),
+    override val values: FloatArray =
+        floatArrayOf(
+            1f,
+            0f,
+            0f,
+            0f,
+            1f,
+            0f,
+            0f,
+            0f,
+            1f,
+        ),
 ) : MatrixValues {
     constructor(other: MatrixValues) : this(other.values.copyOf())
-
-    init {
-        values.reset()
-    }
 
     fun reset(): MutablePdfMatrix {
         values.reset()

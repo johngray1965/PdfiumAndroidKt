@@ -50,10 +50,12 @@ data class PdfPoint(
 }
 
 @Keep
-class MutablePdfPoint(
+data class MutablePdfPoint(
     override var x: Int = 0,
     override var y: Int = 0,
 ) : IntPointValues {
+    fun toIntArray(): IntArray = intArrayOf(x, y)
+
     fun set(
         x: Int,
         y: Int,
@@ -72,19 +74,7 @@ class MutablePdfPoint(
     fun offset(
         dx: Int,
         dy: Int,
-    ) = PdfPoint(x + dx, y + dy)
+    ) = MutablePdfPoint(x + dx, y + dy)
 
-    fun negate() = PdfPoint(-x, -y)
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is IntPointValues) return false
-        return x == other.x && y == other.y
-    }
-
-    override fun hashCode(): Int {
-        var result = x
-        result = 31 * result + y
-        return result
-    }
+    fun negate() = MutablePdfPoint(-x, -y)
 }
