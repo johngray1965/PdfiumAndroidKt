@@ -519,9 +519,9 @@ internal fun FloatArray.setRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees.toDouble() * DEGREES_TO_RADIANS
-    val s = sin(radians).toFloat()
-    val c = cos(radians).toFloat()
+    val radians = degrees * PI / 180.0
+    val s = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val c = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     this[MSCALE_X] = c
     this[MSKEW_X] = -s
     this[MSKEW_Y] = s
@@ -589,9 +589,9 @@ internal fun FloatArray.preRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees.toDouble() * DEGREES_TO_RADIANS
-    val sin = sin(radians).toFloat()
-    val cos = cos(radians).toFloat()
+    val radians = degrees * PI / 180.0
+    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
 
     val v0 = this[MSCALE_X]
     val v1 = this[MSKEW_X]
@@ -655,28 +655,32 @@ internal fun FloatArray.postScale(
     normalize()
 }
 
+const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
+
 internal fun FloatArray.postRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
-    val radians = degrees.toDouble() * DEGREES_TO_RADIANS
-    val sin = sin(radians).toFloat()
-    val cos = cos(radians).toFloat()
+    val radians = degrees * PI / 180.0
+    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
 
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_X]
-    val v2 = this[MTRANS_X]
-    val v3 = this[MSKEW_Y]
-    val v4 = this[MSCALE_Y]
-    val v5 = this[MTRANS_Y]
+    val tx = this[MTRANS_X] - px
+    val ty = this[MTRANS_Y] - py
 
-    this[MSCALE_X] = cos * v0 + sin * v1
-    this[MSKEW_X] = cos * v2 - sin * v3
-    this[MTRANS_X] = cos * (v2 - px) + sin * (v5 - py) + px
-    this[MSKEW_Y] = -sin * v0 + cos * v3
-    this[MSCALE_Y] = -sin * v1 + cos * v4
-    this[MTRANS_Y] = -sin * (v2 - px) + cos * (v5 - py) + py
+    this[MTRANS_X] = px + tx * cos - ty * sin
+    this[MTRANS_Y] = py + tx * sin + ty * cos
+
+    val v0 = this[MSCALE_X] * cos - this[MSKEW_Y] * sin
+    val v1 = this[MSCALE_X] * sin + this[MSKEW_Y] * cos
+    val v2 = this[MSKEW_X] * cos - this[MSCALE_Y] * sin
+    val v3 = this[MSKEW_X] * sin + this[MSCALE_Y] * cos
+
+    this[MSCALE_X] = v0
+    this[MSKEW_Y] = v1
+    this[MSKEW_X] = v2
+    this[MSCALE_Y] = v3
     normalize()
 }
 
@@ -686,19 +690,21 @@ internal fun FloatArray.postSkew(
     px: Float,
     py: Float,
 ) {
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_X]
-    val v2 = this[MTRANS_X]
-    val v3 = this[MSKEW_Y]
-    val v4 = this[MSCALE_Y]
-    val v5 = this[MTRANS_Y]
+    val tx = this[MTRANS_X] - px
+    val ty = this[MTRANS_Y] - py
 
-    this[MSCALE_X] = v0 + ky * v1
-    this[MSKEW_X] = kx * v0 + v1
-    this[MTRANS_X] = v2 + kx * (v5 - py) + ky * v2 - kx * v0 * py - kx * v1 * py
-    this[MSKEW_Y] = v3 + ky * v4
-    this[MSCALE_Y] = kx * v3 + v4
-    this[MTRANS_Y] = v5 + ky * (v2 - px) + kx * v5 - ky * v3 * px - ky * v4 * px
+    this[MTRANS_X] = px + tx + ty * kx
+    this[MTRANS_Y] = py + ty + tx * ky
+
+    val v0 = this[MSCALE_X]
+    val v1 = this[MSKEW_Y]
+    val v2 = this[MSKEW_X]
+    val v3 = this[MSCALE_Y]
+
+    this[MSCALE_X] = v0 + v1 * kx
+    this[MSKEW_Y] = v1 + v0 * ky
+    this[MSKEW_X] = v2 + v3 * kx
+    this[MSCALE_Y] = v3 + v2 * ky
     normalize()
 }
 
