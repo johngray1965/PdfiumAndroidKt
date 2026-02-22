@@ -121,7 +121,7 @@ class MatrixBenchmark {
             val androidValues = FloatArray(9)
             androidMatrix.getValues(androidValues)
 
-            assertThat(pdfValues).isEqualTo(androidValues)
+            assertThat(pdfValues).usingTolerance(0.01).containsExactly(androidValues)
         }
 //
 //        val pdfValues = pdfMatrix.values

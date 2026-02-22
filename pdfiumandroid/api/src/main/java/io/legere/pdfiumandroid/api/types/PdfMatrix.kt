@@ -41,7 +41,7 @@ const val MPERSP_0 = 6
 const val MPERSP_1 = 7
 const val MPERSP_2 = 8
 
-const val DEGREES_TO_RADIANS = PI / 180.0
+const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
 
 interface MatrixValues {
     val values: FloatArray
@@ -543,7 +543,7 @@ internal fun FloatArray.setSkew(
     this[MSCALE_X] = 1f
     this[MSKEW_X] = kx
     this[MSKEW_Y] = ky
-    this[MSCALE_Y] = 1f + kx * ky
+    this[MSCALE_Y] = 1f
     this[MTRANS_X] = -kx * py
     this[MTRANS_Y] = -ky * px
     this[MPERSP_0] = 0f
@@ -584,51 +584,72 @@ internal fun FloatArray.preScale(
     normalize()
 }
 
+// internal fun FloatArray.preRotate(
+//    degrees: Float,
+//    px: Float,
+//    py: Float,
+// ) {
+//    val radians = degrees * PI / 180.0
+//    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+//    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+//
+//    val v0 = this[MSCALE_X]
+//    val v1 = this[MSKEW_X]
+//    val v2 = this[MTRANS_X]
+//    val v3 = this[MSKEW_Y]
+//    val v4 = this[MSCALE_Y]
+//    val v5 = this[MTRANS_Y]
+//
+//    this[MSCALE_X] = v0 * cos + v3 * -sin
+//    this[MSKEW_X] = v1 * cos + v4 * -sin
+//    this[MTRANS_X] = (v0 * px + v1 * py + v2) * cos + (v3 * px + v4 * py + v5) * -sin + (px - px * cos + py * sin)
+//    this[MSKEW_Y] = v0 * sin + v3 * cos
+//    this[MSCALE_Y] = v1 * sin + v4 * cos
+//    this[MTRANS_Y] = (v0 * px + v1 * py + v2) * sin + (v3 * px + v4 * py + v5) * cos + (py - px * sin - py * cos)
+//    normalize()
+// }
 internal fun FloatArray.preRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
-    val radians = degrees * PI / 180.0
-    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_X]
-    val v2 = this[MTRANS_X]
-    val v3 = this[MSKEW_Y]
-    val v4 = this[MSCALE_Y]
-    val v5 = this[MTRANS_Y]
-
-    this[MSCALE_X] = v0 * cos + v3 * -sin
-    this[MSKEW_X] = v1 * cos + v4 * -sin
-    this[MTRANS_X] = (v0 * px + v1 * py + v2) * cos + (v3 * px + v4 * py + v5) * -sin + (px - px * cos + py * sin)
-    this[MSKEW_Y] = v0 * sin + v3 * cos
-    this[MSCALE_Y] = v1 * sin + v4 * cos
-    this[MTRANS_Y] = (v0 * px + v1 * py + v2) * sin + (v3 * px + v4 * py + v5) * cos + (py - px * sin - py * cos)
-    normalize()
+    tempFloatArray { tmp: FloatArray ->
+        tmp.setRotate(degrees, px, py)
+        preConcat(tmp)
+    }
 }
 
+// internal fun FloatArray.preSkew(
+//    kx: Float,
+//    ky: Float,
+//    px: Float,
+//    py: Float,
+// ) {
+//    val v0 = this[MSCALE_X]
+//    val v1 = this[MSKEW_X]
+//    val v2 = this[MTRANS_X]
+//    val v3 = this[MSKEW_Y]
+//    val v4 = this[MSCALE_Y]
+//    val v5 = this[MTRANS_Y]
+//
+//    this[MSCALE_X] = v0 + v3 * kx
+//    this[MSKEW_X] = v1 + v4 * kx
+//    this[MTRANS_X] = v2 + v5 * kx - (v0 * py + v1 * py) * kx
+//    this[MSKEW_Y] = v0 * ky + v3
+//    this[MSCALE_Y] = v1 * ky + v4
+//    this[MTRANS_Y] = v2 * ky + v5 - (v0 * px + v1 * px) * ky
+//    normalize()
+// }
 internal fun FloatArray.preSkew(
     kx: Float,
     ky: Float,
     px: Float,
     py: Float,
 ) {
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_X]
-    val v2 = this[MTRANS_X]
-    val v3 = this[MSKEW_Y]
-    val v4 = this[MSCALE_Y]
-    val v5 = this[MTRANS_Y]
-
-    this[MSCALE_X] = v0 + v3 * kx
-    this[MSKEW_X] = v1 + v4 * kx
-    this[MTRANS_X] = v2 + v5 * kx - (v0 * py + v1 * py) * kx
-    this[MSKEW_Y] = v0 * ky + v3
-    this[MSCALE_Y] = v1 * ky + v4
-    this[MTRANS_Y] = v2 * ky + v5 - (v0 * px + v1 * px) * ky
-    normalize()
+    tempFloatArray { tmp: FloatArray ->
+        tmp.setSkew(kx, ky, px, py)
+        preConcat(tmp)
+    }
 }
 
 internal fun FloatArray.postTranslate(
@@ -654,8 +675,6 @@ internal fun FloatArray.postScale(
     this[MTRANS_Y] = sy * (this[MTRANS_Y] - py) + py
     normalize()
 }
-
-const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
 
 internal fun FloatArray.postRotate(
     degrees: Float,
@@ -895,4 +914,11 @@ internal fun FloatArray.mapVectors(
         dst[di] = this[MSCALE_X] * x + this[MSKEW_X] * y
         dst[di + 1] = this[MSKEW_Y] * x + this[MSCALE_Y] * y
     }
+}
+
+private val threadLocalFloatArray = ThreadLocal.withInitial { FloatArray(THREE_BY_THREE) }
+
+private inline fun <T> tempFloatArray(block: (FloatArray) -> T): T {
+    val tmp = threadLocalFloatArray.get() ?: FloatArray(THREE_BY_THREE)
+    return block(tmp)
 }
