@@ -22,12 +22,12 @@ package io.legere.pdfiumandroid.benchmark
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.api.types.MutablePdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlin.math.pow
 import kotlin.random.Random
 import android.graphics.Matrix as AndroidMatrix
 
@@ -57,11 +57,32 @@ class MatrixBenchmark {
     private val operations: List<Op> by lazy {
         val rand = Random(randomSeed)
         List(operationCount) {
-            Op(
-                type = rand.nextInt(8),
-                p1 = rand.nextFloat(),
-                p2 = rand.nextFloat(),
-            )
+            val type = rand.nextInt(8)
+            val p1: Float
+            val p2: Float
+
+            when (type) {
+                0, 4 -> { // Translate
+                    p1 = (rand.nextFloat() - 0.5f) * 100f
+                    p2 = (rand.nextFloat() - 0.5f) * 100f
+                }
+
+                1, 5 -> { // Scale - use a range like 0.5 to 2.0
+                    p1 = 2.0.pow((rand.nextDouble() - 0.5) * 2.0).toFloat()
+                    p2 = 2.0.pow((rand.nextDouble() - 0.5) * 2.0).toFloat()
+                }
+
+                2, 6 -> { // Rotate
+                    p1 = (rand.nextFloat() - 0.5f) * 720f
+                    p2 = 0f // Degrees only
+                }
+
+                else -> { // Skew
+                    p1 = (rand.nextFloat() - 0.5f) * 0.2f
+                    p2 = (rand.nextFloat() - 0.5f) * 0.2f
+                }
+            }
+            Op(type, p1, p2)
         }
     }
 
@@ -121,7 +142,13 @@ class MatrixBenchmark {
             val androidValues = FloatArray(9)
             androidMatrix.getValues(androidValues)
 
-            assertThat(pdfValues).usingTolerance(0.01).containsExactly(androidValues)
+            println("pdfValues: ${pdfValues.contentToString()}, androidValues: ${androidValues.contentToString()}")
+            assertMatrixClose(androidValues, pdfValues)
+// )
+//            assertWithMessage("expected: ${pdfValues.contentToString()}, actual: ${androidValues.contentToString()}")
+//                .that(pdfValues)
+//                .usingTolerance(0.00001)
+//                .containsExactly(androidValues)
         }
 //
 //        val pdfValues = pdfMatrix.values
@@ -132,6 +159,34 @@ class MatrixBenchmark {
 //        for (i in 0 until 9) {
 //            assertEquals("Value at index $i mismatch", androidValues[i], pdfValues[i], 0.01f)
 //        }
+    }
+
+    fun assertMatrixClose(
+        expected: FloatArray,
+        actual: FloatArray,
+    ) {
+        for (i in expected.indices) {
+            val exp = expected[i]
+            val act = actual[i]
+
+            // 1. If they are bit-for-bit identical, we are good.
+            if (exp.toRawBits() == act.toRawBits()) continue
+
+            // 2. Calculate the difference
+            val diff = Math.abs(exp - act)
+
+            // 3. Scale-aware epsilon:
+            // For 1.0, 1e-6 is fine. For 1000.0, we need 1e-3.
+            val maxVal = Math.max(Math.abs(exp), Math.abs(act))
+            val epsilon = Math.max(maxVal * 1e-6f, 1e-9f)
+
+            if (diff > epsilon) {
+                throw AssertionError(
+                    "Index $i failed at iteration! " +
+                        "Expected: $exp, Actual: $act, Diff: $diff, Limit: $epsilon",
+                )
+            }
+        }
     }
 
     private fun runWithMutablePdfMatrix(
