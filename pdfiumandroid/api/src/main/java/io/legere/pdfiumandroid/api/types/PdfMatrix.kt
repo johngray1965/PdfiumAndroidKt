@@ -43,6 +43,8 @@ const val MPERSP_2 = 8
 
 const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
 
+const val DEGREES_TO_RADIANS = PI / 180.0
+
 interface MatrixValues {
     val values: FloatArray
 }
@@ -248,7 +250,7 @@ data class PdfMatrix(
  */
 @Keep
 @Suppress("TooManyFunctions")
-class MutablePdfMatrix(
+data class MutablePdfMatrix(
     override val values: FloatArray =
         floatArrayOf(
             1f,
@@ -519,7 +521,7 @@ internal fun FloatArray.setRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees * PI / 180.0
+    val radians = degrees * DEGREES_TO_RADIANS
     val s = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     val c = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     this[MSCALE_X] = c
@@ -639,7 +641,7 @@ internal fun FloatArray.preRotate(
 //    this[MSCALE_Y] = v1 * ky + v4
 //    this[MTRANS_Y] = v2 * ky + v5 - (v0 * px + v1 * px) * ky
 //    normalize()
-// }
+//    }
 internal fun FloatArray.preSkew(
     kx: Float,
     ky: Float,
@@ -681,7 +683,7 @@ internal fun FloatArray.postRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees * PI / 180.0
+    val radians = degrees * DEGREES_TO_RADIANS
     val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
 
@@ -731,15 +733,27 @@ internal fun FloatArray.postSkew(
 internal fun FloatArray.preConcat(other: FloatArray) {
     val a = this
     val b = other
-    this[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6]
-    this[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7]
-    this[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8]
-    this[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6]
-    this[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7]
-    this[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8]
-    this[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6]
-    this[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7]
-    this[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
+    // note that a = this, so the temp variables are important.
+    // without them we would overwrite the original matrix
+    // before the values are calculated
+    val v0 = a[0] * b[0] + a[1] * b[3] + a[2] * b[6]
+    val v1 = a[0] * b[1] + a[1] * b[4] + a[2] * b[7]
+    val v2 = a[0] * b[2] + a[1] * b[5] + a[2] * b[8]
+    val v3 = a[3] * b[0] + a[4] * b[3] + a[5] * b[6]
+    val v4 = a[3] * b[1] + a[4] * b[4] + a[5] * b[7]
+    val v5 = a[3] * b[2] + a[4] * b[5] + a[5] * b[8]
+    val v6 = a[6] * b[0] + a[7] * b[3] + a[8] * b[6]
+    val v7 = a[6] * b[1] + a[7] * b[4] + a[8] * b[7]
+    val v8 = a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
+    this[0] = v0
+    this[1] = v1
+    this[2] = v2
+    this[3] = v3
+    this[4] = v4
+    this[5] = v5
+    this[6] = v6
+    this[7] = v7
+    this[8] = v8
     normalize()
 }
 
@@ -747,15 +761,27 @@ internal fun FloatArray.preConcat(other: FloatArray) {
 internal fun FloatArray.postConcat(other: FloatArray) {
     val a = other
     val b = this
-    this[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6]
-    this[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7]
-    this[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8]
-    this[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6]
-    this[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7]
-    this[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8]
-    this[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6]
-    this[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7]
-    this[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
+    // note that b = this, so the temp variables are important.
+    // without them we would overwrite the original matrix
+    // before the values are calculated
+    val v0 = a[0] * b[0] + a[1] * b[3] + a[2] * b[6]
+    val v1 = a[0] * b[1] + a[1] * b[4] + a[2] * b[7]
+    val v2 = a[0] * b[2] + a[1] * b[5] + a[2] * b[8]
+    val v3 = a[3] * b[0] + a[4] * b[3] + a[5] * b[6]
+    val v4 = a[3] * b[1] + a[4] * b[4] + a[5] * b[7]
+    val v5 = a[3] * b[2] + a[4] * b[5] + a[5] * b[8]
+    val v6 = a[6] * b[0] + a[7] * b[3] + a[8] * b[6]
+    val v7 = a[6] * b[1] + a[7] * b[4] + a[8] * b[7]
+    val v8 = a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
+    this[0] = v0
+    this[1] = v1
+    this[2] = v2
+    this[3] = v3
+    this[4] = v4
+    this[5] = v5
+    this[6] = v6
+    this[7] = v7
+    this[8] = v8
     normalize()
 }
 
@@ -835,6 +861,7 @@ internal fun FloatArray.mapRect(
     )
 }
 
+@Suppress("MagicNumber")
 internal fun FloatArray.mapRadius(radius: Float): Float {
     val tmp = FloatArray(4)
     tmp[0] = radius
