@@ -515,8 +515,10 @@ internal fun FloatArray.setRotate(
     py: Float,
 ) {
     val radians = degrees * DEGREES_TO_RADIANS
-    val s = sin(radians).toFloat()
-    val c = cos(radians).toFloat()
+    val sina = sin(radians).toFloat()
+    val cosa = cos(radians).toFloat()
+    val s = if (abs(sina) < ZERO_TOLERANCE) 0f else sina
+    val c = if (abs(cosa) < ZERO_TOLERANCE) 0f else cosa
     this[MSCALE_X] = c
     this[MSKEW_X] = -s
     this[MSKEW_Y] = s
@@ -581,8 +583,10 @@ internal fun FloatArray.preRotate(
     py: Float,
 ) {
     val radians = degrees * DEGREES_TO_RADIANS
-    val sin = sin(radians).toFloat()
-    val cos = cos(radians).toFloat()
+    val sina = sin(radians).toFloat()
+    val cosa = cos(radians).toFloat()
+    val sin = if (abs(sina) < ZERO_TOLERANCE) 0f else sina
+    val cos = if (abs(cosa) < ZERO_TOLERANCE) 0f else cosa
 
     val v0 = this[MSCALE_X]
     val v1 = this[MSKEW_X]
@@ -657,8 +661,10 @@ internal fun FloatArray.postRotate(
     py: Float,
 ) {
     val radians = degrees * DEGREES_TO_RADIANS
-    val sin = sin(radians).toFloat()
-    val cos = cos(radians).toFloat()
+    val sina = sin(radians).toFloat()
+    val cosa = cos(radians).toFloat()
+    val sin = if (abs(sina) < ZERO_TOLERANCE) 0f else sina
+    val cos = if (abs(cosa) < ZERO_TOLERANCE) 0f else cosa
 
     val tx = this[MTRANS_X] - px
     val ty = this[MTRANS_Y] - py
