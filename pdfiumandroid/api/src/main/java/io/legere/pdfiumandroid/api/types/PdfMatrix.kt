@@ -42,6 +42,8 @@ const val MPERSP_1 = 7
 const val MPERSP_2 = 8
 const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
 
+const val DEGREES_TO_RADIANS = (PI / 180.0)
+
 interface MatrixValues {
     val values: FloatArray
 }
@@ -512,9 +514,9 @@ internal fun FloatArray.setRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees.toDouble() * PI / 180.0
-    val s = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-    val c = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val radians = degrees * DEGREES_TO_RADIANS
+    val s = sin(radians).toFloat()
+    val c = cos(radians).toFloat()
     this[MSCALE_X] = c
     this[MSKEW_X] = -s
     this[MSKEW_Y] = s
@@ -578,9 +580,9 @@ internal fun FloatArray.preRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees.toDouble() * PI / 180.0
-    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val radians = degrees * DEGREES_TO_RADIANS
+    val sin = sin(radians).toFloat()
+    val cos = cos(radians).toFloat()
 
     val v0 = this[MSCALE_X]
     val v1 = this[MSKEW_X]
@@ -591,10 +593,12 @@ internal fun FloatArray.preRotate(
 
     this[MSCALE_X] = v0 * cos + v1 * sin
     this[MSKEW_X] = v0 * -sin + v1 * cos
-    this[MTRANS_X] = v2 + v0 * px + v1 * py - (v0 * cos + v1 * sin) * px - (v0 * -sin + v1 * cos) * py
+    this[MTRANS_X] =
+        v2 + v0 * px + v1 * py - (v0 * cos + v1 * sin) * px - (v0 * -sin + v1 * cos) * py
     this[MSKEW_Y] = v3 * cos + v4 * sin
     this[MSCALE_Y] = v3 * -sin + v4 * cos
-    this[MTRANS_Y] = v5 + v3 * px + v4 * py - (v3 * cos + v4 * sin) * px - (v3 * -sin + v4 * cos) * py
+    this[MTRANS_Y] =
+        v5 + v3 * px + v4 * py - (v3 * cos + v4 * sin) * px - (v3 * -sin + v4 * cos) * py
 }
 
 internal fun FloatArray.preSkew(
@@ -631,14 +635,30 @@ internal fun FloatArray.postScale(
     this[MTRANS_Y] = sy * (this[MTRANS_Y] - py) + py
 }
 
+// internal fun sinCos(
+//    degrees: Float,
+//    out: (Float, Float) -> Unit,
+// ) {
+//    val radians = degrees * DEGREES_TO_RADIANS
+//    //    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+// //    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+//    val sin = sin(radians)
+//    val cos = cos(radians)
+// //    out(
+// //        if (abs(sin) < ZERO_TOLERANCE) 0f else sin,
+// //        if (abs(cos) < ZERO_TOLERANCE) 0f else cos,
+// //    )
+//    out(sin.toFloat(), cos.toFloat())
+// }
+
 internal fun FloatArray.postRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
-    val radians = degrees.toDouble() * PI / 180.0
-    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val radians = degrees * DEGREES_TO_RADIANS
+    val sin = sin(radians).toFloat()
+    val cos = cos(radians).toFloat()
 
     val tx = this[MTRANS_X] - px
     val ty = this[MTRANS_Y] - py
