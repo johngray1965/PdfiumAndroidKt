@@ -3,6 +3,7 @@ package io.legere.pdfiumandroid.api.types
 import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -698,8 +699,8 @@ class CustomMatrixComparisonTest {
     ) {
         assertThat(actual).hasLength(expected.size)
         for (i in expected.indices) {
-            assertThat(actual[i])
-//                .withMessage("Value at index $i")
+            assertWithMessage("Value at index $i, expected: ${expected.contentToString()}, actual: ${actual.contentToString()}")
+                .that(actual[i])
                 .isWithin(delta)
                 .of(expected[i])
         }

@@ -112,8 +112,8 @@ class MatrixBenchmark {
         val pdfMatrix = MutablePdfMatrix()
         val androidMatrix = AndroidMatrix()
 
-        for (op in operations) {
-            println("op: $op")
+        for ((i, op) in operations.withIndex()) {
+            println("op: $i $op")
             runWithMutablePdfMatrix(pdfMatrix, op)
             runWithAndroidMatrix(androidMatrix, op)
 

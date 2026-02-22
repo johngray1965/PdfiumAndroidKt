@@ -40,10 +40,7 @@ const val MTRANS_Y = 5
 const val MPERSP_0 = 6
 const val MPERSP_1 = 7
 const val MPERSP_2 = 8
-
 const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
-
-const val DEGREES_TO_RADIANS = PI / 180.0
 
 interface MatrixValues {
     val values: FloatArray
@@ -250,7 +247,7 @@ data class PdfMatrix(
  */
 @Keep
 @Suppress("TooManyFunctions")
-data class MutablePdfMatrix(
+class MutablePdfMatrix(
     override val values: FloatArray =
         floatArrayOf(
             1f,
@@ -476,11 +473,6 @@ internal fun FloatArray.reset() {
     this[MPERSP_2] = 1f
 }
 
-@Suppress("MagicNumber")
-internal fun FloatArray.normalize() {
-    for (i in 0 until THREE_BY_THREE) this[i] += 0.0f
-}
-
 internal fun FloatArray.isIdentity(): Boolean =
     this[MSCALE_X] == 1f && this[MSKEW_X] == 0f && this[MTRANS_X] == 0f &&
         this[MSKEW_Y] == 0f && this[MSCALE_Y] == 1f && this[MTRANS_Y] == 0f &&
@@ -512,7 +504,6 @@ internal fun FloatArray.setScale(
     this[MPERSP_0] = 0f
     this[MPERSP_1] = 0f
     this[MPERSP_2] = 1f
-    normalize()
 }
 
 @Suppress("MagicNumber")
@@ -521,7 +512,7 @@ internal fun FloatArray.setRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees * DEGREES_TO_RADIANS
+    val radians = degrees.toDouble() * PI / 180.0
     val s = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     val c = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     this[MSCALE_X] = c
@@ -533,7 +524,6 @@ internal fun FloatArray.setRotate(
     this[MPERSP_0] = 0f
     this[MPERSP_1] = 0f
     this[MPERSP_2] = 1f
-    normalize()
 }
 
 internal fun FloatArray.setSkew(
@@ -551,7 +541,6 @@ internal fun FloatArray.setSkew(
     this[MPERSP_0] = 0f
     this[MPERSP_1] = 0f
     this[MPERSP_2] = 1f
-    normalize()
 }
 
 internal fun FloatArray.preTranslate(
@@ -561,7 +550,6 @@ internal fun FloatArray.preTranslate(
     this[MTRANS_X] += this[MSCALE_X] * dx + this[MSKEW_X] * dy
     this[MTRANS_Y] += this[MSKEW_Y] * dx + this[MSCALE_Y] * dy
     this[MPERSP_2] += this[MPERSP_0] * dx + this[MPERSP_1] * dy
-    normalize()
 }
 
 internal fun FloatArray.preScale(
@@ -583,65 +571,32 @@ internal fun FloatArray.preScale(
     this[MSKEW_Y] = v3 * sx
     this[MSCALE_Y] = v4 * sy
     this[MTRANS_Y] = v3 * (px - sx * px) + v4 * (py - sy * py) + v5
-    normalize()
 }
 
-// internal fun FloatArray.preRotate(
-//    degrees: Float,
-//    px: Float,
-//    py: Float,
-// ) {
-//    val radians = degrees * PI / 180.0
-//    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-//    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
-//
-//    val v0 = this[MSCALE_X]
-//    val v1 = this[MSKEW_X]
-//    val v2 = this[MTRANS_X]
-//    val v3 = this[MSKEW_Y]
-//    val v4 = this[MSCALE_Y]
-//    val v5 = this[MTRANS_Y]
-//
-//    this[MSCALE_X] = v0 * cos + v3 * -sin
-//    this[MSKEW_X] = v1 * cos + v4 * -sin
-//    this[MTRANS_X] = (v0 * px + v1 * py + v2) * cos + (v3 * px + v4 * py + v5) * -sin + (px - px * cos + py * sin)
-//    this[MSKEW_Y] = v0 * sin + v3 * cos
-//    this[MSCALE_Y] = v1 * sin + v4 * cos
-//    this[MTRANS_Y] = (v0 * px + v1 * py + v2) * sin + (v3 * px + v4 * py + v5) * cos + (py - px * sin - py * cos)
-//    normalize()
-// }
 internal fun FloatArray.preRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
-    tempFloatArray { tmp: FloatArray ->
-        tmp.setRotate(degrees, px, py)
-        preConcat(tmp)
-    }
+    val radians = degrees.toDouble() * PI / 180.0
+    val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+    val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
+
+    val v0 = this[MSCALE_X]
+    val v1 = this[MSKEW_X]
+    val v2 = this[MTRANS_X]
+    val v3 = this[MSKEW_Y]
+    val v4 = this[MSCALE_Y]
+    val v5 = this[MTRANS_Y]
+
+    this[MSCALE_X] = v0 * cos + v1 * sin
+    this[MSKEW_X] = v0 * -sin + v1 * cos
+    this[MTRANS_X] = v2 + v0 * px + v1 * py - (v0 * cos + v1 * sin) * px - (v0 * -sin + v1 * cos) * py
+    this[MSKEW_Y] = v3 * cos + v4 * sin
+    this[MSCALE_Y] = v3 * -sin + v4 * cos
+    this[MTRANS_Y] = v5 + v3 * px + v4 * py - (v3 * cos + v4 * sin) * px - (v3 * -sin + v4 * cos) * py
 }
 
-// internal fun FloatArray.preSkew(
-//    kx: Float,
-//    ky: Float,
-//    px: Float,
-//    py: Float,
-// ) {
-//    val v0 = this[MSCALE_X]
-//    val v1 = this[MSKEW_X]
-//    val v2 = this[MTRANS_X]
-//    val v3 = this[MSKEW_Y]
-//    val v4 = this[MSCALE_Y]
-//    val v5 = this[MTRANS_Y]
-//
-//    this[MSCALE_X] = v0 + v3 * kx
-//    this[MSKEW_X] = v1 + v4 * kx
-//    this[MTRANS_X] = v2 + v5 * kx - (v0 * py + v1 * py) * kx
-//    this[MSKEW_Y] = v0 * ky + v3
-//    this[MSCALE_Y] = v1 * ky + v4
-//    this[MTRANS_Y] = v2 * ky + v5 - (v0 * px + v1 * px) * ky
-//    normalize()
-//    }
 internal fun FloatArray.preSkew(
     kx: Float,
     ky: Float,
@@ -660,7 +615,6 @@ internal fun FloatArray.postTranslate(
 ) {
     this[MTRANS_X] += dx
     this[MTRANS_Y] += dy
-    normalize()
 }
 
 internal fun FloatArray.postScale(
@@ -675,7 +629,6 @@ internal fun FloatArray.postScale(
     this[MSKEW_Y] *= sy
     this[MSCALE_Y] *= sy
     this[MTRANS_Y] = sy * (this[MTRANS_Y] - py) + py
-    normalize()
 }
 
 internal fun FloatArray.postRotate(
@@ -683,7 +636,7 @@ internal fun FloatArray.postRotate(
     px: Float,
     py: Float,
 ) {
-    val radians = degrees * DEGREES_TO_RADIANS
+    val radians = degrees.toDouble() * PI / 180.0
     val sin = sin(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
     val cos = cos(radians).takeIf { abs(it) > ZERO_TOLERANCE }?.toFloat() ?: 0.0f
 
@@ -702,7 +655,6 @@ internal fun FloatArray.postRotate(
     this[MSKEW_Y] = v1
     this[MSKEW_X] = v2
     this[MSCALE_Y] = v3
-    normalize()
 }
 
 internal fun FloatArray.postSkew(
@@ -726,7 +678,6 @@ internal fun FloatArray.postSkew(
     this[MSKEW_Y] = v1 + v0 * ky
     this[MSKEW_X] = v2 + v3 * kx
     this[MSCALE_Y] = v3 + v2 * ky
-    normalize()
 }
 
 @Suppress("MagicNumber", "UnnecessaryVariable")
@@ -754,7 +705,6 @@ internal fun FloatArray.preConcat(other: FloatArray) {
     this[6] = v6
     this[7] = v7
     this[8] = v8
-    normalize()
 }
 
 @Suppress("MagicNumber")
@@ -782,7 +732,6 @@ internal fun FloatArray.postConcat(other: FloatArray) {
     this[6] = v6
     this[7] = v7
     this[8] = v8
-    normalize()
 }
 
 @Suppress("MagicNumber")
@@ -804,7 +753,6 @@ internal fun FloatArray.invert(): FloatArray? {
     res[6] = (v[3] * v[7] - v[4] * v[6]) * invDet
     res[7] = (v[1] * v[6] - v[0] * v[7]) * invDet
     res[8] = (v[0] * v[4] - v[1] * v[3]) * invDet
-    res.normalize()
     return res
 }
 
