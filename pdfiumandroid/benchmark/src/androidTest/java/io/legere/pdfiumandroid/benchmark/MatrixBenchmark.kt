@@ -143,6 +143,7 @@ class MatrixBenchmark {
             androidMatrix.getValues(androidValues)
 
             println("pdfValues: ${pdfValues.contentToString()}, androidValues: ${androidValues.contentToString()}")
+//            assertThat(pdfValues).usingTolerance(0.01).containsExactly(androidValues)
             assertMatrixClose(androidValues, pdfValues)
 // )
 //            assertWithMessage("expected: ${pdfValues.contentToString()}, actual: ${androidValues.contentToString()}")

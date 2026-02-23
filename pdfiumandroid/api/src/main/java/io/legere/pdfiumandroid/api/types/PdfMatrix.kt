@@ -40,7 +40,7 @@ const val MTRANS_Y = 5
 const val MPERSP_0 = 6
 const val MPERSP_1 = 7
 const val MPERSP_2 = 8
-const val ZERO_TOLERANCE = 1.0f / (1 shl 12)
+const val ZERO_TOLERANCE = 1e-9f
 
 const val DEGREES_TO_RADIANS = (PI / 180.0)
 
@@ -497,10 +497,15 @@ internal fun FloatArray.setScale(
     px: Float,
     py: Float,
 ) {
+    val sxd = sx.toDouble()
+    val syd = sy.toDouble()
+    val pxd = px.toDouble()
+    val pyd = py.toDouble()
+
     this[MSCALE_X] = sx
     this[MSCALE_Y] = sy
-    this[MTRANS_X] = px - sx * px
-    this[MTRANS_Y] = py - sy * py
+    this[MTRANS_X] = (pxd - sxd * pxd).toFloat()
+    this[MTRANS_Y] = (pyd - syd * pyd).toFloat()
     this[MSKEW_X] = 0f
     this[MSKEW_Y] = 0f
     this[MPERSP_0] = 0f
@@ -514,17 +519,23 @@ internal fun FloatArray.setRotate(
     px: Float,
     py: Float,
 ) {
+    val pxd = px.toDouble()
+    val pyd = py.toDouble()
+
     val radians = degrees * DEGREES_TO_RADIANS
-    val sina = sin(radians).toFloat()
-    val cosa = cos(radians).toFloat()
-    val s = if (abs(sina) < ZERO_TOLERANCE) 0f else sina
-    val c = if (abs(cosa) < ZERO_TOLERANCE) 0f else cosa
-    this[MSCALE_X] = c
-    this[MSKEW_X] = -s
-    this[MSKEW_Y] = s
-    this[MSCALE_Y] = c
-    this[MTRANS_X] = px - c * px + s * py
-    this[MTRANS_Y] = py - s * px - c * py
+    val sina = sin(radians)
+    val cosa = cos(radians)
+    val s = if (shouldTruncate(sina)) 0.0 else sina
+    val c = if (shouldTruncate(cosa)) 0.0 else cosa
+    val sf = s.toFloat()
+    val cf = c.toFloat()
+
+    this[MSCALE_X] = cf
+    this[MSKEW_X] = -sf
+    this[MSKEW_Y] = sf
+    this[MSCALE_Y] = cf
+    this[MTRANS_X] = (pxd - c * pxd + s * pyd).toFloat()
+    this[MTRANS_Y] = (pyd - s * pxd - c * pyd).toFloat()
     this[MPERSP_0] = 0f
     this[MPERSP_1] = 0f
     this[MPERSP_2] = 1f
@@ -536,12 +547,17 @@ internal fun FloatArray.setSkew(
     px: Float,
     py: Float,
 ) {
+    val kxd = kx.toDouble()
+    val kyd = ky.toDouble()
+    val pxd = px.toDouble()
+    val pyd = py.toDouble()
+
     this[MSCALE_X] = 1f
     this[MSKEW_X] = kx
     this[MSKEW_Y] = ky
     this[MSCALE_Y] = 1f
-    this[MTRANS_X] = -kx * py
-    this[MTRANS_Y] = -ky * px
+    this[MTRANS_X] = -(kxd * pyd).toFloat()
+    this[MTRANS_Y] = -(kyd * pxd).toFloat()
     this[MPERSP_0] = 0f
     this[MPERSP_1] = 0f
     this[MPERSP_2] = 1f
@@ -551,9 +567,32 @@ internal fun FloatArray.preTranslate(
     dx: Float,
     dy: Float,
 ) {
-    this[MTRANS_X] += this[MSCALE_X] * dx + this[MSKEW_X] * dy
-    this[MTRANS_Y] += this[MSKEW_Y] * dx + this[MSCALE_Y] * dy
-    this[MPERSP_2] += this[MPERSP_0] * dx + this[MPERSP_1] * dy
+    val dxd = dx.toDouble()
+    val dyd = dy.toDouble()
+    val v0 = this[MSCALE_X].toDouble()
+    val v1 = this[MSKEW_X].toDouble()
+    val v2 = this[MTRANS_X].toDouble()
+    val v3 = this[MSKEW_Y].toDouble()
+    val v4 = this[MSCALE_Y].toDouble()
+    val v5 = this[MTRANS_Y].toDouble()
+    val v6 = this[MPERSP_0].toDouble()
+    val v7 = this[MPERSP_1].toDouble()
+    val v8 = this[MPERSP_2].toDouble()
+
+//    this[MTRANS_X] += this[MSCALE_X] * dx + this[MSKEW_X] * dy
+//    this[MTRANS_Y] += this[MSKEW_Y] * dx + this[MSCALE_Y] * dy
+//    this[MPERSP_2] += this[MPERSP_0] * dx + this[MPERSP_1] * dy
+    println("v3: $v3")
+    println("v4: $v4")
+    println("v5: $v5")
+    println("dxd: $dxd")
+    println("dyd: $dyd")
+    val transY = v5 + v3 * dxd + v4 * dyd
+    println("transY: $transY")
+
+    this[MTRANS_X] = (v2 + v0 * dxd + v1 * dyd).toFloat()
+    this[MTRANS_Y] = (v5 + v3 * dxd + v4 * dyd).toFloat()
+    this[MPERSP_2] = (v8 + v6 * dxd + v7 * dyd).toFloat()
 }
 
 internal fun FloatArray.preScale(
@@ -562,19 +601,24 @@ internal fun FloatArray.preScale(
     px: Float,
     py: Float,
 ) {
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_X]
-    val v2 = this[MTRANS_X]
-    val v3 = this[MSKEW_Y]
-    val v4 = this[MSCALE_Y]
-    val v5 = this[MTRANS_Y]
+    val sxd = sx.toDouble()
+    val syd = sy.toDouble()
+    val pxd = px.toDouble()
+    val pyd = py.toDouble()
 
-    this[MSCALE_X] = v0 * sx
-    this[MSKEW_X] = v1 * sy
-    this[MTRANS_X] = v0 * (px - sx * px) + v1 * (py - sy * py) + v2
-    this[MSKEW_Y] = v3 * sx
-    this[MSCALE_Y] = v4 * sy
-    this[MTRANS_Y] = v3 * (px - sx * px) + v4 * (py - sy * py) + v5
+    val v0 = this[MSCALE_X].toDouble()
+    val v1 = this[MSKEW_X].toDouble()
+    val v2 = this[MTRANS_X].toDouble()
+    val v3 = this[MSKEW_Y].toDouble()
+    val v4 = this[MSCALE_Y].toDouble()
+    val v5 = this[MTRANS_Y].toDouble()
+
+    this[MSCALE_X] = (v0 * sxd).toFloat()
+    this[MSKEW_X] = (v1 * syd).toFloat()
+    this[MTRANS_X] = (v0 * (pxd - sxd * pxd) + v1 * (pyd - syd * pyd) + v2).toFloat()
+    this[MSKEW_Y] = (v3 * sxd).toFloat()
+    this[MSCALE_Y] = (v4 * syd).toFloat()
+    this[MTRANS_Y] = (v3 * (px - sxd * pxd) + v4 * (pyd - syd * pyd) + v5).toFloat()
 }
 
 internal fun FloatArray.preRotate(
@@ -583,26 +627,26 @@ internal fun FloatArray.preRotate(
     py: Float,
 ) {
     val radians = degrees * DEGREES_TO_RADIANS
-    val sina = sin(radians).toFloat()
-    val cosa = cos(radians).toFloat()
-    val sin = if (abs(sina) < ZERO_TOLERANCE) 0f else sina
-    val cos = if (abs(cosa) < ZERO_TOLERANCE) 0f else cosa
+    val sina = sin(radians)
+    val cosa = cos(radians)
+    val sin = if (shouldTruncate(sina)) 0.0 else sina
+    val cos = if (shouldTruncate(cosa)) 0.0 else cosa
 
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_X]
-    val v2 = this[MTRANS_X]
-    val v3 = this[MSKEW_Y]
-    val v4 = this[MSCALE_Y]
-    val v5 = this[MTRANS_Y]
+    val v0 = this[MSCALE_X].toDouble()
+    val v1 = this[MSKEW_X].toDouble()
+    val v2 = this[MTRANS_X].toDouble()
+    val v3 = this[MSKEW_Y].toDouble()
+    val v4 = this[MSCALE_Y].toDouble()
+    val v5 = this[MTRANS_Y].toDouble()
 
-    this[MSCALE_X] = v0 * cos + v1 * sin
-    this[MSKEW_X] = v0 * -sin + v1 * cos
+    this[MSCALE_X] = (v0 * cos + v1 * sin).toFloat()
+    this[MSKEW_X] = (v0 * -sin + v1 * cos).toFloat()
     this[MTRANS_X] =
-        v2 + v0 * px + v1 * py - (v0 * cos + v1 * sin) * px - (v0 * -sin + v1 * cos) * py
-    this[MSKEW_Y] = v3 * cos + v4 * sin
-    this[MSCALE_Y] = v3 * -sin + v4 * cos
+        (v2 + v0 * px + v1 * py - (v0 * cos + v1 * sin) * px - (v0 * -sin + v1 * cos) * py).toFloat()
+    this[MSKEW_Y] = (v3 * cos + v4 * sin).toFloat()
+    this[MSCALE_Y] = (v3 * -sin + v4 * cos).toFloat()
     this[MTRANS_Y] =
-        v5 + v3 * px + v4 * py - (v3 * cos + v4 * sin) * px - (v3 * -sin + v4 * cos) * py
+        (v5 + v3 * px + v4 * py - (v3 * cos + v4 * sin) * px - (v3 * -sin + v4 * cos) * py).toFloat()
 }
 
 internal fun FloatArray.preSkew(
@@ -631,12 +675,24 @@ internal fun FloatArray.postScale(
     px: Float,
     py: Float,
 ) {
-    this[MSCALE_X] *= sx
-    this[MSKEW_X] *= sx
-    this[MTRANS_X] = sx * (this[MTRANS_X] - px) + px
-    this[MSKEW_Y] *= sy
-    this[MSCALE_Y] *= sy
-    this[MTRANS_Y] = sy * (this[MTRANS_Y] - py) + py
+    val sxd = sx.toDouble()
+    val syd = sy.toDouble()
+    val pxd = px.toDouble()
+    val pyd = py.toDouble()
+
+    val v0 = this[MSCALE_X].toDouble()
+    val v1 = this[MSKEW_X].toDouble()
+    val v2 = this[MTRANS_X].toDouble()
+    val v3 = this[MSKEW_Y].toDouble()
+    val v4 = this[MSCALE_Y].toDouble()
+    val v5 = this[MTRANS_Y].toDouble()
+
+    this[MSCALE_X] = (v0 * sxd).toFloat()
+    this[MSKEW_X] = (v1 * syd).toFloat()
+    this[MTRANS_X] = (sxd * (this[MTRANS_X] - pxd) + pxd).toFloat()
+    this[MSKEW_Y] = (v3 * sxd).toFloat()
+    this[MSCALE_Y] = (v4 * syd).toFloat()
+    this[MTRANS_Y] = (syd * (this[MTRANS_Y] - pyd) + pyd).toFloat()
 }
 
 // internal fun sinCos(
@@ -661,27 +717,29 @@ internal fun FloatArray.postRotate(
     py: Float,
 ) {
     val radians = degrees * DEGREES_TO_RADIANS
-    val sina = sin(radians).toFloat()
-    val cosa = cos(radians).toFloat()
-    val sin = if (abs(sina) < ZERO_TOLERANCE) 0f else sina
-    val cos = if (abs(cosa) < ZERO_TOLERANCE) 0f else cosa
+    val sina = sin(radians)
+    val cosa = cos(radians)
+    val sin = if (shouldTruncate(sina)) 0.0 else sina
+    val cos = if (shouldTruncate(cosa)) 0.0 else cosa
 
     val tx = this[MTRANS_X] - px
     val ty = this[MTRANS_Y] - py
-
-    this[MTRANS_X] = px + tx * cos - ty * sin
-    this[MTRANS_Y] = py + tx * sin + ty * cos
 
     val v0 = this[MSCALE_X] * cos - this[MSKEW_Y] * sin
     val v1 = this[MSCALE_X] * sin + this[MSKEW_Y] * cos
     val v2 = this[MSKEW_X] * cos - this[MSCALE_Y] * sin
     val v3 = this[MSKEW_X] * sin + this[MSCALE_Y] * cos
 
-    this[MSCALE_X] = v0
-    this[MSKEW_Y] = v1
-    this[MSKEW_X] = v2
-    this[MSCALE_Y] = v3
+    this[MTRANS_X] = (px + tx * cos - ty * sin).toFloat()
+    this[MTRANS_Y] = (py + tx * sin + ty * cos).toFloat()
+
+    this[MSCALE_X] = v0.toFloat()
+    this[MSKEW_Y] = v1.toFloat()
+    this[MSKEW_X] = v2.toFloat()
+    this[MSCALE_Y] = v3.toFloat()
 }
+
+private fun shouldTruncate(value: Double): Boolean = false // abs(value) < ZERO_TOLERANCE
 
 internal fun FloatArray.postSkew(
     kx: Float,
@@ -689,21 +747,26 @@ internal fun FloatArray.postSkew(
     px: Float,
     py: Float,
 ) {
-    val tx = this[MTRANS_X] - px
-    val ty = this[MTRANS_Y] - py
+    val kxd = kx.toDouble()
+    val kyd = ky.toDouble()
+    val pxd = px.toDouble()
+    val pyd = py.toDouble()
 
-    this[MTRANS_X] = px + tx + ty * kx
-    this[MTRANS_Y] = py + ty + tx * ky
+    val tx = this[MTRANS_X] - pxd
+    val ty = this[MTRANS_Y] - pyd
 
-    val v0 = this[MSCALE_X]
-    val v1 = this[MSKEW_Y]
-    val v2 = this[MSKEW_X]
-    val v3 = this[MSCALE_Y]
+    val v0 = this[MSCALE_X].toDouble()
+    val v1 = this[MSKEW_Y].toDouble()
+    val v2 = this[MSKEW_X].toDouble()
+    val v3 = this[MSCALE_Y].toDouble()
 
-    this[MSCALE_X] = v0 + v1 * kx
-    this[MSKEW_Y] = v1 + v0 * ky
-    this[MSKEW_X] = v2 + v3 * kx
-    this[MSCALE_Y] = v3 + v2 * ky
+    this[MTRANS_X] = (pxd + tx + ty * kxd).toFloat()
+    this[MTRANS_Y] = (pyd + ty + tx * kyd).toFloat()
+
+    this[MSCALE_X] = (v0 + v1 * kxd).toFloat()
+    this[MSKEW_Y] = (v1 + v0 * kyd).toFloat()
+    this[MSKEW_X] = (v2 + v3 * kxd).toFloat()
+    this[MSCALE_Y] = (v3 + v2 * kyd).toFloat()
 }
 
 @Suppress("MagicNumber", "UnnecessaryVariable")
@@ -713,24 +776,44 @@ internal fun FloatArray.preConcat(other: FloatArray) {
     // note that a = this, so the temp variables are important.
     // without them we would overwrite the original matrix
     // before the values are calculated
-    val v0 = a[0] * b[0] + a[1] * b[3] + a[2] * b[6]
-    val v1 = a[0] * b[1] + a[1] * b[4] + a[2] * b[7]
-    val v2 = a[0] * b[2] + a[1] * b[5] + a[2] * b[8]
-    val v3 = a[3] * b[0] + a[4] * b[3] + a[5] * b[6]
-    val v4 = a[3] * b[1] + a[4] * b[4] + a[5] * b[7]
-    val v5 = a[3] * b[2] + a[4] * b[5] + a[5] * b[8]
-    val v6 = a[6] * b[0] + a[7] * b[3] + a[8] * b[6]
-    val v7 = a[6] * b[1] + a[7] * b[4] + a[8] * b[7]
-    val v8 = a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
-    this[0] = v0
-    this[1] = v1
-    this[2] = v2
-    this[3] = v3
-    this[4] = v4
-    this[5] = v5
-    this[6] = v6
-    this[7] = v7
-    this[8] = v8
+    val a0 = a[0].toDouble()
+    val a1 = a[1].toDouble()
+    val a2 = a[2].toDouble()
+    val a3 = a[3].toDouble()
+    val a4 = a[4].toDouble()
+    val a5 = a[5].toDouble()
+    val a6 = a[6].toDouble()
+    val a7 = a[7].toDouble()
+    val a8 = a[8].toDouble()
+
+    val b0 = b[0].toDouble()
+    val b1 = b[1].toDouble()
+    val b2 = b[2].toDouble()
+    val b3 = b[3].toDouble()
+    val b4 = b[4].toDouble()
+    val b5 = b[5].toDouble()
+    val b6 = b[6].toDouble()
+    val b7 = b[7].toDouble()
+    val b8 = b[8].toDouble()
+
+    val v0 = a0 * b0 + a1 * b3 + a2 * b6
+    val v1 = a0 * b1 + a1 * b4 + a2 * b7
+    val v2 = a0 * b2 + a1 * b5 + a2 * b8
+    val v3 = a3 * b0 + a4 * b3 + a5 * b6
+    val v4 = a3 * b1 + a4 * b4 + a5 * b7
+    val v5 = a3 * b2 + a4 * b5 + a5 * b8
+    val v6 = a6 * b0 + a7 * b3 + a8 * b6
+    val v7 = a6 * b1 + a7 * b4 + a8 * b7
+    val v8 = a6 * b2 + a7 * b5 + a8 * b8
+    this[0] = v0.toFloat()
+    this[1] = v1.toFloat()
+    this[2] = v2.toFloat()
+    this[3] = v3.toFloat()
+    this[4] = v4.toFloat()
+    this[5] = v5.toFloat()
+    this[6] = v6.toFloat()
+    this[7] = v7.toFloat()
+    this[8] = v8.toFloat()
 }
 
 @Suppress("MagicNumber")
@@ -740,45 +823,75 @@ internal fun FloatArray.postConcat(other: FloatArray) {
     // note that b = this, so the temp variables are important.
     // without them we would overwrite the original matrix
     // before the values are calculated
-    val v0 = a[0] * b[0] + a[1] * b[3] + a[2] * b[6]
-    val v1 = a[0] * b[1] + a[1] * b[4] + a[2] * b[7]
-    val v2 = a[0] * b[2] + a[1] * b[5] + a[2] * b[8]
-    val v3 = a[3] * b[0] + a[4] * b[3] + a[5] * b[6]
-    val v4 = a[3] * b[1] + a[4] * b[4] + a[5] * b[7]
-    val v5 = a[3] * b[2] + a[4] * b[5] + a[5] * b[8]
-    val v6 = a[6] * b[0] + a[7] * b[3] + a[8] * b[6]
-    val v7 = a[6] * b[1] + a[7] * b[4] + a[8] * b[7]
-    val v8 = a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
-    this[0] = v0
-    this[1] = v1
-    this[2] = v2
-    this[3] = v3
-    this[4] = v4
-    this[5] = v5
-    this[6] = v6
-    this[7] = v7
-    this[8] = v8
+    val a0 = a[0].toDouble()
+    val a1 = a[1].toDouble()
+    val a2 = a[2].toDouble()
+    val a3 = a[3].toDouble()
+    val a4 = a[4].toDouble()
+    val a5 = a[5].toDouble()
+    val a6 = a[6].toDouble()
+    val a7 = a[7].toDouble()
+    val a8 = a[8].toDouble()
+
+    val b0 = b[0].toDouble()
+    val b1 = b[1].toDouble()
+    val b2 = b[2].toDouble()
+    val b3 = b[3].toDouble()
+    val b4 = b[4].toDouble()
+    val b5 = b[5].toDouble()
+    val b6 = b[6].toDouble()
+    val b7 = b[7].toDouble()
+    val b8 = b[8].toDouble()
+
+    val v0 = a0 * b0 + a1 * b3 + a2 * b6
+    val v1 = a0 * b1 + a1 * b4 + a2 * b7
+    val v2 = a0 * b2 + a1 * b5 + a2 * b8
+    val v3 = a3 * b0 + a4 * b3 + a5 * b6
+    val v4 = a3 * b1 + a4 * b4 + a5 * b7
+    val v5 = a3 * b2 + a4 * b5 + a5 * b8
+    val v6 = a6 * b0 + a7 * b3 + a8 * b6
+    val v7 = a6 * b1 + a7 * b4 + a8 * b7
+    val v8 = a6 * b2 + a7 * b5 + a8 * b8
+    this[0] = v0.toFloat()
+    this[1] = v1.toFloat()
+    this[2] = v2.toFloat()
+    this[3] = v3.toFloat()
+    this[4] = v4.toFloat()
+    this[5] = v5.toFloat()
+    this[6] = v6.toFloat()
+    this[7] = v7.toFloat()
+    this[8] = v8.toFloat()
 }
 
 @Suppress("MagicNumber")
 internal fun FloatArray.invert(): FloatArray? {
     val v = this
+    val v0 = v[0].toDouble()
+    val v1 = v[1].toDouble()
+    val v2 = v[2].toDouble()
+    val v3 = v[3].toDouble()
+    val v4 = v[4].toDouble()
+    val v5 = v[5].toDouble()
+    val v6 = v[6].toDouble()
+    val v7 = v[7].toDouble()
+    val v8 = v[8].toDouble()
+
     val det =
-        v[0] * (v[4] * v[8] - v[5] * v[7]) -
-            v[1] * (v[3] * v[8] - v[5] * v[6]) +
-            v[2] * (v[3] * v[7] - v[4] * v[6])
+        v0 * (v4 * v8 - v5 * v7) -
+            v1 * (v3 * v8 - v5 * v6) +
+            v2 * (v3 * v7 - v4 * v6)
     if (abs(det) < 1e-10) return null
-    val invDet = 1.0f / det
+    val invDet = 1.0 / det
     val res = FloatArray(THREE_BY_THREE)
-    res[0] = (v[4] * v[8] - v[5] * v[7]) * invDet
-    res[1] = (v[2] * v[7] - v[1] * v[8]) * invDet
-    res[2] = (v[1] * v[5] - v[2] * v[4]) * invDet
-    res[3] = (v[5] * v[6] - v[3] * v[8]) * invDet
-    res[4] = (v[0] * v[8] - v[2] * v[6]) * invDet
-    res[5] = (v[2] * v[3] - v[0] * v[5]) * invDet
-    res[6] = (v[3] * v[7] - v[4] * v[6]) * invDet
-    res[7] = (v[1] * v[6] - v[0] * v[7]) * invDet
-    res[8] = (v[0] * v[4] - v[1] * v[3]) * invDet
+    res[0] = ((v4 * v8 - v5 * v7) * invDet).toFloat()
+    res[1] = ((v2 * v7 - v1 * v8) * invDet).toFloat()
+    res[2] = ((v1 * v5 - v2 * v4) * invDet).toFloat()
+    res[3] = ((v5 * v6 - v3 * v8) * invDet).toFloat()
+    res[4] = ((v0 * v8 - v2 * v6) * invDet).toFloat()
+    res[5] = ((v2 * v3 - v0 * v5) * invDet).toFloat()
+    res[6] = ((v3 * v7 - v4 * v6) * invDet).toFloat()
+    res[7] = ((v1 * v6 - v0 * v7) * invDet).toFloat()
+    res[8] = ((v0 * v4 - v1 * v3) * invDet).toFloat()
     return res
 }
 

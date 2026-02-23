@@ -326,6 +326,28 @@ class CustomMatrixComparisonTest {
     }
 
     @Test
+    fun invertBehavesLikePlatformMatrix2() {
+        val expected =
+            floatArrayOf(1.0194546f, 0.0f, -20.997845f, 0.0f, 1.4150456f, -4.237648f, 0.0f, 0.0f, 1.0f)
+        mutableMatrix.set(
+            floatArrayOf(
+                1.0194546f,
+                0.0f,
+                10.449388f,
+                0.0f,
+                1.4150456f,
+                -23.396986f,
+                0.0f,
+                0.0f,
+                1.0f,
+            ),
+        )
+        mutableMatrix.preTranslate(-30.847115f, 13.539732f)
+
+        assertThat(mutableMatrix.values).isEqualTo(expected)
+    }
+
+    @Test
     fun isIdentityBehavesLikePlatformMatrix() {
         assertThat(mutableMatrix.isIdentity()).isTrue()
         assertThat(mutableMatrix.isIdentity()).isTrue()
