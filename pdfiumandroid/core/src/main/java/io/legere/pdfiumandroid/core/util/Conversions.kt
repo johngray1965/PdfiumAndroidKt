@@ -37,6 +37,8 @@ import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.api.types.THREE_BY_THREE
+import io.legere.pdfiumandroid.api.types.toDoubleArray
+import io.legere.pdfiumandroid.api.types.toFloatArray
 
 /**
  * Returns the first 6 values of the matrix in the order:
@@ -62,12 +64,12 @@ fun matrixToFloatArray(matrix: Matrix): FloatArray {
 fun matrixToFloatArray(matrix: MatrixValues): FloatArray {
     val values = matrix.values
     return floatArrayOf(
-        values[MSCALE_X],
-        values[MSKEW_Y],
-        values[MSKEW_X],
-        values[MSCALE_Y],
-        values[MTRANS_X],
-        values[MTRANS_Y],
+        values[MSCALE_X].toFloat(),
+        values[MSKEW_Y].toFloat(),
+        values[MSKEW_X].toFloat(),
+        values[MSCALE_Y].toFloat(),
+        values[MTRANS_X].toFloat(),
+        values[MTRANS_Y].toFloat(),
     )
 }
 
@@ -91,18 +93,18 @@ fun floatArrayToMatrix(matrixValues: FloatArray): Matrix {
 }
 
 fun floatArrayToPdfMatrix(matrixValues: FloatArray): PdfMatrix {
-    val values = FloatArray(THREE_BY_THREE)
+    val values = DoubleArray(THREE_BY_THREE)
     // input is [MSCALE_X, MSKEW_X, MTRANS_X, MSKEW_Y, MSCALE_Y, MTRANS_Y]
     var i = 0
-    values[MSCALE_X] = matrixValues[i++]
-    values[MSKEW_Y] = matrixValues[i++]
-    values[MSKEW_X] = matrixValues[i++]
-    values[MSCALE_Y] = matrixValues[i++]
-    values[MTRANS_X] = matrixValues[i++]
-    values[MTRANS_Y] = matrixValues[i]
-    values[MPERSP_0] = 0f
-    values[MPERSP_1] = 0f
-    values[MPERSP_2] = 1f
+    values[MSCALE_X] = matrixValues[i++].toDouble()
+    values[MSKEW_Y] = matrixValues[i++].toDouble()
+    values[MSKEW_X] = matrixValues[i++].toDouble()
+    values[MSCALE_Y] = matrixValues[i++].toDouble()
+    values[MTRANS_X] = matrixValues[i++].toDouble()
+    values[MTRANS_Y] = matrixValues[i].toDouble()
+    values[MPERSP_0] = 0.0
+    values[MPERSP_1] = 0.0
+    values[MPERSP_2] = 1.0
     return PdfMatrix(values)
 }
 
@@ -165,12 +167,12 @@ fun rectsToFloatArray(rects: Collection<FloatRectValues>): FloatArray =
 fun Matrix.toPdfMatrix(): PdfMatrix {
     val values = FloatArray(THREE_BY_THREE)
     this.getValues(values)
-    return PdfMatrix(values)
+    return PdfMatrix(values.toDoubleArray())
 }
 
 fun PdfMatrix.toMatrix(): Matrix {
     val matrix = Matrix()
-    matrix.setValues(this.values)
+    matrix.setValues(this.values.toFloatArray())
     return matrix
 }
 

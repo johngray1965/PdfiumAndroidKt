@@ -847,16 +847,16 @@ class PdfPageU(
             val ty = toTop - sy * fromTop
 
             return PdfMatrix(
-                floatArrayOf(
-                    sx + 0.0f,
-                    0f,
-                    tx + 0.0f,
-                    0f,
-                    sy + 0.0f,
-                    ty + 0.0f,
-                    0f,
-                    0f,
-                    1f,
+                doubleArrayOf(
+                    sx + 0.0,
+                    0.0,
+                    tx + 0.0,
+                    0.0,
+                    sy + 0.0,
+                    ty + 0.0,
+                    0.0,
+                    0.0,
+                    1.0,
                 ),
             )
         }

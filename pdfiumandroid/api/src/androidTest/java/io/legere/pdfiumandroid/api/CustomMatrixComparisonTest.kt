@@ -354,16 +354,16 @@ class CustomMatrixComparisonTest {
 
         mutableMatrix.set(
             PdfMatrix(
-                floatArrayOf(
-                    1f,
-                    0f,
-                    0f,
-                    0f,
-                    1f,
-                    0f,
-                    0.1f,
-                    0.2f,
-                    1f, // Perspective component
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.1,
+                    0.2,
+                    1.0,
                 ),
             ),
         )
@@ -689,7 +689,7 @@ class CustomMatrixComparisonTest {
 
         platform.getValues(platformValues)
 
-        assertFloatArraysEqual(platformValues, customValues, delta)
+        assertFloatArraysEqual(platformValues, customValues.toFloatArray(), delta)
     }
 
     private fun assertFloatArraysEqual(
@@ -699,8 +699,11 @@ class CustomMatrixComparisonTest {
     ) {
         assertThat(actual).hasLength(expected.size)
         for (i in expected.indices) {
-            assertWithMessage("Value at index $i, expected: ${expected.contentToString()}, actual: ${actual.contentToString()}")
-                .that(actual[i])
+            assertWithMessage(
+                "Value at index $i, \n" +
+                    "expected: ${expected.contentToString()}, \n" +
+                    "actual:   ${actual.contentToString()}",
+            ).that(actual[i])
                 .isWithin(delta)
                 .of(expected[i])
         }

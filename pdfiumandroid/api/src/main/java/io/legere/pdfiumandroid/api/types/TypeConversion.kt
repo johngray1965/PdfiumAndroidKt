@@ -70,17 +70,33 @@ fun IntRectValues.toPdfRectF(): PdfRectF = PdfRectF(left.toFloat(), top.toFloat(
 
 fun MatrixValues.toMatrix(): Matrix =
     Matrix().apply {
-        setValues(values)
+        setValues(values.toFloatArray())
     }
 
 fun Matrix.toPdfMatrix(): PdfMatrix {
     val values = FloatArray(THREE_BY_THREE)
     getValues(values)
-    return PdfMatrix(values)
+    return PdfMatrix(values.toDoubleArray())
 }
 
 fun Matrix.toMutablePdfMatrix(): MutablePdfMatrix {
     val values = FloatArray(THREE_BY_THREE)
     getValues(values)
-    return MutablePdfMatrix(values)
+    return MutablePdfMatrix(values.toDoubleArray())
+}
+
+fun DoubleArray.toFloatArray(): FloatArray {
+    val floatArray = FloatArray(size)
+    for (i in indices) {
+        floatArray[i] = this[i].toFloat()
+    }
+    return floatArray
+}
+
+fun FloatArray.toDoubleArray(): DoubleArray {
+    val doubleArray = DoubleArray(size)
+    for (i in indices) {
+        doubleArray[i] = this[i].toDouble()
+    }
+    return doubleArray
 }
