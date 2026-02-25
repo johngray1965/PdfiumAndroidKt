@@ -86,7 +86,13 @@ class MatrixBenchmark {
                 }
 
                 OpType.PRE_ROTATE, OpType.POST_ROTATE -> { // Rotate
-                    p1 = (rand.nextFloat() - 0.5f) * 90f
+                    if (rand.nextBoolean()) {
+                        // 50% chance for cardinal angles
+                        p1 = listOf(0f, 90f, 180f, 270f).random(rand)
+                    } else {
+                        // 50% chance for random angles
+                        p1 = (rand.nextFloat() - 0.5f) * 90f
+                    }
                     p2 = 0f // Degrees only
                 }
 
