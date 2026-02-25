@@ -19,6 +19,8 @@
 
 @file:Suppress("unused", "TooManyFunctions")
 
+@file:JvmName("PdfiumAndroidMappers")
+
 package io.legere.pdfiumandroid.api.types
 
 import android.graphics.Matrix
