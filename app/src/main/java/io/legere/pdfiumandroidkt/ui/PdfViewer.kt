@@ -111,5 +111,5 @@ suspend fun drawPdf(
 private fun Matrix.toPdfMatrix(): PdfMatrix {
     val values = FloatArray(9)
     this.getValues(values)
-    return PdfMatrix(values)
+    return PdfMatrix(values.map { it.toDouble() }.toDoubleArray())
 }

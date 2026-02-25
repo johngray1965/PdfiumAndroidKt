@@ -31,15 +31,15 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 const val THREE_BY_THREE = 9
-const val MSCALE_X = 0
-const val MSKEW_X = 1
-const val MTRANS_X = 2
-const val MSKEW_Y = 3
-const val MSCALE_Y = 4
-const val MTRANS_Y = 5
-const val MPERSP_0 = 6
-const val MPERSP_1 = 7
-const val MPERSP_2 = 8
+const val SCALE_X = 0
+const val SKEW_X = 1
+const val TRANS_X = 2
+const val SKEW_Y = 3
+const val SCALE_Y = 4
+const val TRANS_Y = 5
+const val PERSP_0 = 6
+const val PERSP_1 = 7
+const val PERSP_2 = 8
 const val ZERO_TOLERANCE = 1.0 / (1 shl 16)
 
 const val DEGREES_TO_RADIANS = (PI / 180.0)
@@ -470,25 +470,25 @@ class MutablePdfMatrix(
 
 internal fun DoubleArray.reset() {
     fill(0.0)
-    this[MSCALE_X] = 1.0
-    this[MSCALE_Y] = 1.0
-    this[MPERSP_2] = 1.0
+    this[SCALE_X] = 1.0
+    this[SCALE_Y] = 1.0
+    this[PERSP_2] = 1.0
 }
 
 internal fun DoubleArray.isIdentity(): Boolean =
-    this[MSCALE_X] == 1.0 && this[MSKEW_X] == 0.0 && this[MTRANS_X] == 0.0 &&
-        this[MSKEW_Y] == 0.0 && this[MSCALE_Y] == 1.0 && this[MTRANS_Y] == 0.0 &&
-        this[MPERSP_0] == 0.0 && this[MPERSP_1] == 0.0 && this[MPERSP_2] == 1.0
+    this[SCALE_X] == 1.0 && this[SKEW_X] == 0.0 && this[TRANS_X] == 0.0 &&
+        this[SKEW_Y] == 0.0 && this[SCALE_Y] == 1.0 && this[TRANS_Y] == 0.0 &&
+        this[PERSP_0] == 0.0 && this[PERSP_1] == 0.0 && this[PERSP_2] == 1.0
 
-internal fun DoubleArray.isAffine(): Boolean = this[MPERSP_0] == 0.0 && this[MPERSP_1] == 0.0 && this[MPERSP_2] == 1.0
+internal fun DoubleArray.isAffine(): Boolean = this[PERSP_0] == 0.0 && this[PERSP_1] == 0.0 && this[PERSP_2] == 1.0
 
 internal fun DoubleArray.setTranslate(
     dx: Float,
     dy: Float,
 ) {
     reset()
-    this[MTRANS_X] = dx.toDouble()
-    this[MTRANS_Y] = dy.toDouble()
+    this[TRANS_X] = dx.toDouble()
+    this[TRANS_Y] = dy.toDouble()
 }
 
 internal fun DoubleArray.setScale(
@@ -502,15 +502,15 @@ internal fun DoubleArray.setScale(
     val pxd = px.toDouble()
     val pyd = py.toDouble()
 
-    this[MSCALE_X] = sxd
-    this[MSCALE_Y] = syd
-    this[MTRANS_X] = (pxd - sxd * pxd)
-    this[MTRANS_Y] = (pyd - syd * pyd)
-    this[MSKEW_X] = 0.0
-    this[MSKEW_Y] = 0.0
-    this[MPERSP_0] = 0.0
-    this[MPERSP_1] = 0.0
-    this[MPERSP_2] = 1.0
+    this[SCALE_X] = sxd
+    this[SCALE_Y] = syd
+    this[TRANS_X] = (pxd - sxd * pxd)
+    this[TRANS_Y] = (pyd - syd * pyd)
+    this[SKEW_X] = 0.0
+    this[SKEW_Y] = 0.0
+    this[PERSP_0] = 0.0
+    this[PERSP_1] = 0.0
+    this[PERSP_2] = 1.0
 }
 
 @Suppress("MagicNumber")
@@ -528,15 +528,15 @@ internal fun DoubleArray.setRotate(
     val s = if (shouldTruncate(sina)) 0.0 else sina
     val c = if (shouldTruncate(cosa)) 0.0 else cosa
 
-    this[MSCALE_X] = c
-    this[MSKEW_X] = -s
-    this[MSKEW_Y] = s
-    this[MSCALE_Y] = c
-    this[MTRANS_X] = (pxd - c * pxd + s * pyd)
-    this[MTRANS_Y] = (pyd - s * pxd - c * pyd)
-    this[MPERSP_0] = 0.0
-    this[MPERSP_1] = 0.0
-    this[MPERSP_2] = 1.0
+    this[SCALE_X] = c
+    this[SKEW_X] = -s
+    this[SKEW_Y] = s
+    this[SCALE_Y] = c
+    this[TRANS_X] = (pxd - c * pxd + s * pyd)
+    this[TRANS_Y] = (pyd - s * pxd - c * pyd)
+    this[PERSP_0] = 0.0
+    this[PERSP_1] = 0.0
+    this[PERSP_2] = 1.0
 }
 
 internal fun DoubleArray.setSkew(
@@ -550,15 +550,15 @@ internal fun DoubleArray.setSkew(
     val pxd = px.toDouble()
     val pyd = py.toDouble()
 
-    this[MSCALE_X] = 1.0
-    this[MSKEW_X] = kxd
-    this[MSKEW_Y] = kyd
-    this[MSCALE_Y] = 1.0
-    this[MTRANS_X] = -(kxd * pyd)
-    this[MTRANS_Y] = -(kyd * pxd)
-    this[MPERSP_0] = 0.0
-    this[MPERSP_1] = 0.0
-    this[MPERSP_2] = 1.0
+    this[SCALE_X] = 1.0
+    this[SKEW_X] = kxd
+    this[SKEW_Y] = kyd
+    this[SCALE_Y] = 1.0
+    this[TRANS_X] = -(kxd * pyd)
+    this[TRANS_Y] = -(kyd * pxd)
+    this[PERSP_0] = 0.0
+    this[PERSP_1] = 0.0
+    this[PERSP_2] = 1.0
 }
 
 /**
@@ -581,19 +581,19 @@ internal fun DoubleArray.preTranslate(
 ) {
     val dxd = dx.toDouble()
     val dyd = dy.toDouble()
-    val a = this[MSCALE_X]
-    val b = this[MSKEW_X]
-    val c = this[MTRANS_X]
-    val d = this[MSKEW_Y]
-    val e = this[MSCALE_Y]
-    val f = this[MTRANS_Y]
-    val g = this[MPERSP_0]
-    val h = this[MPERSP_1]
-    val i = this[MPERSP_2]
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
 
-    this[MTRANS_X] = a * dxd + b * dyd + c
-    this[MTRANS_Y] = d * dxd + e * dyd + f
-    this[MPERSP_2] = g * dxd + h * dyd + i
+    this[TRANS_X] = a * dxd + b * dyd + c
+    this[TRANS_Y] = d * dxd + e * dyd + f
+    this[PERSP_2] = g * dxd + h * dyd + i
 }
 
 /**
@@ -630,25 +630,25 @@ internal fun DoubleArray.preScale(
     val dx = pxd - sxd * pxd
     val dy = pyd - syd * pyd
 
-    val a = this[MSCALE_X]
-    val b = this[MSKEW_X]
-    val c = this[MTRANS_X]
-    val d = this[MSKEW_Y]
-    val e = this[MSCALE_Y]
-    val f = this[MTRANS_Y]
-    val g = this[MPERSP_0]
-    val h = this[MPERSP_1]
-    val i = this[MPERSP_2]
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
 
-    this[MSCALE_X] = a * sxd
-    this[MSKEW_X] = b * syd
-    this[MTRANS_X] = a * dx + b * dy + c
-    this[MSKEW_Y] = d * sx
-    this[MSCALE_Y] = e * sy
-    this[MTRANS_Y] = d * dx + e * dy + f
-    this[MPERSP_0] = g * sxd
-    this[MPERSP_1] = h * syd
-    this[MPERSP_2] = g * dx + h * dy + i
+    this[SCALE_X] = a * sxd
+    this[SKEW_X] = b * syd
+    this[TRANS_X] = a * dx + b * dy + c
+    this[SKEW_Y] = d * sx
+    this[SCALE_Y] = e * sy
+    this[TRANS_Y] = d * dx + e * dy + f
+    this[PERSP_0] = g * sxd
+    this[PERSP_1] = h * syd
+    this[PERSP_2] = g * dx + h * dy + i
 }
 
 /**
@@ -688,25 +688,25 @@ internal fun DoubleArray.preRotate(
     val dx = sin * pyd + (1 - cos) * pxd
     val dy = -sin * pxd + (1 - cos) * pyd
 
-    val a = this[MSCALE_X]
-    val b = this[MSKEW_X]
-    val c = this[MTRANS_X]
-    val d = this[MSKEW_Y]
-    val e = this[MSCALE_Y]
-    val f = this[MTRANS_Y]
-    val g = this[MPERSP_0]
-    val h = this[MPERSP_1]
-    val i = this[MPERSP_2]
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
 
-    this[MSCALE_X] = a * cos + b * sin
-    this[MSKEW_X] = -a * sin + b * cos
-    this[MTRANS_X] = a * dx + b * dy + c
-    this[MSKEW_Y] = (d * cos + e * sin)
-    this[MSCALE_Y] = (d * -sin + e * cos)
-    this[MTRANS_Y] = d * dx + e * dy + f
-    this[MPERSP_0] = g * cos + h * sin
-    this[MPERSP_1] = -g * sin + h * cos
-    this[MPERSP_2] = g * dx + h * dy + i
+    this[SCALE_X] = a * cos + b * sin
+    this[SKEW_X] = -a * sin + b * cos
+    this[TRANS_X] = a * dx + b * dy + c
+    this[SKEW_Y] = (d * cos + e * sin)
+    this[SCALE_Y] = (d * -sin + e * cos)
+    this[TRANS_Y] = d * dx + e * dy + f
+    this[PERSP_0] = g * cos + h * sin
+    this[PERSP_1] = -g * sin + h * cos
+    this[PERSP_2] = g * dx + h * dy + i
 }
 
 /**
@@ -741,29 +741,29 @@ internal fun DoubleArray.preSkew(
     val dx = -kxd * pyd
     val dy = -kyd * pxd
 
-    val a = this[MSCALE_X]
-    val b = this[MSKEW_X]
-    val c = this[MTRANS_X]
-    val d = this[MSKEW_Y]
-    val e = this[MSCALE_Y]
-    val f = this[MTRANS_Y]
-    val g = this[MPERSP_0]
-    val h = this[MPERSP_1]
-    val i = this[MPERSP_2]
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
 
 //    println("kxd: $kxd")
 //    println("d: $d")
 //    println("e: $e")
 
-    this[MSCALE_X] = a + b * kyd
-    this[MSKEW_X] = a * kxd + b
-    this[MTRANS_X] = a * dx + b * dy + c
-    this[MSKEW_Y] = d + e * kyd
-    this[MSCALE_Y] = d * kxd + e
-    this[MTRANS_Y] = d * dx + e * dy + f
-    this[MPERSP_0] = g + h * kyd
-    this[MPERSP_1] = g * kxd + h
-    this[MPERSP_2] = g * dx + h * dy + i
+    this[SCALE_X] = a + b * kyd
+    this[SKEW_X] = a * kxd + b
+    this[TRANS_X] = a * dx + b * dy + c
+    this[SKEW_Y] = d + e * kyd
+    this[SCALE_Y] = d * kxd + e
+    this[TRANS_Y] = d * dx + e * dy + f
+    this[PERSP_0] = g + h * kyd
+    this[PERSP_1] = g * kxd + h
+    this[PERSP_2] = g * dx + h * dy + i
 }
 
 /**
@@ -787,15 +787,15 @@ internal fun DoubleArray.postTranslate(
     val dxd = dx.toDouble()
     val dyd = dy.toDouble()
 
-    val j = this[MSCALE_X]
-    val k = this[MSKEW_X]
-    val l = this[MTRANS_X]
-    val m = this[MSKEW_Y]
-    val n = this[MSCALE_Y]
-    val o = this[MTRANS_Y]
-    val p = this[MPERSP_0]
-    val q = this[MPERSP_1]
-    val r = this[MPERSP_2]
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+    val p = this[PERSP_0]
+    val q = this[PERSP_1]
+    val r = this[PERSP_2]
 
 //    println("j: $j")
 //    println("k: $k")
@@ -810,12 +810,12 @@ internal fun DoubleArray.postTranslate(
 //    println("dxd: $dxd")
 //    println("dyd: $dyd")
 
-    this[MSCALE_X] = j + dxd * p
-    this[MSKEW_X] = k + dxd * q
-    this[MTRANS_X] = l + dxd * r
-    this[MSKEW_Y] = m + dyd * p
-    this[MSCALE_Y] = n + dyd * q
-    this[MTRANS_Y] = o + dyd * r
+    this[SCALE_X] = j + dxd * p
+    this[SKEW_X] = k + dxd * q
+    this[TRANS_X] = l + dxd * r
+    this[SKEW_Y] = m + dyd * p
+    this[SCALE_Y] = n + dyd * q
+    this[TRANS_Y] = o + dyd * r
 }
 
 /*
@@ -858,22 +858,22 @@ internal fun DoubleArray.postScale(
 //    println("dx: $dx")
 //    println("dy: $dy")
 
-    val j = this[MSCALE_X]
-    val k = this[MSKEW_X]
-    val l = this[MTRANS_X]
-    val m = this[MSKEW_Y]
-    val n = this[MSCALE_Y]
-    val o = this[MTRANS_Y]
-    val p = this[MPERSP_0]
-    val q = this[MPERSP_1]
-    val r = this[MPERSP_2]
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+    val p = this[PERSP_0]
+    val q = this[PERSP_1]
+    val r = this[PERSP_2]
 
-    this[MSCALE_X] = sxd * j + dx * p
-    this[MSKEW_X] = sxd * k + dx * q
-    this[MTRANS_X] = sxd * l + dx * r
-    this[MSKEW_Y] = syd * m + dy * p
-    this[MSCALE_Y] = syd * n + dy * q
-    this[MTRANS_Y] = syd * o + dy * r
+    this[SCALE_X] = sxd * j + dx * p
+    this[SKEW_X] = sxd * k + dx * q
+    this[TRANS_X] = sxd * l + dx * r
+    this[SKEW_Y] = syd * m + dy * p
+    this[SCALE_Y] = syd * n + dy * q
+    this[TRANS_Y] = syd * o + dy * r
 }
 
 /**
@@ -914,15 +914,15 @@ internal fun DoubleArray.postRotate(
     val dx = sin * pyd + (1 - cos) * pxd
     val dy = -sin * pxd + (1 - cos) * pyd
 
-    val j = this[MSCALE_X]
-    val k = this[MSKEW_X]
-    val l = this[MTRANS_X]
-    val m = this[MSKEW_Y]
-    val n = this[MSCALE_Y]
-    val o = this[MTRANS_Y]
-    val p = this[MPERSP_0]
-    val q = this[MPERSP_1]
-    val r = this[MPERSP_2]
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+    val p = this[PERSP_0]
+    val q = this[PERSP_1]
+    val r = this[PERSP_2]
 
 //    println("j: $j")
 //    println("k: $k")
@@ -940,12 +940,12 @@ internal fun DoubleArray.postRotate(
 //    println("cos: $cos")
 //    println("sin: $sin")
 
-    this[MSCALE_X] = cos * j - sin * m + dx * p
-    this[MSKEW_X] = cos * k - sin * n + dx * q
-    this[MTRANS_X] = cos * l - sin * o + dx * r
-    this[MSKEW_Y] = sin * j + cos * m + dy * p
-    this[MSCALE_Y] = sin * k + cos * n + dy * q
-    this[MTRANS_Y] = sin * l + cos * o + dy * r
+    this[SCALE_X] = cos * j - sin * m + dx * p
+    this[SKEW_X] = cos * k - sin * n + dx * q
+    this[TRANS_X] = cos * l - sin * o + dx * r
+    this[SKEW_Y] = sin * j + cos * m + dy * p
+    this[SCALE_Y] = sin * k + cos * n + dy * q
+    this[TRANS_Y] = sin * l + cos * o + dy * r
 }
 
 private fun shouldTruncate(value: Double): Boolean = abs(value) < ZERO_TOLERANCE
@@ -985,22 +985,22 @@ internal fun DoubleArray.postSkew(
     val dx = -kxd * pyd
     val dy = -kyd * pxd
 
-    val j = this[MSCALE_X]
-    val k = this[MSKEW_X]
-    val l = this[MTRANS_X]
-    val m = this[MSKEW_Y]
-    val n = this[MSCALE_Y]
-    val o = this[MTRANS_Y]
-    val p = this[MPERSP_0]
-    val q = this[MPERSP_1]
-    val r = this[MPERSP_2]
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+    val p = this[PERSP_0]
+    val q = this[PERSP_1]
+    val r = this[PERSP_2]
 
-    this[MSCALE_X] = j + kxd * m + dx * p
-    this[MSKEW_X] = k + kxd * n + dx * q
-    this[MTRANS_X] = l + kxd * o + dx * r
-    this[MSKEW_Y] = kyd * j + m + dy * p
-    this[MSCALE_Y] = kyd * k + n + dy * q
-    this[MTRANS_Y] = kyd * l + o + dy * r
+    this[SCALE_X] = j + kxd * m + dx * p
+    this[SKEW_X] = k + kxd * n + dx * q
+    this[TRANS_X] = l + kxd * o + dx * r
+    this[SKEW_Y] = kyd * j + m + dy * p
+    this[SCALE_Y] = kyd * k + n + dy * q
+    this[TRANS_Y] = kyd * l + o + dy * r
 }
 
 @Suppress("MagicNumber", "UnnecessaryVariable")
@@ -1008,27 +1008,27 @@ internal fun DoubleArray.preConcat(other: DoubleArray) {
     val a = this
     val b = other
     // note that a = this, so the temp variables are important.
-    // without them we would overwrite the original matrix
+    // without them, we would overwrite the original matrix
     // before the values are calculated
-    val a0 = a[0]
-    val a1 = a[1]
-    val a2 = a[2]
-    val a3 = a[3]
-    val a4 = a[4]
-    val a5 = a[5]
-    val a6 = a[6]
-    val a7 = a[7]
-    val a8 = a[8]
+    val a0 = a[SCALE_X]
+    val a1 = a[SKEW_X]
+    val a2 = a[TRANS_X]
+    val a3 = a[SKEW_Y]
+    val a4 = a[SCALE_Y]
+    val a5 = a[TRANS_Y]
+    val a6 = a[PERSP_0]
+    val a7 = a[PERSP_1]
+    val a8 = a[PERSP_2]
 
-    val b0 = b[0]
-    val b1 = b[1]
-    val b2 = b[2]
-    val b3 = b[3]
-    val b4 = b[4]
-    val b5 = b[5]
-    val b6 = b[6]
-    val b7 = b[7]
-    val b8 = b[8]
+    val b0 = b[SCALE_X]
+    val b1 = b[SKEW_X]
+    val b2 = b[TRANS_X]
+    val b3 = b[SKEW_Y]
+    val b4 = b[SCALE_Y]
+    val b5 = b[TRANS_Y]
+    val b6 = b[PERSP_0]
+    val b7 = b[PERSP_1]
+    val b8 = b[PERSP_2]
 
     val v0 = a0 * b0 + a1 * b3 + a2 * b6
     val v1 = a0 * b1 + a1 * b4 + a2 * b7
@@ -1039,43 +1039,43 @@ internal fun DoubleArray.preConcat(other: DoubleArray) {
     val v6 = a6 * b0 + a7 * b3 + a8 * b6
     val v7 = a6 * b1 + a7 * b4 + a8 * b7
     val v8 = a6 * b2 + a7 * b5 + a8 * b8
-    this[0] = v0
-    this[1] = v1
-    this[2] = v2
-    this[3] = v3
-    this[4] = v4
-    this[5] = v5
-    this[6] = v6
-    this[7] = v7
-    this[8] = v8
+    this[SCALE_X] = v0
+    this[SKEW_X] = v1
+    this[TRANS_X] = v2
+    this[SKEW_Y] = v3
+    this[SCALE_Y] = v4
+    this[TRANS_Y] = v5
+    this[PERSP_0] = v6
+    this[PERSP_1] = v7
+    this[PERSP_2] = v8
 }
 
-@Suppress("MagicNumber")
+@Suppress("MagicNumber", "UnnecessaryVariable")
 internal fun DoubleArray.postConcat(other: DoubleArray) {
     val a = other
     val b = this
     // note that b = this, so the temp variables are important.
     // without them we would overwrite the original matrix
     // before the values are calculated
-    val a0 = a[0]
-    val a1 = a[1]
-    val a2 = a[2]
-    val a3 = a[3]
-    val a4 = a[4]
-    val a5 = a[5]
-    val a6 = a[6]
-    val a7 = a[7]
-    val a8 = a[8]
+    val a0 = a[SCALE_X]
+    val a1 = a[SKEW_X]
+    val a2 = a[TRANS_X]
+    val a3 = a[SKEW_Y]
+    val a4 = a[SCALE_Y]
+    val a5 = a[TRANS_Y]
+    val a6 = a[PERSP_0]
+    val a7 = a[PERSP_1]
+    val a8 = a[PERSP_2]
 
-    val b0 = b[0]
-    val b1 = b[1]
-    val b2 = b[2]
-    val b3 = b[3]
-    val b4 = b[4]
-    val b5 = b[5]
-    val b6 = b[6]
-    val b7 = b[7]
-    val b8 = b[8]
+    val b0 = b[SCALE_X]
+    val b1 = b[SKEW_X]
+    val b2 = b[TRANS_X]
+    val b3 = b[SKEW_Y]
+    val b4 = b[SCALE_Y]
+    val b5 = b[TRANS_Y]
+    val b6 = b[PERSP_0]
+    val b7 = b[PERSP_1]
+    val b8 = b[PERSP_2]
 
     val v0 = a0 * b0 + a1 * b3 + a2 * b6
     val v1 = a0 * b1 + a1 * b4 + a2 * b7
@@ -1086,29 +1086,29 @@ internal fun DoubleArray.postConcat(other: DoubleArray) {
     val v6 = a6 * b0 + a7 * b3 + a8 * b6
     val v7 = a6 * b1 + a7 * b4 + a8 * b7
     val v8 = a6 * b2 + a7 * b5 + a8 * b8
-    this[0] = v0
-    this[1] = v1
-    this[2] = v2
-    this[3] = v3
-    this[4] = v4
-    this[5] = v5
-    this[6] = v6
-    this[7] = v7
-    this[8] = v8
+    this[SCALE_X] = v0
+    this[SKEW_X] = v1
+    this[TRANS_X] = v2
+    this[SKEW_Y] = v3
+    this[SCALE_Y] = v4
+    this[TRANS_Y] = v5
+    this[PERSP_0] = v6
+    this[PERSP_1] = v7
+    this[PERSP_2] = v8
 }
 
 @Suppress("MagicNumber")
 internal fun DoubleArray.invert(): DoubleArray? {
     val v = this
-    val v0 = v[0]
-    val v1 = v[1]
-    val v2 = v[2]
-    val v3 = v[3]
-    val v4 = v[4]
-    val v5 = v[5]
-    val v6 = v[6]
-    val v7 = v[7]
-    val v8 = v[8]
+    val v0 = v[SCALE_X]
+    val v1 = v[SKEW_X]
+    val v2 = v[TRANS_X]
+    val v3 = v[SKEW_Y]
+    val v4 = v[SCALE_Y]
+    val v5 = v[TRANS_Y]
+    val v6 = v[PERSP_0]
+    val v7 = v[PERSP_1]
+    val v8 = v[PERSP_2]
 
     val det =
         v0 * (v4 * v8 - v5 * v7) -
@@ -1117,15 +1117,15 @@ internal fun DoubleArray.invert(): DoubleArray? {
     if (abs(det) < 1e-10) return null
     val invDet = 1.0 / det
     val res = DoubleArray(THREE_BY_THREE)
-    res[0] = ((v4 * v8 - v5 * v7) * invDet)
-    res[1] = ((v2 * v7 - v1 * v8) * invDet)
-    res[2] = ((v1 * v5 - v2 * v4) * invDet)
-    res[3] = ((v5 * v6 - v3 * v8) * invDet)
-    res[4] = ((v0 * v8 - v2 * v6) * invDet)
-    res[5] = ((v2 * v3 - v0 * v5) * invDet)
-    res[6] = ((v3 * v7 - v4 * v6) * invDet)
-    res[7] = ((v1 * v6 - v0 * v7) * invDet)
-    res[8] = ((v0 * v4 - v1 * v3) * invDet)
+    res[SCALE_X] = ((v4 * v8 - v5 * v7) * invDet)
+    res[SKEW_X] = ((v2 * v7 - v1 * v8) * invDet)
+    res[TRANS_X] = ((v1 * v5 - v2 * v4) * invDet)
+    res[SKEW_Y] = ((v5 * v6 - v3 * v8) * invDet)
+    res[SCALE_Y] = ((v0 * v8 - v2 * v6) * invDet)
+    res[TRANS_Y] = ((v2 * v3 - v0 * v5) * invDet)
+    res[PERSP_0] = ((v3 * v7 - v4 * v6) * invDet)
+    res[PERSP_1] = ((v1 * v6 - v0 * v7) * invDet)
+    res[PERSP_2] = ((v0 * v4 - v1 * v3) * invDet)
     return res
 }
 
@@ -1133,16 +1133,16 @@ internal fun DoubleArray.mapX(
     x: Float,
     y: Float,
 ): Float {
-    val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
-    return ((this[MSCALE_X] * x + this[MSKEW_X] * y + this[MTRANS_X]) / w).toFloat()
+    val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
+    return ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w).toFloat()
 }
 
 internal fun DoubleArray.mapY(
     x: Float,
     y: Float,
 ): Float {
-    val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
-    return ((this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w).toFloat()
+    val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
+    return ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w).toFloat()
 }
 
 internal fun DoubleArray.mapRect(rect: FloatRectValues): PdfRectF {
@@ -1230,9 +1230,9 @@ internal fun DoubleArray.mapPoints(
         val di = dstIndex + i * 2
         val x = src[si]
         val y = src[si + 1]
-        val w = this[MPERSP_0] * x + this[MPERSP_1] * y + this[MPERSP_2]
-        dst[di] = ((this[MSCALE_X] * x + this[MSKEW_X] * y + this[MTRANS_X]) / w).toFloat()
-        dst[di + 1] = ((this[MSKEW_Y] * x + this[MSCALE_Y] * y + this[MTRANS_Y]) / w).toFloat()
+        val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
+        dst[di] = ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w).toFloat()
+        dst[di + 1] = ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w).toFloat()
     }
 }
 
@@ -1259,8 +1259,8 @@ internal fun DoubleArray.mapVectors(
         val di = dstIndex + i * 2
         val x = src[si]
         val y = src[si + 1]
-        dst[di] = (this[MSCALE_X] * x + this[MSKEW_X] * y).toFloat()
-        dst[di + 1] = (this[MSKEW_Y] * x + this[MSCALE_Y] * y).toFloat()
+        dst[di] = (this[SCALE_X] * x + this[SKEW_X] * y).toFloat()
+        dst[di + 1] = (this[SKEW_Y] * x + this[SCALE_Y] * y).toFloat()
     }
 }
 
@@ -1269,28 +1269,28 @@ fun getDeterminant3x3(m: DoubleArray): Double {
     // [0 3 6]
     // [1 4 7]
     // [2 5 8]
-    return m[0] * (m[4] * m[8] - m[5] * m[7]) -
-        m[3] * (m[1] * m[8] - m[2] * m[7]) +
-        m[6] * (m[1] * m[5] - m[2] * m[4])
+    return m[SCALE_X] * (m[SCALE_Y] * m[PERSP_2] - m[TRANS_Y] * m[PERSP_1]) -
+        m[SKEW_Y] * (m[SKEW_X] * m[PERSP_2] - m[TRANS_X] * m[PERSP_1]) +
+        m[PERSP_0] * (m[SKEW_X] * m[TRANS_Y] - m[TRANS_X] * m[SCALE_Y])
 }
 
 fun normalize3x3Rotation(m: DoubleArray) {
     // 1. Get the length of the first column (X-axis)
-    val len1 = sqrt((m[0] * m[0] + m[1] * m[1]))
+    val len1 = sqrt((m[SCALE_X] * m[SCALE_X] + m[SKEW_X] * m[SKEW_X]))
     if (len1 > 0) {
-        m[0] /= len1
-        m[1] /= len1
+        m[SCALE_X] /= len1
+        m[SKEW_X] /= len1
     }
 
     // 2. Make the second column (Y-axis) perpendicular to the first
     // In 2D, if X is (a, b), the perpendicular Y is (-b, a)
-    m[3] = -m[1]
-    m[4] = m[0]
+    m[SKEW_Y] = -m[SKEW_X]
+    m[SCALE_Y] = m[SCALE_X]
 
     // 3. Clean the bottom row (Standard for affine transforms)
-    m[2] = 0.0
-    m[5] = 0.0
-    m[8] = 1.0
+    m[TRANS_X] = 0.0
+    m[TRANS_Y] = 0.0
+    m[PERSP_2] = 1.0
 }
 
 private val threadLocalFloatArray = ThreadLocal.withInitial { DoubleArray(THREE_BY_THREE) }

@@ -202,16 +202,16 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             verifyHappy {
                 assertThat(it).isEqualTo(
                     PdfMatrix(
-                        floatArrayOf(
-                            1.0f,
-                            3.0f,
-                            5.0f,
-                            2.0f,
-                            4.0f,
-                            6.0f,
-                            0.0f,
-                            0.0f,
-                            1.0f,
+                        doubleArrayOf(
+                            1.0,
+                            3.0,
+                            5.0,
+                            2.0,
+                            4.0,
+                            6.0,
+                            0.0,
+                            0.0,
+                            1.0,
                         ),
                     ),
                 )
@@ -809,16 +809,16 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                         PdfRectF(24.0f, 25.0f, 26.0f, 27.0f),
                         emptyList(),
                         PdfMatrix(
-                            floatArrayOf(
-                                2.0f,
-                                0.0f,
-                                28.0f,
-                                0.0f,
-                                1.0f,
-                                29.0f,
-                                0.0f,
-                                0.0f,
-                                1.0f,
+                            doubleArrayOf(
+                                2.0,
+                                0.0,
+                                28.0,
+                                0.0,
+                                1.0,
+                                29.0,
+                                0.0,
+                                0.0,
+                                1.0,
                             ),
                         ),
                     ),

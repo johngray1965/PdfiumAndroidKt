@@ -53,7 +53,7 @@ class PdfMatrixTest {
         val dst = MutablePdfMatrix()
         dst.set(src)
         assertThat(dst.toImmutable()).isEqualTo(src)
-        assertThat(dst.values[MTRANS_X]).isEqualTo(10f)
+        assertThat(dst.values[TRANS_X]).isEqualTo(10.0)
     }
 
     @Test
@@ -62,10 +62,10 @@ class PdfMatrixTest {
         matrix.setTranslate(10f, 20f)
 
         val values = matrix.values
-        assertThat(values[MTRANS_X]).isEqualTo(10f)
-        assertThat(values[MTRANS_Y]).isEqualTo(20f)
-        assertThat(values[MSCALE_X]).isEqualTo(1f)
-        assertThat(values[MSCALE_Y]).isEqualTo(1f)
+        assertThat(values[TRANS_X]).isEqualTo(10.0)
+        assertThat(values[TRANS_Y]).isEqualTo(20.0)
+        assertThat(values[SCALE_X]).isEqualTo(1.0)
+        assertThat(values[SCALE_Y]).isEqualTo(1.0)
     }
 
     @Test
@@ -74,10 +74,10 @@ class PdfMatrixTest {
         matrix.setScale(2f, 3f)
 
         val values = matrix.values
-        assertThat(values[MSCALE_X]).isEqualTo(2f)
-        assertThat(values[MSCALE_Y]).isEqualTo(3f)
-        assertThat(values[MTRANS_X]).isEqualTo(0f)
-        assertThat(values[MTRANS_Y]).isEqualTo(0f)
+        assertThat(values[SCALE_X]).isEqualTo(2.0)
+        assertThat(values[SCALE_Y]).isEqualTo(3.0)
+        assertThat(values[TRANS_X]).isEqualTo(0.0)
+        assertThat(values[TRANS_Y]).isEqualTo(0.0)
     }
 
     @Test
@@ -88,10 +88,10 @@ class PdfMatrixTest {
         // py - sy*py = 10 - 3*10 = -20
 
         val values = matrix.values
-        assertThat(values[MSCALE_X]).isEqualTo(2f)
-        assertThat(values[MSCALE_Y]).isEqualTo(3f)
-        assertThat(values[MTRANS_X]).isEqualTo(-10f)
-        assertThat(values[MTRANS_Y]).isEqualTo(-20f)
+        assertThat(values[SCALE_X]).isEqualTo(2)
+        assertThat(values[SCALE_Y]).isEqualTo(3)
+        assertThat(values[TRANS_X]).isEqualTo(-10)
+        assertThat(values[TRANS_Y]).isEqualTo(-20)
     }
 
     @Test
@@ -101,10 +101,10 @@ class PdfMatrixTest {
 
         val values = matrix.values
         // cos(90) = 0, sin(90) = 1
-        assertThat(values[MSCALE_X]).isWithin(0.0001f).of(0f)
-        assertThat(values[MSKEW_X]).isWithin(0.0001f).of(-1f)
-        assertThat(values[MSKEW_Y]).isWithin(0.0001f).of(1f)
-        assertThat(values[MSCALE_Y]).isWithin(0.0001f).of(0f)
+        assertThat(values[SCALE_X]).isWithin(0.0001).of(0.0)
+        assertThat(values[SKEW_X]).isWithin(0.0001).of(-1.0)
+        assertThat(values[SKEW_Y]).isWithin(0.0001).of(1.0)
+        assertThat(values[SCALE_Y]).isWithin(0.0001).of(0.0)
     }
 
     @Test
@@ -113,9 +113,9 @@ class PdfMatrixTest {
         matrix.setSkew(0.5f, 0.5f)
 
         val values = matrix.values
-        assertThat(values[MSKEW_X]).isEqualTo(0.5f)
-        assertThat(values[MSKEW_Y]).isEqualTo(0.5f)
-        assertThat(values[MSCALE_X]).isEqualTo(1f)
+        assertThat(values[SKEW_X]).isEqualTo(0.5)
+        assertThat(values[SKEW_Y]).isEqualTo(0.5)
+        assertThat(values[SCALE_X]).isEqualTo(1)
     }
 
     @Test
@@ -129,8 +129,8 @@ class PdfMatrixTest {
         // v' = A * (B * v)
         val c = a.concat(b)
 
-        assertThat(c.values[MSCALE_X]).isEqualTo(2f)
-        assertThat(c.values[MTRANS_X]).isEqualTo(10f)
+        assertThat(c.values[SCALE_X]).isEqualTo(2.0)
+        assertThat(c.values[TRANS_X]).isEqualTo(10.0)
     }
 
     @Test
@@ -140,8 +140,8 @@ class PdfMatrixTest {
         matrix.preTranslate(5f, 5f)
 
         val values = matrix.values
-        assertThat(values[MTRANS_X]).isEqualTo(15f)
-        assertThat(values[MTRANS_Y]).isEqualTo(15f)
+        assertThat(values[TRANS_X]).isEqualTo(15.0)
+        assertThat(values[TRANS_Y]).isEqualTo(15.0)
     }
 
     @Test
@@ -151,8 +151,8 @@ class PdfMatrixTest {
         matrix.postTranslate(5f, 5f)
 
         val values = matrix.values
-        assertThat(values[MTRANS_X]).isEqualTo(15f)
-        assertThat(values[MTRANS_Y]).isEqualTo(15f)
+        assertThat(values[TRANS_X]).isEqualTo(15.0)
+        assertThat(values[TRANS_Y]).isEqualTo(15.0)
     }
 
     @Test
@@ -162,10 +162,10 @@ class PdfMatrixTest {
         matrix.preScale(2f, 2f)
 
         val values = matrix.values
-        assertThat(values[MSCALE_X]).isEqualTo(2f)
-        assertThat(values[MSCALE_Y]).isEqualTo(2f)
-        assertThat(values[MTRANS_X]).isEqualTo(10f)
-        assertThat(values[MTRANS_Y]).isEqualTo(10f)
+        assertThat(values[SCALE_X]).isEqualTo(2.0)
+        assertThat(values[SCALE_Y]).isEqualTo(2.0)
+        assertThat(values[TRANS_X]).isEqualTo(10.0)
+        assertThat(values[TRANS_Y]).isEqualTo(10.0)
     }
 
     @Test
@@ -175,10 +175,10 @@ class PdfMatrixTest {
         matrix.postScale(2f, 2f)
 
         val values = matrix.values
-        assertThat(values[MSCALE_X]).isEqualTo(2f)
-        assertThat(values[MSCALE_Y]).isEqualTo(2f)
-        assertThat(values[MTRANS_X]).isEqualTo(20f)
-        assertThat(values[MTRANS_Y]).isEqualTo(20f)
+        assertThat(values[SCALE_X]).isEqualTo(2.0)
+        assertThat(values[SCALE_Y]).isEqualTo(2.0)
+        assertThat(values[TRANS_X]).isEqualTo(20.0)
+        assertThat(values[TRANS_Y]).isEqualTo(20.0)
     }
 
     @Test
@@ -188,9 +188,9 @@ class PdfMatrixTest {
         matrix.preSkew(1f, 0f)
 
         val values = matrix.values
-        assertThat(values[MSCALE_X]).isEqualTo(1f)
-        assertThat(values[MSKEW_X]).isEqualTo(1f)
-        assertThat(values[MTRANS_X]).isEqualTo(10f)
+        assertThat(values[SCALE_X]).isEqualTo(1.0)
+        assertThat(values[SKEW_X]).isEqualTo(1.0)
+        assertThat(values[TRANS_X]).isEqualTo(10.0)
     }
 
     @Test
@@ -200,9 +200,9 @@ class PdfMatrixTest {
         matrix.postSkew(1f, 0f)
 
         val values = matrix.values
-        assertThat(values[MSCALE_X]).isEqualTo(1f)
-        assertThat(values[MSKEW_X]).isEqualTo(1f)
-        assertThat(values[MTRANS_X]).isEqualTo(20f)
+        assertThat(values[SCALE_X]).isEqualTo(1.0)
+        assertThat(values[SKEW_X]).isEqualTo(1.0)
+        assertThat(values[TRANS_X]).isEqualTo(20.0)
     }
 
     @Test
@@ -210,7 +210,7 @@ class PdfMatrixTest {
         val matrix = MutablePdfMatrix()
         assertThat(matrix.isIdentity()).isTrue()
 
-        matrix.values[MPERSP_0] = 0.1f
+        matrix.values[PERSP_0] = 0.1
         assertThat(matrix.isIdentity()).isFalse()
     }
 
@@ -219,11 +219,11 @@ class PdfMatrixTest {
         val matrix = MutablePdfMatrix()
         assertThat(matrix.isAffine()).isTrue()
 
-        matrix.values[MPERSP_0] = 0.1f
+        matrix.values[PERSP_0] = 0.1
         assertThat(matrix.isAffine()).isFalse()
 
         matrix.reset()
-        matrix.values[MPERSP_2] = 0.5f
+        matrix.values[PERSP_2] = 0.5
         assertThat(matrix.isAffine()).isFalse()
     }
 

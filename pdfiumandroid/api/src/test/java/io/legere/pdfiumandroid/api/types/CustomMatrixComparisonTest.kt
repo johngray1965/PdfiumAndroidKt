@@ -328,18 +328,18 @@ class CustomMatrixComparisonTest {
     @Test
     fun invertBehavesLikePlatformMatrix2() {
         val expected =
-            floatArrayOf(1.0194546f, 0.0f, -20.997845f, 0.0f, 1.4150456f, -4.237648f, 0.0f, 0.0f, 1.0f)
+            doubleArrayOf(1.0194546, 0.0, -20.997844837965395, 0.0, 1.4150456, -4.2376478374130215, 0.0, 0.0, 1.0)
         mutableMatrix.set(
-            floatArrayOf(
-                1.0194546f,
-                0.0f,
-                10.449388f,
-                0.0f,
-                1.4150456f,
-                -23.396986f,
-                0.0f,
-                0.0f,
-                1.0f,
+            doubleArrayOf(
+                1.0194546,
+                0.0,
+                10.449388,
+                0.0,
+                1.4150456,
+                -23.396986,
+                0.0,
+                0.0,
+                1.0,
             ),
         )
         mutableMatrix.preTranslate(-30.847115f, 13.539732f)
@@ -376,16 +376,16 @@ class CustomMatrixComparisonTest {
 
         mutableMatrix.set(
             PdfMatrix(
-                floatArrayOf(
-                    1f,
-                    0f,
-                    0f,
-                    0f,
-                    1f,
-                    0f,
-                    0.1f,
-                    0.2f,
-                    1f, // Perspective component
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.1,
+                    0.2,
+                    1.0,
                 ),
             ),
         )
@@ -711,7 +711,7 @@ class CustomMatrixComparisonTest {
 
         platform.getValues(platformValues)
 
-        assertFloatArraysEqual(platformValues, customValues, delta)
+        assertFloatArraysEqual(platformValues, customValues.toFloatArray(), delta)
     }
 
     private fun assertFloatArraysEqual(
@@ -721,8 +721,11 @@ class CustomMatrixComparisonTest {
     ) {
         assertThat(actual).hasLength(expected.size)
         for (i in expected.indices) {
-            assertWithMessage("Value at index $i, expected: ${expected.contentToString()}, actual: ${actual.contentToString()}")
-                .that(actual[i])
+            assertWithMessage(
+                "Value at index $i, \n" +
+                    "expected: ${expected.contentToString()}, \n" +
+                    "actual:   ${actual.contentToString()}",
+            ).that(actual[i])
                 .isWithin(delta)
                 .of(expected[i])
         }

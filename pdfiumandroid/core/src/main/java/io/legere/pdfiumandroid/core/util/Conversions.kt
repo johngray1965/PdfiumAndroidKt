@@ -24,19 +24,19 @@ package io.legere.pdfiumandroid.core.util
 import android.graphics.Matrix
 import android.graphics.RectF
 import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.MPERSP_0
-import io.legere.pdfiumandroid.api.types.MPERSP_1
-import io.legere.pdfiumandroid.api.types.MPERSP_2
-import io.legere.pdfiumandroid.api.types.MSCALE_X
-import io.legere.pdfiumandroid.api.types.MSCALE_Y
-import io.legere.pdfiumandroid.api.types.MSKEW_X
-import io.legere.pdfiumandroid.api.types.MSKEW_Y
-import io.legere.pdfiumandroid.api.types.MTRANS_X
-import io.legere.pdfiumandroid.api.types.MTRANS_Y
 import io.legere.pdfiumandroid.api.types.MatrixValues
+import io.legere.pdfiumandroid.api.types.PERSP_0
+import io.legere.pdfiumandroid.api.types.PERSP_1
+import io.legere.pdfiumandroid.api.types.PERSP_2
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.pdfiumandroid.api.types.SCALE_X
+import io.legere.pdfiumandroid.api.types.SCALE_Y
+import io.legere.pdfiumandroid.api.types.SKEW_X
+import io.legere.pdfiumandroid.api.types.SKEW_Y
 import io.legere.pdfiumandroid.api.types.THREE_BY_THREE
+import io.legere.pdfiumandroid.api.types.TRANS_X
+import io.legere.pdfiumandroid.api.types.TRANS_Y
 import io.legere.pdfiumandroid.api.types.toDoubleArray
 import io.legere.pdfiumandroid.api.types.toFloatArray
 
@@ -48,12 +48,12 @@ fun matrixToFloatArray(matrix: Matrix): FloatArray {
     val values = FloatArray(THREE_BY_THREE)
     matrix.getValues(values)
     return floatArrayOf(
-        values[MSCALE_X],
-        values[MSKEW_Y],
-        values[MSKEW_X],
-        values[MSCALE_Y],
-        values[MTRANS_X],
-        values[MTRANS_Y],
+        values[SCALE_X],
+        values[SKEW_Y],
+        values[SKEW_X],
+        values[SCALE_Y],
+        values[TRANS_X],
+        values[TRANS_Y],
     )
 }
 
@@ -64,12 +64,12 @@ fun matrixToFloatArray(matrix: Matrix): FloatArray {
 fun matrixToFloatArray(matrix: MatrixValues): FloatArray {
     val values = matrix.values
     return floatArrayOf(
-        values[MSCALE_X].toFloat(),
-        values[MSKEW_Y].toFloat(),
-        values[MSKEW_X].toFloat(),
-        values[MSCALE_Y].toFloat(),
-        values[MTRANS_X].toFloat(),
-        values[MTRANS_Y].toFloat(),
+        values[SCALE_X].toFloat(),
+        values[SKEW_Y].toFloat(),
+        values[SKEW_X].toFloat(),
+        values[SCALE_Y].toFloat(),
+        values[TRANS_X].toFloat(),
+        values[TRANS_Y].toFloat(),
     )
 }
 
@@ -77,15 +77,15 @@ fun floatArrayToMatrix(matrixValues: FloatArray): Matrix {
     val values = FloatArray(THREE_BY_THREE)
     // input is [MSCALE_X, MSKEW_X, MTRANS_X, MSKEW_Y, MSCALE_Y, MTRANS_Y]
     var i = 0
-    values[MSCALE_X] = matrixValues[i++]
-    values[MSKEW_Y] = matrixValues[i++]
-    values[MSKEW_X] = matrixValues[i++]
-    values[MSCALE_Y] = matrixValues[i++]
-    values[MTRANS_X] = matrixValues[i++]
-    values[MTRANS_Y] = matrixValues[i]
-    values[MPERSP_0] = 0f
-    values[MPERSP_1] = 0f
-    values[MPERSP_2] = 1f
+    values[SCALE_X] = matrixValues[i++]
+    values[SKEW_Y] = matrixValues[i++]
+    values[SKEW_X] = matrixValues[i++]
+    values[SCALE_Y] = matrixValues[i++]
+    values[TRANS_X] = matrixValues[i++]
+    values[TRANS_Y] = matrixValues[i]
+    values[PERSP_0] = 0f
+    values[PERSP_1] = 0f
+    values[PERSP_2] = 1f
 
     val matrix = Matrix()
     matrix.setValues(values)
@@ -96,15 +96,15 @@ fun floatArrayToPdfMatrix(matrixValues: FloatArray): PdfMatrix {
     val values = DoubleArray(THREE_BY_THREE)
     // input is [MSCALE_X, MSKEW_X, MTRANS_X, MSKEW_Y, MSCALE_Y, MTRANS_Y]
     var i = 0
-    values[MSCALE_X] = matrixValues[i++].toDouble()
-    values[MSKEW_Y] = matrixValues[i++].toDouble()
-    values[MSKEW_X] = matrixValues[i++].toDouble()
-    values[MSCALE_Y] = matrixValues[i++].toDouble()
-    values[MTRANS_X] = matrixValues[i++].toDouble()
-    values[MTRANS_Y] = matrixValues[i].toDouble()
-    values[MPERSP_0] = 0.0
-    values[MPERSP_1] = 0.0
-    values[MPERSP_2] = 1.0
+    values[SCALE_X] = matrixValues[i++].toDouble()
+    values[SKEW_Y] = matrixValues[i++].toDouble()
+    values[SKEW_X] = matrixValues[i++].toDouble()
+    values[SCALE_Y] = matrixValues[i++].toDouble()
+    values[TRANS_X] = matrixValues[i++].toDouble()
+    values[TRANS_Y] = matrixValues[i].toDouble()
+    values[PERSP_0] = 0.0
+    values[PERSP_1] = 0.0
+    values[PERSP_2] = 1.0
     return PdfMatrix(values)
 }
 

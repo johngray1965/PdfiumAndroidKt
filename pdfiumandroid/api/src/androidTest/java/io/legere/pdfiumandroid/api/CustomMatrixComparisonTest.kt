@@ -1,9 +1,33 @@
-package io.legere.pdfiumandroid.api.types
+package io.legere.pdfiumandroid.api
 
 import android.graphics.RectF
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
+import io.legere.pdfiumandroid.api.types.MatrixValues
+import io.legere.pdfiumandroid.api.types.MutablePdfMatrix
+import io.legere.pdfiumandroid.api.types.MutablePdfRectF
+import io.legere.pdfiumandroid.api.types.PdfMatrix
+import io.legere.pdfiumandroid.api.types.PdfPoint
+import io.legere.pdfiumandroid.api.types.PdfPointF
+import io.legere.pdfiumandroid.api.types.PdfRect
+import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.pdfiumandroid.api.types.toFloatArray
+import io.legere.pdfiumandroid.api.types.toMatrix
+import io.legere.pdfiumandroid.api.types.toMutablePdfMatrix
+import io.legere.pdfiumandroid.api.types.toMutablePdfPoint
+import io.legere.pdfiumandroid.api.types.toMutablePdfPointF
+import io.legere.pdfiumandroid.api.types.toMutablePdfRect
+import io.legere.pdfiumandroid.api.types.toMutablePdfRectF
+import io.legere.pdfiumandroid.api.types.toPdfMatrix
+import io.legere.pdfiumandroid.api.types.toPdfPoint
+import io.legere.pdfiumandroid.api.types.toPdfPointF
+import io.legere.pdfiumandroid.api.types.toPdfRect
+import io.legere.pdfiumandroid.api.types.toPdfRectF
+import io.legere.pdfiumandroid.api.types.toPoint
+import io.legere.pdfiumandroid.api.types.toPointF
+import io.legere.pdfiumandroid.api.types.toRect
+import io.legere.pdfiumandroid.api.types.toRectF
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -323,6 +347,27 @@ class CustomMatrixComparisonTest {
         assertThat(customResult).isEqualTo(platformResult)
         assertMatrixValuesEqual(customInverse, platformInverse)
         assertMatrixValuesEqual(result2!!, platformInverse)
+    }
+
+    @Test
+    fun invertBehavesLikePlatformMatrix2() {
+        val expected =
+            doubleArrayOf(1.0194546, 0.0, -20.997844837965395, 0.0, 1.4150456, -4.2376478374130215, 0.0, 0.0, 1.0)
+        mutableMatrix.set(
+            doubleArrayOf(
+                1.0194546,
+                0.0,
+                10.449388,
+                0.0,
+                1.4150456,
+                -23.396986,
+                0.0,
+                0.0,
+                1.0,
+            ),
+        )
+        mutableMatrix.preTranslate(-30.847115f, 13.539732f)
+        assertThat(mutableMatrix.values).isEqualTo(expected)
     }
 
     @Test

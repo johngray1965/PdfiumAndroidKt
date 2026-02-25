@@ -217,20 +217,20 @@ class NativePageTest : BasePDFTest() {
         // MPERSP_0 (0), MPERSP_1 (0), MPERSP_2 (1)
 
         val expectedValues =
-            floatArrayOf(
-                1.0f,
-                0.0f,
-                0.0f,
-                0.0f,
-                -1.0f,
-                792.0f,
-                0.0f,
-                0.0f,
-                1.0f,
+            doubleArrayOf(
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                -1.0,
+                792.0,
+                0.0,
+                0.0,
+                1.0,
             )
 
-        assertThat(matrixValues[3]).isWithin(0.0001f).of(expectedValues[3])
-        assertThat(matrixValues).usingTolerance(0.0001).containsExactly(expectedValues)
+        assertThat(matrixValues[3]).isWithin(0.0001).of(expectedValues[3])
+        assertThat(matrixValues).usingTolerance(0.000).containsExactly(expectedValues)
         assertThat(attribs.links).isEmpty()
     }
 

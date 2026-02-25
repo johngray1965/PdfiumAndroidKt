@@ -25,8 +25,8 @@ import org.junit.jupiter.api.Test
 class MutablePdfPointTest {
     @Test
     fun `Basic functionality with positive integers`() {
-        // Verify that the method correctly converts a MutablePdfPoint with positive x and y coordinates into an IntArray of size 2,
-        // where the first element is x and the second is y.
+        // Verify that the method correctly converts a MutablePdfPoint with positive x and y
+        // coordinates into an IntArray of size 2, where the first element is x and the second is y.
         val point = MutablePdfPoint(10, 20)
         val expectedArray = intArrayOf(10, 20)
         assertThat(point.toIntArray()).isEqualTo(expectedArray)
@@ -60,7 +60,8 @@ class MutablePdfPointTest {
 
     @Test
     fun `Testing with Int MIN VALUE`() {
-        // Test the method with a MutablePdfPoint where both x and y are Int.MIN_VALUE to ensure it handles the minimum integer limit correctly.
+        // Test the method with a MutablePdfPoint where both x and y are Int.MIN_VALUE to ensure it
+        // handles the minimum integer limit correctly.
         val point = MutablePdfPoint(Int.MIN_VALUE, Int.MIN_VALUE)
         val expectedArray = intArrayOf(Int.MIN_VALUE, Int.MIN_VALUE)
         assertThat(point.toIntArray()).isEqualTo(expectedArray)
