@@ -519,14 +519,43 @@ internal fun DoubleArray.setRotate(
     px: Float,
     py: Float,
 ) {
+    val normalizedDegrees = (degrees % 360f + 360f) % 360f
+
+    val s: Double
+    val c: Double
+
+    when (normalizedDegrees) {
+        0f -> { // Exact 0 degrees
+            s = 0.0
+            c = 1.0
+        }
+
+        90f -> { // Exact 90 degrees
+            s = 1.0
+            c = 0.0
+        }
+
+        180f -> { // Exact 180 degrees
+            s = 0.0
+            c = -1.0
+        }
+
+        270f -> { // Exact 270 degrees
+            s = -1.0
+            c = 0.0
+        }
+
+        else -> { // General case, calculate and truncate
+            val radians = degrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            s = if (shouldTruncate(sina)) 0.0 else sina
+            c = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
+
     val pxd = px.toDouble()
     val pyd = py.toDouble()
-
-    val radians = degrees * DEGREES_TO_RADIANS
-    val sina = sin(radians)
-    val cosa = cos(radians)
-    val s = if (shouldTruncate(sina)) 0.0 else sina
-    val c = if (shouldTruncate(cosa)) 0.0 else cosa
 
     this[SCALE_X] = c
     this[SKEW_X] = -s
@@ -673,18 +702,49 @@ internal fun DoubleArray.preScale(
  *
  *
  */
+@Suppress("MagicNumber")
 internal fun DoubleArray.preRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
+    val normalizedDegrees = (degrees % 360f + 360f) % 360f
+
+    val sin: Double
+    val cos: Double
+
+    when (normalizedDegrees) {
+        0f -> {
+            sin = 0.0
+            cos = 1.0
+        }
+
+        90f -> {
+            sin = 1.0
+            cos = 0.0
+        }
+
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = degrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
+
     val pxd = px.toDouble()
     val pyd = py.toDouble()
-    val radians = degrees * DEGREES_TO_RADIANS
-    val sina = sin(radians)
-    val cosa = cos(radians)
-    val sin = if (shouldTruncate(sina)) 0.0 else sina
-    val cos = if (shouldTruncate(cosa)) 0.0 else cosa
     val dx = sin * pyd + (1 - cos) * pxd
     val dy = -sin * pxd + (1 - cos) * pyd
 
@@ -897,19 +957,49 @@ internal fun DoubleArray.postScale(
  *                                           |0  0  1| |P Q R|   |         P          Q          R|
  *
  */
+@Suppress("MagicNumber")
 internal fun DoubleArray.postRotate(
     degrees: Float,
     px: Float,
     py: Float,
 ) {
+    val normalizedDegrees = (degrees % 360f + 360f) % 360f
+
+    val sin: Double
+    val cos: Double
+
+    when (normalizedDegrees) {
+        0f -> {
+            sin = 0.0
+            cos = 1.0
+        }
+
+        90f -> {
+            sin = 1.0
+            cos = 0.0
+        }
+
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = degrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
+
     val pxd = px.toDouble()
     val pyd = py.toDouble()
-
-    val radians = degrees * DEGREES_TO_RADIANS
-    val sina = sin(radians)
-    val cosa = cos(radians)
-    val sin = if (shouldTruncate(sina)) 0.0 else sina
-    val cos = if (shouldTruncate(cosa)) 0.0 else cosa
 
     val dx = sin * pyd + (1 - cos) * pxd
     val dy = -sin * pxd + (1 - cos) * pyd
