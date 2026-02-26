@@ -15,6 +15,7 @@ import android.graphics.Matrix as AndroidPlatformMatrix
  * Compares the behavior of the custom Matrix implementation against the Android platform Matrix.
  */
 @RunWith(AndroidJUnit4::class)
+@Suppress("LargeClass")
 class CustomMatrixComparisonTest {
     private lateinit var mutableMatrix: MutablePdfMatrix
     private lateinit var pdfMatrix: PdfMatrix
@@ -78,12 +79,43 @@ class CustomMatrixComparisonTest {
     }
 
     @Test
+    fun setScaleWithOffsetBehavesLikePlatformMatrix() {
+        val sx = 2f
+        val sy = 0.5f
+
+        mutableMatrix.setScale(sx, sy, 50f, 100f)
+        platformMatrix.setScale(sx, sy, 50f, 100f)
+        val result = pdfMatrix.setScale(sx, sy, 50f, 100f)
+
+        assertThat(mutableMatrix.isIdentity()).isFalse()
+        assertThat(result.isIdentity()).isFalse()
+        assertThat(platformMatrix.isIdentity).isFalse()
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
     fun setRotateBehavesLikePlatformMatrix() {
         val degrees = 45f
 
         mutableMatrix.setRotate(degrees)
         platformMatrix.setRotate(degrees)
         val result = pdfMatrix.setRotate(degrees)
+
+        assertThat(mutableMatrix.isIdentity()).isFalse()
+        assertThat(result.isIdentity()).isFalse()
+        assertThat(platformMatrix.isIdentity).isFalse()
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
+    fun setRotateWithOffsetBehavesLikePlatformMatrix() {
+        val degrees = 45f
+
+        mutableMatrix.setRotate(degrees, 50f, 100f)
+        platformMatrix.setRotate(degrees, 50f, 100f)
+        val result = pdfMatrix.setRotate(degrees, 50f, 100f)
 
         assertThat(mutableMatrix.isIdentity()).isFalse()
         assertThat(result.isIdentity()).isFalse()
@@ -100,6 +132,22 @@ class CustomMatrixComparisonTest {
         mutableMatrix.setSkew(kx, ky)
         platformMatrix.setSkew(kx, ky)
         val result = pdfMatrix.setSkew(kx, ky)
+
+        assertThat(mutableMatrix.isIdentity()).isFalse()
+        assertThat(result.isIdentity()).isFalse()
+        assertThat(platformMatrix.isIdentity).isFalse()
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
+    fun setSkewWithOffsetBehavesLikePlatformMatrix() {
+        val kx = 2f
+        val ky = 3f
+
+        mutableMatrix.setSkew(kx, ky, 50f, 100f)
+        platformMatrix.setSkew(kx, ky, 50f, 100f)
+        val result = pdfMatrix.setSkew(kx, ky, 50f, 100f)
 
         assertThat(mutableMatrix.isIdentity()).isFalse()
         assertThat(result.isIdentity()).isFalse()
@@ -148,12 +196,49 @@ class CustomMatrixComparisonTest {
     }
 
     @Test
+    fun postScaleWithOffsetBehavesLikePlatformMatrix() {
+        val sx = 2f
+        val sy = 3f
+
+        mutableMatrix.postScale(sx, sy, 50f, 100f)
+        platformMatrix.postScale(sx, sy, 50f, 100f)
+        var result = pdfMatrix.postScale(sx, sy, 50f, 100f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+
+        // Chained operations
+        mutableMatrix.postScale(0.5f, 0.5f)
+        platformMatrix.postScale(0.5f, 0.5f)
+        result = result.postScale(0.5f, 0.5f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
     fun postRotateBehavesLikePlatformMatrix() {
         val degrees = 30f
 
         mutableMatrix.postRotate(degrees)
         platformMatrix.postRotate(degrees)
         var result = pdfMatrix.postRotate(degrees)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+
+        // Chained operations
+        mutableMatrix.postRotate(60f)
+        platformMatrix.postRotate(60f)
+        result = result.postRotate(60f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
+    fun postRotateWithOffsetBehavesLikePlatformMatrix() {
+        val degrees = 30f
+
+        mutableMatrix.postRotate(degrees, 50f, 100f)
+        platformMatrix.postRotate(degrees, 50f, 100f)
+        var result = pdfMatrix.postRotate(degrees, 50f, 100f)
         assertMatrixValuesEqual(mutableMatrix, platformMatrix)
         assertMatrixValuesEqual(result, platformMatrix)
 
@@ -173,6 +258,25 @@ class CustomMatrixComparisonTest {
         mutableMatrix.postSkew(kx, ky)
         platformMatrix.postSkew(kx, ky)
         var result = pdfMatrix.postSkew(kx, ky)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+
+        // Chained operations
+        mutableMatrix.postSkew(0.5f, 0.5f)
+        platformMatrix.postSkew(0.5f, 0.5f)
+        result = result.postSkew(0.5f, 0.5f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
+    fun postSkewWithOffsetBehavesLikePlatformMatrix() {
+        val kx = 2f
+        val ky = 3f
+
+        mutableMatrix.postSkew(kx, ky, 50f, 100f)
+        platformMatrix.postSkew(kx, ky, 50f, 100f)
+        var result = pdfMatrix.postSkew(kx, ky, 50f, 100f)
         assertMatrixValuesEqual(mutableMatrix, platformMatrix)
         assertMatrixValuesEqual(result, platformMatrix)
 
@@ -224,12 +328,49 @@ class CustomMatrixComparisonTest {
     }
 
     @Test
+    fun preScaleWithOffsetBehavesLikePlatformMatrix() {
+        val sx = 2f
+        val sy = 3f
+
+        mutableMatrix.preScale(sx, sy, 50f, 100f)
+        platformMatrix.preScale(sx, sy, 50f, 100f)
+        var result = pdfMatrix.preScale(sx, sy, 50f, 100f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+
+        // Chained operations
+        mutableMatrix.preScale(0.5f, 0.5f)
+        platformMatrix.preScale(0.5f, 0.5f)
+        result = result.preScale(0.5f, 0.5f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
     fun preRotateBehavesLikePlatformMatrix() {
         val degrees = 30f
 
         mutableMatrix.preRotate(degrees)
         platformMatrix.preRotate(degrees)
         var result = pdfMatrix.preRotate(degrees)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+
+        // Chained operations
+        mutableMatrix.preRotate(60f)
+        platformMatrix.preRotate(60f)
+        result = result.preRotate(60f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
+    fun preRotateWithOffsetBehavesLikePlatformMatrix() {
+        val degrees = 30f
+
+        mutableMatrix.preRotate(degrees, 50f, 100f)
+        platformMatrix.preRotate(degrees, 50f, 100f)
+        var result = pdfMatrix.preRotate(degrees, 50f, 100f)
         assertMatrixValuesEqual(mutableMatrix, platformMatrix)
         assertMatrixValuesEqual(result, platformMatrix)
 
@@ -249,6 +390,25 @@ class CustomMatrixComparisonTest {
         mutableMatrix.preSkew(kx, ky)
         platformMatrix.preSkew(kx, ky)
         var result = pdfMatrix.preSkew(kx, ky)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+
+        // Chained operations
+        mutableMatrix.preSkew(0.5f, 0.5f)
+        platformMatrix.preSkew(0.5f, 0.5f)
+        result = result.preSkew(0.5f, 0.5f)
+        assertMatrixValuesEqual(mutableMatrix, platformMatrix)
+        assertMatrixValuesEqual(result, platformMatrix)
+    }
+
+    @Test
+    fun preSkewWithOffsetBehavesLikePlatformMatrix() {
+        val kx = 2f
+        val ky = 3f
+
+        mutableMatrix.preSkew(kx, ky, 50f, 100f)
+        platformMatrix.preSkew(kx, ky, 50f, 100f)
+        var result = pdfMatrix.preSkew(kx, ky, 50f, 100f)
         assertMatrixValuesEqual(mutableMatrix, platformMatrix)
         assertMatrixValuesEqual(result, platformMatrix)
 
@@ -343,7 +503,6 @@ class CustomMatrixComparisonTest {
             ),
         )
         mutableMatrix.preTranslate(-30.847115f, 13.539732f)
-
         assertThat(mutableMatrix.values).isEqualTo(expected)
     }
 

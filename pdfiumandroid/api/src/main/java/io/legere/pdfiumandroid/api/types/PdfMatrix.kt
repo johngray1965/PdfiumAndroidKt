@@ -141,22 +141,34 @@ data class PdfMatrix(
     fun setScale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(DoubleArray(THREE_BY_THREE).apply { setScale(sx, sy, px, py) })
+
+    fun setScale(
+        sx: Float,
+        sy: Float,
+    ) = PdfMatrix(DoubleArray(THREE_BY_THREE).apply { setScale(sx, sy) })
 
     fun setRotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(DoubleArray(THREE_BY_THREE).apply { setRotate(degrees, px, py) })
+
+    fun setRotate(degrees: Float) = PdfMatrix(DoubleArray(THREE_BY_THREE).apply { setRotate(degrees) })
 
     fun setSkew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(DoubleArray(THREE_BY_THREE).apply { setSkew(kx, ky, px, py) })
+
+    fun setSkew(
+        kx: Float,
+        ky: Float,
+    ) = PdfMatrix(DoubleArray(THREE_BY_THREE).apply { setSkew(kx, ky) })
 
     fun translate(
         dx: Float,
@@ -166,22 +178,34 @@ data class PdfMatrix(
     fun scale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(values.copyOf().apply { preScale(sx, sy, px, py) })
+
+    fun scale(
+        sx: Float,
+        sy: Float,
+    ) = PdfMatrix(values.copyOf().apply { preScale(sx, sy) })
 
     fun rotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(values.copyOf().apply { preRotate(degrees, px, py) })
+
+    fun rotate(degrees: Float) = PdfMatrix(values.copyOf().apply { preRotate(degrees) })
 
     fun skew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(values.copyOf().apply { preSkew(kx, ky, px, py) })
+
+    fun skew(
+        kx: Float,
+        ky: Float,
+    ) = PdfMatrix(values.copyOf().apply { preSkew(kx, ky) })
 
     fun concat(other: MatrixValues) = PdfMatrix(values.copyOf().apply { preConcat(other.values) })
 
@@ -193,22 +217,34 @@ data class PdfMatrix(
     fun preScale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = scale(sx, sy, px, py)
+
+    fun preScale(
+        sx: Float,
+        sy: Float,
+    ) = scale(sx, sy)
 
     fun preRotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = rotate(degrees, px, py)
+
+    fun preRotate(degrees: Float) = rotate(degrees)
 
     fun preSkew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = skew(kx, ky, px, py)
+
+    fun preSkew(
+        kx: Float,
+        ky: Float,
+    ) = skew(kx, ky)
 
     fun postTranslate(
         dx: Float,
@@ -218,22 +254,34 @@ data class PdfMatrix(
     fun postScale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(values.copyOf().apply { postScale(sx, sy, px, py) })
+
+    fun postScale(
+        sx: Float,
+        sy: Float,
+    ) = PdfMatrix(values.copyOf().apply { postScale(sx, sy) })
 
     fun postRotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(values.copyOf().apply { postRotate(degrees, px, py) })
+
+    fun postRotate(degrees: Float) = PdfMatrix(values.copyOf().apply { postRotate(degrees) })
 
     fun postSkew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ) = PdfMatrix(values.copyOf().apply { postSkew(kx, ky, px, py) })
+
+    fun postSkew(
+        kx: Float,
+        ky: Float,
+    ) = PdfMatrix(values.copyOf().apply { postSkew(kx, ky) })
 
     fun postConcat(other: MatrixValues) = PdfMatrix(values.copyOf().apply { postConcat(other.values) })
 
@@ -291,29 +339,50 @@ class MutablePdfMatrix(
     fun setScale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.setScale(sx, sy, px, py)
         return this
     }
 
+    fun setScale(
+        sx: Float,
+        sy: Float,
+    ): MutablePdfMatrix {
+        values.setScale(sx, sy)
+        return this
+    }
+
     fun setRotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.setRotate(degrees, px, py)
+        return this
+    }
+
+    fun setRotate(degrees: Float): MutablePdfMatrix {
+        values.setRotate(degrees)
         return this
     }
 
     fun setSkew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.setSkew(kx, ky, px, py)
+        return this
+    }
+
+    fun setSkew(
+        kx: Float,
+        ky: Float,
+    ): MutablePdfMatrix {
+        values.setSkew(kx, ky)
         return this
     }
 
@@ -328,29 +397,50 @@ class MutablePdfMatrix(
     fun preScale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.preScale(sx, sy, px, py)
         return this
     }
 
+    fun preScale(
+        sx: Float,
+        sy: Float,
+    ): MutablePdfMatrix {
+        values.preScale(sx, sy)
+        return this
+    }
+
     fun preRotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.preRotate(degrees, px, py)
+        return this
+    }
+
+    fun preRotate(degrees: Float): MutablePdfMatrix {
+        values.preRotate(degrees)
         return this
     }
 
     fun preSkew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.preSkew(kx, ky, px, py)
+        return this
+    }
+
+    fun preSkew(
+        kx: Float,
+        ky: Float,
+    ): MutablePdfMatrix {
+        values.preSkew(kx, ky)
         return this
     }
 
@@ -365,29 +455,50 @@ class MutablePdfMatrix(
     fun postScale(
         sx: Float,
         sy: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.postScale(sx, sy, px, py)
         return this
     }
 
+    fun postScale(
+        sx: Float,
+        sy: Float,
+    ): MutablePdfMatrix {
+        values.postScale(sx, sy)
+        return this
+    }
+
     fun postRotate(
         degrees: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.postRotate(degrees, px, py)
+        return this
+    }
+
+    fun postRotate(degrees: Float): MutablePdfMatrix {
+        values.postRotate(degrees)
         return this
     }
 
     fun postSkew(
         kx: Float,
         ky: Float,
-        px: Float = 0f,
-        py: Float = 0f,
+        px: Float,
+        py: Float,
     ): MutablePdfMatrix {
         values.postSkew(kx, ky, px, py)
+        return this
+    }
+
+    fun postSkew(
+        kx: Float,
+        ky: Float,
+    ): MutablePdfMatrix {
+        values.postSkew(kx, ky)
         return this
     }
 
@@ -466,6 +577,13 @@ class MutablePdfMatrix(
     override fun hashCode(): Int = values.contentHashCode()
 }
 
+internal enum class RadiansType {
+    Zero,
+    Ninety,
+    OneEighty,
+    TwoSeventy,
+    Other,
+}
 // --- Internal Shared Math Logic ---
 
 internal fun DoubleArray.reset() {
@@ -474,6 +592,64 @@ internal fun DoubleArray.reset() {
     this[SCALE_Y] = 1.0
     this[PERSP_2] = 1.0
 }
+
+@Suppress("MagicNumber")
+internal fun getRadiansType(degrees: Float): RadiansType =
+    when (degrees) {
+        0f -> RadiansType.Zero
+        90f -> RadiansType.Ninety
+        180f -> RadiansType.OneEighty
+        270f -> RadiansType.TwoSeventy
+        else -> RadiansType.Other
+    }
+
+@Suppress("MagicNumber")
+internal fun calcSin(
+    radiansType: RadiansType,
+    radians: Double,
+): Double =
+    when (radiansType) {
+        RadiansType.Zero, RadiansType.OneEighty -> {
+            0.0
+        }
+
+        RadiansType.Ninety -> {
+            1.0
+        }
+
+        RadiansType.TwoSeventy -> {
+            -1.0
+        }
+
+        else -> { // General case, calculate and truncate
+            val sin = sin(radians)
+            if (shouldTruncate(sin)) 0.0 else sin
+        }
+    }
+
+@Suppress("MagicNumber")
+internal fun calcCos(
+    radiansType: RadiansType,
+    radians: Double,
+): Double =
+    when (radiansType) {
+        RadiansType.Zero -> { // Exact 0 degrees
+            1.0
+        }
+
+        RadiansType.Ninety, RadiansType.TwoSeventy -> { // Exact 90 degrees
+            0.0
+        }
+
+        RadiansType.OneEighty -> { // Exact 180 degrees
+            -1.0
+        }
+
+        else -> { // General case, calculate and truncate
+            val cos = cos(radians)
+            if (shouldTruncate(cos)) 0.0 else cos
+        }
+    }
 
 internal fun DoubleArray.isIdentity(): Boolean =
     this[SCALE_X] == 1.0 && this[SKEW_X] == 0.0 && this[TRANS_X] == 0.0 &&
@@ -513,6 +689,24 @@ internal fun DoubleArray.setScale(
     this[PERSP_2] = 1.0
 }
 
+internal fun DoubleArray.setScale(
+    sx: Float,
+    sy: Float,
+) {
+    val sxd = sx.toDouble()
+    val syd = sy.toDouble()
+
+    this[SCALE_X] = sxd
+    this[SCALE_Y] = syd
+    this[TRANS_X] = 0.0
+    this[TRANS_Y] = 0.0
+    this[SKEW_X] = 0.0
+    this[SKEW_Y] = 0.0
+    this[PERSP_0] = 0.0
+    this[PERSP_1] = 0.0
+    this[PERSP_2] = 1.0
+}
+
 @Suppress("MagicNumber")
 internal fun DoubleArray.setRotate(
     degrees: Float,
@@ -521,38 +715,12 @@ internal fun DoubleArray.setRotate(
 ) {
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val s: Double
-    val c: Double
+    val radiansType = getRadiansType(normalizedDegrees)
 
-    when (normalizedDegrees) {
-        0f -> { // Exact 0 degrees
-            s = 0.0
-            c = 1.0
-        }
+    val radians = normalizedDegrees * DEGREES_TO_RADIANS
 
-        90f -> { // Exact 90 degrees
-            s = 1.0
-            c = 0.0
-        }
-
-        180f -> { // Exact 180 degrees
-            s = 0.0
-            c = -1.0
-        }
-
-        270f -> { // Exact 270 degrees
-            s = -1.0
-            c = 0.0
-        }
-
-        else -> { // General case, calculate and truncate
-            val radians = degrees * DEGREES_TO_RADIANS
-            val sina = sin(radians)
-            val cosa = cos(radians)
-            s = if (shouldTruncate(sina)) 0.0 else sina
-            c = if (shouldTruncate(cosa)) 0.0 else cosa
-        }
-    }
+    val s: Double = calcSin(radiansType, radians)
+    val c: Double = calcCos(radiansType, radians)
 
     val pxd = px.toDouble()
     val pyd = py.toDouble()
@@ -563,6 +731,28 @@ internal fun DoubleArray.setRotate(
     this[SCALE_Y] = c
     this[TRANS_X] = (pxd - c * pxd + s * pyd)
     this[TRANS_Y] = (pyd - s * pxd - c * pyd)
+    this[PERSP_0] = 0.0
+    this[PERSP_1] = 0.0
+    this[PERSP_2] = 1.0
+}
+
+@Suppress("MagicNumber")
+internal fun DoubleArray.setRotate(degrees: Float) {
+    val normalizedDegrees = (degrees % 360f + 360f) % 360f
+
+    val radiansType = getRadiansType(normalizedDegrees)
+
+    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+
+    val s: Double = calcSin(radiansType, radians)
+    val c: Double = calcCos(radiansType, radians)
+
+    this[SCALE_X] = c
+    this[SKEW_X] = -s
+    this[SKEW_Y] = s
+    this[SCALE_Y] = c
+    this[TRANS_X] = 0.0
+    this[TRANS_Y] = 0.0
     this[PERSP_0] = 0.0
     this[PERSP_1] = 0.0
     this[PERSP_2] = 1.0
@@ -585,6 +775,24 @@ internal fun DoubleArray.setSkew(
     this[SCALE_Y] = 1.0
     this[TRANS_X] = -(kxd * pyd)
     this[TRANS_Y] = -(kyd * pxd)
+    this[PERSP_0] = 0.0
+    this[PERSP_1] = 0.0
+    this[PERSP_2] = 1.0
+}
+
+internal fun DoubleArray.setSkew(
+    kx: Float,
+    ky: Float,
+) {
+    val kxd = kx.toDouble()
+    val kyd = ky.toDouble()
+
+    this[SCALE_X] = 1.0
+    this[SKEW_X] = kxd
+    this[SKEW_Y] = kyd
+    this[SCALE_Y] = 1.0
+    this[TRANS_X] = 0.0
+    this[TRANS_Y] = 0.0
     this[PERSP_0] = 0.0
     this[PERSP_1] = 0.0
     this[PERSP_2] = 1.0
@@ -680,6 +888,34 @@ internal fun DoubleArray.preScale(
     this[PERSP_2] = g * dx + h * dy + i
 }
 
+internal fun DoubleArray.preScale(
+    sx: Float,
+    sy: Float,
+) {
+    val sxd = sx.toDouble()
+    val syd = sy.toDouble()
+
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
+
+    this[SCALE_X] = a * sxd
+    this[SKEW_X] = b * syd
+    this[TRANS_X] = c
+    this[SKEW_Y] = d * sx
+    this[SCALE_Y] = e * sy
+    this[TRANS_Y] = f
+    this[PERSP_0] = g * sxd
+    this[PERSP_1] = h * syd
+    this[PERSP_2] = i
+}
+
 /**
  *         Given:
  *
@@ -710,38 +946,12 @@ internal fun DoubleArray.preRotate(
 ) {
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val sin: Double
-    val cos: Double
+    val radiansType = getRadiansType(normalizedDegrees)
 
-    when (normalizedDegrees) {
-        0f -> {
-            sin = 0.0
-            cos = 1.0
-        }
+    val radians = normalizedDegrees * DEGREES_TO_RADIANS
 
-        90f -> {
-            sin = 1.0
-            cos = 0.0
-        }
-
-        180f -> {
-            sin = 0.0
-            cos = -1.0
-        }
-
-        270f -> {
-            sin = -1.0
-            cos = 0.0
-        }
-
-        else -> {
-            val radians = degrees * DEGREES_TO_RADIANS
-            val sina = sin(radians)
-            val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
-        }
-    }
+    val sin: Double = calcSin(radiansType, radians)
+    val cos: Double = calcCos(radiansType, radians)
 
     val pxd = px.toDouble()
     val pyd = py.toDouble()
@@ -767,6 +977,38 @@ internal fun DoubleArray.preRotate(
     this[PERSP_0] = g * cos + h * sin
     this[PERSP_1] = -g * sin + h * cos
     this[PERSP_2] = g * dx + h * dy + i
+}
+
+@Suppress("MagicNumber")
+internal fun DoubleArray.preRotate(degrees: Float) {
+    val normalizedDegrees = (degrees % 360f + 360f) % 360f
+
+    val radiansType = getRadiansType(normalizedDegrees)
+
+    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+
+    val sin: Double = calcSin(radiansType, radians)
+    val cos: Double = calcCos(radiansType, radians)
+
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
+
+    this[SCALE_X] = a * cos + b * sin
+    this[SKEW_X] = -a * sin + b * cos
+    this[TRANS_X] = c
+    this[SKEW_Y] = (d * cos + e * sin)
+    this[SCALE_Y] = (d * -sin + e * cos)
+    this[TRANS_Y] = f
+    this[PERSP_0] = g * cos + h * sin
+    this[PERSP_1] = -g * sin + h * cos
+    this[PERSP_2] = i
 }
 
 /**
@@ -826,6 +1068,38 @@ internal fun DoubleArray.preSkew(
     this[PERSP_2] = g * dx + h * dy + i
 }
 
+internal fun DoubleArray.preSkew(
+    kx: Float,
+    ky: Float,
+) {
+    val kxd = kx.toDouble()
+    val kyd = ky.toDouble()
+
+    val a = this[SCALE_X]
+    val b = this[SKEW_X]
+    val c = this[TRANS_X]
+    val d = this[SKEW_Y]
+    val e = this[SCALE_Y]
+    val f = this[TRANS_Y]
+    val g = this[PERSP_0]
+    val h = this[PERSP_1]
+    val i = this[PERSP_2]
+
+//    println("kxd: $kxd")
+//    println("d: $d")
+//    println("e: $e")
+
+    this[SCALE_X] = a + b * kyd
+    this[SKEW_X] = a * kxd + b
+    this[TRANS_X] = c
+    this[SKEW_Y] = d + e * kyd
+    this[SCALE_Y] = d * kxd + e
+    this[TRANS_Y] = f
+    this[PERSP_0] = g + h * kyd
+    this[PERSP_1] = g * kxd + h
+    this[PERSP_2] = i
+}
+
 /**
  *         Given:
  *
@@ -856,19 +1130,6 @@ internal fun DoubleArray.postTranslate(
     val p = this[PERSP_0]
     val q = this[PERSP_1]
     val r = this[PERSP_2]
-
-//    println("j: $j")
-//    println("k: $k")
-//    println("l: $l")
-//    println("m: $m")
-//    println("n: $n")
-//    println("o: $o")
-//    println("p: $p")
-//    println("q: $q")
-//    println("r: $r")
-//
-//    println("dxd: $dxd")
-//    println("dyd: $dyd")
 
     this[SCALE_X] = j + dxd * p
     this[SKEW_X] = k + dxd * q
@@ -911,13 +1172,6 @@ internal fun DoubleArray.postScale(
     val dx = pxd - sxd * pxd
     val dy = pyd - syd * pyd
 
-//    println("sxd: $sxd")
-//    println("syd: $syd")
-//    println("pxd: $pxd")
-//    println("pyd: $pyd")
-//    println("dx: $dx")
-//    println("dy: $dy")
-
     val j = this[SCALE_X]
     val k = this[SKEW_X]
     val l = this[TRANS_X]
@@ -934,6 +1188,28 @@ internal fun DoubleArray.postScale(
     this[SKEW_Y] = syd * m + dy * p
     this[SCALE_Y] = syd * n + dy * q
     this[TRANS_Y] = syd * o + dy * r
+}
+
+internal fun DoubleArray.postScale(
+    sx: Float,
+    sy: Float,
+) {
+    val sxd = sx.toDouble()
+    val syd = sy.toDouble()
+
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+
+    this[SCALE_X] = sxd * j
+    this[SKEW_X] = sxd * k
+    this[TRANS_X] = sxd * l
+    this[SKEW_Y] = syd * m
+    this[SCALE_Y] = syd * n
+    this[TRANS_Y] = syd * o
 }
 
 /**
@@ -965,38 +1241,12 @@ internal fun DoubleArray.postRotate(
 ) {
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val sin: Double
-    val cos: Double
+    val radiansType = getRadiansType(normalizedDegrees)
 
-    when (normalizedDegrees) {
-        0f -> {
-            sin = 0.0
-            cos = 1.0
-        }
+    val radians = normalizedDegrees * DEGREES_TO_RADIANS
 
-        90f -> {
-            sin = 1.0
-            cos = 0.0
-        }
-
-        180f -> {
-            sin = 0.0
-            cos = -1.0
-        }
-
-        270f -> {
-            sin = -1.0
-            cos = 0.0
-        }
-
-        else -> {
-            val radians = degrees * DEGREES_TO_RADIANS
-            val sina = sin(radians)
-            val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
-        }
-    }
+    val sin: Double = calcSin(radiansType, radians)
+    val cos: Double = calcCos(radiansType, radians)
 
     val pxd = px.toDouble()
     val pyd = py.toDouble()
@@ -1014,28 +1264,38 @@ internal fun DoubleArray.postRotate(
     val q = this[PERSP_1]
     val r = this[PERSP_2]
 
-//    println("j: $j")
-//    println("k: $k")
-//    println("l: $l")
-//    println("m: $m")
-//    println("n: $n")
-//    println("o: $o")
-//    println("p: $p")
-//    println("q: $q")
-//    println("r: $r")
-//
-//    println("dx: $dx")
-//    println("dy: $dy")
-//
-//    println("cos: $cos")
-//    println("sin: $sin")
-
     this[SCALE_X] = cos * j - sin * m + dx * p
     this[SKEW_X] = cos * k - sin * n + dx * q
     this[TRANS_X] = cos * l - sin * o + dx * r
     this[SKEW_Y] = sin * j + cos * m + dy * p
     this[SCALE_Y] = sin * k + cos * n + dy * q
     this[TRANS_Y] = sin * l + cos * o + dy * r
+}
+
+@Suppress("MagicNumber")
+internal fun DoubleArray.postRotate(degrees: Float) {
+    val normalizedDegrees = (degrees % 360f + 360f) % 360f
+
+    val radiansType = getRadiansType(normalizedDegrees)
+
+    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+
+    val sin: Double = calcSin(radiansType, radians)
+    val cos: Double = calcCos(radiansType, radians)
+
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+
+    this[SCALE_X] = cos * j - sin * m
+    this[SKEW_X] = cos * k - sin * n
+    this[TRANS_X] = cos * l - sin * o
+    this[SKEW_Y] = sin * j + cos * m
+    this[SCALE_Y] = sin * k + cos * n
+    this[TRANS_Y] = sin * l + cos * o
 }
 
 private fun shouldTruncate(value: Double): Boolean = abs(value) < ZERO_TOLERANCE
@@ -1091,6 +1351,28 @@ internal fun DoubleArray.postSkew(
     this[SKEW_Y] = kyd * j + m + dy * p
     this[SCALE_Y] = kyd * k + n + dy * q
     this[TRANS_Y] = kyd * l + o + dy * r
+}
+
+internal fun DoubleArray.postSkew(
+    kx: Float,
+    ky: Float,
+) {
+    val kxd = kx.toDouble()
+    val kyd = ky.toDouble()
+
+    val j = this[SCALE_X]
+    val k = this[SKEW_X]
+    val l = this[TRANS_X]
+    val m = this[SKEW_Y]
+    val n = this[SCALE_Y]
+    val o = this[TRANS_Y]
+
+    this[SCALE_X] = j + kxd * m
+    this[SKEW_X] = k + kxd * n
+    this[TRANS_X] = l + kxd * o
+    this[SKEW_Y] = kyd * j + m
+    this[SCALE_Y] = kyd * k + n
+    this[TRANS_Y] = kyd * l + o
 }
 
 @Suppress("MagicNumber", "UnnecessaryVariable")
