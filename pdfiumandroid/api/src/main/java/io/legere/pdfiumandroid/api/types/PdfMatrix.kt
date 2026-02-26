@@ -594,16 +594,6 @@ internal fun DoubleArray.reset() {
 }
 
 @Suppress("MagicNumber")
-internal fun getRadiansType(degrees: Float): RadiansType =
-    when (degrees) {
-        0f -> RadiansType.Zero
-        90f -> RadiansType.Ninety
-        180f -> RadiansType.OneEighty
-        270f -> RadiansType.TwoSeventy
-        else -> RadiansType.Other
-    }
-
-@Suppress("MagicNumber")
 internal fun calcSin(
     radiansType: RadiansType,
     radians: Double,
@@ -713,24 +703,53 @@ internal fun DoubleArray.setRotate(
     px: Float,
     py: Float,
 ) {
+    // Note we do the same chunk of math for the cos/sin in 6 places.
+    // It would be nice to have one common function, right?
+    // DO NOT DO IT.  This is fast, very fast.  You can't make
+    // this cleaner without making it slower (I've spent a lot of time trying).
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val radiansType = getRadiansType(normalizedDegrees)
+    val sin: Double
+    val cos: Double
+    when (degrees) {
+        0f -> { // Exact 0 degrees
+            sin = 0.0
+            cos = 1.0
+        }
 
-    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+        90f -> { // Exact 90 degrees
+            sin = 1.0
+            cos = 0.0
+        }
 
-    val s: Double = calcSin(radiansType, radians)
-    val c: Double = calcCos(radiansType, radians)
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = normalizedDegrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
 
     val pxd = px.toDouble()
     val pyd = py.toDouble()
 
-    this[SCALE_X] = c
-    this[SKEW_X] = -s
-    this[SKEW_Y] = s
-    this[SCALE_Y] = c
-    this[TRANS_X] = (pxd - c * pxd + s * pyd)
-    this[TRANS_Y] = (pyd - s * pxd - c * pyd)
+    this[SCALE_X] = cos
+    this[SKEW_X] = -sin
+    this[SKEW_Y] = sin
+    this[SCALE_Y] = cos
+    this[TRANS_X] = (pxd - cos * pxd + sin * pyd)
+    this[TRANS_Y] = (pyd - sin * pxd - cos * pyd)
     this[PERSP_0] = 0.0
     this[PERSP_1] = 0.0
     this[PERSP_2] = 1.0
@@ -738,19 +757,48 @@ internal fun DoubleArray.setRotate(
 
 @Suppress("MagicNumber")
 internal fun DoubleArray.setRotate(degrees: Float) {
+    // Note we do the same chunk of math for the cos/sin in 6 places.
+    // It would be nice to have one common function, right?
+    // DO NOT DO IT.  This is fast, very fast.  You can't make
+    // this cleaner without making it slower (I've spent a lot of time trying).
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val radiansType = getRadiansType(normalizedDegrees)
+    val sin: Double
+    val cos: Double
+    when (degrees) {
+        0f -> { // Exact 0 degrees
+            sin = 0.0
+            cos = 1.0
+        }
 
-    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+        90f -> { // Exact 90 degrees
+            sin = 1.0
+            cos = 0.0
+        }
 
-    val s: Double = calcSin(radiansType, radians)
-    val c: Double = calcCos(radiansType, radians)
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
 
-    this[SCALE_X] = c
-    this[SKEW_X] = -s
-    this[SKEW_Y] = s
-    this[SCALE_Y] = c
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = normalizedDegrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
+
+    this[SCALE_X] = cos
+    this[SKEW_X] = -sin
+    this[SKEW_Y] = sin
+    this[SCALE_Y] = cos
     this[TRANS_X] = 0.0
     this[TRANS_Y] = 0.0
     this[PERSP_0] = 0.0
@@ -944,14 +992,43 @@ internal fun DoubleArray.preRotate(
     px: Float,
     py: Float,
 ) {
+    // Note we do the same chunk of math for the cos/sin in 6 places.
+    // It would be nice to have one common function, right?
+    // DO NOT DO IT.  This is fast, very fast.  You can't make
+    // this cleaner without making it slower (I've spent a lot of time trying).
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val radiansType = getRadiansType(normalizedDegrees)
+    val sin: Double
+    val cos: Double
+    when (degrees) {
+        0f -> { // Exact 0 degrees
+            sin = 0.0
+            cos = 1.0
+        }
 
-    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+        90f -> { // Exact 90 degrees
+            sin = 1.0
+            cos = 0.0
+        }
 
-    val sin: Double = calcSin(radiansType, radians)
-    val cos: Double = calcCos(radiansType, radians)
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = normalizedDegrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
 
     val pxd = px.toDouble()
     val pyd = py.toDouble()
@@ -981,14 +1058,43 @@ internal fun DoubleArray.preRotate(
 
 @Suppress("MagicNumber")
 internal fun DoubleArray.preRotate(degrees: Float) {
+    // Note we do the same chunk of math for the cos/sin in 6 places.
+    // It would be nice to have one common function, right?
+    // DO NOT DO IT.  This is fast, very fast.  You can't make
+    // this cleaner without making it slower (I've spent a lot of time trying).
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val radiansType = getRadiansType(normalizedDegrees)
+    val sin: Double
+    val cos: Double
+    when (degrees) {
+        0f -> { // Exact 0 degrees
+            sin = 0.0
+            cos = 1.0
+        }
 
-    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+        90f -> { // Exact 90 degrees
+            sin = 1.0
+            cos = 0.0
+        }
 
-    val sin: Double = calcSin(radiansType, radians)
-    val cos: Double = calcCos(radiansType, radians)
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = normalizedDegrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
 
     val a = this[SCALE_X]
     val b = this[SKEW_X]
@@ -1239,14 +1345,43 @@ internal fun DoubleArray.postRotate(
     px: Float,
     py: Float,
 ) {
+    // Note we do the same chunk of math for the cos/sin in 6 places.
+    // It would be nice to have one common function, right?
+    // DO NOT DO IT.  This is fast, very fast.  You can't make
+    // this cleaner without making it slower (I've spent a lot of time trying).
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val radiansType = getRadiansType(normalizedDegrees)
+    val sin: Double
+    val cos: Double
+    when (degrees) {
+        0f -> { // Exact 0 degrees
+            sin = 0.0
+            cos = 1.0
+        }
 
-    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+        90f -> { // Exact 90 degrees
+            sin = 1.0
+            cos = 0.0
+        }
 
-    val sin: Double = calcSin(radiansType, radians)
-    val cos: Double = calcCos(radiansType, radians)
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = normalizedDegrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
 
     val pxd = px.toDouble()
     val pyd = py.toDouble()
@@ -1274,14 +1409,43 @@ internal fun DoubleArray.postRotate(
 
 @Suppress("MagicNumber")
 internal fun DoubleArray.postRotate(degrees: Float) {
+    // Note we do the same chunk of math for the cos/sin in 6 places.
+    // It would be nice to have one common function, right?
+    // DO NOT DO IT.  This is fast, very fast.  You can't make
+    // this cleaner without making it slower (I've spent a lot of time trying).
     val normalizedDegrees = (degrees % 360f + 360f) % 360f
 
-    val radiansType = getRadiansType(normalizedDegrees)
+    val sin: Double
+    val cos: Double
+    when (degrees) {
+        0f -> { // Exact 0 degrees
+            sin = 0.0
+            cos = 1.0
+        }
 
-    val radians = normalizedDegrees * DEGREES_TO_RADIANS
+        90f -> { // Exact 90 degrees
+            sin = 1.0
+            cos = 0.0
+        }
 
-    val sin: Double = calcSin(radiansType, radians)
-    val cos: Double = calcCos(radiansType, radians)
+        180f -> {
+            sin = 0.0
+            cos = -1.0
+        }
+
+        270f -> {
+            sin = -1.0
+            cos = 0.0
+        }
+
+        else -> {
+            val radians = normalizedDegrees * DEGREES_TO_RADIANS
+            val sina = sin(radians)
+            val cosa = cos(radians)
+            sin = if (shouldTruncate(sina)) 0.0 else sina
+            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+        }
+    }
 
     val j = this[SCALE_X]
     val k = this[SKEW_X]
