@@ -50,6 +50,6 @@ jobs:
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          fail_on_unmatched_files: true
           files: |
             **/build/outputs/aar/*.aar
-            **/build/outputs/apk/**/*.apk
