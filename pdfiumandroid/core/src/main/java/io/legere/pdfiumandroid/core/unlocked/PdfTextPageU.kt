@@ -318,22 +318,20 @@ class PdfTextPageU(
         if (data != null) {
             val count = data.size / RANGE_RECT_DATA_SIZE
             // Pre-allocating the exact size avoids "resizing" overhead
-            val wordRangeRects =
-                Array(count) { i ->
-                    val offset = i * RANGE_RECT_DATA_SIZE
-                    WordRangeRect(
-                        rangeStart = data[offset + RANGE_START_OFFSET].toInt(),
-                        rangeLength = data[offset + RANGE_LENGTH_OFFSET].toInt(),
-                        rect =
-                            PdfRectF(
-                                data[offset + LEFT_OFFSET],
-                                data[offset + TOP_OFFSET],
-                                data[offset + RIGHT_OFFSET],
-                                data[offset + BOTTOM_OFFSET],
-                            ),
-                    )
-                }
-            return wordRangeRects.toList()
+            return List(count) { i ->
+                val offset = i * RANGE_RECT_DATA_SIZE
+                WordRangeRect(
+                    rangeStart = data[offset + RANGE_START_OFFSET].toInt(),
+                    rangeLength = data[offset + RANGE_LENGTH_OFFSET].toInt(),
+                    rect =
+                        PdfRectF(
+                            data[offset + LEFT_OFFSET],
+                            data[offset + TOP_OFFSET],
+                            data[offset + RIGHT_OFFSET],
+                            data[offset + BOTTOM_OFFSET],
+                        ),
+                )
+            }
         }
         return null
     }
@@ -424,17 +422,15 @@ class PdfTextPageU(
         if (data != null) {
             val count = data.size / PAGE_RECT_DATA_SIZE
             // Pre-allocating the exact size avoids "resizing" overhead
-            val pageRects =
-                Array(count) { i ->
-                    val offset = i * PAGE_RECT_DATA_SIZE
-                    PdfRectF(
-                        data[offset + LEFT_OFFSET],
-                        data[offset + TOP_OFFSET],
-                        data[offset + RIGHT_OFFSET],
-                        data[offset + BOTTOM_OFFSET],
-                    )
-                }
-            return pageRects.toList()
+            return List(count) { i ->
+                val offset = i * PAGE_RECT_DATA_SIZE
+                PdfRectF(
+                    data[offset + LEFT_OFFSET],
+                    data[offset + TOP_OFFSET],
+                    data[offset + RIGHT_OFFSET],
+                    data[offset + BOTTOM_OFFSET],
+                )
+            }
         }
         return null
     }
