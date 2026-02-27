@@ -34,10 +34,6 @@ class ImmutableMatrixTest {
     val immutableMatrix = ImmutableMatrix(matrix)
 
     @Test
-    fun toMutableMatrix() {
-    }
-
-    @Test
     fun getValues() {
         val floatArray = FloatArray(9)
         every { matrix.getValues(any()) } answers {

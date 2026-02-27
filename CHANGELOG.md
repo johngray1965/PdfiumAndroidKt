@@ -46,3 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Improvements
 - New CI test
+
+## [2.0.0-beta33] - 2025-02-27
+
+### Improvements
+- Minor clean up

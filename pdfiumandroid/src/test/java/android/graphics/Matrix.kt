@@ -20,12 +20,12 @@
 
 package android.graphics
 
+@Suppress("TooGenericExceptionThrown")
 class Matrix {
+    constructor()
+
     constructor(src: Matrix?) {
         src?.getValues(values)
-    }
-
-    constructor() {
     }
 
     enum class ScaleToFit {
