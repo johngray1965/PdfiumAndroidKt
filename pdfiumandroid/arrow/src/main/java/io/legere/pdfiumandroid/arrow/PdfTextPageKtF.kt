@@ -1,12 +1,33 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @file:Suppress("unused")
 
 package io.legere.pdfiumandroid.arrow
 
 import android.graphics.RectF
 import arrow.core.Either
-import io.legere.pdfiumandroid.FindFlags
 import io.legere.pdfiumandroid.PdfTextPage
-import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
 
@@ -16,10 +37,13 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  */
 @Suppress("TooManyFunctions")
-class PdfTextPageKtF(
-    val page: PdfTextPage,
+class PdfTextPageKtF internal constructor(
+    internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */
@@ -130,20 +154,26 @@ class PdfTextPageKtF(
 
     suspend fun loadWebLink(): Either<PdfiumKtFErrors, PdfPageLinkKtF> =
         wrapEither(dispatcher) {
-            PdfPageLinkKtF(page.loadWebLink(), dispatcher)
+            page.loadWebLink()?.let {
+                PdfPageLinkKtF(it, dispatcher)
+            } ?: error("PdfPageLink is null")
         }
 
     /**
      * Close the page and free all resources.
      */
     override fun close() {
-        page.close()
+        wrapLock {
+            page.close()
+        }
     }
 
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                page.close()
+                wrapLock {
+                    page.close()
+                }
                 true
             }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

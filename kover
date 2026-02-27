@@ -1,0 +1,23 @@
+#! /bin/bash
+
+OPTIND=1         # Reset in case getopts has been used previously in the shell.
+CLEAN=clean
+
+while getopts "h?cs" opt; do
+    case "$opt" in
+    h|\?)
+        echo "Usage: $0 [-v] [-n name]"
+        exit 0
+        ;;
+    c)
+        ;;
+    s)  CLEAN=
+        ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+[ "${1:-}" = "--" ] && shift
+
+./gradlew $CLEAN koverHtmlReportDebug

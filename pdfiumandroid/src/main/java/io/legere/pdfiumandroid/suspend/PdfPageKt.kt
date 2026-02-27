@@ -1,3 +1,22 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @file:Suppress("unused")
 
 package io.legere.pdfiumandroid.suspend
@@ -10,13 +29,15 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.Logger
-import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.Logger
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
@@ -28,16 +49,24 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 @Keep
-class PdfPageKt(
-    val page: PdfPage,
+class PdfPageKt internal constructor(
+    internal val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    constructor(page: PdfPage, dispatcher: CoroutineDispatcher) : this(
+        page.page,
+        dispatcher,
+    )
+
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * Open a text page
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
      */
     suspend fun openTextPage(): PdfTextPageKt =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             PdfTextPageKt(page.openTextPage(), dispatcher)
         }
 
@@ -45,7 +74,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageWidth]
      */
     suspend fun getPageWidth(screenDpi: Int): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageWidth(screenDpi)
         }
 
@@ -53,7 +82,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageHeight]
      */
     suspend fun getPageHeight(screenDpi: Int): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageHeight(screenDpi)
         }
 
@@ -61,7 +90,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageWidthPoint]
      */
     suspend fun getPageWidthPoint(): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageWidthPoint()
         }
 
@@ -69,7 +98,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageHeightPoint]
      */
     suspend fun getPageHeightPoint(): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageHeightPoint()
         }
 
@@ -77,7 +106,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageMatrix]
      */
     suspend fun getPageMatrix(): Matrix? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageMatrix()
         }
 
@@ -85,16 +114,16 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageRotation]
      */
     suspend fun getPageRotation(): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageRotation()
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.getPageCropBox]
      */
+    @Suppress("LongParameterList")
     suspend fun getPageCropBox(): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageCropBox()
         }
 
@@ -102,7 +131,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageMediaBox]
      */
     suspend fun getPageMediaBox(): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageMediaBox()
         }
 
@@ -110,7 +139,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageBleedBox]
      */
     suspend fun getPageBleedBox(): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageBleedBox()
         }
 
@@ -118,7 +147,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageTrimBox]
      */
     suspend fun getPageTrimBox(): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageTrimBox()
         }
 
@@ -126,7 +155,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageArtBox]
      */
     suspend fun getPageArtBox(): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageArtBox()
         }
 
@@ -134,7 +163,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageBoundingBox]
      */
     suspend fun getPageBoundingBox(): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageBoundingBox()
         }
 
@@ -142,7 +171,7 @@ class PdfPageKt(
      * suspend version of [PdfPage.getPageSize]
      */
     suspend fun getPageSize(screenDpi: Int): Size =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getPageSize(screenDpi)
         }
 
@@ -162,37 +191,39 @@ class PdfPageKt(
     ): Boolean {
         var retValue: Boolean
         PdfiumCore.surfaceMutex.withLock {
-            val sizes = IntArray(2)
-            val pointers = LongArray(2)
-            withContext(Dispatchers.Main) {
+            withContext(dispatcher) {
+                val sizes = IntArray(2)
+                val pointers = LongArray(2)
                 surface?.let {
-                    PdfPage.lockSurface(
+                    page.lockSurface(
                         it,
                         sizes,
                         pointers,
                     )
                 }
-            }
-            val nativeWindow = pointers[0]
-            val bufferPtr = pointers[1]
-            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return false
-            }
-            withContext(dispatcher) {
-                retValue =
-                    page.renderPage(
-                        bufferPtr,
-                        startX,
-                        startY,
-                        drawSizeX,
-                        drawSizeY,
-                        renderAnnot,
-                        canvasColor,
-                        pageBackgroundColor,
-                    )
-            }
-            withContext(Dispatchers.Main) {
-                PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                val nativeWindow = pointers[0]
+                val bufferPtr = pointers[1]
+                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                    try {
+                        retValue =
+                            page.renderPage(
+                                bufferPtr,
+                                startX,
+                                startY,
+                                drawSizeX,
+                                drawSizeY,
+                                renderAnnot,
+                                canvasColor,
+                                pageBackgroundColor,
+                            )
+                    } finally {
+                        surface?.let {
+                            page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                        }
+                    }
+                } else {
+                    retValue = false
+                }
             }
         }
         return retValue
@@ -213,52 +244,51 @@ class PdfPageKt(
     ): Boolean {
         var retValue: Boolean
         PdfiumCore.surfaceMutex.withLock {
-            val sizes = IntArray(2)
-            val pointers = LongArray(2)
-            withContext(Dispatchers.Main) {
+            withContext(dispatcher) {
+                val sizes = IntArray(2)
+                val pointers = LongArray(2)
                 surface?.let {
-                    PdfPage.lockSurface(
+                    page.lockSurface(
                         it,
                         sizes,
                         pointers,
                     )
                 }
-            }
-            val nativeWindow = pointers[0]
-            val bufferPtr = pointers[1]
-            val surfaceWidth = sizes[0]
-            val surfaceHeight = sizes[1]
-            Logger.d("PdfPageKt", "nativeWindow: $nativeWindow")
-            if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                return false
-            }
-            withContext(dispatcher) {
-                retValue =
-                    page.renderPage(
-                        bufferPtr,
-                        surfaceWidth,
-                        surfaceHeight,
-                        matrix,
-                        clipRect,
-                        renderAnnot,
-                        textMask,
-                        canvasColor,
-                        pageBackgroundColor,
-                    )
-            }
-            withContext(Dispatchers.Main) {
-                surface?.let {
-                    PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                val nativeWindow = pointers[0]
+                val bufferPtr = pointers[1]
+                val surfaceWidth = sizes[0]
+                val surfaceHeight = sizes[1]
+                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                    try {
+                        retValue =
+                            page.renderPage(
+                                bufferPtr,
+                                surfaceWidth,
+                                surfaceHeight,
+                                matrix,
+                                clipRect,
+                                renderAnnot,
+                                textMask,
+                                canvasColor,
+                                pageBackgroundColor,
+                            )
+                    } finally {
+                        surface?.let {
+                            page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                        }
+                    }
+                } else {
+                    retValue = false
                 }
             }
         }
         return retValue
     }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap,
         startX: Int,
@@ -269,25 +299,24 @@ class PdfPageKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) =
-        withContext(dispatcher) {
-            page.renderPageBitmap(
-                bitmap,
-                startX,
-                startY,
-                drawSizeX,
-                drawSizeY,
-                renderAnnot,
-                textMask,
-                canvasColor,
-                pageBackgroundColor,
-            )
-        }
+    ) = wrapSuspend(dispatcher) {
+        page.renderPageBitmap(
+            bitmap,
+            startX,
+            startY,
+            drawSizeX,
+            drawSizeY,
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
+    }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
@@ -296,16 +325,23 @@ class PdfPageKt(
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
-    ) =
-        withContext(dispatcher) {
-            page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
-        }
+    ) = wrapSuspend(dispatcher) {
+        page.renderPageBitmap(
+            bitmap,
+            matrix,
+            clipRect,
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
+    }
 
     /**
      * suspend version of [PdfPage.getPageLinks]
      */
-    suspend fun getPageLinks(): List<PdfDocument.Link> =
-        withContext(dispatcher) {
+    suspend fun getPageLinks(): List<Link> =
+        wrapSuspend(dispatcher) {
             page.getPageLinks()
         }
 
@@ -322,14 +358,14 @@ class PdfPageKt(
         pageX: Double,
         pageY: Double,
     ): Point =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapDeviceCoordsToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapDeviceCoordsToPage(
         startX: Int,
         startY: Int,
@@ -339,14 +375,14 @@ class PdfPageKt(
         deviceX: Int,
         deviceY: Int,
     ): PointF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToDevice]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToDevice(
         startX: Int,
         startY: Int,
@@ -355,14 +391,14 @@ class PdfPageKt(
         rotate: Int,
         coords: RectF,
     ): Rect =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToPage(
         startX: Int,
         startY: Int,
@@ -371,20 +407,32 @@ class PdfPageKt(
         rotate: Int,
         coords: Rect,
     ): RectF =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
+        }
+
+    /**
+     * suspend version of [PdfPage.getPageAttributes]
+     */
+    suspend fun getPageAttributes(): PageAttributes =
+        wrapSuspend(dispatcher) {
+            page.getPageAttributes()
         }
 
     /**
      * Closes the page
      */
     override fun close() {
-        page.close()
+        wrapLock {
+            page.close()
+        }
     }
 
     fun safeClose(): Boolean =
         try {
-            page.close()
+            wrapLock {
+                page.close()
+            }
             true
         } catch (e: IllegalStateException) {
             Logger.e("PdfPageKt", e, "PdfPageKt.safeClose")

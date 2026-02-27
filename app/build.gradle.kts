@@ -1,22 +1,13 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.android.build.api.dsl.ApplicationExtension
 
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
-    alias(libs.plugins.ktlint)
-}
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
+    id("io.legere.convention.application.compose")
+    id("io.legere.convention.hilt")
+    id("io.legere.convention.static.analysis")
+    id("io.legere.convention.kover")
 }
 
-android {
+configure<ApplicationExtension> {
     namespace = "io.legere.pdfiumandroidkt"
     compileSdk = 36
 
@@ -31,7 +22,7 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("release") {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -46,43 +37,20 @@ android {
 //            matchingFallbacks += listOf("release")
 //        }
     }
-    compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_17)
-        targetCompatibility(JavaVersion.VERSION_17)
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    packaging {
-        resources {
-            excludes +=
-                setOf(
-                    "/META-INF/{AL2.0,LGPL2.1}",
-                )
-        }
-    }
-
-    lint {
-        abortOnError = true
-        disable += "NotificationPermission"
+}
+configurations {
+    configureEach {
+        exclude(module = "httpclient")
     }
 }
 
 dependencies {
-
     implementation(project(":pdfiumandroid"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.compose.bom))
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.graphics)
-    implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material3)
 
     implementation(libs.coil.compose)
     implementation(libs.compose.glide)
@@ -93,12 +61,8 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.compose.bom))
-    androidTestImplementation(libs.compose.ui.test.junit4)
-    debugImplementation(libs.compose.ui.tooling)
-    debugImplementation(libs.compose.ui.test.manifest)
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.espresso.core)
 }
 
 // allprojects {

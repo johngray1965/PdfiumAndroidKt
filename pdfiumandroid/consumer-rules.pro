@@ -14,7 +14,7 @@
      public <methods>;
 }
 
--keep class * extends io.legere.pdfiumandroid.LoggerInterface { *; }
+-keep class * extends io.legere.pdfiumandroid.api.LoggerInterface { *; }
 -keep class io.legere.pdfiumandroid.suspend.PdfDocumentKt { *; }
 -keepclassmembers public class io.legere.pdfiumandroid.suspend.PdfDocumentKt {
     public <init>(...);
@@ -31,15 +31,15 @@
 -keepclassmembers public class io.legere.pdfiumandroid.suspend.PdfiumCoreKt {
     public <init>(...);
 }
--keep class io.legere.pdfiumandroid.util.AlreadyClosedBehavior { *; }
--keepclassmembers public class io.legere.pdfiumandroid.util.AlreadyClosedBehavior {
+-keep class io.legere.pdfiumandroid.api.AlreadyClosedBehavior { *; }
+-keepclassmembers public class io.legere.pdfiumandroid.api.AlreadyClosedBehavior {
     public <init>(...);
 }
--keep class io.legere.pdfiumandroid.util.Config { *; }
--keepclassmembers public class io.legere.pdfiumandroid.util.Config {
+-keep class io.legere.pdfiumandroid.api.Config { *; }
+-keepclassmembers public class io.legere.pdfiumandroid.api.Config {
     public <init>(...);
 }
--keep class io.legere.pdfiumandroid.util.Size { *; }
--keepclassmembers public class io.legere.pdfiumandroid.util.Size {
+-keep class io.legere.pdfiumandroid.api.Size { *; }
+-keepclassmembers public class io.legere.pdfiumandroid.api.Size {
     public <init>(...);
 }

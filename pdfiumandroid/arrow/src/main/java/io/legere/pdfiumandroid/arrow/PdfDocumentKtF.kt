@@ -1,3 +1,22 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @file:Suppress("unused", "CanBeVal")
 
 package io.legere.pdfiumandroid.arrow
@@ -7,8 +26,14 @@ import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
 import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfWriteCallback
+import io.legere.pdfiumandroid.PdfiumCore
+import io.legere.pdfiumandroid.api.Bookmark
+import io.legere.pdfiumandroid.api.Meta
+import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.Closeable
 
@@ -19,8 +44,8 @@ import java.io.Closeable
  * @constructor create a [PdfDocumentKtF] from a [PdfDocument]
  */
 @Suppress("TooManyFunctions", "CanBeVal")
-class PdfDocumentKtF(
-    val document: PdfDocument,
+class PdfDocumentKtF internal constructor(
+    internal val document: PdfDocumentU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
     /**
@@ -44,7 +69,9 @@ class PdfDocumentKtF(
      */
     suspend fun openPage(pageIndex: Int): Either<PdfiumKtFErrors, PdfPageKtF> =
         wrapEither(dispatcher) {
-            PdfPageKtF(document.openPage(pageIndex), dispatcher)
+            document.openPage(pageIndex)?.let {
+                PdfPageKtF(it, dispatcher)
+            } ?: error("Page is null")
         }
 
     /**
@@ -76,18 +103,20 @@ class PdfDocumentKtF(
         return withContext(renderCoroutinesDispatcher) {
             return@withContext surface
                 ?.let {
-                    document.renderPages(
-                        surface,
-                        pages.map { page -> page.page },
-                        matrices,
-                        clipRects,
-                        renderAnnot,
-                        textMask,
-                        canvasColor,
-                        pageBackgroundColor,
-                    )
-                } ?: false
-        }
+                    PdfiumCore.surfaceMutex.withLock {
+                        document.renderPages(
+                            surface,
+                            pages.map { page -> page.page },
+                            matrices,
+                            clipRects,
+                            renderAnnot,
+                            textMask,
+                            canvasColor,
+                            pageBackgroundColor,
+                        )
+                    }
+                }
+        } ?: false
     }
 
     /**
@@ -101,7 +130,7 @@ class PdfDocumentKtF(
     /**
      * suspend version of [PdfDocument.getDocumentMeta]
      */
-    suspend fun getDocumentMeta(): Either<PdfiumKtFErrors, PdfDocument.Meta> =
+    suspend fun getDocumentMeta(): Either<PdfiumKtFErrors, Meta> =
         wrapEither(dispatcher) {
             document.getDocumentMeta()
         }
@@ -109,13 +138,13 @@ class PdfDocumentKtF(
     /**
      * suspend version of [PdfDocument.getTableOfContents]
      */
-    suspend fun getTableOfContents(): Either<PdfiumKtFErrors, List<PdfDocument.Bookmark>> =
+    suspend fun getTableOfContents(): Either<PdfiumKtFErrors, List<Bookmark>> =
         wrapEither(dispatcher) {
             document.getTableOfContents()
         }
 
     /**
-     * suspend version of [PdfDocument.openTextPages]
+     * suspend version of [io.legere.pdfiumandroid.core.unlocked.PdfDocumentU.openTextPages]
      */
     suspend fun openTextPages(
         fromIndex: Int,
@@ -138,13 +167,17 @@ class PdfDocumentKtF(
      * @throws IllegalArgumentException if document is closed
      */
     override fun close() {
-        document.close()
+        wrapLock {
+            document.close()
+        }
     }
 
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                document.close()
+                wrapLock {
+                    document.close()
+                }
                 true
             }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

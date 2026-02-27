@@ -1,171 +1,80 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jreleaser.model.Active
-import org.jreleaser.model.Signing
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+import com.android.build.api.dsl.LibraryExtension
 
 
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.detekt)
-    alias(libs.plugins.kover)
-    alias(libs.plugins.ktlint)
-    alias(libs.plugins.jreleaser)
-    `maven-publish`
-    signing
+    id("io.legere.convention.library")
+    id("io.legere.convention.static.analysis")
+    id("io.legere.convention.kover")
+    id("io.legere.convention.junit5")
+    id("io.legere.convention.publish")
+//    id("org.jetbrains.dokka")
+//    id("org.jetbrains.dokka-javadoc")
+    jacoco
 }
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
+jacoco {
+    toolVersion = "0.8.13"
 }
 
-android {
+configure<LibraryExtension> {
     namespace = "io.legere.pdfiumandroid.arrow"
-    compileSdk = 36
-
     defaultConfig {
-        minSdk = 24
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_17)
-        targetCompatibility(JavaVersion.VERSION_17)
-    }
-    publishing {
-        singleVariant("release") {
-            // if you don't want sources/javadoc, remove these lines
-            withSourcesJar()
-            withJavadocJar()
-        }
     }
 }
 
 dependencies {
+//    dokkaPlugin(libs.android.documentation.plugin)
+//    dokka(project(":pdfiumandroid:api:"))
     implementation(project(":pdfiumandroid"))
+    api(project(":pdfiumandroid:api"))
+    implementation(project(":pdfiumandroid:core"))
+
     compileOnly(libs.arrow.core)
-    compileOnly(libs.kotlinx.coroutines.android)
-    compileOnly(libs.androidx.annotation.jvm)
-    compileOnly(libs.kotlin.stdlib)
     implementation(libs.guava)
 
-    testImplementation(libs.androidx.runner)
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    testImplementation(libs.espresso.core)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.core.testing)
+    testImplementation(libs.bundles.test)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+    testRuntimeOnly(libs.junit.vintage.engine)
+
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.arrow.fx.coroutines)
+
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.androidx.core.testing)
-    androidTestImplementation(libs.arrow.fx.coroutines)
+    androidTestImplementation(libs.core.testing)
 }
 
-fun getRepositoryUsername(): String =
-    if (rootProject.hasProperty("JRELEASER_MAVENCENTRAL_USERNAME")) {
-        rootProject.properties["JRELEASER_MAVENCENTRAL_USERNAME"] as String
-    } else {
-        ""
-    }
-
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "io.legere"
-            artifactId = "pdfium-android-kt-arrow"
-            version = project.property("VERSION_NAME") as String
-
-            pom {
-                name.set("pdfiumandroid.arrow")
-                description.set("Arrow support for PdfiumAndroid")
-                url.set(rootProject.properties["POM_URL"] as String)
-                licenses {
-                    license {
-                        name.set(rootProject.properties["POM_LICENCE_NAME"] as String)
-                        url.set(rootProject.properties["POM_LICENCE_URL"] as String)
-                        distribution.set(rootProject.properties["POM_LICENCE_DIST"] as String)
-                    }
-                }
-                developers {
-                    developer {
-                        id.set(rootProject.properties["POM_DEVELOPER_ID"] as String)
-                        name.set(rootProject.properties["POM_DEVELOPER_NAME"] as String)
-                    }
-                }
-                scm {
-                    connection.set(rootProject.properties["POM_SCM_CONNECTION"] as String)
-                    developerConnection.set(rootProject.properties["POM_SCM_DEV_CONNECTION"] as String)
-                    url.set(rootProject.properties["POM_SCM_URL"] as String)
-                }
-            }
-            afterEvaluate {
-                from(components["release"])
-            }
-        }
-    }
-    repositories {
-        maven {
-            url =
-                uri(layout.buildDirectory.dir("target/staging-deploy"))
-        }
-    }
-}
-
-jreleaser {
-    project {
-        inceptionYear = "2023"
-        author("@johngray1965")
-        description = "Arrow support for PdfiumAndroid"
-        version = rootProject.properties["VERSION_NAME"] as String
-        license = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        links {
-            homepage = "https://github.com/johngray1965/PdfiumAndroidKt"
-            license = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-        }
-    }
-    gitRootSearch = true
-    signing {
-        active = Active.ALWAYS
-        mode = Signing.Mode.MEMORY
-        armored = true
-        verify = true
-    }
-    release {
-        github {
-            repoOwner = "johngray1965"
-            overwrite = true
-        }
-    }
-//    distributions {
-//        create("pdfiumandroid.arrow") {
-//            artifact {
-//                path = file("build/distributions/{{distributionName}}-{{projectVersion}}.zip")
-//            }
-//        }
-//    }
-    deploy {
-        maven {
-            mavenCentral.create("sonatype") {
-                active = Active.ALWAYS
-                verifyPom = false
-                url = "https://central.sonatype.com/api/v1/publisher"
-                stagingRepository(
-                    layout.buildDirectory
-                        .dir("target/staging-deploy")
-                        .get()
-                        .toString(),
-                )
-                username = getRepositoryUsername()
-            }
-        }
-    }
+publishPlugin {
+    artifactId.set("pdfium-android-kt-arrow")
+    name.set("pdfiumandroid.arrow")
+    description.set("Arrow support for PdfiumAndroid")
 }

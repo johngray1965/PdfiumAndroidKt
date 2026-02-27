@@ -1,9 +1,17 @@
 pluginManagement {
+
+    includeBuild("build-logic")
+
     repositories {
+        mavenLocal()
         google()
         mavenCentral()
         gradlePluginPortal()
     }
+    enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+}
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
@@ -17,8 +25,11 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "pdfiumandroid"
+rootProject.name = "PdfiumAndroidKt"
+
 include(":app")
 include(":pdfiumandroid")
 include(":pdfiumandroid:arrow")
 include(":pdfiumandroid:benchmark")
+include(":pdfiumandroid:api")
+include(":pdfiumandroid:core")

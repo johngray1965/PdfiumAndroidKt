@@ -1,3 +1,22 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @file:Suppress("unused")
 
 package io.legere.pdfiumandroid.arrow
@@ -12,11 +31,14 @@ import android.view.Surface
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
-import io.legere.pdfiumandroid.Logger
-import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.util.Size
+import io.legere.pdfiumandroid.api.Link
+import io.legere.pdfiumandroid.api.Logger
+import io.legere.pdfiumandroid.api.PageAttributes
+import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.core.unlocked.PdfPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -28,10 +50,13 @@ import java.io.Closeable
  * @property dispatcher the [CoroutineDispatcher] to use for suspending calls
  */
 @Suppress("TooManyFunctions")
-class PdfPageKtF(
-    val page: PdfPage,
+class PdfPageKtF internal constructor(
+    internal val page: PdfPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * Open a text page
      * @throws IllegalArgumentException if document is closed or the page cannot be loaded
@@ -171,41 +196,43 @@ class PdfPageKtF(
         val sizes = IntArray(2)
         val pointers = LongArray(2)
         return withContext(renderCoroutinesDispatcher) {
-            surface?.let {
-                PdfPage.lockSurface(
-                    it,
-                    sizes,
-                    pointers,
-                )
-                val nativeWindow = pointers[0]
-                val bufferPtr = pointers[1]
-                val surfaceWidth = sizes[0]
-                val surfaceHeight = sizes[1]
-                Logger.d(
-                    "PdfPageKtF",
-                    "page: ${page.pageIndex}, surfaceWidth: $surfaceWidth, " +
-                        "surfaceHeight: $surfaceHeight, nativeWindow: $nativeWindow, " +
-                        "bufferPtr: $bufferPtr, nativeWindow: $nativeWindow",
-                )
-                if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
-                    PdfiumKtFErrors.ConstraintError.left()
-                }
-                val result =
-                    page.renderPage(
-                        bufferPtr,
-                        startX,
-                        startY,
-                        drawSizeX,
-                        drawSizeY,
-                        canvasColor = canvasColor,
-                        pageBackgroundColor = pageBackgroundColor,
+            PdfiumCore.surfaceMutex.withLock {
+                surface?.let {
+                    page.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
                     )
-                PdfPage.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
-                if (!result) {
-                    PdfiumKtFErrors.ConstraintError.left()
-                }
-                true.right()
-            } ?: PdfiumKtFErrors.ConstraintError.left()
+                    val nativeWindow = pointers[0]
+                    val bufferPtr = pointers[1]
+                    val surfaceWidth = sizes[0]
+                    val surfaceHeight = sizes[1]
+                    Logger.d(
+                        "PdfPageKtF",
+                        "page: ${page.pageIndex}, surfaceWidth: $surfaceWidth, " +
+                            "surfaceHeight: $surfaceHeight, nativeWindow: $nativeWindow, " +
+                            "bufferPtr: $bufferPtr, nativeWindow: $nativeWindow",
+                    )
+                    if (bufferPtr == 0L || bufferPtr == -1L || nativeWindow == 0L || nativeWindow == -1L) {
+                        PdfiumKtFErrors.ConstraintError.left()
+                    }
+                    val result =
+                        page.renderPage(
+                            bufferPtr,
+                            startX,
+                            startY,
+                            drawSizeX,
+                            drawSizeY,
+                            canvasColor = canvasColor,
+                            pageBackgroundColor = pageBackgroundColor,
+                        )
+                    page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                    if (!result) {
+                        PdfiumKtFErrors.ConstraintError.left()
+                    }
+                    true.right()
+                } ?: PdfiumKtFErrors.ConstraintError.left()
+            }
         }
     }
 
@@ -223,33 +250,38 @@ class PdfPageKtF(
         pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
         renderCoroutinesDispatcher: CoroutineDispatcher,
     ): Either<PdfiumKtFErrors, Boolean> {
-        return PdfiumCore.surfaceMutex.withLock {
-            withContext(renderCoroutinesDispatcher) {
-                return@withContext surface?.let {
-                    val retValue =
-                        page.renderPage(
-                            surface,
-                            matrix,
-                            clipRect,
-                            renderAnnot,
-                            textMask,
-                            canvasColor,
-                            pageBackgroundColor,
-                        )
-                    if (!retValue) {
-                        PdfiumKtFErrors.ConstraintError.left()
-                    } else {
-                        true.right()
+        return withContext(renderCoroutinesDispatcher) {
+            PdfiumCore.surfaceMutex.withLock {
+                Either
+                    .catch {
+                        return@withContext surface?.let {
+                            val retValue =
+                                page.renderPage(
+                                    surface,
+                                    matrix,
+                                    clipRect,
+                                    renderAnnot,
+                                    textMask,
+                                    canvasColor,
+                                    pageBackgroundColor,
+                                )
+                            if (!retValue) {
+                                PdfiumKtFErrors.ConstraintError.left()
+                            } else {
+                                true.right()
+                            }
+                        } ?: PdfiumKtFErrors.ConstraintError.left()
+                    }.mapLeft {
+                        exceptionToPdfiumKtFError(it)
                     }
-                } ?: PdfiumKtFErrors.ConstraintError.left()
             }
         }
     }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap,
         startX: Int,
@@ -276,10 +308,10 @@ class PdfPageKtF(
             true
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
+    @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: Matrix,
@@ -297,7 +329,7 @@ class PdfPageKtF(
     /**
      * suspend version of [PdfPage.getPageLinks]
      */
-    suspend fun getPageLinks(): Either<PdfiumKtFErrors, List<PdfDocument.Link>> =
+    suspend fun getPageLinks(): Either<PdfiumKtFErrors, List<Link>> =
         wrapEither(dispatcher) {
             page.getPageLinks()
         }
@@ -319,10 +351,10 @@ class PdfPageKtF(
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapDeviceCoordsToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapDeviceCoordsToPage(
         startX: Int,
         startY: Int,
@@ -336,10 +368,10 @@ class PdfPageKtF(
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToDevice]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToDevice(
         startX: Int,
         startY: Int,
@@ -352,10 +384,10 @@ class PdfPageKtF(
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
 
-    @Suppress("LongParameterList")
     /**
      * suspend version of [PdfPage.mapRectToPage]
      */
+    @Suppress("LongParameterList")
     suspend fun mapRectToPage(
         startX: Int,
         startY: Int,
@@ -369,16 +401,28 @@ class PdfPageKtF(
         }
 
     /**
+     * suspend version of [PdfPage.getPageAttributes]
+     */
+    suspend fun getPageAttributes(): Either<PdfiumKtFErrors, PageAttributes> =
+        wrapEither(dispatcher) {
+            page.getPageAttributes()
+        }
+
+    /**
      * Closes the page
      */
     override fun close() {
-        page.close()
+        wrapLock {
+            page.close()
+        }
     }
 
     fun safeClose(): Either<PdfiumKtFErrors, Boolean> =
         Either
             .catch {
-                page.close()
+                wrapLock {
+                    page.close()
+                }
                 true
             }.mapLeft { exceptionToPdfiumKtFError(it) }
 }

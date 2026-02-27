@@ -1,0 +1,228 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package io.legere.pdfiumandroid.suspend
+
+import android.graphics.RectF
+import com.google.common.truth.Truth.assertThat
+import io.legere.pdfiumandroid.PdfTextPage
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.core.unlocked.FindResultU
+import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
+import io.mockk.every
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.just
+import io.mockk.runs
+import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+
+@ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
+class PdfTextPageKtTest {
+    lateinit var pdfTextPage: PdfTextPageKt
+
+    @MockK
+    lateinit var pdfTextPageU: PdfTextPageU
+
+    @BeforeEach
+    fun setUp() {
+        // Using UnconfinedTestDispatcher (via StandardTestDispatcherExtension logic usually)
+        // or Main for testing, assuming PdfPageKt uses the passed dispatcher.
+        pdfTextPage = PdfTextPageKt(pdfTextPageU, Dispatchers.Unconfined)
+    }
+
+    @Test
+    fun testAlterConstructor() =
+        runTest {
+            val textPage = PdfTextPage(pdfTextPageU)
+            pdfTextPage = PdfTextPageKt(textPage, Dispatchers.Unconfined)
+            every { pdfTextPageU.pageIndex } returns 100
+            assertThat(pdfTextPage.pageIndex).isEqualTo(100)
+            verify { pdfTextPageU.pageIndex }
+        }
+
+    @Test
+    fun pageIndex() =
+        runTest {
+            every { pdfTextPageU.pageIndex } returns 100
+            assertThat(pdfTextPage.pageIndex).isEqualTo(100)
+            verify { pdfTextPageU.pageIndex }
+        }
+
+    @Test
+    fun textPageCountChars() =
+        runTest {
+            val expected = 124
+            every { pdfTextPageU.textPageCountChars() } returns expected
+            assertThat(pdfTextPage.textPageCountChars()).isEqualTo(expected)
+            verify { pdfTextPageU.textPageCountChars() }
+        }
+
+    @Test
+    fun textPageGetText() =
+        runTest {
+            val expected = "Hello World"
+            every { pdfTextPageU.textPageGetText(0, 11) } returns expected
+            assertThat(pdfTextPage.textPageGetText(0, 11)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetText(0, 11) }
+        }
+
+    @Test
+    fun textPageGetUnicode() =
+        runTest {
+            val expected = 'A'
+            every { pdfTextPageU.textPageGetUnicode(5) } returns expected
+            assertThat(pdfTextPage.textPageGetUnicode(5)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetUnicode(5) }
+        }
+
+    @Test
+    fun textPageGetCharBox() =
+        runTest {
+            val expected = RectF(0f, 0f, 10f, 10f)
+            every { pdfTextPageU.textPageGetCharBox(1) } returns expected
+            assertThat(pdfTextPage.textPageGetCharBox(1)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetCharBox(1) }
+        }
+
+    @Test
+    fun textPageGetCharIndexAtPos() =
+        runTest {
+            val expected = 42
+            every { pdfTextPageU.textPageGetCharIndexAtPos(10.0, 10.0, 5.0, 5.0) } returns expected
+            assertThat(pdfTextPage.textPageGetCharIndexAtPos(10.0, 10.0, 5.0, 5.0)).isEqualTo(
+                expected,
+            )
+            verify { pdfTextPageU.textPageGetCharIndexAtPos(10.0, 10.0, 5.0, 5.0) }
+        }
+
+    @Test
+    fun textPageCountRects() =
+        runTest {
+            val expected = 10
+            every { pdfTextPageU.textPageCountRects(0, 100) } returns expected
+            assertThat(pdfTextPage.textPageCountRects(0, 100)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageCountRects(0, 100) }
+        }
+
+    @Test
+    fun textPageGetRect() =
+        runTest {
+            val expected = RectF(5f, 5f, 15f, 15f)
+            every { pdfTextPageU.textPageGetRect(3) } returns expected
+            assertThat(pdfTextPage.textPageGetRect(3)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetRect(3) }
+        }
+
+    @Test
+    fun textPageGetRectsForRanges() =
+        runTest {
+            val starts = intArrayOf(0)
+            val expected = listOf(WordRangeRect(5, 0, RectF(0f, 0f, 10f, 10f)))
+
+            every { pdfTextPageU.textPageGetRectsForRanges(starts) } returns expected
+
+            assertThat(pdfTextPage.textPageGetRectsForRanges(starts)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetRectsForRanges(starts) }
+        }
+
+    @Test
+    fun textPageGetBoundedText() =
+        runTest {
+            val rect = RectF(0f, 0f, 100f, 100f)
+            val expected = "Bounded"
+            every { pdfTextPageU.textPageGetBoundedText(rect, 100) } returns expected
+
+            assertThat(pdfTextPage.textPageGetBoundedText(rect, 100)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetBoundedText(rect, 100) }
+        }
+
+    @Test
+    fun getFontSize() =
+        runTest {
+            val expected = 14.0
+            every { pdfTextPageU.getFontSize(2) } returns expected
+            assertThat(pdfTextPage.getFontSize(2)).isEqualTo(expected)
+            verify { pdfTextPageU.getFontSize(2) }
+        }
+
+    @Test
+    fun findStart() =
+        runTest {
+            // The suspend version returns a FindResultKt (wrapper) around FindResultU
+            val mockHandle = 999L
+            val flags = setOf(FindFlags.MatchCase, FindFlags.MatchWholeWord)
+            val unlockedResult = FindResultU(mockHandle)
+            every { pdfTextPageU.findStart("search", flags, 0) } returns unlockedResult
+
+            val result = pdfTextPage.findStart("search", flags, 0)
+
+            assertThat(result).isNotNull()
+            // Assuming FindResultKt exposes underlying handle or properties
+            assertThat(result?.findResult).isEqualTo(unlockedResult)
+            verify { pdfTextPageU.findStart("search", flags, 0) }
+        }
+
+    @Test
+    fun loadWebLink() =
+        runTest {
+            val mockLink = PdfPageLinkU(888L)
+            every { pdfTextPageU.loadWebLink() } returns mockLink
+
+            val result = pdfTextPage.loadWebLink()
+
+            assertThat(result).isNotNull()
+            assertThat(result?.pageLink).isEqualTo(mockLink)
+            verify { pdfTextPageU.loadWebLink() }
+        }
+
+    @Test
+    fun close() =
+        runTest {
+            every { pdfTextPageU.close() } just runs
+            pdfTextPage.close()
+            verify { pdfTextPageU.close() }
+        }
+
+    @Test
+    fun safeCloseNormal() =
+        runTest {
+            every { pdfTextPageU.close() } just runs
+            // Verify safeClose swallows the exception
+            assertThat(pdfTextPage.safeClose()).isTrue()
+            verify { pdfTextPageU.close() }
+        }
+
+    @Test
+    fun safeClose() =
+        runTest {
+            every { pdfTextPageU.close() } throws RuntimeException("Close failed")
+            // Verify safeClose swallows the exception
+            assertThrows<RuntimeException> { pdfTextPage.safeClose() }
+            verify { pdfTextPageU.close() }
+        }
+}

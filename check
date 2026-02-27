@@ -39,9 +39,9 @@ serverPID=$!
 # ./gradlew clean detekt lint testDebugUnitTest  reader:pixel2DebugAndroidTest readerData:pixel2DebugAndroidTest 	&& ./gradlew reader:pixel2DebugAndroidTest -Pcucumber
 #
 #./gradlew clean detekt lint testDebugUnitTest pixel2DebugAndroidTest && ./gradlew pixel2DebugAndroidTest -Pcucumber
-./gradlew $CLEAN detekt lint && \
-	./gradlew testDebugUnitTest && \
-	./gradlew connectedAndroidTest
+./gradlew $CLEAN detekt lint koverVerifyDebug jacocoAndroidTestCoverageVerification
+#	./gradlew testDebugUnitTest && \
+#	./gradlew connectedAndroidTest
 
 
 kill $serverPID

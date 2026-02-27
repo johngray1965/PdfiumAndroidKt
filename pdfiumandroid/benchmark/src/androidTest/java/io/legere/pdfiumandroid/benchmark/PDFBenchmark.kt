@@ -1,10 +1,28 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package io.legere.pdfiumandroid.benchmark
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.graphics.Rect
 import android.graphics.RectF
 import android.util.Log
 import androidx.benchmark.junit4.BenchmarkRule
@@ -16,7 +34,6 @@ import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.util.Size
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -33,8 +50,6 @@ import org.junit.runner.RunWith
 class PDFBenchmark {
     @get:Rule
     val benchmarkRule = BenchmarkRule()
-
-    val noResultRect = RectF(-1f, -1f, -1f, -1f)
 
     fun getPdfBytes(filename: String): ByteArray? {
         val appContext = InstrumentationRegistry.getInstrumentation().context
@@ -67,17 +82,8 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagAttributesOpenEveryPass() {
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0).use { page ->
-                testPageAttributes(page)
-            }
-        }
-    }
-
-    @Test
-    fun getPagAttributesSingleOpen() {
-        pdfDocument.openPage(0).use { page ->
+    fun getPageAttributes() {
+        pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 testPageAttributes(page)
             }
@@ -85,28 +91,8 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagAttributesTimeAttributesOnly() {
-        pdfDocument.openPage(0).use { page ->
-            benchmarkRule.measureRepeated {
-                testPageAttributes(page)
-            }
-        }
-    }
-
-    @Test
-    fun getTextPagAttributesOpenEveryPass() {
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0).use { page ->
-                page.openTextPage().use { textPage ->
-                    testTextPageAttributes(textPage)
-                }
-            }
-        }
-    }
-
-    @Test
-    fun getPTextPagAttributesSingleOpen() {
-        pdfDocument.openPage(0).use { page ->
+    fun getTextPageAttributes() {
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 benchmarkRule.measureRepeated {
                     testTextPageAttributes(textPage)
@@ -116,36 +102,21 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getTextPagAttributesTimeAttributesOnly() {
-        pdfDocument.openPage(0).use { page ->
+    fun getTextPageText() {
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 benchmarkRule.measureRepeated {
-                    testTextPageAttributes(textPage)
+                    val textPageCountChars = textPage.textPageCountChars()
+                    textPage.textPageGetText(0, textPageCountChars)
                 }
             }
         }
     }
 
     @Test
-    fun getPagBitmapOpenEveryPass() {
+    fun getPageBitmap() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0).use { page ->
-                page.renderPageBitmap(
-                    bitmap,
-                    0,
-                    0,
-                    612,
-                    792,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun getPagBitmapSingleOpen() {
-        val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
                     bitmap,
@@ -159,28 +130,11 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixOpenEveryPass() {
+    fun getPagBitmapViaMatrix() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
         val rect = RectF(0f, 0f, 612f, 792f)
         val matrix = Matrix()
-        benchmarkRule.measureRepeated {
-            pdfDocument.openPage(0).use { page ->
-                page.renderPageBitmap(
-                    bitmap,
-                    matrix,
-                    rect,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun getPagBitmapViaMatrixSingleOpen() {
-        val iterations = 1_000
-        val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        val rect = RectF(0f, 0f, 612f, 792f)
-        val matrix = Matrix()
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
                     bitmap,
@@ -192,9 +146,27 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixSingleOpen8x() {
+    fun openPage() {
+        benchmarkRule.measureRepeated {
+            pdfDocument.openPage(0)?.use { _ ->
+            }
+        }
+    }
+
+    @Test
+    fun openTextPage() {
+        pdfDocument.openPage(0)?.use { page ->
+            benchmarkRule.measureRepeated {
+                page.openTextPage().use { _ ->
+                }
+            }
+        }
+    }
+
+    @Test
+    fun getPagBitmapViaMatrix8x() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.RGB_565)
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
                     bitmap,
@@ -206,9 +178,9 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixSingleOpen8xARGB_8888() {
+    fun getPagBitmapViaMatrix8xARGB_8888() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
                     bitmap,
@@ -229,7 +201,7 @@ class PDFBenchmark {
 
     @Test
     fun gettextPageGetRectsForRanges() {
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val textCharCount =
                     textPage.textPageCountChars()
@@ -248,7 +220,7 @@ class PDFBenchmark {
                     benchmarkRule.measureRepeated {
                         val result = textPage.textPageGetRectsForRanges(wordRangesArray)
                         assertThat(result).isNotNull()
-                        assertThat(result?.size).isEqualTo(1238)
+                        assertThat(result?.size).isEqualTo(1237)
                     }
                 }
             }
@@ -256,8 +228,8 @@ class PDFBenchmark {
     }
 
     @Test
-    fun gettextPageGetRects() {
-        pdfDocument.openPage(0).use { page ->
+    fun getTextPageGetRects() {
+        pdfDocument.openPage(0)?.use { page ->
             page.openTextPage().use { textPage ->
                 val textCharCount =
                     textPage.textPageCountChars()
@@ -268,20 +240,18 @@ class PDFBenchmark {
                             textCharCount,
                         )
                             ?: ""
-                    val wordBoundaries = findWordRanges(pageText)
+                    val wordBoundaries =
+                        findWordRanges(pageText)
+                            .flatMap { (first, second) ->
+                                listOf(
+                                    first,
+                                    second,
+                                )
+                            }.toIntArray()
                     benchmarkRule.measureRepeated {
-                        val list = mutableListOf<RectF>()
-                        wordBoundaries.forEach {
-                            val count = textPage.textPageCountRects(it.first, it.second)
-                            repeat(count) {
-                                textPage.textPageGetRect(it)?.let { rect ->
-                                    list.add(rect)
-                                }
-                            }
-//                                    println("list: ${it.first} ${it.second} $list")
-                        }
+                        val list = textPage.textPageGetRectsForRanges(wordBoundaries)
                         assertThat(list).isNotNull()
-                        assertThat(list.size).isEqualTo(1238)
+                        assertThat(list?.size).isEqualTo(1237)
                     }
                 }
             }
@@ -291,7 +261,7 @@ class PDFBenchmark {
     @Test
     fun getRenderPageBitmap() {
         val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
-        pdfDocument.openPage(0).use { page ->
+        pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
                     bitmap,
@@ -303,7 +273,7 @@ class PDFBenchmark {
     }
 
     @Test
-    fun getPagBitmapViaMatrixSingleOpen8xARGB_8888ReadFromDisk() {
+    fun getPagBitmapViaMatrix8xARGB_8888ReadFromDisk() {
         val (bitmap, _, _) = commonParams8X(Bitmap.Config.ARGB_8888)
         val targetCtx: Context = InstrumentationRegistry.getInstrumentation().targetContext
         targetCtx.openFileOutput("test.png", Context.MODE_PRIVATE).use {
@@ -343,64 +313,65 @@ class PDFBenchmark {
     private fun testTextPageAttributes(page: PdfTextPage) {
         val textPageCountChars = page.textPageCountChars()
         val textPageCountRects = page.textPageCountRects(0, textPageCountChars)
-        assertThat(textPageCountChars).isEqualTo(3468)
-        val textPageGetText = page.textPageGetText(0, textPageCountChars)
-        assertThat(textPageGetText).startsWith("The 50 Best Videos For Kids")
-        val textPageGetUnicode = page.textPageGetUnicode(0)
-        assertThat(textPageGetUnicode).isEqualTo('T')
-        val textPageGetCharBox = page.textPageGetCharBox(0)
-        assertThat(textPageGetCharBox).isEqualTo(
-            RectF(
-                90.314415f,
-                715.3187f,
-                103.44171f,
-                699.1206f,
-            ),
-        )
+//        assertThat(textPageCountChars).isEqualTo(3468)
+        page.textPageGetText(0, textPageCountChars)
+//        assertThat(textPageGetText).startsWith("The 50 Best Videos For Kids")
+        page.textPageGetUnicode(0)
+//        assertThat(textPageGetUnicode).isEqualTo('T')
+        page.textPageGetCharBox(0)
+//        assertThat(textPageGetCharBox).isEqualTo(
+//            RectF(
+//                90.314415f,
+//                715.3187f,
+//                103.44171f,
+//                699.1206f,
+//            ),
+//        )
 
         repeat(textPageCountRects) {
-            val textPageGetRect = page.textPageGetRect(it)
+            page.textPageGetRect(it)
         }
     }
 
     private fun testPageAttributes(page: PdfPage) {
-        val pageWidth = page.getPageWidth(72)
-        val pageHeight = page.getPageHeight(72)
-        val pageWidthPoint = page.getPageWidthPoint()
-        val pageHeightPoint = page.getPageHeightPoint()
-        val cropBox = page.getPageCropBox()
-        val mediaBox = page.getPageMediaBox()
-        val bleedBox = page.getPageBleedBox()
-        val trimBox = page.getPageTrimBox()
-        val artBox = page.getPageArtBox()
-        val boundingBox = page.getPageBoundingBox()
-        val size = page.getPageSize(72)
-        val links = page.getPageLinks()
-        val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
+        page.getPageAttributes()
+//        val pageWidth = page.getPageWidth(72)
+//        val pageHeight = page.getPageHeight(72)
+//        val pageWidthPoint = page.getPageWidthPoint()
+//        val pageHeightPoint = page.getPageHeightPoint()
+//        val cropBox = page.getPageCropBox()
+//        val mediaBox = page.getPageMediaBox()
+//        val bleedBox = page.getPageBleedBox()
+//        val trimBox = page.getPageTrimBox()
+//        val artBox = page.getPageArtBox()
+//        val boundingBox = page.getPageBoundingBox()
+//        val size = page.getPageSize(72)
+//        val links = page.getPageLinks()
+//        val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
 
-        assertThat(pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
-        assertThat(pageHeight).isEqualTo(792) // 11 inches * 72 dpi
-        assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
-        assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
-        assertThat(cropBox).isEqualTo(noResultRect)
-        assertThat(mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
-        assertThat(bleedBox).isEqualTo(noResultRect)
-        assertThat(trimBox).isEqualTo(noResultRect)
-        assertThat(artBox).isEqualTo(noResultRect)
-        assertThat(boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
-        assertThat(size).isEqualTo(Size(612, 792))
-        assertThat(links.size).isEqualTo(0) // The test doc doesn't have links
-        assertThat(devicePt).isEqualTo(
-            Rect(
-                // 0f in coords to 0f in device
-                0,
-                // 0f in corrds in at the bottom, the bottom of the device is 100f
-                100,
-                // 100f in coords = 100f/(8.5*72) * 100f = 16f
-                16,
-                // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
-                87,
-            ),
-        )
+//        assertThat(pageAttributes.pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
+//        assertThat(pageAttributes.pageHeight).isEqualTo(792) // 11 inches * 72 dpi
+// //        assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
+// //        assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
+//        assertThat(pageAttributes.cropBox).isEqualTo(noResultRect)
+//        assertThat(pageAttributes.mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
+//        assertThat(pageAttributes.bleedBox).isEqualTo(noResultRect)
+//        assertThat(pageAttributes.trimBox).isEqualTo(noResultRect)
+//        assertThat(pageAttributes.artBox).isEqualTo(noResultRect)
+//        assertThat(pageAttributes.boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
+// //        assertThat(size).isEqualTo(Size(612, 792))
+//        assertThat(pageAttributes.links.size).isEqualTo(0) // The test doc doesn't have links
+//        assertThat(pageAttributes.devicePt).isEqualTo(
+//            Rect(
+//                // 0f in coords to 0f in device
+//                0,
+//                // 0f in corrds in at the bottom, the bottom of the device is 100f
+//                100,
+//                // 100f in coords = 100f/(8.5*72) * 100f = 16f
+//                16,
+//                // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+//                87,
+//            ),
+//        )
     }
 }

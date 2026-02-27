@@ -1,3 +1,22 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @file:Suppress("unused")
 
 package io.legere.pdfiumandroid.arrow
@@ -6,6 +25,8 @@ import arrow.core.Either
 import io.legere.pdfiumandroid.suspend.PdfPageSuspendCacheBase
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+
+internal const val CACHE_SIZE = 64L
 
 /**
  * A cache for pages of a PDF document, designed to be used with Arrow and coroutines.
@@ -52,18 +73,19 @@ import kotlinx.coroutines.Dispatchers
  */
 class PdfPageKtFCache<H : AutoCloseable>(
     private val pdfDocument: PdfDocumentKtF,
+    maxSize: Long = CACHE_SIZE,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val pageHolderFactory: suspend (PdfPageKtF, PdfTextPageKtF) -> H,
 ) : AutoCloseable {
     private val suspendCache =
-        object : PdfPageSuspendCacheBase<H>(dispatcher) {
-            @Suppress("MaxLineLength")
-            override suspend fun openPageAndText(pageIndex: Int): H {
-                val page = pdfDocument.document.openPage(pageIndex)
-                val textPage = page.openTextPage()
+        object : PdfPageSuspendCacheBase<H>(dispatcher, maxSize) {
+            @Suppress("ReturnCount")
+            override suspend fun openPageAndText(pageIndex: Int): H? {
+                val page = pdfDocument.openPage(pageIndex).getOrNull() ?: return null
+                val textPage = page.openTextPage().getOrNull() ?: return null
                 return pageHolderFactory(
-                    PdfPageKtF(page, dispatcher),
-                    PdfTextPageKtF(textPage, dispatcher),
+                    page,
+                    textPage,
                 )
             }
         }

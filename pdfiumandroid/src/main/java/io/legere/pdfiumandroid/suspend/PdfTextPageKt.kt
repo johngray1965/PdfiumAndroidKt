@@ -1,15 +1,35 @@
+/*
+ * Original work Copyright 2015 Bekket McClane
+ * Modified work Copyright 2016 Bartosz Schiller
+ * Modified work Copyright 2023-2026 John Gray
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 @file:Suppress("unused")
 
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.RectF
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.FindFlags
-import io.legere.pdfiumandroid.Logger
 import io.legere.pdfiumandroid.PdfTextPage
-import io.legere.pdfiumandroid.WordRangeRect
+import io.legere.pdfiumandroid.api.FindFlags
+import io.legere.pdfiumandroid.api.Logger
+import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
+import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.withContext
 import java.io.Closeable
 
 /**
@@ -19,15 +39,23 @@ import java.io.Closeable
  */
 @Suppress("TooManyFunctions")
 @Keep
-class PdfTextPageKt(
-    val page: PdfTextPage,
+class PdfTextPageKt internal constructor(
+    internal val page: PdfTextPageU,
     private val dispatcher: CoroutineDispatcher,
 ) : Closeable {
+    constructor(page: PdfTextPage, dispatcher: CoroutineDispatcher) : this(
+        page.page,
+        dispatcher,
+    )
+
+    val pageIndex: Int
+        get() = page.pageIndex
+
     /**
      * suspend version of [PdfTextPage.textPageCountChars]
      */
     suspend fun textPageCountChars(): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageCountChars()
         }
 
@@ -38,7 +66,7 @@ class PdfTextPageKt(
         startIndex: Int,
         length: Int,
     ): String? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetText(startIndex, length)
         }
 
@@ -46,7 +74,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetUnicode]
      */
     suspend fun textPageGetUnicode(index: Int): Char =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetUnicode(index)
         }
 
@@ -54,7 +82,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
     suspend fun textPageGetCharBox(index: Int): RectF? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetCharBox(index)
         }
 
@@ -67,7 +95,7 @@ class PdfTextPageKt(
         xTolerance: Double,
         yTolerance: Double,
     ): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetCharIndexAtPos(x, y, xTolerance, yTolerance)
         }
 
@@ -78,7 +106,7 @@ class PdfTextPageKt(
         startIndex: Int,
         count: Int,
     ): Int =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageCountRects(startIndex, count)
         }
 
@@ -86,7 +114,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetRect]
      */
     suspend fun textPageGetRect(rectIndex: Int): RectF? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetRect(rectIndex)
         }
 
@@ -94,7 +122,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.textPageGetRectsForRanges]
      */
     suspend fun textPageGetRectsForRanges(wordRanges: IntArray): List<WordRangeRect>? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetRectsForRanges(wordRanges)
         }
 
@@ -105,7 +133,7 @@ class PdfTextPageKt(
         rect: RectF,
         length: Int,
     ): String? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.textPageGetBoundedText(rect, length)
         }
 
@@ -113,7 +141,7 @@ class PdfTextPageKt(
      * suspend version of [PdfTextPage.getFontSize]
      */
     suspend fun getFontSize(charIndex: Int): Double =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             page.getFontSize(charIndex)
         }
 
@@ -122,7 +150,7 @@ class PdfTextPageKt(
         flags: Set<FindFlags>,
         startIndex: Int,
     ): FindResultKt? =
-        withContext(dispatcher) {
+        wrapSuspend(dispatcher) {
             val findResult = page.findStart(findWhat, flags, startIndex)
             if (findResult == null) {
                 null
@@ -131,21 +159,27 @@ class PdfTextPageKt(
             }
         }
 
-    suspend fun loadWebLink(): PdfPageLinkKt =
-        withContext(dispatcher) {
-            PdfPageLinkKt(page.loadWebLink(), dispatcher)
+    suspend fun loadWebLink(): PdfPageLinkKt? =
+        wrapSuspend(dispatcher) {
+            page.loadWebLink()?.let {
+                PdfPageLinkKt(it, dispatcher)
+            }
         }
 
     /**
      * Close the page and free all resources.
      */
     override fun close() {
-        page.close()
+        wrapLock {
+            page.close()
+        }
     }
 
     fun safeClose(): Boolean =
         try {
-            page.close()
+            wrapLock {
+                page.close()
+            }
             true
         } catch (e: IllegalStateException) {
             Logger.e("PdfTextPageKt", e, "PdfTextPageKt.safeClose")

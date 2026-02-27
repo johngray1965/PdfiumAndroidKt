@@ -1,0 +1,55 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  release:
+    types: [created]
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to upload release assets
+      packages: write # Needed to publish to GitHub Packages
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Critical for git-sensitive-semantic-versioning
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Install NDK
+        run: |
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager "ndk;29.0.13846066"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      # Run checks (tests, lint) on every trigger
+      - name: Run Checks
+        run: ./gradlew :pdfiumandroid:check :pdfiumandroid:api:check :pdfiumandroid:core:check :pdfiumandroid:arrow:check
+
+      # Only run heavy build & publish on Release
+      - name: Build & Publish
+        if: github.event_name == 'release'
+        run: ./gradlew build publish
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            **/build/outputs/aar/*.aar
+            **/build/outputs/apk/**/*.apk
