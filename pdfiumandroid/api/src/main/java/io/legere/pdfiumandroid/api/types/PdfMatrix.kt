@@ -577,13 +577,6 @@ class MutablePdfMatrix(
     override fun hashCode(): Int = values.contentHashCode()
 }
 
-internal enum class RadiansType {
-    Zero,
-    Ninety,
-    OneEighty,
-    TwoSeventy,
-    Other,
-}
 // --- Internal Shared Math Logic ---
 
 internal fun DoubleArray.reset() {
@@ -592,54 +585,6 @@ internal fun DoubleArray.reset() {
     this[SCALE_Y] = 1.0
     this[PERSP_2] = 1.0
 }
-
-@Suppress("MagicNumber")
-internal fun calcSin(
-    radiansType: RadiansType,
-    radians: Double,
-): Double =
-    when (radiansType) {
-        RadiansType.Zero, RadiansType.OneEighty -> {
-            0.0
-        }
-
-        RadiansType.Ninety -> {
-            1.0
-        }
-
-        RadiansType.TwoSeventy -> {
-            -1.0
-        }
-
-        else -> { // General case, calculate and truncate
-            val sin = sin(radians)
-            if (shouldTruncate(sin)) 0.0 else sin
-        }
-    }
-
-@Suppress("MagicNumber")
-internal fun calcCos(
-    radiansType: RadiansType,
-    radians: Double,
-): Double =
-    when (radiansType) {
-        RadiansType.Zero -> { // Exact 0 degrees
-            1.0
-        }
-
-        RadiansType.Ninety, RadiansType.TwoSeventy -> { // Exact 90 degrees
-            0.0
-        }
-
-        RadiansType.OneEighty -> { // Exact 180 degrees
-            -1.0
-        }
-
-        else -> { // General case, calculate and truncate
-            val cos = cos(radians)
-            if (shouldTruncate(cos)) 0.0 else cos
-        }
-    }
 
 internal fun DoubleArray.isIdentity(): Boolean =
     this[SCALE_X] == 1.0 && this[SKEW_X] == 0.0 && this[TRANS_X] == 0.0 &&
@@ -1798,40 +1743,4 @@ internal fun DoubleArray.mapVectors(
         dst[di] = (this[SCALE_X] * x + this[SKEW_X] * y).toFloat()
         dst[di + 1] = (this[SKEW_Y] * x + this[SCALE_Y] * y).toFloat()
     }
-}
-
-fun getDeterminant3x3(m: DoubleArray): Double {
-    // Standard Column-Major indices:
-    // [0 3 6]
-    // [1 4 7]
-    // [2 5 8]
-    return m[SCALE_X] * (m[SCALE_Y] * m[PERSP_2] - m[TRANS_Y] * m[PERSP_1]) -
-        m[SKEW_Y] * (m[SKEW_X] * m[PERSP_2] - m[TRANS_X] * m[PERSP_1]) +
-        m[PERSP_0] * (m[SKEW_X] * m[TRANS_Y] - m[TRANS_X] * m[SCALE_Y])
-}
-
-fun normalize3x3Rotation(m: DoubleArray) {
-    // 1. Get the length of the first column (X-axis)
-    val len1 = sqrt((m[SCALE_X] * m[SCALE_X] + m[SKEW_X] * m[SKEW_X]))
-    if (len1 > 0) {
-        m[SCALE_X] /= len1
-        m[SKEW_X] /= len1
-    }
-
-    // 2. Make the second column (Y-axis) perpendicular to the first
-    // In 2D, if X is (a, b), the perpendicular Y is (-b, a)
-    m[SKEW_Y] = -m[SKEW_X]
-    m[SCALE_Y] = m[SCALE_X]
-
-    // 3. Clean the bottom row (Standard for affine transforms)
-    m[TRANS_X] = 0.0
-    m[TRANS_Y] = 0.0
-    m[PERSP_2] = 1.0
-}
-
-private val threadLocalFloatArray = ThreadLocal.withInitial { DoubleArray(THREE_BY_THREE) }
-
-private inline fun <T> tempFloatArray(block: (DoubleArray) -> T): T {
-    val tmp = threadLocalFloatArray.get() ?: DoubleArray(THREE_BY_THREE)
-    return block(tmp)
 }

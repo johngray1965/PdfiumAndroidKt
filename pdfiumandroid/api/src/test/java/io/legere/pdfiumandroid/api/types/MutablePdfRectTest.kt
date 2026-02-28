@@ -24,6 +24,40 @@ import org.junit.jupiter.api.Test
 
 class MutablePdfRectTest {
     @Test
+    fun `default constructor`() {
+        val rect = MutablePdfRect()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
+    fun `constructor with FloatRectValues`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = MutablePdfRect(input)
+        assertThat(rect.left).isEqualTo(10)
+        assertThat(rect.top).isEqualTo(20)
+        assertThat(rect.right).isEqualTo(30)
+        assertThat(rect.bottom).isEqualTo(40)
+    }
+
+    @Test
+    fun `constructor with IntRectValues`() {
+        val input = PdfRect(10, 20, 30, 40)
+        val rect = MutablePdfRect(input)
+        assertThat(rect.left).isEqualTo(10)
+        assertThat(rect.top).isEqualTo(20)
+        assertThat(rect.right).isEqualTo(30)
+        assertThat(rect.bottom).isEqualTo(40)
+    }
+
+    @Test
+    fun `setEmpty() sets to default values`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = MutablePdfRect(input)
+        rect.setEmpty()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
     fun `toIntArray with positive integers`() {
         // Check if the function correctly converts a MutablePdfRect with all positive integers to an IntArray.
         val rect = MutablePdfRect(10, 20, 30, 40)
@@ -263,9 +297,9 @@ class MutablePdfRectTest {
     }
 
     @Test
-    fun reset() {
+    fun setEmpty() {
         val rect = MutablePdfRect(0, 0, 10, 10)
-        rect.reset()
+        rect.setEmpty()
         assertThat(rect).isEqualTo(MutablePdfRect().apply { set(0, 0, 0, 0) })
     }
 

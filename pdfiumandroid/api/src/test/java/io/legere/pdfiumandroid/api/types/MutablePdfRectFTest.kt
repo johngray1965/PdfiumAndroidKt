@@ -24,6 +24,40 @@ import org.junit.jupiter.api.Test
 
 class MutablePdfRectFTest {
     @Test
+    fun `default constructor`() {
+        val rect = MutablePdfRectF()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
+    fun `constructor with FloatRectValues`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = MutablePdfRectF(input)
+        assertThat(rect.left).isEqualTo(10.5f)
+        assertThat(rect.top).isEqualTo(20.5f)
+        assertThat(rect.right).isEqualTo(30.5f)
+        assertThat(rect.bottom).isEqualTo(40.5f)
+    }
+
+    @Test
+    fun `constructor with IntRectValues`() {
+        val input = PdfRect(10, 20, 30, 40)
+        val rect = MutablePdfRectF(input)
+        assertThat(rect.left).isEqualTo(10.0f)
+        assertThat(rect.top).isEqualTo(20.0f)
+        assertThat(rect.right).isEqualTo(30.0f)
+        assertThat(rect.bottom).isEqualTo(40.0f)
+    }
+
+    @Test
+    fun `setEmpty() sets to default values`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = MutablePdfRectF(input)
+        rect.setEmpty()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
     fun `toFloatArray with positive values`() {
         // Verify that toFloatArray correctly returns an array with positive float values.
         val rect = MutablePdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
@@ -162,7 +196,7 @@ class MutablePdfRectFTest {
     @Test
     fun roundOut() {
         val rect = MutablePdfRectF(0.1f, 0.9f, 9.9f, 10.1f)
-        val expected = MutablePdfRectF(0.0f, 0.0f, 10.0f, 11.0f) // floor, floor, ceil, ceil
+        val expected = MutablePdfRect(0, 0, 10, 11) // floor, floor, ceil, ceil
 
         // Assuming roundOut implementation:
         // left = floor(left), top = floor(top), right = ceil(right), bottom = ceil(bottom)
@@ -256,7 +290,7 @@ class MutablePdfRectFTest {
     @Test
     fun reset() {
         val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
-        rect.reset()
+        rect.setEmpty()
         assertThat(rect).isEqualTo(MutablePdfRectF.EMPTY)
     }
 

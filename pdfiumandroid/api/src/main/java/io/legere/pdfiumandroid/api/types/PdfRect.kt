@@ -49,6 +49,12 @@ data class PdfRect(
     override val right: Int,
     override val bottom: Int,
 ) : IntRectValues {
+    constructor() : this(0, 0, 0, 0)
+    constructor(rectF: FloatRectValues) : this(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+    constructor(rect: IntRectValues) : this(rect.left, rect.top, rect.right, rect.bottom)
+
+    fun setEmpty(): PdfRect = PdfRect()
+
     fun union(other: IntRectValues): PdfRect =
         when {
             other.isEmpty -> {
@@ -91,6 +97,15 @@ data class PdfRect(
             bottom >= other.bottom
     }
 
+    fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
+    }
+
     fun toMutable() = MutablePdfRect(left, top, right, bottom)
 
     fun toIntArray(): IntArray = intArrayOf(left, top, right, bottom)
@@ -107,6 +122,10 @@ data class MutablePdfRect(
     override var right: Int = 0,
     override var bottom: Int = 0,
 ) : IntRectValues {
+    constructor() : this(0, 0, 0, 0)
+    constructor(rectF: FloatRectValues) : this(rectF.left.toInt(), rectF.top.toInt(), rectF.right.toInt(), rectF.bottom.toInt())
+    constructor(rect: IntRectValues) : this(rect.left, rect.top, rect.right, rect.bottom)
+
     fun set(
         l: Int,
         t: Int,
@@ -119,7 +138,7 @@ data class MutablePdfRect(
         bottom = b
     }
 
-    fun reset() {
+    fun setEmpty() {
         set(0, 0, 0, 0)
     }
 

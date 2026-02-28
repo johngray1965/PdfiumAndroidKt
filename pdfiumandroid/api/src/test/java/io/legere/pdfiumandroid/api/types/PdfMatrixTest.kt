@@ -95,6 +95,71 @@ class PdfMatrixTest {
     }
 
     @Test
+    fun `setRotate sets correct values for 0`() {
+        val matrix = MutablePdfMatrix()
+        matrix.setRotate(0f)
+
+        val values = matrix.values
+        // cos(90) = 0, sin(90) = 1
+        assertThat(values[SCALE_X]).isWithin(0.0001).of(1.0)
+        assertThat(values[SKEW_X]).isWithin(0.0001).of(0.0)
+        assertThat(values[SKEW_Y]).isWithin(0.0001).of(0.0)
+        assertThat(values[SCALE_Y]).isWithin(0.0001).of(1.0)
+    }
+
+    @Test
+    fun `setRotate sets correct values for 45`() {
+        val matrix = MutablePdfMatrix()
+        matrix.setRotate(45f)
+
+        val values = matrix.values
+        // cos(90) = 0, sin(90) = 1
+        assertThat(values[SCALE_X]).isWithin(0.0001).of(0.7071067811865476)
+        assertThat(values[SKEW_X]).isWithin(0.0001).of(-0.7071067811865476)
+        assertThat(values[SKEW_Y]).isWithin(0.0001).of(0.7071067811865475)
+        assertThat(values[SCALE_Y]).isWithin(0.0001).of(0.7071067811865475)
+    }
+
+    @Test
+    fun `setRotate sets correct values for 90`() {
+        val matrix = MutablePdfMatrix()
+        matrix.setRotate(90f)
+
+        val values = matrix.values
+        // cos(90) = 0, sin(90) = 1
+        assertThat(values[SCALE_X]).isWithin(0.0001).of(0.0)
+        assertThat(values[SKEW_X]).isWithin(0.0001).of(-1.0)
+        assertThat(values[SKEW_Y]).isWithin(0.0001).of(1.0)
+        assertThat(values[SCALE_Y]).isWithin(0.0001).of(0.0)
+    }
+
+    @Test
+    fun `setRotate sets correct values for 180`() {
+        val matrix = MutablePdfMatrix()
+        matrix.setRotate(180f)
+
+        val values = matrix.values
+        // cos(90) = 0, sin(90) = 1
+        assertThat(values[SCALE_X]).isWithin(0.0001).of(-1.0)
+        assertThat(values[SKEW_X]).isWithin(0.0001).of(0.0)
+        assertThat(values[SKEW_Y]).isWithin(0.0001).of(0.0)
+        assertThat(values[SCALE_Y]).isWithin(0.0001).of(-1.0)
+    }
+
+    @Test
+    fun `setRotate sets correct values for 270`() {
+        val matrix = MutablePdfMatrix()
+        matrix.setRotate(270f)
+
+        val values = matrix.values
+        // cos(90) = 0, sin(90) = 1
+        assertThat(values[SCALE_X]).isWithin(0.0001).of(0.0)
+        assertThat(values[SKEW_X]).isWithin(0.0001).of(1.0)
+        assertThat(values[SKEW_Y]).isWithin(0.0001).of(-1.0)
+        assertThat(values[SCALE_Y]).isWithin(0.0001).of(0.0)
+    }
+
+    @Test
     fun `setRotate sets correct values`() {
         val matrix = MutablePdfMatrix()
         matrix.setRotate(90f)

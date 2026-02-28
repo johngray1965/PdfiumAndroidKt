@@ -24,6 +24,39 @@ import org.junit.jupiter.api.Test
 
 class PdfRectTest {
     @Test
+    fun `default constructor`() {
+        val rect = PdfRect()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
+    fun `constructor with FloatRectValues`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = PdfRect(input)
+        assertThat(rect.left).isEqualTo(10)
+        assertThat(rect.top).isEqualTo(20)
+        assertThat(rect.right).isEqualTo(30)
+        assertThat(rect.bottom).isEqualTo(40)
+    }
+
+    @Test
+    fun `constructor with IntRectValues`() {
+        val input = PdfRect(10, 20, 30, 40)
+        val rect = PdfRect(input)
+        assertThat(rect.left).isEqualTo(10)
+        assertThat(rect.top).isEqualTo(20)
+        assertThat(rect.right).isEqualTo(30)
+        assertThat(rect.bottom).isEqualTo(40)
+    }
+
+    @Test
+    fun `setEmpty() sets to default values`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = PdfRect(input).setEmpty()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
     fun `toIntArray with positive integers`() {
         // Check if the function correctly converts a PdfRect with all positive integers to an IntArray.
         val rect = PdfRect(10, 20, 30, 40)
@@ -194,6 +227,11 @@ class PdfRectTest {
 
         val overlappingRect = PdfRect(5, 5, 15, 15)
         assertThat(rect.contains(overlappingRect)).isFalse()
+        val insideRectFloat = PdfRectF(2.0f, 2.0f, 8.0f, 8.0f)
+        assertThat(rect.contains(insideRectFloat)).isTrue()
+
+        val overlappingRectFloat = PdfRectF(5.0f, 5.0f, 15.0f, 15.0f)
+        assertThat(rect.contains(overlappingRectFloat)).isFalse()
     }
 
     @Test

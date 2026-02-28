@@ -24,6 +24,39 @@ import org.junit.jupiter.api.Test
 
 class PdfRectFTest {
     @Test
+    fun `default constructor`() {
+        val rect = PdfRectF()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
+    fun `constructor with FloatRectValues`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = PdfRectF(input)
+        assertThat(rect.left).isEqualTo(10.5f)
+        assertThat(rect.top).isEqualTo(20.5f)
+        assertThat(rect.right).isEqualTo(30.5f)
+        assertThat(rect.bottom).isEqualTo(40.5f)
+    }
+
+    @Test
+    fun `constructor with IntRectValues`() {
+        val input = PdfRect(10, 20, 30, 40)
+        val rect = PdfRectF(input)
+        assertThat(rect.left).isEqualTo(10.0f)
+        assertThat(rect.top).isEqualTo(20.0f)
+        assertThat(rect.right).isEqualTo(30.0f)
+        assertThat(rect.bottom).isEqualTo(40.0f)
+    }
+
+    @Test
+    fun `setEmpty() sets to default values`() {
+        val input = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
+        val rect = PdfRectF(input).setEmpty()
+        assertThat(rect.isEmpty).isTrue()
+    }
+
+    @Test
     fun `toFloatArray with positive values`() {
         // Verify that toFloatArray correctly returns an array with positive float values.
         val rect = PdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
@@ -162,7 +195,7 @@ class PdfRectFTest {
     @Test
     fun roundOut() {
         val rect = PdfRectF(0.1f, 0.9f, 9.9f, 10.1f)
-        val expected = PdfRectF(0.0f, 0.0f, 10.0f, 11.0f) // floor, floor, ceil, ceil
+        val expected = PdfRect(0, 0, 10, 11) // floor, floor, ceil, ceil
 
         // Assuming roundOut implementation:
         // left = floor(left), top = floor(top), right = ceil(right), bottom = ceil(bottom)
@@ -195,6 +228,12 @@ class PdfRectFTest {
 
         val overlappingRect = PdfRectF(5f, 5f, 15f, 15f)
         assertThat(rect.contains(overlappingRect)).isFalse()
+
+        val insideRectInt = PdfRect(2, 2, 8, 8)
+        assertThat(rect.contains(insideRectInt)).isTrue()
+
+        val overlappingRectInt = PdfRect(5, 5, 15, 15)
+        assertThat(rect.contains(overlappingRectInt)).isFalse()
     }
 
     @Test

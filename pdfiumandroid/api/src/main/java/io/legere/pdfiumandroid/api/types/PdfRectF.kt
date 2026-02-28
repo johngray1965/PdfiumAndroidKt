@@ -51,6 +51,18 @@ data class PdfRectF(
     override val right: Float,
     override val bottom: Float,
 ) : FloatRectValues {
+    constructor() : this(0f, 0f, 0f, 0f)
+    constructor(rectF: FloatRectValues) : this(rectF.left, rectF.top, rectF.right, rectF.bottom)
+    constructor(rectF: IntRectValues) : this(rectF.left.toFloat(), rectF.top.toFloat(), rectF.right.toFloat(), rectF.bottom.toFloat())
+
+    fun setEmpty(): PdfRectF =
+        PdfRectF(
+            left = 0f,
+            top = 0f,
+            right = 0f,
+            bottom = 0f,
+        )
+
     fun union(other: FloatRectValues): PdfRectF =
         when {
             other.isEmpty -> {
@@ -71,12 +83,12 @@ data class PdfRectF(
             }
         }
 
-    fun roundOut(): PdfRectF =
-        PdfRectF(
-            left = floor(this.left),
-            top = floor(this.top),
-            right = ceil(this.right),
-            bottom = ceil(this.bottom),
+    fun roundOut(): PdfRect =
+        PdfRect(
+            left = floor(this.left).toInt(),
+            top = floor(this.top).toInt(),
+            right = ceil(this.right).toInt(),
+            bottom = ceil(this.bottom).toInt(),
         )
 
     fun contains(
@@ -88,6 +100,15 @@ data class PdfRectF(
     }
 
     fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
+    }
+
+    fun contains(other: IntRectValues): Boolean {
         if (this.isEmpty) return false
         return !other.isEmpty &&
             left <= other.left &&
@@ -117,6 +138,10 @@ data class MutablePdfRectF(
     override var right: Float = 0f,
     override var bottom: Float = 0f,
 ) : FloatRectValues {
+    constructor() : this(0f, 0f, 0f, 0f)
+    constructor(rectF: FloatRectValues) : this(rectF.left, rectF.top, rectF.right, rectF.bottom)
+    constructor(rectF: IntRectValues) : this(rectF.left.toFloat(), rectF.top.toFloat(), rectF.right.toFloat(), rectF.bottom.toFloat())
+
     fun set(
         l: Float,
         t: Float,
@@ -133,7 +158,7 @@ data class MutablePdfRectF(
         set(src.left, src.top, src.right, src.bottom)
     }
 
-    fun reset() {
+    fun setEmpty() {
         left = 0f
         top = 0f
         right = 0f
@@ -160,12 +185,12 @@ data class MutablePdfRectF(
             }
         }
 
-    fun roundOut(): MutablePdfRectF =
-        MutablePdfRectF(
-            left = floor(this.left),
-            top = floor(this.top),
-            right = ceil(this.right),
-            bottom = ceil(this.bottom),
+    fun roundOut(): MutablePdfRect =
+        MutablePdfRect(
+            left = floor(this.left).toInt(),
+            top = floor(this.top).toInt(),
+            right = ceil(this.right).toInt(),
+            bottom = ceil(this.bottom).toInt(),
         )
 
     fun contains(
