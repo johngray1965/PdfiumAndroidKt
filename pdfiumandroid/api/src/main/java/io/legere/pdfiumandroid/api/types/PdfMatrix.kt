@@ -48,6 +48,83 @@ private fun fastAbs(x: Double) = if (x < 0) -x else x
 
 interface MatrixValues {
     val values: DoubleArray
+
+    fun isIdentity(): Boolean = values.isIdentity()
+
+    fun isAffine(): Boolean = values.isAffine()
+
+    // --- Mapping functions ---
+
+    fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
+
+    fun mapRect(
+        dst: MutablePdfRectF,
+        src: FloatRectValues,
+    ) = values.mapRect(dst, src)
+
+    fun mapRadius(radius: Float): Float = values.mapRadius(radius)
+
+    fun mapRadius(radius: Double): Double = values.mapRadius(radius)
+
+    fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
+
+    fun mapPoints(pts: DoubleArray) = values.mapPoints(pts)
+
+    fun mapPoints(
+        dst: FloatArray,
+        src: FloatArray,
+    ) = values.mapPoints(dst, src)
+
+    fun mapPoints(
+        dst: DoubleArray,
+        src: DoubleArray,
+    ) = values.mapPoints(dst, src)
+
+    fun mapPoints(
+        dst: FloatArray,
+        dstIndex: Int,
+        src: FloatArray,
+        srcIndex: Int,
+        pointCount: Int,
+    ) = values.mapPoints(dst, dstIndex, src, srcIndex, pointCount)
+
+    fun mapPoints(
+        dst: DoubleArray,
+        dstIndex: Int,
+        src: DoubleArray,
+        srcIndex: Int,
+        pointCount: Int,
+    ) = values.mapPoints(dst, dstIndex, src, srcIndex, pointCount)
+
+    fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
+
+    fun mapVectors(vecs: DoubleArray) = values.mapVectors(vecs)
+
+    fun mapVectors(
+        dest: FloatArray,
+        src: FloatArray,
+    ) = values.mapVectors(dest, src)
+
+    fun mapVectors(
+        dest: DoubleArray,
+        src: DoubleArray,
+    ) = values.mapVectors(dest, src)
+
+    fun mapVectors(
+        dst: FloatArray,
+        dstIndex: Int,
+        src: FloatArray,
+        srcIndex: Int,
+        vectorCount: Int,
+    ) = values.mapVectors(dst, dstIndex, src, srcIndex, vectorCount)
+
+    fun mapVectors(
+        dst: DoubleArray,
+        dstIndex: Int,
+        src: DoubleArray,
+        srcIndex: Int,
+        vectorCount: Int,
+    ) = values.mapVectors(dst, dstIndex, src, srcIndex, vectorCount)
 }
 
 /**
@@ -82,51 +159,6 @@ class PdfMatrix(
     override fun hashCode(): Int = values.contentHashCode()
 
     fun reset(): PdfMatrix = PdfMatrix()
-
-    fun isIdentity(): Boolean = values.isIdentity()
-
-    fun isAffine(): Boolean = values.isAffine()
-
-    // --- Mapping functions ---
-
-    fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
-
-    fun mapRect(
-        dst: MutablePdfRectF,
-        src: FloatRectValues,
-    ) = values.mapRect(dst, src)
-
-    fun mapRadius(radius: Float): Float = values.mapRadius(radius)
-
-    fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
-
-    fun mapPoints(
-        dst: FloatArray,
-        src: FloatArray,
-    ) = values.mapPoints(dst, src)
-
-    fun mapPoints(
-        dst: FloatArray,
-        dstIndex: Int,
-        src: FloatArray,
-        srcIndex: Int,
-        pointCount: Int,
-    ) = values.mapPoints(dst, dstIndex, src, srcIndex, pointCount)
-
-    fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
-
-    fun mapVectors(
-        dest: FloatArray,
-        src: FloatArray,
-    ) = values.mapVectors(dest, src)
-
-    fun mapVectors(
-        dst: FloatArray,
-        dstIndex: Int,
-        src: FloatArray,
-        srcIndex: Int,
-        vectorCount: Int,
-    ) = values.mapVectors(dst, dstIndex, src, srcIndex, vectorCount)
 
     /**
      * Returns the inverse of this matrix, or null if it's not invertible.
@@ -773,50 +805,7 @@ class MutablePdfMatrix(
     }
     // --- Mapping functions (Mutable matrix can still return new values) ---
 
-    fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
-
-    fun mapRect(
-        dst: MutablePdfRectF,
-        src: FloatRectValues,
-    ) = values.mapRect(dst, src)
-
-    fun mapRadius(radius: Float): Float = values.mapRadius(radius)
-
-    fun mapPoints(pts: FloatArray) = values.mapPoints(pts)
-
-    fun mapPoints(
-        dst: FloatArray,
-        src: FloatArray,
-    ) = values.mapPoints(dst, src)
-
-    fun mapPoints(
-        dst: FloatArray,
-        dstIndex: Int,
-        src: FloatArray,
-        srcIndex: Int,
-        pointCount: Int,
-    ) = values.mapPoints(dst, dstIndex, src, srcIndex, pointCount)
-
-    fun mapVectors(vecs: FloatArray) = values.mapVectors(vecs)
-
-    fun mapVectors(
-        dest: FloatArray,
-        src: FloatArray,
-    ) = values.mapVectors(dest, src)
-
-    fun mapVectors(
-        dst: FloatArray,
-        dstIndex: Int,
-        src: FloatArray,
-        srcIndex: Int,
-        vectorCount: Int,
-    ) = values.mapVectors(dst, dstIndex, src, srcIndex, vectorCount)
-
     fun toImmutable() = PdfMatrix(values.copyOf())
-
-    fun isIdentity(): Boolean = values.isIdentity()
-
-    fun isAffine(): Boolean = values.isAffine()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -1961,12 +1950,28 @@ internal fun DoubleArray.mapX(
     return ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w).toFloat()
 }
 
+internal fun DoubleArray.mapX(
+    x: Double,
+    y: Double,
+): Double {
+    val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
+    return ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w)
+}
+
 internal fun DoubleArray.mapY(
     x: Float,
     y: Float,
 ): Float {
     val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
     return ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w).toFloat()
+}
+
+internal fun DoubleArray.mapY(
+    x: Double,
+    y: Double,
+): Double {
+    val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
+    return ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w)
 }
 
 internal fun DoubleArray.mapRect(rect: FloatRectValues): PdfRectF {
@@ -2020,12 +2025,37 @@ internal fun DoubleArray.mapRadius(radius: Float): Float {
     return sqrt(d1 * d2)
 }
 
+@Suppress("MagicNumber")
+internal fun DoubleArray.mapRadius(radius: Double): Double {
+    val tmp = DoubleArray(4)
+    tmp[0] = radius
+    tmp[1] = 0.0
+    tmp[2] = 0.0
+    tmp[3] = radius
+    mapVectors(tmp)
+
+    val d1 = distance(0.0, 0.0, tmp[0], tmp[1])
+    val d2 = distance(0.0, 0.0, tmp[2], tmp[3])
+    return sqrt(d1 * d2)
+}
+
 internal fun distance(
     x1: Float,
     y1: Float,
     x2: Float,
     y2: Float,
 ): Float {
+    val dx = x1 - x2
+    val dy = y1 - y2
+    return sqrt(dx * dx + dy * dy)
+}
+
+internal fun distance(
+    x1: Double,
+    y1: Double,
+    x2: Double,
+    y2: Double,
+): Double {
     val dx = x1 - x2
     val dy = y1 - y2
     return sqrt(dx * dx + dy * dy)
@@ -2038,6 +2068,17 @@ internal fun DoubleArray.mapPoints(pts: FloatArray) {
 internal fun DoubleArray.mapPoints(
     dst: FloatArray,
     src: FloatArray,
+) {
+    mapPoints(dst, 0, src, 0, src.size / 2)
+}
+
+internal fun DoubleArray.mapPoints(pts: DoubleArray) {
+    mapPoints(pts, 0, pts, 0, pts.size / 2)
+}
+
+internal fun DoubleArray.mapPoints(
+    dst: DoubleArray,
+    src: DoubleArray,
 ) {
     mapPoints(dst, 0, src, 0, src.size / 2)
 }
@@ -2060,13 +2101,42 @@ internal fun DoubleArray.mapPoints(
     }
 }
 
+internal fun DoubleArray.mapPoints(
+    dst: DoubleArray,
+    dstIndex: Int,
+    src: DoubleArray,
+    srcIndex: Int,
+    pointCount: Int,
+) {
+    for (i in 0 until pointCount) {
+        val si = srcIndex + i * 2
+        val di = dstIndex + i * 2
+        val x = src[si]
+        val y = src[si + 1]
+        val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
+        dst[di] = ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w)
+        dst[di + 1] = ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w)
+    }
+}
+
 internal fun DoubleArray.mapVectors(vecs: FloatArray) {
+    mapVectors(vecs, 0, vecs, 0, vecs.size / 2)
+}
+
+internal fun DoubleArray.mapVectors(vecs: DoubleArray) {
     mapVectors(vecs, 0, vecs, 0, vecs.size / 2)
 }
 
 internal fun DoubleArray.mapVectors(
     dest: FloatArray,
     src: FloatArray,
+) {
+    mapVectors(dest, 0, src, 0, src.size / 2)
+}
+
+internal fun DoubleArray.mapVectors(
+    dest: DoubleArray,
+    src: DoubleArray,
 ) {
     mapVectors(dest, 0, src, 0, src.size / 2)
 }
@@ -2085,5 +2155,22 @@ internal fun DoubleArray.mapVectors(
         val y = src[si + 1]
         dst[di] = (this[SCALE_X] * x + this[SKEW_X] * y).toFloat()
         dst[di + 1] = (this[SKEW_Y] * x + this[SCALE_Y] * y).toFloat()
+    }
+}
+
+internal fun DoubleArray.mapVectors(
+    dst: DoubleArray,
+    dstIndex: Int,
+    src: DoubleArray,
+    srcIndex: Int,
+    vectorCount: Int,
+) {
+    for (i in 0 until vectorCount) {
+        val si = srcIndex + i * 2
+        val di = dstIndex + i * 2
+        val x = src[si]
+        val y = src[si + 1]
+        dst[di] = (this[SCALE_X] * x + this[SKEW_X] * y)
+        dst[di + 1] = (this[SKEW_Y] * x + this[SCALE_Y] * y)
     }
 }

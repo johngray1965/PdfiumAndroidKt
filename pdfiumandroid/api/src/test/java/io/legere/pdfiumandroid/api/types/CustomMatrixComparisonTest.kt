@@ -585,6 +585,25 @@ class CustomMatrixComparisonTest {
     }
 
     @Test
+    fun mapPointsDoubleSingleArgBehavesLikePlatformMatrix() {
+        val points = doubleArrayOf(0.0, 0.0, 10.0, 10.0, 5.0, 5.0)
+        val customPoints = points.copyOf()
+        val customPoints2 = points.copyOf()
+        val platformPoints = points.map { it.toFloat() }.toFloatArray()
+
+        mutableMatrix.postTranslate(10f, 20f)
+        platformMatrix.postTranslate(10f, 20f)
+        val result = pdfMatrix.postTranslate(10f, 20f)
+
+        mutableMatrix.mapPoints(customPoints)
+        platformMatrix.mapPoints(platformPoints)
+        result.mapPoints(customPoints2)
+
+        assertDoubleArraysEqual(platformPoints, customPoints, 0.001)
+        assertDoubleArraysEqual(platformPoints, customPoints2, 0.001)
+    }
+
+    @Test
     fun mapPointsTwoArgsBehavesLikePlatformMatrix() {
         val srcPoints = floatArrayOf(0f, 0f, 10f, 10f, 5f, 5f)
         val customDstPoints = FloatArray(srcPoints.size)
@@ -601,6 +620,26 @@ class CustomMatrixComparisonTest {
 
         assertFloatArraysEqual(platformDstPoints, customDstPoints, 0.001f)
         assertFloatArraysEqual(platformDstPoints, customDstPoints2, 0.001f)
+    }
+
+    @Test
+    fun mapPointsDoubleTwoArgsBehavesLikePlatformMatrix() {
+        val srcPoints = doubleArrayOf(0.0, 0.0, 10.0, 10.0, 5.0, 5.0)
+        val srcPointsF = floatArrayOf(0f, 0f, 10f, 10f, 5f, 5f)
+        val customDstPoints = DoubleArray(srcPoints.size)
+        val customDstPoints2 = DoubleArray(srcPoints.size)
+        val platformDstPoints = FloatArray(srcPoints.size)
+
+        mutableMatrix.postScale(2f, 3f)
+        platformMatrix.postScale(2f, 3f)
+        val result = pdfMatrix.postScale(2f, 3f)
+
+        mutableMatrix.mapPoints(customDstPoints, srcPoints)
+        platformMatrix.mapPoints(platformDstPoints, srcPointsF)
+        result.mapPoints(customDstPoints2, srcPoints)
+
+        assertDoubleArraysEqual(platformDstPoints, customDstPoints, 0.001)
+        assertDoubleArraysEqual(platformDstPoints, customDstPoints2, 0.001)
     }
 
     @Test
@@ -624,6 +663,30 @@ class CustomMatrixComparisonTest {
 
         assertFloatArraysEqual(platformDstPoints, customDstPoints, 0.001f)
         assertFloatArraysEqual(platformDstPoints, customDstPoints2, 0.001f)
+    }
+
+    @Test
+    fun mapPointsFloatMultiArgBehavesLikePlatformMatrix() {
+        val srcPoints = doubleArrayOf(0.0, 0.0, 10.0, 10.0, 5.0, 5.0)
+        val srcPointsF = floatArrayOf(0f, 0f, 10f, 10f, 5f, 5f)
+        val customDstPoints = DoubleArray(srcPoints.size)
+        val customDstPoints2 = DoubleArray(srcPoints.size)
+        val platformDstPoints = FloatArray(srcPoints.size)
+
+        mutableMatrix.postTranslate(10f, 10f)
+        platformMatrix.postTranslate(10f, 10f)
+        val result = pdfMatrix.postTranslate(10f, 10f)
+
+        val srcIndex = 2
+        val dstIndex = 2
+        val pointCount = 2
+
+        mutableMatrix.mapPoints(customDstPoints, dstIndex, srcPoints, srcIndex, pointCount)
+        result.mapPoints(customDstPoints2, dstIndex, srcPoints, srcIndex, pointCount)
+        platformMatrix.mapPoints(platformDstPoints, dstIndex, srcPointsF, srcIndex, pointCount)
+
+        assertDoubleArraysEqual(platformDstPoints, customDstPoints, 0.001)
+        assertDoubleArraysEqual(platformDstPoints, customDstPoints2, 0.001)
     }
 
     @Test
@@ -658,6 +721,40 @@ class CustomMatrixComparisonTest {
 
         assertThat(customMappedRadiusRotated).isWithin(0.001f).of(platformMappedRadiusRotated)
         assertThat(customMappedRadiusRotated2).isWithin(0.001f).of(platformMappedRadiusRotated)
+    }
+
+    @Test
+    fun mapRadiusFloatBehavesLikePlatformMatrix() {
+        val radius = 10.0
+
+        mutableMatrix.postScale(2f, 3f)
+        platformMatrix.postScale(2f, 3f)
+        var result = pdfMatrix.postScale(2f, 3f)
+
+        val customMappedRadius = mutableMatrix.mapRadius(radius)
+        val customMappedRadius2 = result.mapRadius(radius)
+        val platformMappedRadius = platformMatrix.mapRadius(radius.toFloat())
+
+        assertThat(customMappedRadius).isWithin(0.001).of(platformMappedRadius.toDouble())
+        assertThat(customMappedRadius2).isWithin(0.001).of(platformMappedRadius.toDouble())
+
+        // With rotation
+        mutableMatrix.reset()
+        platformMatrix.reset()
+        result = result.reset()
+        mutableMatrix.postRotate(90f)
+        result = result.postRotate(90f)
+        platformMatrix.postRotate(90f)
+        mutableMatrix.postScale(2f, 3f)
+        platformMatrix.postScale(2f, 3f)
+        result = result.postScale(2f, 3f)
+
+        val customMappedRadiusRotated = mutableMatrix.mapRadius(radius)
+        val customMappedRadiusRotated2 = result.mapRadius(radius)
+        val platformMappedRadiusRotated = platformMatrix.mapRadius(radius.toFloat())
+
+        assertThat(customMappedRadiusRotated).isWithin(0.001).of(platformMappedRadiusRotated.toDouble())
+        assertThat(customMappedRadiusRotated2).isWithin(0.001).of(platformMappedRadiusRotated.toDouble())
     }
 
     @Test
@@ -737,6 +834,28 @@ class CustomMatrixComparisonTest {
     }
 
     @Test
+    fun mapVectorsDoubleSingleArgBehavesLikePlatformMatrix() {
+        val vectors = doubleArrayOf(1.0, 1.0, 0.0, 10.0, -5.0, 0.0)
+        val vectorsF = floatArrayOf(1f, 1f, 0f, 10f, -5f, 0f)
+        val customVectors = vectors.copyOf()
+        val customVectors2 = vectors.copyOf()
+        val platformVectors = vectorsF.copyOf()
+
+        mutableMatrix.postTranslate(100f, 200f) // Translation should be ignored by mapVectors
+        platformMatrix.postTranslate(100f, 200f)
+        mutableMatrix.postScale(2f, 3f)
+        platformMatrix.postScale(2f, 3f)
+        val result = pdfMatrix.postTranslate(100f, 200f).postScale(2f, 3f)
+
+        mutableMatrix.mapVectors(customVectors)
+        result.mapVectors(customVectors2)
+        platformMatrix.mapVectors(platformVectors)
+
+        assertDoubleArraysEqual(platformVectors, customVectors, 0.001)
+        assertDoubleArraysEqual(platformVectors, customVectors2, 0.001)
+    }
+
+    @Test
     fun mapVectorsTwoArgsBehavesLikePlatformMatrix() {
         val srcVectors = floatArrayOf(1f, 1f, 0f, 10f, -5f, 0f)
         val customDstVectors = FloatArray(srcVectors.size)
@@ -755,6 +874,28 @@ class CustomMatrixComparisonTest {
 
         assertFloatArraysEqual(platformDstVectors, customDstVectors, 0.001f)
         assertFloatArraysEqual(platformDstVectors, customDstVectors2, 0.001f)
+    }
+
+    @Test
+    fun mapVectorsDoubleTwoArgsBehavesLikePlatformMatrix() {
+        val srcVectors = doubleArrayOf(1.0, 1.0, 0.0, 10.0, -5.0, 0.0)
+        val srcVectorsFloat = floatArrayOf(1f, 1f, 0f, 10f, -5f, 0f)
+        val customDstVectors = DoubleArray(srcVectors.size)
+        val customDstVectors2 = DoubleArray(srcVectors.size)
+        val platformDstVectors = FloatArray(srcVectors.size)
+
+        mutableMatrix.postTranslate(100f, 200f)
+        platformMatrix.postTranslate(100f, 200f)
+        mutableMatrix.postRotate(45f)
+        platformMatrix.postRotate(45f)
+        val result = pdfMatrix.postTranslate(100f, 200f).postRotate(45f)
+
+        mutableMatrix.mapVectors(customDstVectors, srcVectors)
+        result.mapVectors(customDstVectors2, srcVectors)
+        platformMatrix.mapVectors(platformDstVectors, srcVectorsFloat)
+
+        assertDoubleArraysEqual(platformDstVectors, customDstVectors, 0.001)
+        assertDoubleArraysEqual(platformDstVectors, customDstVectors2, 0.001)
     }
 
     @Test
@@ -780,6 +921,32 @@ class CustomMatrixComparisonTest {
 
         assertFloatArraysEqual(platformDstVectors, customDstVectors, 0.001f)
         assertFloatArraysEqual(platformDstVectors, customDstVectors2, 0.001f)
+    }
+
+    @Test
+    fun mapVectorsFloatMultiArgBehavesLikePlatformMatrix() {
+        val srcVectors = doubleArrayOf(1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0)
+        val srcVectorsFloat = floatArrayOf(1f, 1f, 2f, 2f, 3f, 3f, 4f, 4f)
+        val customDstVectors = DoubleArray(srcVectors.size)
+        val customDstVectors2 = DoubleArray(srcVectors.size)
+        val platformDstVectors = FloatArray(srcVectors.size)
+
+        mutableMatrix.postTranslate(10f, 10f)
+        platformMatrix.postTranslate(10f, 10f)
+        mutableMatrix.postScale(2f, 2f)
+        platformMatrix.postScale(2f, 2f)
+        val result = pdfMatrix.postTranslate(10f, 10f).postScale(2f, 2f)
+
+        val srcIndex = 2
+        val dstIndex = 4
+        val vectorCount = 2
+
+        mutableMatrix.mapVectors(customDstVectors, dstIndex, srcVectors, srcIndex, vectorCount)
+        result.mapVectors(customDstVectors2, dstIndex, srcVectors, srcIndex, vectorCount)
+        platformMatrix.mapVectors(platformDstVectors, dstIndex, srcVectorsFloat, srcIndex, vectorCount)
+
+        assertDoubleArraysEqual(platformDstVectors, customDstVectors, 0.001)
+        assertDoubleArraysEqual(platformDstVectors, customDstVectors2, 0.001)
     }
 
     @Test
@@ -888,5 +1055,22 @@ class CustomMatrixComparisonTest {
                 .isWithin(delta)
                 .of(expected[i])
         }
+    }
+}
+
+private fun assertDoubleArraysEqual(
+    expected: FloatArray,
+    actual: DoubleArray,
+    delta: Double,
+) {
+    assertThat(actual).hasLength(expected.size)
+    for (i in expected.indices) {
+        assertWithMessage(
+            "Value at index $i, \n" +
+                "expected: ${expected.contentToString()}, \n" +
+                "actual:   ${actual.contentToString()}",
+        ).that(actual[i])
+            .isWithin(delta)
+            .of(expected[i].toDouble())
     }
 }
