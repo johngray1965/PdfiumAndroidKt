@@ -23,7 +23,6 @@ package io.legere.pdfiumandroid.api.types
 
 import androidx.annotation.Keep
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
@@ -43,6 +42,9 @@ const val PERSP_2 = 8
 const val ZERO_TOLERANCE = 1.0 / (1 shl 16)
 
 const val DEGREES_TO_RADIANS = (PI / 180.0)
+
+// Custom abs function for Double to avoid potential overhead of kotlin.math.abs
+private fun fastAbs(x: Double) = if (x < 0) -x else x
 
 interface MatrixValues {
     val values: DoubleArray
@@ -681,8 +683,8 @@ internal fun DoubleArray.setRotate(
             val radians = normalizedDegrees * DEGREES_TO_RADIANS
             val sina = sin(radians)
             val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+            sin = if (fastAbs(sina) < ZERO_TOLERANCE) 0.0 else sina
+            cos = if (fastAbs(cosa) < ZERO_TOLERANCE) 0.0 else cosa
         }
     }
 
@@ -735,8 +737,8 @@ internal fun DoubleArray.setRotate(degrees: Float) {
             val radians = normalizedDegrees * DEGREES_TO_RADIANS
             val sina = sin(radians)
             val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+            sin = if (fastAbs(sina) < ZERO_TOLERANCE) 0.0 else sina
+            cos = if (fastAbs(cosa) < ZERO_TOLERANCE) 0.0 else cosa
         }
     }
 
@@ -970,8 +972,8 @@ internal fun DoubleArray.preRotate(
             val radians = normalizedDegrees * DEGREES_TO_RADIANS
             val sina = sin(radians)
             val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+            sin = if (fastAbs(sina) < ZERO_TOLERANCE) 0.0 else sina
+            cos = if (fastAbs(cosa) < ZERO_TOLERANCE) 0.0 else cosa
         }
     }
 
@@ -1036,8 +1038,8 @@ internal fun DoubleArray.preRotate(degrees: Float) {
             val radians = normalizedDegrees * DEGREES_TO_RADIANS
             val sina = sin(radians)
             val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+            sin = if (fastAbs(sina) < ZERO_TOLERANCE) 0.0 else sina
+            cos = if (fastAbs(cosa) < ZERO_TOLERANCE) 0.0 else cosa
         }
     }
 
@@ -1323,8 +1325,8 @@ internal fun DoubleArray.postRotate(
             val radians = normalizedDegrees * DEGREES_TO_RADIANS
             val sina = sin(radians)
             val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+            sin = if (fastAbs(sina) < ZERO_TOLERANCE) 0.0 else sina
+            cos = if (fastAbs(cosa) < ZERO_TOLERANCE) 0.0 else cosa
         }
     }
 
@@ -1387,8 +1389,8 @@ internal fun DoubleArray.postRotate(degrees: Float) {
             val radians = normalizedDegrees * DEGREES_TO_RADIANS
             val sina = sin(radians)
             val cosa = cos(radians)
-            sin = if (shouldTruncate(sina)) 0.0 else sina
-            cos = if (shouldTruncate(cosa)) 0.0 else cosa
+            sin = if (fastAbs(sina) < ZERO_TOLERANCE) 0.0 else sina
+            cos = if (fastAbs(cosa) < ZERO_TOLERANCE) 0.0 else cosa
         }
     }
 
@@ -1407,7 +1409,7 @@ internal fun DoubleArray.postRotate(degrees: Float) {
     this[TRANS_Y] = sin * l + cos * o
 }
 
-private fun shouldTruncate(value: Double): Boolean = abs(value) < ZERO_TOLERANCE
+// private fun shouldTruncate(value: Double): Boolean =
 
 /**
  *
@@ -1595,7 +1597,7 @@ internal fun DoubleArray.invert(): DoubleArray? {
         v0 * (v4 * v8 - v5 * v7) -
             v1 * (v3 * v8 - v5 * v6) +
             v2 * (v3 * v7 - v4 * v6)
-    if (abs(det) < 1e-10) return null
+    if (fastAbs(det) < 1e-10) return null
     val invDet = 1.0 / det
     val res = DoubleArray(THREE_BY_THREE)
     res[SCALE_X] = ((v4 * v8 - v5 * v7) * invDet)

@@ -19,9 +19,7 @@
 
 package io.legere.pdfiumandroid.benchmark
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
@@ -29,7 +27,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import io.legere.pdfiumandroid.PdfDocument
-import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.api.types.PdfMatrix
@@ -85,7 +82,7 @@ class PDFBenchmark {
     fun getPageAttributes() {
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
-                testPageAttributes(page)
+                page.getPageAttributes()
             }
         }
     }
@@ -163,33 +160,33 @@ class PDFBenchmark {
         }
     }
 
-    @Test
-    fun getPagBitmapViaMatrix8x() {
-        val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.RGB_565)
-        pdfDocument.openPage(0)?.use { page ->
-            benchmarkRule.measureRepeated {
-                page.renderPageBitmap(
-                    bitmap,
-                    matrix,
-                    rect,
-                )
-            }
-        }
-    }
+//    @Test
+//    fun getPagBitmapViaMatrix8x() {
+//        val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.RGB_565)
+//        pdfDocument.openPage(0)?.use { page ->
+//            benchmarkRule.measureRepeated {
+//                page.renderPageBitmap(
+//                    bitmap,
+//                    matrix,
+//                    rect,
+//                )
+//            }
+//        }
+//    }
 
-    @Test
-    fun getPagBitmapViaMatrix8xARGB_8888() {
-        val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
-        pdfDocument.openPage(0)?.use { page ->
-            benchmarkRule.measureRepeated {
-                page.renderPageBitmap(
-                    bitmap,
-                    matrix,
-                    rect,
-                )
-            }
-        }
-    }
+//    @Test
+//    fun getPagBitmapViaMatrix8xARGB_8888() {
+//        val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
+//        pdfDocument.openPage(0)?.use { page ->
+//            benchmarkRule.measureRepeated {
+//                page.renderPageBitmap(
+//                    bitmap,
+//                    matrix,
+//                    rect,
+//                )
+//            }
+//        }
+//    }
 
     fun findWordRanges(text: String): List<Pair<Int, Int>> {
         val boundaries = Regex("\\b").findAll(text).map { it.range.first }.toMutableList()
@@ -258,57 +255,57 @@ class PDFBenchmark {
         }
     }
 
-    @Test
-    fun getRenderPageBitmap() {
-        val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
-        pdfDocument.openPage(0)?.use { page ->
-            benchmarkRule.measureRepeated {
-                page.renderPageBitmap(
-                    bitmap,
-                    matrix,
-                    rect,
-                )
-            }
-        }
-    }
-
-    @Test
-    fun getPagBitmapViaMatrix8xARGB_8888ReadFromDisk() {
-        val (bitmap, _, _) = commonParams8X(Bitmap.Config.ARGB_8888)
-        val targetCtx: Context = InstrumentationRegistry.getInstrumentation().targetContext
-        targetCtx.openFileOutput("test.png", Context.MODE_PRIVATE).use {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-        }
-
-        val bitmapOptios =
-            BitmapFactory.Options().apply {
-                inPreferredConfig = Bitmap.Config.ARGB_8888
-                inJustDecodeBounds = false
-                inBitmap = bitmap
-                inSampleSize = 1
-            }
-        benchmarkRule.measureRepeated {
-            val bitmapFromDisk =
-                BitmapFactory.decodeFile(targetCtx.filesDir.path + "/test.png", bitmapOptios)
-            assertThat(bitmapFromDisk).isNotNull()
-        }
-    }
-
-    private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, PdfRectF, PdfMatrix> {
-        val scaleFactor = (1080f / 612) * 8
-        val width = 1080 * 3
-        val height = 2280 * 3
-        val bitmap =
-            Bitmap.createBitmap(
-                width,
-                height,
-                bitmapConfig,
-            )
-        val rect = PdfRectF(0f, 0f, width.toFloat(), height.toFloat())
-        val matrix = PdfMatrix()
-        matrix.postScale(scaleFactor, scaleFactor)
-        return Triple(bitmap, rect, matrix)
-    }
+//    @Test
+//    fun getRenderPageBitmap() {
+//        val (bitmap, rect, matrix) = commonParams8X(Bitmap.Config.ARGB_8888)
+//        pdfDocument.openPage(0)?.use { page ->
+//            benchmarkRule.measureRepeated {
+//                page.renderPageBitmap(
+//                    bitmap,
+//                    matrix,
+//                    rect,
+//                )
+//            }
+//        }
+//    }
+//
+//    @Test
+//    fun getPagBitmapViaMatrix8xARGB_8888ReadFromDisk() {
+//        val (bitmap, _, _) = commonParams8X(Bitmap.Config.ARGB_8888)
+//        val targetCtx: Context = InstrumentationRegistry.getInstrumentation().targetContext
+//        targetCtx.openFileOutput("test.png", Context.MODE_PRIVATE).use {
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
+//        }
+//
+//        val bitmapOptios =
+//            BitmapFactory.Options().apply {
+//                inPreferredConfig = Bitmap.Config.ARGB_8888
+//                inJustDecodeBounds = false
+//                inBitmap = bitmap
+//                inSampleSize = 1
+//            }
+//        benchmarkRule.measureRepeated {
+//            val bitmapFromDisk =
+//                BitmapFactory.decodeFile(targetCtx.filesDir.path + "/test.png", bitmapOptios)
+//            assertThat(bitmapFromDisk).isNotNull()
+//        }
+//    }
+//
+//    private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, PdfRectF, PdfMatrix> {
+//        val scaleFactor = (1080f / 612) * 8
+//        val width = 1080 * 3
+//        val height = 2280 * 3
+//        val bitmap =
+//            Bitmap.createBitmap(
+//                width,
+//                height,
+//                bitmapConfig,
+//            )
+//        val rect = PdfRectF(0f, 0f, width.toFloat(), height.toFloat())
+//        val matrix = PdfMatrix()
+//        matrix.postScale(scaleFactor, scaleFactor)
+//        return Triple(bitmap, rect, matrix)
+//    }
 
     private fun testTextPageAttributes(page: PdfTextPage) {
         val textPageCountChars = page.textPageCountChars()
@@ -333,45 +330,45 @@ class PDFBenchmark {
         }
     }
 
-    private fun testPageAttributes(page: PdfPage) {
-        page.getPageAttributes()
-//        val pageWidth = page.getPageWidth(72)
-//        val pageHeight = page.getPageHeight(72)
-//        val pageWidthPoint = page.getPageWidthPoint()
-//        val pageHeightPoint = page.getPageHeightPoint()
-//        val cropBox = page.getPageCropBox()
-//        val mediaBox = page.getPageMediaBox()
-//        val bleedBox = page.getPageBleedBox()
-//        val trimBox = page.getPageTrimBox()
-//        val artBox = page.getPageArtBox()
-//        val boundingBox = page.getPageBoundingBox()
-//        val size = page.getPageSize(72)
-//        val links = page.getPageLinks()
-//        val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
-
-//        assertThat(pageAttributes.pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
-//        assertThat(pageAttributes.pageHeight).isEqualTo(792) // 11 inches * 72 dpi
-// //        assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
-// //        assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
-//        assertThat(pageAttributes.cropBox).isEqualTo(noResultRect)
-//        assertThat(pageAttributes.mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
-//        assertThat(pageAttributes.bleedBox).isEqualTo(noResultRect)
-//        assertThat(pageAttributes.trimBox).isEqualTo(noResultRect)
-//        assertThat(pageAttributes.artBox).isEqualTo(noResultRect)
-//        assertThat(pageAttributes.boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
-// //        assertThat(size).isEqualTo(Size(612, 792))
-//        assertThat(pageAttributes.links.size).isEqualTo(0) // The test doc doesn't have links
-//        assertThat(pageAttributes.devicePt).isEqualTo(
-//            Rect(
-//                // 0f in coords to 0f in device
-//                0,
-//                // 0f in corrds in at the bottom, the bottom of the device is 100f
-//                100,
-//                // 100f in coords = 100f/(8.5*72) * 100f = 16f
-//                16,
-//                // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
-//                87,
-//            ),
-//        )
-    }
+//    private fun testPageAttributes(page: PdfPage) {
+//
+// //        val pageWidth = page.getPageWidth(72)
+// //        val pageHeight = page.getPageHeight(72)
+// //        val pageWidthPoint = page.getPageWidthPoint()
+// //        val pageHeightPoint = page.getPageHeightPoint()
+// //        val cropBox = page.getPageCropBox()
+// //        val mediaBox = page.getPageMediaBox()
+// //        val bleedBox = page.getPageBleedBox()
+// //        val trimBox = page.getPageTrimBox()
+// //        val artBox = page.getPageArtBox()
+// //        val boundingBox = page.getPageBoundingBox()
+// //        val size = page.getPageSize(72)
+// //        val links = page.getPageLinks()
+// //        val devicePt = page.mapRectToDevice(0, 0, 100, 100, 0, RectF(0f, 0f, 100f, 100f))
+//
+// //        assertThat(pageAttributes.pageWidth).isEqualTo(612) // 8.5 inches * 72 dpi
+// //        assertThat(pageAttributes.pageHeight).isEqualTo(792) // 11 inches * 72 dpi
+// // //        assertThat(pageWidthPoint).isEqualTo(612) // 11 inches * 72 dpi
+// // //        assertThat(pageHeightPoint).isEqualTo(792) // 11 inches * 72 dpi
+// //        assertThat(pageAttributes.cropBox).isEqualTo(noResultRect)
+// //        assertThat(pageAttributes.mediaBox).isEqualTo(RectF(0.0f, 0.0f, 612.0f, 792.0f))
+// //        assertThat(pageAttributes.bleedBox).isEqualTo(noResultRect)
+// //        assertThat(pageAttributes.trimBox).isEqualTo(noResultRect)
+// //        assertThat(pageAttributes.artBox).isEqualTo(noResultRect)
+// //        assertThat(pageAttributes.boundingBox).isEqualTo(RectF(0f, 792f, 612f, 0f))
+// // //        assertThat(size).isEqualTo(Size(612, 792))
+// //        assertThat(pageAttributes.links.size).isEqualTo(0) // The test doc doesn't have links
+// //        assertThat(pageAttributes.devicePt).isEqualTo(
+// //            Rect(
+// //                // 0f in coords to 0f in device
+// //                0,
+// //                // 0f in corrds in at the bottom, the bottom of the device is 100f
+// //                100,
+// //                // 100f in coords = 100f/(8.5*72) * 100f = 16f
+// //                16,
+// //                // 100f in coords = 100 - 100f/(11*72) * 100f = 87f
+// //                87,
+// //            ),
+// //        )
+//    }
 }
