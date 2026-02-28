@@ -49,7 +49,7 @@ class PdfMatrixTest {
 
     @Test
     fun `set copies values`() {
-        val src = PdfMatrix().translate(10f, 20f)
+        val src = PdfMatrix().setTranslate(10f, 20f)
         val dst = MutablePdfMatrix()
         dst.set(src)
         assertThat(dst.toImmutable()).isEqualTo(src)
@@ -186,13 +186,13 @@ class PdfMatrixTest {
     @Test
     fun `concat multiplies matrices`() {
         // A: translate(10, 0)
-        val a = PdfMatrix().translate(10f, 0f)
+        val a = PdfMatrix().setTranslate(10f, 0f)
         // B: scale(2, 1)
-        val b = PdfMatrix().scale(2f, 1f)
+        val b = PdfMatrix().setScale(2f, 1f)
 
         // C = A * B
         // v' = A * (B * v)
-        val c = a.concat(b)
+        val c = a.preConcat(b)
 
         assertThat(c.values[SCALE_X]).isEqualTo(2.0)
         assertThat(c.values[TRANS_X]).isEqualTo(10.0)
@@ -302,7 +302,7 @@ class PdfMatrixTest {
         val success = matrix.invert(inverse)
         assertThat(success).isTrue()
 
-        val product = matrix.toImmutable().concat(inverse.toImmutable())
+        val product = matrix.toImmutable().preConcat(inverse.toImmutable())
         assertThat(product.isIdentity()).isTrue()
     }
 
@@ -316,7 +316,63 @@ class PdfMatrixTest {
 
     @Test
     fun `immutable invert returns null for non-invertible matrix`() {
-        val matrix = PdfMatrix().scale(0f, 2f)
+        val matrix = PdfMatrix().setScale(0f, 2f)
         assertThat(matrix.invert()).isNull()
     }
+
+    @Test
+    fun `equals returns true for equal matrices`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = MutablePdfMatrix().setScale(0f, 2f)
+        assertThat(matrixA == matrixB).isTrue()
+    }
+
+    @Test
+    fun `equals returns true for the same matrices`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = matrixA
+        assertThat(matrixA == matrixB).isTrue()
+    }
+
+    @Test
+    fun `equals returns false for non-equal matrices`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = MutablePdfMatrix().setScale(2f, 0f)
+        assertThat(matrixA == matrixB).isFalse()
+    }
+
+    @Test
+    fun `equals returns false not for different types`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = PdfMatrix().setScale(0f, 2f)
+        assertThat(matrixA == matrixB).isFalse()
+    }
+
+    @Test
+    fun `hashCode returns true for equal matrices`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = MutablePdfMatrix().setScale(0f, 2f)
+        assertThat(matrixA.hashCode() == matrixB.hashCode()).isTrue()
+    }
+
+    @Test
+    fun `hashCode returns true for the same matrices`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = matrixA
+        assertThat(matrixA.hashCode() == matrixB.hashCode()).isTrue()
+    }
+
+//    @Test
+//    fun `hashCode returns false for non-equal matrices`() {
+//        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+//        val matrixB = MutablePdfMatrix().setScale(2f, 0f)
+//        assertThat(matrixA.hashCode() == matrixB.hashCode()).isFalse()
+//    }
+//
+//    @Test
+//    fun `hashCode returns false not for different types`() {
+//        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+//        val matrixB = PdfMatrix().setScale(0f, 2f)
+//        assertThat(matrixA.hashCode() == matrixB.hashCode()).isFalse()
+//    }
 }

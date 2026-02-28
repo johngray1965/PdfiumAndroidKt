@@ -67,6 +67,12 @@ class MatrixBenchmark {
         val p2: Float,
     )
 
+    data class DoubleOp(
+        val type: OpType,
+        val p1: Double,
+        val p2: Double,
+    )
+
     private val operations: List<Op> by lazy {
         val rand = Random(randomSeed)
         List(operationCount) {
@@ -104,12 +110,59 @@ class MatrixBenchmark {
             Op(type, p1, p2)
         }
     }
+    private val doubleOperations: List<DoubleOp> by lazy {
+        val rand = Random(randomSeed)
+        List(operationCount) {
+            val type = OpType.entries[rand.nextInt(OpType.entries.size)]
+            val p1: Double
+            val p2: Double
+
+            when (type) {
+                OpType.PRE_TRANSLATE, OpType.POST_TRANSLATE -> { // Translate
+                    p1 = (rand.nextDouble() - 0.5) * 10
+                    p2 = (rand.nextDouble() - 0.5) * 10
+                }
+
+                OpType.PRE_SCALE, OpType.POST_SCALE -> { // Scale - use a range like 0.9 to 1.1
+                    p1 = 1.0f + (rand.nextDouble() - 0.5) * 0.2
+                    p2 = 1.0f + (rand.nextDouble() - 0.5) * 0.2
+                }
+
+                OpType.PRE_ROTATE, OpType.POST_ROTATE -> { // Rotate
+                    if (rand.nextBoolean()) {
+                        // 50% chance for cardinal angles
+                        p1 = listOf(0.0, 90.0, 180.0, 270.0).random(rand)
+                    } else {
+                        // 50% chance for random angles
+                        p1 = (rand.nextDouble() - 0.5) * 90
+                    }
+                    p2 = 0.0 // Degrees only
+                }
+
+                else -> { // Skew
+                    p1 = (rand.nextDouble() - 0.5) * 0.1
+                    p2 = (rand.nextDouble() - 0.5) * 0.1
+                }
+            }
+            DoubleOp(type, p1, p2)
+        }
+    }
 
     @Test
     fun benchmarkMutablePdfMatrix() {
         benchmarkRule.measureRepeated {
             val matrix = MutablePdfMatrix()
             for (op in operations) {
+                runWithMutablePdfMatrix(matrix, op)
+            }
+        }
+    }
+
+    @Test
+    fun benchmarkMutablePdfMatrixWithDoubles() {
+        benchmarkRule.measureRepeated {
+            val matrix = MutablePdfMatrix()
+            for (op in doubleOperations) {
                 runWithMutablePdfMatrix(matrix, op)
             }
         }
@@ -234,6 +287,22 @@ class MatrixBenchmark {
     private fun runWithMutablePdfMatrix(
         matrix: MutablePdfMatrix,
         op: Op,
+    ) {
+        when (op.type) {
+            OpType.PRE_TRANSLATE -> matrix.preTranslate(op.p1, op.p2)
+            OpType.PRE_SCALE -> matrix.preScale(op.p1, op.p2)
+            OpType.PRE_ROTATE -> matrix.preRotate(op.p1)
+            OpType.PRE_SKEW -> matrix.preSkew(op.p1, op.p2)
+            OpType.POST_TRANSLATE -> matrix.postTranslate(op.p1, op.p2)
+            OpType.POST_SCALE -> matrix.postScale(op.p1, op.p2)
+            OpType.POST_ROTATE -> matrix.postRotate(op.p1)
+            OpType.POST_SKEW -> matrix.postSkew(op.p1, op.p2)
+        }
+    }
+
+    private fun runWithMutablePdfMatrix(
+        matrix: MutablePdfMatrix,
+        op: DoubleOp,
     ) {
         when (op.type) {
             OpType.PRE_TRANSLATE -> matrix.preTranslate(op.p1, op.p2)

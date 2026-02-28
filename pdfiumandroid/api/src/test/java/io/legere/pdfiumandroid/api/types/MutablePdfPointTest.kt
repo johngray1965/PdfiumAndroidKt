@@ -122,6 +122,13 @@ class MutablePdfPointTest {
     }
 
     @Test
+    fun negate2() {
+        val point = MutablePdfPoint(-10, -20)
+        val expected = MutablePdfPoint(10, 20)
+        assertThat(point.negate()).isEqualTo(expected)
+    }
+
+    @Test
     fun toImmutable() {
         val point = MutablePdfPoint(3, 4).toImmutable()
         assertThat(point).isInstanceOf(PdfPoint::class.java)

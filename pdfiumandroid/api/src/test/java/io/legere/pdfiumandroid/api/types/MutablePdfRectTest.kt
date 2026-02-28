@@ -231,6 +231,12 @@ class MutablePdfRectTest {
 
         val overlappingRect = MutablePdfRect(5, 5, 15, 15)
         assertThat(rect.contains(overlappingRect)).isFalse()
+
+        val insideRectF = MutablePdfRectF(2f, 2f, 8f, 8f)
+        assertThat(rect.contains(insideRectF)).isTrue()
+
+        val overlappingRectF = MutablePdfRectF(5f, 5f, 15f, 15f)
+        assertThat(rect.contains(overlappingRectF)).isFalse()
     }
 
     @Test
@@ -312,5 +318,15 @@ class MutablePdfRectTest {
         assertThat(mutable.top).isEqualTo(2)
         assertThat(mutable.right).isEqualTo(3)
         assertThat(mutable.bottom).isEqualTo(4)
+    }
+
+    @Test
+    fun toIntArray() {
+        val rect = MutablePdfRect(1, 2, 3, 4)
+        val ints = rect.toIntArray()
+        assertThat(ints[0]).isEqualTo(1)
+        assertThat(ints[1]).isEqualTo(2)
+        assertThat(ints[2]).isEqualTo(3)
+        assertThat(ints[3]).isEqualTo(4)
     }
 }

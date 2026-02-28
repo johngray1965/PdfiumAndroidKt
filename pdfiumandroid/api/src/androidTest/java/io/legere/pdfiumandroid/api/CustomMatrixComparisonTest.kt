@@ -425,7 +425,7 @@ class CustomMatrixComparisonTest {
 
         mutableMatrix.preConcat(otherCustom)
         platformMatrix.preConcat(otherPlatform)
-        result = result.concat(otherCustom)
+        result = result.preConcat(otherCustom)
 
         assertMatrixValuesEqual(mutableMatrix, platformMatrix)
         assertMatrixValuesEqual(result, platformMatrix)
