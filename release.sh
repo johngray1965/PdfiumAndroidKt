@@ -18,6 +18,10 @@ if ! command -v gh &> /dev/null; then
     exit 1
 fi
 
+if ! gh auth status &>/dev/null; then
+  echo "GH_TOKEN not set or gh cli not authenticated. Please run 'gh auth login' or set GH_TOKEN." >&2 exit 1
+fi
+
 echo "🚀 Starting Release Process for $VERSION"
 
 # 1. Extract Release Notes from CHANGELOG.md

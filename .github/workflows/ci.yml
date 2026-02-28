@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [ "main" ]
   release:
-    types: [created]
+    types: [ created ]
 
 jobs:
   build_and_test:
@@ -35,21 +35,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       # Run checks (tests, lint) on every trigger
-      - name: Run Checks
-        run: ./gradlew check
-
-      # Only run heavy build & publish on Release
-      - name: Build & Publish
+      - name: Build Artifacts
         if: github.event_name == 'release'
-        run: ./gradlew build publish
-        env:
-          GITHUB_USERNAME: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew build
 
       - name: Upload Release Assets
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          fail_on_unmatched_files: true
           files: |
             **/build/outputs/aar/*.aar
-            **/build/outputs/apk/**/*.apk
