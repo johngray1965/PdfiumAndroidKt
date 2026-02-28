@@ -180,6 +180,15 @@ data class MutablePdfRect(
             bottom >= other.bottom
     }
 
+    fun contains(other: FloatRectValues): Boolean {
+        if (this.isEmpty) return false
+        return !other.isEmpty &&
+            left <= other.left &&
+            top <= other.top &&
+            right >= other.right &&
+            bottom >= other.bottom
+    }
+
     fun offset(
         dx: Int,
         dy: Int,
