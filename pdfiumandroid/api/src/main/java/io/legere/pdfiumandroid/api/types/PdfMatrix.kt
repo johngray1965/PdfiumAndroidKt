@@ -133,7 +133,7 @@ interface MatrixValues {
  */
 @Keep
 @Suppress("TooManyFunctions")
-class PdfMatrix(
+data class PdfMatrix(
     override val values: DoubleArray =
         doubleArrayOf(
             1.0,
