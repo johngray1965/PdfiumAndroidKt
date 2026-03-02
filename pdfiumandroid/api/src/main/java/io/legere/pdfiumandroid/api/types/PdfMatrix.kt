@@ -55,7 +55,7 @@ interface MatrixValues {
 
     // --- Mapping functions ---
 
-    fun mapRect(rect: FloatRectValues): PdfRectF = values.mapRect(rect)
+    fun mapRect(rect: MutablePdfRectF) = values.mapRect(rect)
 
     fun mapRect(
         dst: MutablePdfRectF,
@@ -405,7 +405,7 @@ data class PdfMatrix(
  */
 @Keep
 @Suppress("TooManyFunctions")
-class MutablePdfMatrix(
+data class MutablePdfMatrix(
     override val values: DoubleArray =
         doubleArrayOf(
             1.0,
@@ -1974,7 +1974,7 @@ internal fun DoubleArray.mapY(
     return ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w)
 }
 
-internal fun DoubleArray.mapRect(rect: FloatRectValues): PdfRectF {
+internal fun DoubleArray.mapRect(rect: MutablePdfRectF) {
     val x1 = mapX(rect.left, rect.top)
     val y1 = mapY(rect.left, rect.top)
     val x2 = mapX(rect.right, rect.top)
@@ -1983,12 +1983,10 @@ internal fun DoubleArray.mapRect(rect: FloatRectValues): PdfRectF {
     val y3 = mapY(rect.right, rect.bottom)
     val x4 = mapX(rect.left, rect.bottom)
     val y4 = mapY(rect.left, rect.bottom)
-    return PdfRectF(
-        left = min(x1, min(x2, min(x3, x4))),
-        top = min(y1, min(y2, min(y3, y4))),
-        right = max(x1, max(x2, max(x3, x4))),
-        bottom = max(y1, max(y2, max(y3, y4))),
-    )
+    rect.left = min(x1, min(x2, min(x3, x4)))
+    rect.top = min(y1, min(y2, min(y3, y4)))
+    rect.right = max(x1, max(x2, max(x3, x4)))
+    rect.bottom = max(y1, max(y2, max(y3, y4)))
 }
 
 internal fun DoubleArray.mapRect(

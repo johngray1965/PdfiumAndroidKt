@@ -33,6 +33,7 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.IntRectValues
 import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
@@ -317,7 +318,7 @@ class PdfPageKtF internal constructor(
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
         matrix: PdfMatrix,
-        clipRect: PdfRectF,
+        clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -380,7 +381,7 @@ class PdfPageKtF internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRectF,
+        coords: FloatRectValues,
     ): Either<PdfiumKtFErrors, PdfRect> =
         wrapEither(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
@@ -396,7 +397,7 @@ class PdfPageKtF internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRect,
+        coords: IntRectValues,
     ): Either<PdfiumKtFErrors, PdfRectF> =
         wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
