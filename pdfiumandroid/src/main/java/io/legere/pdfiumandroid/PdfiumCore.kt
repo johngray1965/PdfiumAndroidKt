@@ -30,6 +30,7 @@ import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.LockManager
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.api.types.FloatRectValues
 import io.legere.pdfiumandroid.api.types.PdfPoint
 import io.legere.pdfiumandroid.api.types.PdfRect
 import io.legere.pdfiumandroid.api.types.PdfRectF
@@ -390,7 +391,7 @@ class PdfiumCore(
     fun textPageGetBoundedText(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-        sourceRect: PdfRectF,
+        sourceRect: FloatRectValues,
         size: Int,
     ): String? {
         pdfDocument.openPage(pageIndex).use { page ->
@@ -559,7 +560,7 @@ class PdfiumCore(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRectF,
+        coords: FloatRectValues,
     ): PdfRect {
         pdfDocument.openPage(pageIndex).use { page ->
             return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: PdfRect(-1, -1, -1, -1)

@@ -28,6 +28,7 @@ import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.IntRectValues
 import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
@@ -280,7 +281,7 @@ class PdfPage internal constructor(
     fun renderPage(
         surface: Surface,
         matrix: PdfMatrix,
-        clipRect: PdfRectF,
+        clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
         canvasColor: Int = 0xFF848484.toInt(),
@@ -482,7 +483,7 @@ class PdfPage internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRectF,
+        coords: FloatRectValues,
     ): PdfRect =
         wrapLock {
             page.mapRectToDevice(
@@ -514,7 +515,7 @@ class PdfPage internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRect,
+        coords: IntRectValues,
     ): PdfRectF =
         wrapLock {
             page.mapRectToPage(

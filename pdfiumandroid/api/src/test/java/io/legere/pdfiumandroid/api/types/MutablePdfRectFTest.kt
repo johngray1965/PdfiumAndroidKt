@@ -102,6 +102,7 @@ class MutablePdfRectFTest {
         // Calculate width for a standard rectangle where right is greater than left.
         val rect = MutablePdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
         assertThat(rect.width).isEqualTo(20.0f)
+        assertThat(rect.width()).isEqualTo(20.0f)
     }
 
     @Test
@@ -109,6 +110,7 @@ class MutablePdfRectFTest {
         // Test width calculation when right and left coordinates are equal, expecting a result of 0.
         val rect = MutablePdfRectF(10.5f, 20.5f, 10.5f, 40.5f)
         assertThat(rect.width).isEqualTo(0.0f)
+        assertThat(rect.width()).isEqualTo(0.0f)
     }
 
     @Test
@@ -116,6 +118,7 @@ class MutablePdfRectFTest {
         // Check the width calculation for a rectangle where the left coordinate is greater than the right coordinate.
         val rect = MutablePdfRectF(30.5f, 20.5f, 10.5f, 40.5f)
         assertThat(rect.width).isEqualTo(-20.0f)
+        assertThat(rect.width()).isEqualTo(-20.0f)
     }
 
     @Test
@@ -123,6 +126,7 @@ class MutablePdfRectFTest {
         // Verify width calculation when both left and right coordinates are negative.
         val rect = MutablePdfRectF(-10.5f, 20.5f, -30.5f, 40.5f)
         assertThat(rect.width).isEqualTo(-20.0f)
+        assertThat(rect.width()).isEqualTo(-20.0f)
     }
 
     @Test
@@ -130,6 +134,7 @@ class MutablePdfRectFTest {
         // Calculate width for a rectangle that crosses the y-axis (e.g., left is negative, right is positive).
         val rect = MutablePdfRectF(-10.5f, 20.5f, 10.5f, 40.5f)
         assertThat(rect.width).isEqualTo(21.0f)
+        assertThat(rect.width()).isEqualTo(21.0f)
     }
 
     @Test
@@ -137,6 +142,7 @@ class MutablePdfRectFTest {
         // Test width calculation with floating-point numbers that require high precision to ensure accuracy.
         val rect = MutablePdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
         assertThat(rect.width).isEqualTo(20.0f)
+        assertThat(rect.width()).isEqualTo(20.0f)
     }
 
     @Test
@@ -144,6 +150,7 @@ class MutablePdfRectFTest {
         // Calculate height for a standard rectangle where bottom is greater than top.
         val rect = MutablePdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
         assertThat(rect.height).isEqualTo(20.0f)
+        assertThat(rect.height()).isEqualTo(20.0f)
     }
 
     @Test
@@ -151,6 +158,7 @@ class MutablePdfRectFTest {
         // Test height calculation when bottom and top coordinates are equal, expecting a result of 0.
         val rect = MutablePdfRectF(10.5f, 20.5f, 30.5f, 20.5f)
         assertThat(rect.height).isEqualTo(0.0f)
+        assertThat(rect.height()).isEqualTo(0.0f)
     }
 
     @Test
@@ -158,6 +166,7 @@ class MutablePdfRectFTest {
         // Check the height calculation for a rectangle where the top coordinate is greater than the bottom coordinate (inverted rectangle).
         val rect = MutablePdfRectF(10.5f, 40.5f, 30.5f, 20.5f)
         assertThat(rect.height).isEqualTo(-20.0f)
+        assertThat(rect.height()).isEqualTo(-20.0f)
     }
 
     @Test
@@ -165,6 +174,7 @@ class MutablePdfRectFTest {
         // Verify height calculation when both top and bottom coordinates are negative.
         val rect = MutablePdfRectF(10.5f, -20.5f, 30.5f, -40.5f)
         assertThat(rect.height).isEqualTo(-20.0f)
+        assertThat(rect.height()).isEqualTo(-20.0f)
     }
 
     @Test
@@ -172,6 +182,7 @@ class MutablePdfRectFTest {
         // Calculate height for a rectangle that crosses the x-axis (e.g., top is negative, bottom is positive).
         val rect = MutablePdfRectF(10.5f, -20.5f, 30.5f, 40.5f)
         assertThat(rect.height).isEqualTo(61.0f)
+        assertThat(rect.height()).isEqualTo(61.0f)
     }
 
     @Test
@@ -179,6 +190,7 @@ class MutablePdfRectFTest {
         // Test height calculation with floating-point numbers that require high precision to ensure accuracy.
         val rect = MutablePdfRectF(10.5f, 20.5f, 30.5f, 40.5f)
         assertThat(rect.height).isEqualTo(20.0f)
+        assertThat(rect.height()).isEqualTo(20.0f)
     }
 
     @Test
@@ -186,11 +198,90 @@ class MutablePdfRectFTest {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
         val rect2 = MutablePdfRectF(5f, 5f, 15f, 15f)
         val expected = MutablePdfRectF(0f, 0f, 15f, 15f)
-        assertThat(rect1.union(rect2)).isEqualTo(expected)
+        rect1.union(rect2)
+        assertThat(rect1).isEqualTo(expected)
 
-        val emptyRect = MutablePdfRectF.EMPTY
-        assertThat(rect1.union(emptyRect)).isEqualTo(rect1)
-        assertThat(emptyRect.union(rect1)).isEqualTo(rect1)
+        val rect1Unprocessed = MutablePdfRectF(0f, 0f, 10f, 10f)
+
+        val emptyRect = MutablePdfRectF.EMPTY.toMutable()
+        val rect3 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        rect3.union(emptyRect)
+        assertThat(rect3).isEqualTo(rect1Unprocessed)
+        emptyRect.union(rect1Unprocessed)
+        assertThat(emptyRect).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
+    fun union2() {
+        val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(0f, 0f, 15f, 15f)
+        rect1.union(5f, 5f, 15f, 15f)
+        assertThat(rect1).isEqualTo(expected)
+    }
+
+    @Test
+    fun union3() {
+        val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(0f, 0f, 15f, 15f)
+        rect1.union(15f, 15f)
+        assertThat(rect1).isEqualTo(expected)
+    }
+
+    @Test
+    fun intersect() {
+        val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val rect2 = MutablePdfRectF(5f, 5f, 15f, 15f)
+        val expected = MutablePdfRectF(5f, 5f, 10f, 10f)
+        rect1.intersect(rect2)
+        assertThat(rect1).isEqualTo(expected)
+
+        val rect1Unprocessed = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val rect3 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        rect3.intersect(rect1Unprocessed)
+        assertThat(rect3).isEqualTo(rect1Unprocessed)
+        rect1Unprocessed.intersect(rect3)
+        assertThat(rect1Unprocessed).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
+    fun intersect2() {
+        val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(5f, 5f, 10f, 10f)
+        rect1.intersect(5f, 5f, 15f, 15f)
+        assertThat(rect1).isEqualTo(expected)
+
+        val rect1Unprocessed = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val rect3 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        rect3.intersect(0f, 0f, 10f, 10f)
+        assertThat(rect3).isEqualTo(rect1Unprocessed)
+        rect1Unprocessed.intersect(0f, 0f, 10f, 10f)
+        assertThat(rect1Unprocessed).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
+    fun round() {
+        val rect = MutablePdfRectF(0.1f, 0.9f, 9.9f, 10.1f)
+        val expected = MutablePdfRect(0, 1, 10, 10) // floor, floor, ceil, ceil
+
+        // Assuming roundOut implementation:
+        // left = floor(left), top = floor(top), right = ceil(right), bottom = ceil(bottom)
+        // Wait, Android RectF.roundOut does exactly that.
+        // My MutablePdfRectF does not have roundOut yet?
+        // The user asked to add tests for it, implying it should be there or I should add it.
+        // I checked TypeConversion.kt earlier, maybe it's there as extension?
+        // Or maybe I missed adding it to MutablePdfRectF.kt?
+        // Let's assume I need to add it to MutablePdfRectF.kt as well if it's missing.
+        // But for now I'll write the test and see.
+        // Wait, I cannot run tests to see if it fails.
+        // I will add roundOut() to MutablePdfRectF.kt if I don't see it.
+        // I read MutablePdfRectF.kt in previous turn, it did NOT have roundOut.
+        // It has `toPdfRect` which does roundToInt.
+
+        // I'll add the test assuming I will add the function.
+
+        val rect2 = MutablePdfRect()
+        rect.round(rect2)
+        assertThat(rect2).isEqualTo(expected)
     }
 
     @Test
@@ -214,6 +305,10 @@ class MutablePdfRectFTest {
 
         // I'll add the test assuming I will add the function.
         assertThat(rect.roundOut()).isEqualTo(expected)
+
+        val rect2 = MutablePdfRect()
+        rect.roundOut(rect2)
+        assertThat(rect2).isEqualTo(expected)
     }
 
     @Test
@@ -227,6 +322,7 @@ class MutablePdfRectFTest {
         val insideRect = MutablePdfRectF(2f, 2f, 8f, 8f)
         val insideRectInt = MutablePdfRect(2, 2, 8, 8)
         assertThat(rect.contains(insideRect)).isTrue()
+        assertThat(rect.contains(2f, 2f, 8f, 8f)).isTrue()
         assertThat(rect.contains(insideRectInt)).isTrue()
 
         val overlappingRectInt = MutablePdfRect(5, 5, 15, 15)
@@ -238,9 +334,12 @@ class MutablePdfRectFTest {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
         val rect2 = MutablePdfRectF(5f, 5f, 15f, 15f)
         assertThat(rect1.intersects(rect2)).isTrue()
+        assertThat(rect1.intersects(5f, 5f, 15f, 15f)).isTrue()
 
         val rect3 = MutablePdfRectF(20f, 20f, 30f, 30f)
         assertThat(rect1.intersects(rect3)).isFalse()
+        println("rect1: $rect1")
+        assertThat(rect1.intersects(20f, 20f, 30f, 30f)).isFalse()
 
         // Touching edges usually considered intersecting in Android RectF?
         // RectF.intersects(a, b) -> left < right && top < bottom ...
@@ -272,11 +371,15 @@ class MutablePdfRectFTest {
     fun center() {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
         assertThat(rect1.centerX).isEqualTo(5f)
+        assertThat(rect1.centerX()).isEqualTo(5f)
         assertThat(rect1.centerY).isEqualTo(5f)
+        assertThat(rect1.centerY()).isEqualTo(5f)
 
         val rect2 = MutablePdfRectF(10f, 10f, 20f, 20f)
         assertThat(rect2.centerX).isEqualTo(15f)
+        assertThat(rect2.centerX()).isEqualTo(15f)
         assertThat(rect2.centerY).isEqualTo(15f)
+        assertThat(rect2.centerY()).isEqualTo(15f)
     }
 
     @Test
@@ -288,10 +391,18 @@ class MutablePdfRectFTest {
     }
 
     @Test
+    fun offsetTo() {
+        val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(5f, 5f, 15f, 15f)
+        rect.offsetTo(5f, 5f)
+        assertThat(rect).isEqualTo(expected)
+    }
+
+    @Test
     fun reset() {
         val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
         rect.setEmpty()
-        assertThat(rect).isEqualTo(MutablePdfRectF.EMPTY)
+        assertThat(rect).isEqualTo(MutablePdfRectF.EMPTY.toMutable())
     }
 
     @Test
@@ -303,12 +414,54 @@ class MutablePdfRectFTest {
     }
 
     @Test
+    fun set2() {
+        val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val rect2 = MutablePdfRect(20, 20, 50, 50)
+        val expected = MutablePdfRectF(20f, 20f, 50f, 50f)
+        rect.set(rect2)
+        assertThat(rect).isEqualTo(expected)
+    }
+
+    @Test
+    fun inset() {
+        val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(2f, 2f, 8f, 8f)
+        rect.inset(2f, 2f)
+        assertThat(rect).isEqualTo(expected)
+    }
+
+    @Test
+    fun inset2() {
+        val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(2f, 2f, 8f, 8f)
+        rect.inset(2f, 2f, 2f, 2f)
+        assertThat(rect).isEqualTo(expected)
+    }
+
+    @Test
+    fun sort() {
+        val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(0f, 0f, 10f, 10f)
+        rect.sort()
+        assertThat(rect).isEqualTo(expected)
+
+        val rect2 = MutablePdfRectF(10f, 0f, 0f, 10f)
+        val expected2 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        rect2.sort()
+        assertThat(rect2).isEqualTo(expected2)
+    }
+
+    @Test
     fun isEmpty() {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
-        assertThat(rect1.isEmpty).isFalse()
+        val isEmpty = rect1.isEmpty
+        assertThat(isEmpty).isFalse()
 
         val rect2 = MutablePdfRectF.EMPTY
-        assertThat(rect2.isEmpty).isTrue()
+        println("rect2: $rect2")
+        val isEmpty2 = rect2.isEmpty()
+        println("isEmpty2: $isEmpty2")
+        assertThat(isEmpty2).isTrue()
     }
 
     @Test

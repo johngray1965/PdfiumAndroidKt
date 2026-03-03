@@ -32,19 +32,20 @@ interface FloatPointValues {
 data class PdfPointF(
     override val x: Float,
     override val y: Float,
-) : FloatPointValues {
+) : FloatPointValues,
+    ImmutablePointInterface<Float, PdfPointF> {
     fun toFloatArray(): FloatArray = floatArrayOf(x, y)
 
     fun toMutable() = MutablePdfPointF(x, y)
 
-    fun offset(
+    override fun offset(
         dx: Float,
         dy: Float,
     ) = PdfPointF(x + dx, y + dy)
 
-    fun negate() = PdfPointF(-x, -y)
+    override fun negate() = PdfPointF(-x, -y)
 
-    fun length() = kotlin.math.sqrt(x * x + y * y)
+    override fun length() = kotlin.math.sqrt(x * x + y * y)
 
     companion object {
         val ZERO = PdfPointF(0f, 0f)
@@ -55,7 +56,8 @@ data class PdfPointF(
 data class MutablePdfPointF(
     override var x: Float = 0f,
     override var y: Float = 0f,
-) : FloatPointValues {
+) : FloatPointValues,
+    MutablePointInterface<Float, PdfPointF> {
     fun toFloatArray(): FloatArray = floatArrayOf(x, y)
 
     fun set(
@@ -73,12 +75,18 @@ data class MutablePdfPointF(
 
     fun toImmutable() = PdfPointF(x, y)
 
-    fun offset(
+    override fun offset(
         dx: Float,
         dy: Float,
-    ) = MutablePdfPointF(x + dx, y + dy)
+    ) {
+        x += dx
+        y += dy
+    }
 
-    fun negate() = MutablePdfPointF(-x, -y)
+    override fun negate() {
+        x = -x
+        y = -y
+    }
 
-    fun length() = kotlin.math.sqrt(x * x + y * y)
+    override fun length() = kotlin.math.sqrt(x * x + y * y)
 }

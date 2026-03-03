@@ -25,6 +25,7 @@ import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.WordRangeRect
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.FloatRectValues
 import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativeTextPageContract
@@ -346,7 +347,7 @@ class PdfTextPageU(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetBoundedText(
-        rect: PdfRectF,
+        rect: FloatRectValues,
         length: Int,
     ): String? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null

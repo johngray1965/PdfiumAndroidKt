@@ -31,6 +31,7 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.IntRectValues
 import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
@@ -391,7 +392,7 @@ class PdfPageKt internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRectF,
+        coords: FloatRectValues,
     ): PdfRect =
         wrapSuspend(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
@@ -407,7 +408,7 @@ class PdfPageKt internal constructor(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRect,
+        coords: IntRectValues,
     ): PdfRectF =
         wrapSuspend(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)

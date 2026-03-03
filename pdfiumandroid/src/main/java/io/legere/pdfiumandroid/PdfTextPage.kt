@@ -21,6 +21,7 @@
 
 package io.legere.pdfiumandroid
 
+import io.legere.pdfiumandroid.api.types.FloatRectValues
 import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
@@ -196,7 +197,7 @@ class PdfTextPage internal constructor(
      * @throws IllegalStateException if the page or document is closed
      */
     fun textPageGetBoundedText(
-        rect: PdfRectF,
+        rect: FloatRectValues,
         length: Int,
     ): String? =
         wrapLock {

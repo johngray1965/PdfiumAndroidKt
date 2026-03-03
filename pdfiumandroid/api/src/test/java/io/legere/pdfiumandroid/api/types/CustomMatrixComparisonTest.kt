@@ -770,8 +770,10 @@ class CustomMatrixComparisonTest {
         platformMatrix.postScale(0.5f, 2f)
         val result = pdfMatrix.postTranslate(10f, 20f).postScale(0.5f, 2f)
 
-        val customResult = mutableMatrix.mapRect(customRect)
-        val customResult2 = result.mapRect(customRect2)
+        val customResult = MutablePdfRectF()
+        mutableMatrix.mapRect(customResult, customRect)
+        val customResult2 = MutablePdfRectF()
+        result.mapRect(customResult2, customRect2)
         platformMatrix.mapRect(platformRect)
 
         assertThat(customResult.left).isWithin(0.001f).of(platformRect.left)

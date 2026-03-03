@@ -99,14 +99,16 @@ class MutablePdfPointFTest {
     fun offset() {
         val point = MutablePdfPointF(10.5f, 20.5f)
         val expected = MutablePdfPointF(15.5f, 30.5f)
-        assertThat(point.offset(5.0f, 10.0f)).isEqualTo(expected)
+        point.offset(5.0f, 10.0f)
+        assertThat(point).isEqualTo(expected)
     }
 
     @Test
     fun negate() {
         val point = MutablePdfPointF(10.5f, 20.5f)
         val expected = MutablePdfPointF(-10.5f, -20.5f)
-        assertThat(point.negate()).isEqualTo(expected)
+        point.negate()
+        assertThat(point).isEqualTo(expected)
     }
 
     @Test

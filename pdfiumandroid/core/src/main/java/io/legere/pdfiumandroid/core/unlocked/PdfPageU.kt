@@ -30,6 +30,7 @@ import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
 import io.legere.pdfiumandroid.api.types.FloatRectValues
+import io.legere.pdfiumandroid.api.types.IntRectValues
 import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.api.types.PdfPoint
@@ -610,7 +611,7 @@ class PdfPageU(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRectF,
+        coords: FloatRectValues,
     ): PdfRect {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfRect.EMPTY
         val leftTop =
@@ -662,7 +663,7 @@ class PdfPageU(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRect,
+        coords: IntRectValues,
     ): PdfRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         val leftTop =
@@ -796,14 +797,14 @@ class PdfPageU(
          * Calculates a transformation matrix to map a source rectangle to a destination rectangle.
          * For internal use only.
          *
-         * @param from The source [PdfRectF].
-         * @param to The destination [PdfRectF].
+         * @param from The source [FloatRectValues].
+         * @param to The destination [FloatRectValues].
          * @return The [PdfMatrix] object to store the calculated transformation. Will be
          * reset before calculation.
          */
         fun calculateRectTranslateMatrix(
-            from: PdfRectF?,
-            to: PdfRectF?,
+            from: FloatRectValues?,
+            to: FloatRectValues?,
         ): PdfMatrix? {
             if (from == null || to == null) {
                 return null

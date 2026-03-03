@@ -33,7 +33,6 @@ import io.legere.pdfiumandroid.api.handleAlreadyClosed
 import io.legere.pdfiumandroid.api.types.FloatRectValues
 import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU.Companion.FPDF_INCREMENTAL
@@ -231,7 +230,7 @@ class PdfDocumentU(
      * @param pages The list of [PdfPageU] to render.
      * @param matrices The list of transformation [PdfMatrix] for each page, mapping page coordinates
      * to surface coordinates.
-     * @param clipRects The list of [PdfRectF] for each page, defining the clipping area in surface coordinates.
+     * @param clipRects The list of [FloatRectValues] for each page, defining the clipping area in surface coordinates.
      * @param renderAnnot whether to render annotations.
      * @param textMask whether to render text as an image mask - currently ignored.
      * @param canvasColor The color to fill the canvas with. Use 0 to not fill the canvas.
