@@ -129,6 +129,12 @@ class PdfPointTest {
     }
 
     @Test
+    fun length() {
+        val point = PdfPoint(3, 4)
+        assertThat(point.length()).isEqualTo(5)
+    }
+
+    @Test
     fun toMutable() {
         val point = PdfPoint(3, 4).toMutable()
         assertThat(point).isInstanceOf(MutablePdfPoint::class.java)
