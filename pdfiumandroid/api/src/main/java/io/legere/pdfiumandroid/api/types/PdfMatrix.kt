@@ -2012,18 +2012,7 @@ internal fun DoubleArray.mapRect(
 }
 
 @Suppress("MagicNumber")
-internal fun DoubleArray.mapRadius(radius: Float): Float {
-    val tmp = FloatArray(4)
-    tmp[0] = radius
-    tmp[1] = 0.0f
-    tmp[2] = 0.0f
-    tmp[3] = radius
-    mapVectors(tmp)
-
-    val d1 = distance(0.0f, 0.0f, tmp[0], tmp[1])
-    val d2 = distance(0.0f, 0.0f, tmp[2], tmp[3])
-    return sqrt(d1 * d2)
-}
+internal fun DoubleArray.mapRadius(radius: Float): Float = mapRadius(radius.toDouble()).toFloat()
 
 @Suppress("MagicNumber")
 internal fun DoubleArray.mapRadius(radius: Double): Double {

@@ -200,6 +200,27 @@ class MatrixBenchmark {
     }
 
     @Test
+    fun benchmarkImmutablePdfMatrixWithDoubles() {
+        // Benchmark creating new instances (functional style)
+        benchmarkRule.measureRepeated {
+            var matrix = PdfMatrix()
+            for (op in doubleOperations) {
+                matrix =
+                    when (op.type) {
+                        OpType.PRE_TRANSLATE -> matrix.preTranslate(op.p1, op.p2)
+                        OpType.PRE_SCALE -> matrix.preScale(op.p1, op.p2)
+                        OpType.PRE_ROTATE -> matrix.preRotate(op.p1)
+                        OpType.PRE_SKEW -> matrix.preSkew(op.p1, op.p2)
+                        OpType.POST_TRANSLATE -> matrix.postTranslate(op.p1, op.p2)
+                        OpType.POST_SCALE -> matrix.postScale(op.p1, op.p2)
+                        OpType.POST_ROTATE -> matrix.postRotate(op.p1)
+                        OpType.POST_SKEW -> matrix.postSkew(op.p1, op.p2)
+                    }
+            }
+        }
+    }
+
+    @Test
     fun benchmarkMutablePdfMatrixCreation() {
         // Benchmark creating new instances (functional style)
         benchmarkRule.measureRepeated {
@@ -220,17 +241,17 @@ class MatrixBenchmark {
         val pdfMatrix = MutablePdfMatrix()
         val androidMatrix = AndroidMatrix()
 
-        for ((i, op) in operations.withIndex()) {
-            println("op: $i $op")
+        for ((_, op) in operations.withIndex()) {
+//            println("op: $i $op")
             runWithMutablePdfMatrix(pdfMatrix, op)
             runWithAndroidMatrix(androidMatrix, op)
 
-            val pdfValues = pdfMatrix.values.toFloatArray()
-            val androidValues = FloatArray(9)
-            androidMatrix.getValues(androidValues)
+//            val pdfValues = pdfMatrix.values.toFloatArray()
+//            val androidValues = FloatArray(9)
+//            androidMatrix.getValues(androidValues)
 
-            println("pdfValues:     ${pdfValues.contentToString()}")
-            println("androidValues: ${androidValues.contentToString()}")
+//            println("pdfValues:     ${pdfValues.contentToString()}")
+//            println("androidValues: ${androidValues.contentToString()}")
 //            assertThat(pdfValues).usingTolerance(0.01).containsExactly(androidValues)
 //            assertMatrixClose(androidValues, pdfValues)
 // )
