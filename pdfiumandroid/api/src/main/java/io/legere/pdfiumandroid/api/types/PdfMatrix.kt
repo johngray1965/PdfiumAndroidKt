@@ -156,7 +156,7 @@ data class PdfMatrix(
         return values.contentEquals(other.values)
     }
 
-    override fun hashCode(): Int = values.contentHashCode()
+    override fun hashCode(): Int = 31 * javaClass.hashCode() + values.contentHashCode()
 
     fun reset(): PdfMatrix = PdfMatrix()
 
@@ -813,7 +813,7 @@ data class MutablePdfMatrix(
         return values.contentEquals(other.values)
     }
 
-    override fun hashCode(): Int = values.contentHashCode()
+    override fun hashCode(): Int = 31 * javaClass.hashCode() + values.contentHashCode()
 }
 
 // --- Internal Shared Math Logic ---
@@ -836,9 +836,7 @@ internal fun DoubleArray.setTranslate(
     dx: Float,
     dy: Float,
 ) {
-    reset()
-    this[TRANS_X] = dx.toDouble()
-    this[TRANS_Y] = dy.toDouble()
+    setTranslate(dx.toDouble(), dy.toDouble())
 }
 
 internal fun DoubleArray.setTranslate(
@@ -1950,28 +1948,12 @@ internal fun DoubleArray.mapX(
     return ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w).toFloat()
 }
 
-internal fun DoubleArray.mapX(
-    x: Double,
-    y: Double,
-): Double {
-    val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
-    return ((this[SCALE_X] * x + this[SKEW_X] * y + this[TRANS_X]) / w)
-}
-
 internal fun DoubleArray.mapY(
     x: Float,
     y: Float,
 ): Float {
     val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
     return ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w).toFloat()
-}
-
-internal fun DoubleArray.mapY(
-    x: Double,
-    y: Double,
-): Double {
-    val w = this[PERSP_0] * x + this[PERSP_1] * y + this[PERSP_2]
-    return ((this[SKEW_Y] * x + this[SCALE_Y] * y + this[TRANS_Y]) / w)
 }
 
 internal fun DoubleArray.mapRect(rect: MutablePdfRectF) {
@@ -2024,17 +2006,6 @@ internal fun DoubleArray.mapRadius(radius: Double): Double {
     val d1 = distance(0.0, 0.0, tmp[0], tmp[1])
     val d2 = distance(0.0, 0.0, tmp[2], tmp[3])
     return sqrt(d1 * d2)
-}
-
-internal fun distance(
-    x1: Float,
-    y1: Float,
-    x2: Float,
-    y2: Float,
-): Float {
-    val dx = x1 - x2
-    val dy = y1 - y2
-    return sqrt(dx * dx + dy * dy)
 }
 
 internal fun distance(

@@ -362,17 +362,19 @@ class PdfMatrixTest {
         assertThat(matrixA.hashCode() == matrixB.hashCode()).isTrue()
     }
 
-//    @Test
-//    fun `hashCode returns false for non-equal matrices`() {
-//        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
-//        val matrixB = MutablePdfMatrix().setScale(2f, 0f)
-//        assertThat(matrixA.hashCode() == matrixB.hashCode()).isFalse()
-//    }
-//
-//    @Test
-//    fun `hashCode returns false not for different types`() {
-//        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
-//        val matrixB = PdfMatrix().setScale(0f, 2f)
-//        assertThat(matrixA.hashCode() == matrixB.hashCode()).isFalse()
-//    }
+    @Test
+    fun `hashCode returns false for non-equal matrices`() {
+        val matrixA = PdfMatrix().setScale(0f, 2f).postTranslate(10f, 20f).postRotate(45.0)
+        val matrixB = PdfMatrix().setScale(3f, 0f)
+        val hashA = matrixA.hashCode()
+        val hashB = matrixB.hashCode()
+        assertThat(hashA).isNotEqualTo(hashB)
+    }
+
+    @Test
+    fun `hashCode returns false not for different types`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = PdfMatrix().setScale(0f, 2f)
+        assertThat(matrixA.hashCode() == matrixB.hashCode()).isFalse()
+    }
 }
