@@ -26,6 +26,10 @@ plugins {
     id("io.legere.convention.static.analysis")
     id("io.legere.convention.kover")
     id("io.legere.convention.publish")
+    id("io.legere.convention.jacoco")
+
+//    id("org.jetbrains.dokka")
+//    id("org.jetbrains.dokka-javadoc")
 }
 
 val numShards: String = System.getenv("CIRCLE_NODE_TOTAL") ?: "0"
@@ -158,90 +162,95 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestUtil(libs.androidx.orchestrator)
     androidTestUtil(libs.androidx.test.services)
+    debugImplementation(libs.jacoco.agent)
 }
-tasks.register<JacocoReport>("jacocoAndroidTestReport") {
-    group = "Reporting"
-    description = "Generates JaCoCo coverage report for Android instrumentation tests."
-
-    // Set the execution data file from the Android instrumentation tests
-    executionData.setFrom(
-        fileTree(
-            layout.buildDirectory.dir(
-                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
-            ),
-        ) {
-            include("**/*.ec") // Adjust based on your Android Gradle Plugin version/setup
-        },
-    )
-
-    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
-
-    // Set the class directories to analyze
-    classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/compileDebugJavaWithJavac/classes")) {
-            exclude("**/*")
-
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
-            exclude($$"**/*$DefaultImpls.class") // Exclude DefaultImpls
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-            // Legacy/Fallback
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("intermediates/classes/debug")) {
-            // Fallback for newer AGP if classes are merged here
-            exclude("**/*")
-            include("**/io/legere/pdfiumandroid/jni/*.class")
-        },
-    )
-
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
-
-    dependsOn("pixelPhoneDebugAndroidTest") // Ensure instrumentation tests run before report generation
+// tasks.register<JacocoReport>("jacocoAndroidTestReport") {
+//    group = "Reporting"
+//    description = "Generates JaCoCo coverage report for Android instrumentation tests."
+//
+//    // Set the execution data file from the Android instrumentation tests
+//    executionData.setFrom(
+//        fileTree(
+//            layout.buildDirectory.dir(
+//                "build/intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
+//            ),
+//        ) {
+//            include("**/*.ec") // Adjust based on your Android Gradle Plugin version/setup
+//        },
+//    )
+//
+//    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+//
+//    // Set the class directories to analyze
+//    classDirectories.setFrom(
+//        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/compileDebugJavaWithJavac/classes")) {
+//            exclude("**/*")
+//
+//            include("**/io/legere/pdfiumandroid/jni/*.class")
+//        },
+//        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
+//            exclude($$"**/*$DefaultImpls.class") // Exclude DefaultImpls
+//            include("**/io/legere/pdfiumandroid/jni/*.class")
+//        },
+//        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+//            // Legacy/Fallback
+//            include("**/io/legere/pdfiumandroid/jni/*.class")
+//        },
+//        fileTree(layout.buildDirectory.dir("intermediates/classes/debug")) {
+//            // Fallback for newer AGP if classes are merged here
+//            exclude("**/*")
+//            include("**/io/legere/pdfiumandroid/jni/*.class")
+//        },
+//    )
+//
+//    reports {
+//        xml.required.set(true)
+//        html.required.set(true)
+//    }
+//
+//    dependsOn("pixelPhoneDebugAndroidTest") // Ensure instrumentation tests run before report generation
+// }
+//
+// tasks.register<JacocoCoverageVerification>("jacocoAndroidTestCoverageVerification") {
+//    group = "Reporting"
+//    description = "Verifies JaCoCo coverage for Android instrumentation tests."
+//
+//    executionData.setFrom(
+//        fileTree(
+//            layout.buildDirectory.dir(
+//                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
+//            ),
+//        ) {
+//            include("**/*.ec")
+//        },
+//    )
+//
+//    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+//
+//    classDirectories.setFrom(
+//        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
+//            exclude("**/*")
+//            include("**/io/legere/pdfiumandroid/jni/**/*.class")
+//        },
+//        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+//            include("**/io/legere/pdfiumandroid/jni/**/*.class")
+//        },
+//    )
+//
+//    violationRules {
+//        rule {
+//            limit {
+//                minimum = 0.95.toBigDecimal()
+//            }
+//        }
+//    }
+//
+//    dependsOn("pixelPhoneDebugAndroidTest")
+// }
+jacocoConvention {
+    reportPackage.set("io.legere.pdfiumandroid.core.jni")
 }
 
-tasks.register<JacocoCoverageVerification>("jacocoAndroidTestCoverageVerification") {
-    group = "Reporting"
-    description = "Verifies JaCoCo coverage for Android instrumentation tests."
-
-    executionData.setFrom(
-        fileTree(
-            layout.buildDirectory.dir(
-                "intermediates/managed_device_code_coverage/debugAndroidTest/pixelPhoneDebugAndroidTest",
-            ),
-        ) {
-            include("**/*.ec")
-        },
-    )
-
-    sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
-
-    classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/classes")) {
-            exclude("**/*")
-            include("**/io/legere/pdfiumandroid/jni/**/*.class")
-        },
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
-            include("**/io/legere/pdfiumandroid/jni/**/*.class")
-        },
-    )
-
-    violationRules {
-        rule {
-            limit {
-                minimum = 0.95.toBigDecimal()
-            }
-        }
-    }
-
-    dependsOn("pixelPhoneDebugAndroidTest")
-}
 publishPlugin {
     artifactId.set("pdfiumandroid-core")
     name.set("pdfiumandroid.core")
