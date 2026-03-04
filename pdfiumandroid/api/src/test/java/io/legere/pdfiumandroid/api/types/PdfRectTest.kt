@@ -74,7 +74,8 @@ class PdfRectTest {
 
     @Test
     fun `toIntArray with mixed integers`() {
-        // Check if the function correctly converts a PdfRect with a mix of positive and negative integers to an IntArray.
+        // Check if the function correctly converts a PdfRect with a mix of positive and negative
+        // integers to an IntArray.
         val rect = PdfRect(-10, 20, 30, -40)
         val expectedArray = intArrayOf(-10, 20, 30, -40)
         assertThat(rect.toIntArray()).isEqualTo(expectedArray)
@@ -217,15 +218,95 @@ class PdfRectTest {
     }
 
     @Test
+    fun offset() {
+        val rect = PdfRect(0, 0, 10, 10)
+        val expected = PdfRect(5, 5, 15, 15)
+        val result = rect.offset(5, 5)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun offsetTo() {
+        val rect = PdfRect(0, 0, 10, 10)
+        val expected = PdfRect(5, 5, 15, 15)
+        val result = rect.offsetTo(5, 5)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun sort() {
+        val rect = PdfRect(0, 0, 10, 10)
+        val expected = PdfRect(0, 0, 10, 10)
+        val result = rect.sort()
+        assertThat(result).isEqualTo(expected)
+
+        val rect2 = PdfRect(10, 0, 0, 10)
+        val expected2 = PdfRect(0, 0, 10, 10)
+        val result2 = rect2.sort()
+        assertThat(result2).isEqualTo(expected2)
+    }
+
+    @Test
+    fun inset() {
+        val rect = PdfRect(0, 0, 10, 10)
+        val expected = PdfRect(2, 2, 8, 8)
+        val result = rect.inset(2, 2)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun inset2() {
+        val rect = PdfRect(0, 0, 10, 10)
+        val expected = PdfRect(2, 2, 8, 8)
+        val result = rect.inset(2, 2, 2, 2)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun intersect() {
+        val rect1 = PdfRect(0, 0, 10, 10)
+        val rect2 = PdfRect(5, 5, 15, 15)
+        val expected = PdfRect(5, 5, 10, 10)
+        val result = rect1.intersect(rect2)
+        assertThat(result).isEqualTo(expected)
+
+        val rect1Unprocessed = PdfRect(0, 0, 10, 10)
+        val rect3 = PdfRect(0, 0, 10, 10)
+        val result2 = rect3.intersect(rect1Unprocessed)
+        assertThat(result2).isEqualTo(rect1Unprocessed)
+        val result3 = rect1Unprocessed.intersect(rect3)
+        assertThat(result3).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
+    fun intersect2() {
+        val rect1 = PdfRect(0, 0, 10, 10)
+        val expected = PdfRect(5, 5, 15, 15)
+        val result = rect1.intersect(5, 5, 15, 15)
+        assertThat(result).isEqualTo(expected)
+
+        val rect1Unprocessed = PdfRect(0, 0, 10, 10)
+        val rect3 = PdfRect(0, 0, 10, 10)
+        val result2 = rect3.intersect(0, 0, 10, 10)
+        assertThat(result2).isEqualTo(rect1Unprocessed)
+        val result3 = rect1Unprocessed.intersect(0, 0, 10, 10)
+        assertThat(result3).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
     fun union() {
         val rect1 = PdfRect(0, 0, 10, 10)
         val rect2 = PdfRect(5, 5, 15, 15)
         val expected = PdfRect(0, 0, 15, 15)
         assertThat(rect1.union(rect2)).isEqualTo(expected)
+        assertThat(rect1.union(5, 5, 15, 15)).isEqualTo(expected)
+        assertThat(rect1.union(15, 15)).isEqualTo(expected)
 
         val emptyRect = PdfRect.EMPTY
         assertThat(rect1.union(emptyRect)).isEqualTo(rect1)
+        assertThat(rect1.union(0, 0, 0, 0)).isEqualTo(rect1)
         assertThat(emptyRect.union(rect1)).isEqualTo(rect1)
+        assertThat(emptyRect.union(0, 0, 10, 10)).isEqualTo(rect1)
     }
 
     @Test

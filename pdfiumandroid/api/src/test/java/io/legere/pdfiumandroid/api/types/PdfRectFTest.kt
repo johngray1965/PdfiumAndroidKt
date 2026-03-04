@@ -154,7 +154,8 @@ class PdfRectFTest {
 
     @Test
     fun `height resulting in a negative value`() {
-        // Check the height calculation for a rectangle where the top coordinate is greater than the bottom coordinate (inverted rectangle).
+        // Check the height calculation for a rectangle where the top coordinate is greater than
+        // the bottom coordinate (inverted rectangle).
         val rect = PdfRectF(10.5f, 40.5f, 30.5f, 20.5f)
         assertThat(rect.height).isEqualTo(-20.0f)
     }
@@ -181,6 +182,82 @@ class PdfRectFTest {
     }
 
     @Test
+    fun offset() {
+        val rect = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(5f, 5f, 15f, 15f)
+        val result = rect.offset(5f, 5f)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun offsetTo() {
+        val rect = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(5f, 5f, 15f, 15f)
+        val result = rect.offsetTo(5f, 5f)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun sort() {
+        val rect = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(0f, 0f, 10f, 10f)
+        val result = rect.sort()
+        assertThat(result).isEqualTo(expected)
+
+        val rect2 = PdfRectF(10f, 0f, 0f, 10f)
+        val expected2 = PdfRectF(0f, 0f, 10f, 10f)
+        val result2 = rect2.sort()
+        assertThat(result2).isEqualTo(expected2)
+    }
+
+    @Test
+    fun inset() {
+        val rect = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(2f, 2f, 8f, 8f)
+        val result = rect.inset(2f, 2f)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun inset2() {
+        val rect = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(2f, 2f, 8f, 8f)
+        val result = rect.inset(2f, 2f, 2f, 2f)
+        assertThat(result).isEqualTo(expected)
+    }
+
+    @Test
+    fun intersect() {
+        val rect1 = PdfRectF(0f, 0f, 10f, 10f)
+        val rect2 = PdfRectF(5f, 5f, 15f, 15f)
+        val expected = PdfRectF(5f, 5f, 10f, 10f)
+        val result = rect1.intersect(rect2)
+        assertThat(result).isEqualTo(expected)
+
+        val rect1Unprocessed = PdfRectF(0f, 0f, 10f, 10f)
+        val rect3 = PdfRectF(0f, 0f, 10f, 10f)
+        val result2 = rect3.intersect(rect1Unprocessed)
+        assertThat(result2).isEqualTo(rect1Unprocessed)
+        val result3 = rect1Unprocessed.intersect(rect3)
+        assertThat(result3).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
+    fun intersect2() {
+        val rect1 = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(5f, 5f, 15f, 15f)
+        val result = rect1.intersect(5f, 5f, 15f, 15f)
+        assertThat(result).isEqualTo(expected)
+
+        val rect1Unprocessed = PdfRectF(0f, 0f, 10f, 10f)
+        val rect3 = PdfRectF(0f, 0f, 10f, 10f)
+        val result2 = rect3.intersect(0f, 0f, 10f, 10f)
+        assertThat(result2).isEqualTo(rect1Unprocessed)
+        val result3 = rect1Unprocessed.intersect(0f, 0f, 10f, 10f)
+        assertThat(result3).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
     fun union() {
         val rect1 = PdfRectF(0f, 0f, 10f, 10f)
         val rect2 = PdfRectF(5f, 5f, 15f, 15f)
@@ -190,6 +267,18 @@ class PdfRectFTest {
         val emptyRect = PdfRectF.EMPTY
         assertThat(rect1.union(emptyRect)).isEqualTo(rect1)
         assertThat(emptyRect.union(rect1)).isEqualTo(rect1)
+    }
+
+    @Test
+    fun union2() {
+        val rect1 = PdfRectF(0f, 0f, 10f, 10f)
+        val expected = PdfRectF(0f, 0f, 15f, 15f)
+        assertThat(rect1.union(5f, 5f, 15f, 15f)).isEqualTo(expected)
+        assertThat(rect1.union(15f, 15f)).isEqualTo(expected)
+
+        val emptyRect = PdfRectF.EMPTY
+        assertThat(rect1.union(0f, 0f, 0f, 0f)).isEqualTo(rect1)
+        assertThat(emptyRect.union(0f, 0f, 10f, 10f)).isEqualTo(rect1)
     }
 
     @Test
