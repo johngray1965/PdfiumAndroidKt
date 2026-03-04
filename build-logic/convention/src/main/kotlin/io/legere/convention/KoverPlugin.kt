@@ -53,7 +53,7 @@ class KoverPlugin : Plugin<Project> {
                                 "com.voicedream.scanner.ui.resources",
                                 "com.voicedream.scanner.data.imageprocessing",
                                 "com.voicedream.scanner.usecases.android",
-                                "com.voicedream.scanner.util.android"
+                                "com.voicedream.scanner.util.android",
                             )
                             annotatedBy(
                                 // compose preview
@@ -63,7 +63,7 @@ class KoverPlugin : Plugin<Project> {
                                 "dagger.internal.DaggerGenerated",
                                 "dagger.hilt.android.internal.lifecycle.HiltViewModelMap\$KeySet",
                                 // end Hilt classes
-                                "kotlinx.serialization.SerialName"
+                                "kotlinx.serialization.SerialName",
                             )
                             classes(
                                 // begin excludes generated classes
@@ -131,19 +131,22 @@ class KoverPlugin : Plugin<Project> {
                                 "com.voicedream.scanner.ui.MainActivity",
                                 "com.voicedream.scanner.ui.MainActivity$*",
                                 "com.voicedream.scanner.LegereDebugTree",
-
                             )
                         }
                     }
                 }
             }
-            
+
             tasks.withType<Test>().configureEach {
                 jvmArgs(
-                    "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-                    "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-                    "--add-opens", "java.base/java.util=ALL-UNNAMED",
-                    "--add-opens", "java.base/java.util.concurrent=ALL-UNNAMED"
+                    "--add-opens",
+                    "java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens",
+                    "java.base/java.lang.reflect=ALL-UNNAMED",
+                    "--add-opens",
+                    "java.base/java.util=ALL-UNNAMED",
+                    "--add-opens",
+                    "java.base/java.util.concurrent=ALL-UNNAMED",
                 )
             }
         }
