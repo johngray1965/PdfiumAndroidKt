@@ -3,9 +3,7 @@ package io.legere.convention
 import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.withType
 
 class KoverPlugin : Plugin<Project> {
     private val koverPluginId = "org.jetbrains.kotlinx.kover"
@@ -16,8 +14,9 @@ class KoverPlugin : Plugin<Project> {
             with(pluginManager) {
                 apply(koverPluginId)
             }
+
             extensions.configure<KoverProjectExtension> {
-//                useJacoco("0.8.14")
+//                useJacoco()
                 reports {
                     // filters for all report types of all build variants
                     filters {
@@ -67,19 +66,6 @@ class KoverPlugin : Plugin<Project> {
                         }
                     }
                 }
-            }
-
-            tasks.withType<Test>().configureEach {
-                jvmArgs(
-                    "--add-opens",
-                    "java.base/java.lang=ALL-UNNAMED",
-                    "--add-opens",
-                    "java.base/java.lang.reflect=ALL-UNNAMED",
-                    "--add-opens",
-                    "java.base/java.util=ALL-UNNAMED",
-                    "--add-opens",
-                    "java.base/java.util.concurrent=ALL-UNNAMED",
-                )
             }
         }
     }

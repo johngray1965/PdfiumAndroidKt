@@ -7,7 +7,7 @@ hilt_version = "2.59.2"
 gradleplugin = "9.1.0"
 detekt_version = "1.23.8"
 kover_version = "0.9.7"
-ktlint_version = "14.0.1"
+ktlint_version = "14.1.0"
 activity-compose = "1.12.4"
 compose_bom_version = "2026.02.01"
 androidx-junit = "1.3.0"
@@ -22,7 +22,7 @@ junitBom = "6.0.3"
 robolectric = "4.16.1"
 # used on the gradle convention plugins
 #noinspection NewerVersionAvailable,UnusedVersionCatalogEntry
-jacoco = "0.8.13"
+jacoco = "0.8.14"
 
 kotlinx-coroutines-android = "1.10.2"
 lifecycle-runtime-ktx = "2.10.0"

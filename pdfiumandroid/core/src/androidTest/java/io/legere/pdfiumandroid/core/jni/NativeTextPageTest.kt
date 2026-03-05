@@ -149,6 +149,39 @@ class NativeTextPageTest : BasePDFTest() {
     }
 
     @Test
+    fun nativeTextPageGetRects() {
+        val iterations = 100
+        val time =
+            measureTime {
+                repeat(iterations) {
+                    val result = mutableListOf<PdfRectF>()
+                    var chunk = 0
+                    val chunkSize = 256
+                    var fetchSize: Int
+                    do {
+                        println("chunk: $chunk, offset: ${chunk * chunkSize}")
+                        val data = nativeTextPage.textPageGetRects(pageTextPtr, chunk * chunkSize, chunkSize)
+                        fetchSize = data?.size ?: 0
+                        data?.let {
+                            println("data: ${data.size}")
+                            for (i in data.indices step 4) {
+                                val r = PdfRectF(data[i + 0], data[i + 1], data[i + 2], data[i + 3])
+                                result.add(r)
+                            }
+                        }
+
+                        chunk++
+                    } while (fetchSize == chunkSize * 4)
+
+                    Truth.assertThat(result).isNotNull()
+                    Truth.assertThat(result.size).isEqualTo(108)
+                }
+            }
+        val averageDuration = (time / iterations)
+        println("Total Time: $time, Average Time: $averageDuration")
+    }
+
+    @Test
     fun textGetBoundedText() {
         val length = 100
         val buf = ShortArray(length + 1)

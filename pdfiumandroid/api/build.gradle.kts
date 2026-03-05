@@ -153,7 +153,6 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestUtil(libs.androidx.orchestrator)
     androidTestUtil(libs.androidx.test.services)
-    debugImplementation(libs.jacoco.agent)
 }
 
 publishPlugin {
