@@ -65,6 +65,18 @@ class JacocoPlugin : Plugin<Project> {
                     )
                 }
 
+            val executionDataProvider =
+                fileTree(
+                    layout.buildDirectory.dir(
+                        "intermediates/managed_device_code_coverage/debugAndroidTest",
+                    ),
+                ) {
+                    include("**/*.ec")
+                }
+
+
+            val sourceDirectoriesProvider = files("$projectDir/src/main/java", "$projectDir/src/main/kotlin")
+
             project.tasks.register<JacocoReport>("jacocoAndroidTestReport") {
                 group = "Reporting"
                 description = "Generates Jacoco report for Android instrumentation tests."
@@ -73,22 +85,21 @@ class JacocoPlugin : Plugin<Project> {
                 onlyIf { extension.reportPackage.isPresent }
 
                 classDirectories.setFrom(classDirectoriesProvider)
-
-                executionData.setFrom(
-                    fileTree(
-                        layout.buildDirectory.dir(
-                            "intermediates/managed_device_code_coverage/debugAndroidTest",
-                        ),
-                    ) {
-                        include("**/*.ec")
-                    },
-                )
-
-                sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+                executionData.setFrom(executionDataProvider)
+                sourceDirectories.setFrom(sourceDirectoriesProvider)
 
                 reports {
                     xml.required.set(true)
                     html.required.set(true)
+                }
+
+                doLast {
+                    val reportPath =
+                        reports.html.outputLocation
+                            .get()
+                            .asFile
+                    val reportUrl = reportPath.resolve("index.html").toURI()
+                    println("Jacoco report for '$name' generated at: $reportUrl")
                 }
             }
 
@@ -100,17 +111,8 @@ class JacocoPlugin : Plugin<Project> {
                 onlyIf { extension.reportPackage.isPresent }
 
                 classDirectories.setFrom(classDirectoriesProvider)
-
-                executionData.setFrom(
-                    fileTree(
-                        layout.buildDirectory.dir(
-                            "intermediates/managed_device_code_coverage/debugAndroidTest",
-                        ),
-                    ) {
-                        include("**/*.ec")
-                    },
-                )
-                sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
+                executionData.setFrom(executionDataProvider)
+                sourceDirectories.setFrom(sourceDirectoriesProvider)
                 violationRules {
                     rule {
                         limit {
