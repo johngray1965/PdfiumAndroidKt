@@ -212,6 +212,20 @@ class MutablePdfRectFTest {
     }
 
     @Test
+    fun unionEmpty() {
+        val rect1 = MutablePdfRectF()
+        val rect2 = MutablePdfRectF(5f, 5f, 15f, 15f)
+        rect1.union(rect2)
+        assertThat(rect1).isEqualTo(rect2)
+
+        val emptyRect = PdfRectF.EMPTY.toMutable()
+        rect1.union(emptyRect)
+        assertThat(rect1).isEqualTo(rect1)
+        emptyRect.union(rect1)
+        assertThat(emptyRect).isEqualTo(rect1)
+    }
+
+    @Test
     fun union2() {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
         val expected = MutablePdfRectF(0f, 0f, 15f, 15f)
@@ -220,11 +234,26 @@ class MutablePdfRectFTest {
     }
 
     @Test
+    fun union2Empty() {
+        val rect1 = MutablePdfRectF()
+        val other = MutablePdfRectF(5f, 5f, 15f, 15f)
+        rect1.union(5f, 5f, 15f, 15f)
+        assertThat(rect1).isEqualTo(other)
+    }
+
+    @Test
     fun union3() {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
         val expected = MutablePdfRectF(0f, 0f, 15f, 15f)
         rect1.union(15f, 15f)
         assertThat(rect1).isEqualTo(expected)
+    }
+
+    @Test
+    fun union3Empty() {
+        val rect1 = MutablePdfRectF()
+        rect1.union(15f, 15f)
+        assertThat(rect1).isEqualTo(rect1)
     }
 
     @Test
@@ -241,6 +270,18 @@ class MutablePdfRectFTest {
         assertThat(rect3).isEqualTo(rect1Unprocessed)
         rect1Unprocessed.intersect(rect3)
         assertThat(rect1Unprocessed).isEqualTo(rect1Unprocessed)
+    }
+
+    @Test
+    fun intersect2Empty() {
+        val rect1 = MutablePdfRectF()
+        rect1.intersect(5f, 5f, 15f, 15f)
+        assertThat(rect1).isEqualTo(MutablePdfRectF())
+        val rect2 = MutablePdfRectF(5f, 5f, 15f, 15f)
+        rect2.intersect(MutablePdfRectF())
+        assertThat(rect2).isEqualTo(MutablePdfRectF(5f, 5f, 15f, 15f))
+        rect1.intersect(MutablePdfRectF())
+        assertThat(rect1).isEqualTo(MutablePdfRectF())
     }
 
     @Test
@@ -350,6 +391,35 @@ class MutablePdfRectFTest {
     }
 
     @Test
+    fun intersectsEachBound() {
+        val rect1 = MutablePdfRectF(5f, 5f, 10f, 10f)
+        val leftOut = MutablePdfRectF(5f, 5f, 10f, 10f)
+        leftOut.offset(0f, -10f)
+        assertThat(rect1.intersects(leftOut)).isFalse()
+        val topOut = MutablePdfRectF(5f, 5f, 10f, 10f)
+        topOut.offset(-10f, 0f)
+        assertThat(rect1.intersects(topOut)).isFalse()
+        val rightOUt = MutablePdfRectF(5f, 5f, 10f, 10f)
+        rightOUt.offset(0f, 10f)
+        assertThat(rect1.intersects(rightOUt)).isFalse()
+        val bottomOut = MutablePdfRectF(5f, 5f, 10f, 10f)
+        bottomOut.offset(10f, 0f)
+        assertThat(rect1.intersects(bottomOut)).isFalse()
+    }
+
+    @Test
+    fun intersectsEmpty() {
+        val rect1 = MutablePdfRectF()
+        val rect2 = MutablePdfRectF(5f, 5f, 15f, 15f)
+        assertThat(rect1.intersects(rect2)).isFalse()
+        assertThat(rect1.intersects(5f, 5f, 15f, 15f)).isFalse()
+
+        val rect5 = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val rect3 = MutablePdfRectF()
+        assertThat(rect5.intersects(rect3)).isFalse()
+    }
+
+    @Test
     fun width() {
         val rect1 = MutablePdfRectF(0f, 0f, 10f, 10f)
         assertThat(rect1.width).isEqualTo(10f)
@@ -428,6 +498,18 @@ class MutablePdfRectFTest {
         val expected = MutablePdfRectF(2f, 2f, 8f, 8f)
         rect.inset(2f, 2f)
         assertThat(rect).isEqualTo(expected)
+    }
+
+    @Test
+    fun inset00() {
+        val rect = MutablePdfRectF(0f, 0f, 10f, 10f)
+        val expected = MutablePdfRectF(0f, 0f, 10f, 10f)
+        rect.inset(0f, 0f)
+        assertThat(rect).isEqualTo(expected)
+        rect.inset(0f, 10f)
+        assertThat(rect).isEqualTo(MutablePdfRectF(left = 0.0f, top = 10.0f, right = 10.0f, bottom = 0.0f))
+        rect.inset(10f, 0f)
+        assertThat(rect).isEqualTo(MutablePdfRectF(left = 10.0f, top = 10.0f, right = 00.0f, bottom = 0.0f))
     }
 
     @Test

@@ -246,7 +246,146 @@ class PdfPageTest {
             every { pdfPageU.unlockSurface(any()) } just runs
 
             assertThat(pdfPage.renderPage(surface, 0, 0, 100, 100)).isTrue()
-            verify { pdfPageU.renderPage(any(), 0, 0, 100, 100, any(), any(), any()) }
+        }
+
+    @Test
+    fun renderPageLockFail1() =
+        runTest {
+            val surface = mockk<Surface>()
+            every {
+                pdfPageU.renderPage(
+                    any(),
+                    0,
+                    0,
+                    100,
+                    100,
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 0
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, 0, 0, 100, 100)).isFalse()
+        }
+
+    @Test
+    fun renderPageLockFail2() =
+        runTest {
+            val surface = mockk<Surface>()
+            every {
+                pdfPageU.renderPage(
+                    any(),
+                    0,
+                    0,
+                    100,
+                    100,
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = -1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, 0, 0, 100, 100)).isFalse()
+        }
+
+    @Test
+    fun renderPageLockFail3() =
+        runTest {
+            val surface = mockk<Surface>()
+            every {
+                pdfPageU.renderPage(
+                    any(),
+                    0,
+                    0,
+                    100,
+                    100,
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 0
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, 0, 0, 100, 100)).isFalse()
+        }
+
+    @Test
+    fun renderPageLockFail4() =
+        runTest {
+            val surface = mockk<Surface>()
+            every {
+                pdfPageU.renderPage(
+                    any(),
+                    0,
+                    0,
+                    100,
+                    100,
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = -1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, 0, 0, 100, 100)).isFalse()
+        }
+
+    @Test
+    fun renderPageNull() =
+        runTest {
+            val surface = null as Surface?
+            every {
+                pdfPageU.renderPage(
+                    any(),
+                    0,
+                    0,
+                    100,
+                    100,
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+//            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+//                thirdArg<LongArray>().let {
+//                    it[0] = 1
+//                    it[1] = 1
+//                }
+//                true
+//            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, 0, 0, 100, 100)).isFalse()
         }
 
     @Test
@@ -270,6 +409,103 @@ class PdfPageTest {
             verify { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) }
             verify { pdfPageU.lockSurface(surface, any(), any()) }
             verify { pdfPageU.unlockSurface(any()) }
+        }
+
+    @Test
+    fun testRenderPageLockFail1() =
+        runTest {
+            // Variant with Surface and Matrix
+            val surface = mockk<Surface>()
+            val matrix = PdfMatrix()
+            val clip = PdfRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 0
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, matrix, clip)).isFalse()
+            verify { pdfPageU.lockSurface(surface, any(), any()) }
+        }
+
+    @Test
+    fun testRenderPageLockFail2() =
+        runTest {
+            // Variant with Surface and Matrix
+            val surface = mockk<Surface>()
+            val matrix = PdfMatrix()
+            val clip = PdfRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = -1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, matrix, clip)).isFalse()
+            verify { pdfPageU.lockSurface(surface, any(), any()) }
+        }
+
+    @Test
+    fun testRenderPageLockFail3() =
+        runTest {
+            // Variant with Surface and Matrix
+            val surface = mockk<Surface>()
+            val matrix = PdfMatrix()
+            val clip = PdfRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 0
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, matrix, clip)).isFalse()
+            verify { pdfPageU.lockSurface(surface, any(), any()) }
+        }
+
+    @Test
+    fun testRenderPageLockFail4() =
+        runTest {
+            // Variant with Surface and Matrix
+            val surface = mockk<Surface>()
+            val matrix = PdfMatrix()
+            val clip = PdfRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = -1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, matrix, clip)).isFalse()
+            verify { pdfPageU.lockSurface(surface, any(), any()) }
+        }
+
+    @Test
+    fun testRenderPageNull() =
+        runTest {
+            // Variant with Surface and Matrix
+            val surface = null
+            val matrix = PdfMatrix()
+            val clip = PdfRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            every { pdfPageU.unlockSurface(any()) } just runs
+
+            assertThat(pdfPage.renderPage(surface, matrix, clip)).isFalse()
         }
 
     @Test

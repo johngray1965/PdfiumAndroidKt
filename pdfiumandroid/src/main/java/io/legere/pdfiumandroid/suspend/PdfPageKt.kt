@@ -203,28 +203,28 @@ class PdfPageKt internal constructor(
                         sizes,
                         pointers,
                     )
-                }
-                val nativeWindow = pointers[0]
-                val bufferPtr = pointers[1]
-                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
-                    try {
-                        retValue =
-                            page.renderPage(
-                                bufferPtr,
-                                startX,
-                                startY,
-                                drawSizeX,
-                                drawSizeY,
-                                renderAnnot,
-                                canvasColor,
-                                pageBackgroundColor,
-                            )
-                    } finally {
-                        surface?.let {
+                    val nativeWindow = pointers[0]
+                    val bufferPtr = pointers[1]
+                    if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                        try {
+                            retValue =
+                                page.renderPage(
+                                    bufferPtr,
+                                    startX,
+                                    startY,
+                                    drawSizeX,
+                                    drawSizeY,
+                                    renderAnnot,
+                                    canvasColor,
+                                    pageBackgroundColor,
+                                )
+                        } finally {
                             page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
                         }
+                    } else {
+                        retValue = false
                     }
-                } else {
+                } ?: run {
                     retValue = false
                 }
             }
@@ -256,31 +256,31 @@ class PdfPageKt internal constructor(
                         sizes,
                         pointers,
                     )
-                }
-                val nativeWindow = pointers[0]
-                val bufferPtr = pointers[1]
-                val surfaceWidth = sizes[0]
-                val surfaceHeight = sizes[1]
-                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
-                    try {
-                        retValue =
-                            page.renderPage(
-                                bufferPtr,
-                                surfaceWidth,
-                                surfaceHeight,
-                                matrix,
-                                clipRect,
-                                renderAnnot,
-                                textMask,
-                                canvasColor,
-                                pageBackgroundColor,
-                            )
-                    } finally {
-                        surface?.let {
+                    val nativeWindow = pointers[0]
+                    val bufferPtr = pointers[1]
+                    val surfaceWidth = sizes[0]
+                    val surfaceHeight = sizes[1]
+                    if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                        try {
+                            retValue =
+                                page.renderPage(
+                                    bufferPtr,
+                                    surfaceWidth,
+                                    surfaceHeight,
+                                    matrix,
+                                    clipRect,
+                                    renderAnnot,
+                                    textMask,
+                                    canvasColor,
+                                    pageBackgroundColor,
+                                )
+                        } finally {
                             page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
                         }
+                    } else {
+                        retValue = false
                     }
-                } else {
+                } ?: run {
                     retValue = false
                 }
             }

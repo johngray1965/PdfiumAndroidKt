@@ -139,6 +139,15 @@ class PdfTextPageKtTest {
         }
 
     @Test
+    fun textPageGetRects() =
+        runTest {
+            val expected = listOf(PdfRectF(5f, 5f, 15f, 15f))
+            every { pdfTextPageU.textPageGetRects(3, 0, 20) } returns expected
+            assertThat(pdfTextPage.textPageGetRects(3, 0, 20)).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetRects(3, 0, 20) }
+        }
+
+    @Test
     fun textPageGetRectsForRanges() =
         runTest {
             val starts = intArrayOf(0)
@@ -188,6 +197,21 @@ class PdfTextPageKtTest {
         }
 
     @Test
+    fun findStartNull() =
+        runTest {
+            // The suspend version returns a FindResultKt (wrapper) around FindResultU
+            val mockHandle = 999L
+            val flags = setOf(FindFlags.MatchCase, FindFlags.MatchWholeWord)
+            FindResultU(mockHandle)
+            every { pdfTextPageU.findStart("search", flags, 0) } returns null
+
+            val result = pdfTextPage.findStart("search", flags, 0)
+
+            assertThat(result).isNull()
+            verify { pdfTextPageU.findStart("search", flags, 0) }
+        }
+
+    @Test
     fun loadWebLink() =
         runTest {
             val mockLink = PdfPageLinkU(888L)
@@ -197,6 +221,17 @@ class PdfTextPageKtTest {
 
             assertThat(result).isNotNull()
             assertThat(result?.pageLink).isEqualTo(mockLink)
+            verify { pdfTextPageU.loadWebLink() }
+        }
+
+    @Test
+    fun loadWebLinkNull() =
+        runTest {
+            every { pdfTextPageU.loadWebLink() } returns null
+
+            val result = pdfTextPage.loadWebLink()
+
+            assertThat(result).isNull()
             verify { pdfTextPageU.loadWebLink() }
         }
 
@@ -223,6 +258,15 @@ class PdfTextPageKtTest {
             every { pdfTextPageU.close() } throws RuntimeException("Close failed")
             // Verify safeClose swallows the exception
             assertThrows<RuntimeException> { pdfTextPage.safeClose() }
+            verify { pdfTextPageU.close() }
+        }
+
+    @Test
+    fun safeCloseWithException() =
+        runTest {
+            every { pdfTextPageU.close() } throws IllegalStateException("Close failed")
+            // Verify safeClose swallows the exception
+            pdfTextPage.safeClose()
             verify { pdfTextPageU.close() }
         }
 }

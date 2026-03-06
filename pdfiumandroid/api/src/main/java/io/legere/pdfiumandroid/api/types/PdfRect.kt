@@ -331,7 +331,10 @@ data class MutablePdfRect(
     ) {
         when {
             this.isEmpty -> {
-                return
+                this.left = left
+                this.top = top
+                this.right = right
+                this.bottom = bottom
             }
 
             else -> {

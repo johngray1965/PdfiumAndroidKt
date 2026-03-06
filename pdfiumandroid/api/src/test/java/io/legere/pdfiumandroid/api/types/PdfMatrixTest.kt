@@ -31,10 +31,143 @@ class PdfMatrixTest {
     }
 
     @Test
+    fun `secondary constructor creates a copy`() {
+        val input = PdfMatrix(doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0))
+        val matrix = PdfMatrix(input)
+        assertThat(matrix.isIdentity()).isFalse()
+        assertThat(matrix.isAffine()).isFalse()
+        assertThat(matrix.values).isEqualTo(input.values)
+    }
+
+    @Test
     fun `mutable default constructor creates identity matrix`() {
         val matrix = MutablePdfMatrix()
         assertThat(matrix.isIdentity()).isTrue()
         assertThat(matrix.isAffine()).isTrue()
+    }
+
+    @Test
+    fun `mutable secondary constructor creates a copy`() {
+        val input = PdfMatrix(doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0))
+        val matrix = MutablePdfMatrix(input)
+        assertThat(matrix.isIdentity()).isFalse()
+        assertThat(matrix.isAffine()).isFalse()
+        assertThat(matrix.values).isEqualTo(input.values)
+    }
+
+    @Test
+    fun isAffine() {
+        assertThat(PdfMatrix(doubleArrayOf(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)).isAffine()).isFalse()
+        assertThat(
+            PdfMatrix(
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                ),
+            ).isAffine(),
+        ).isTrue()
+        assertThat(
+            PdfMatrix(
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    2.0,
+                ),
+            ).isAffine(),
+        ).isFalse()
+        assertThat(
+            PdfMatrix(
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    1.0,
+                ),
+            ).isAffine(),
+        ).isFalse()
+        assertThat(
+            PdfMatrix(
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    1.0,
+                ),
+            ).isAffine(),
+        ).isFalse()
+    }
+
+    @Test
+    fun isIdentity() {
+        assertThat(
+            PdfMatrix(
+                doubleArrayOf(
+                    1.0,
+                    2.0,
+                    3.0,
+                    4.0,
+                    5.0,
+                    6.0,
+                    7.0,
+                    8.0,
+                    9.0,
+                ),
+            ).isIdentity(),
+        ).isFalse()
+        assertThat(
+            PdfMatrix(
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                ),
+            ).isIdentity(),
+        ).isTrue()
+        repeat(9) { column ->
+            val startingInput =
+                doubleArrayOf(
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0,
+                    1.0,
+                )
+            startingInput[column] += 1.0
+            assertThat(PdfMatrix(startingInput).isIdentity()).isFalse()
+        }
     }
 
     @Test
@@ -327,11 +460,50 @@ class PdfMatrixTest {
         assertThat(matrixA == matrixB).isTrue()
     }
 
+    @Suppress("SENSELESS_COMPARISON", "UnnecessaryVariable")
     @Test
     fun `equals returns true for the same matrices`() {
         val matrixA = MutablePdfMatrix().setScale(0f, 2f)
         val matrixB = matrixA
         assertThat(matrixA == matrixB).isTrue()
+    }
+
+    @Test
+    fun `equals returns false not for the same matrices`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = PdfMatrix().setScale(0f, 2f)
+        assertThat(matrixA == matrixB).isFalse()
+        assertThat(matrixB == matrixA).isFalse()
+    }
+
+    @Test
+    fun `equals returns false not for the same matrices2`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = PdfMatrix().setScale(0f, 2f)
+        assertThat(matrixB == matrixA).isFalse()
+        assertThat(matrixA == matrixB).isFalse()
+    }
+
+    @Suppress("SENSELESS_COMPARISON")
+    @Test
+    fun `equals returns false not for the same type`() {
+        val matrixA = MutablePdfMatrix().setScale(0f, 2f)
+        val matrixB = Any()
+        assertThat(matrixB == matrixA).isFalse()
+        assertThat(matrixA == matrixB).isFalse()
+        assertThat(matrixA == null).isFalse()
+        assertThat(matrixB == null).isFalse()
+    }
+
+    @Suppress("SENSELESS_COMPARISON")
+    @Test
+    fun `equals returns false not for the same type2`() {
+        val matrixA = PdfMatrix().setScale(0f, 2f)
+        val matrixB = Any()
+        assertThat(matrixB == matrixA).isFalse()
+        assertThat(matrixA == matrixB).isFalse()
+        assertThat(matrixA == null).isFalse()
+        assertThat(matrixB == null).isFalse()
     }
 
     @Test
@@ -342,10 +514,18 @@ class PdfMatrixTest {
     }
 
     @Test
+    fun `equals returns false for non-equal matrices 2`() {
+        val matrixA = PdfMatrix().setScale(0f, 2f)
+        val matrixB = PdfMatrix().setScale(2f, 0f)
+        assertThat(matrixA == matrixB).isFalse()
+    }
+
+    @Test
     fun `equals returns false not for different types`() {
         val matrixA = MutablePdfMatrix().setScale(0f, 2f)
         val matrixB = PdfMatrix().setScale(0f, 2f)
         assertThat(matrixA == matrixB).isFalse()
+        assertThat(matrixB == matrixA).isFalse()
     }
 
     @Test
@@ -376,5 +556,22 @@ class PdfMatrixTest {
         val matrixA = MutablePdfMatrix().setScale(0f, 2f)
         val matrixB = PdfMatrix().setScale(0f, 2f)
         assertThat(matrixA.hashCode() == matrixB.hashCode()).isFalse()
+    }
+
+    @Test
+    fun `toMutable returns a copy`() {
+        val matrixA = PdfMatrix().setScale(0f, 2f)
+        val matrixB = matrixA.toMutable()
+        assertThat(matrixA).isInstanceOf(PdfMatrix::class.java)
+        assertThat(matrixB).isInstanceOf(MutablePdfMatrix::class.java)
+        assertThat(matrixA).isNotEqualTo(matrixB)
+        assertThat(matrixA.hashCode()).isNotEqualTo(matrixB.hashCode())
+        assertThat(matrixA.values).isEqualTo(matrixB.values)
+    }
+
+    @Test
+    fun `IDENTITY returns a copy`() {
+        val matrixA = PdfMatrix.IDENTITY
+        assertThat(matrixA.values).isEqualTo(PdfMatrix().values)
     }
 }

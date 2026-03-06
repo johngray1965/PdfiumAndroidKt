@@ -23,6 +23,8 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 
 class MutablePdfMatrixPrePostTest {
+    val halfTolerance = ZERO_TOLERANCE / 2
+
     @Test
     fun preRotate0() = preRotate(0.0)
 
@@ -83,6 +85,30 @@ class MutablePdfMatrixPrePostTest {
     @Test
     fun postRotate270WithOffset() = postRotateWIthOffset(270.0)
 
+    @Test
+    fun preRotate90Tolerance() = preRotateWithTolerance(90.0)
+
+    @Test
+    fun preRotate90WithOffsetTolerance() = preRotateWIthOffsetWithTolerance(90.0)
+
+    @Test
+    fun postRotate90Tolerance() = postRotateWithTolerance(90.0)
+
+    @Test
+    fun postRotate90WithOffsetTolerance() = postRotateWIthOffsetWithTolerance(90.0)
+
+    @Test
+    fun preRotate180Tolerance() = preRotateWithTolerance(180.0)
+
+    @Test
+    fun preRotate180WithOffsetTolerance() = preRotateWIthOffsetWithTolerance(180.0)
+
+    @Test
+    fun postRotate180Tolerance() = postRotateWithTolerance(180.0)
+
+    @Test
+    fun postRotate180WithOffsetTolerance() = postRotateWIthOffsetWithTolerance(180.0)
+
     private fun preRotateWIthOffset(angle: Double) {
         val start = MutablePdfMatrix().setTranslate(50.0, 50.0).setScale(0.5, 0.5, 25.0, 25.0)
 
@@ -93,6 +119,26 @@ class MutablePdfMatrixPrePostTest {
         val alt = start.preConcat(justRotated)
 
         assertThat(rotated.values).isEqualTo(alt.values)
+    }
+
+    private fun preRotateWIthOffsetWithTolerance(angle: Double) {
+        preRotateWIthOffset(angle - halfTolerance)
+        preRotateWIthOffset(angle + halfTolerance)
+    }
+
+    private fun postRotateWIthOffsetWithTolerance(angle: Double) {
+        postRotateWIthOffset(angle - halfTolerance)
+        postRotateWIthOffset(angle + halfTolerance)
+    }
+
+    private fun preRotateWithTolerance(angle: Double) {
+        preRotate(angle - halfTolerance)
+        preRotate(angle + halfTolerance)
+    }
+
+    private fun postRotateWithTolerance(angle: Double) {
+        postRotate(angle - halfTolerance)
+        postRotate(angle + halfTolerance)
     }
 
     private fun preRotate(angle: Double) {

@@ -40,6 +40,8 @@ class KoverPlugin : Plugin<Project> {
                                 "kotlinx.serialization.SerialName",
                             )
                             classes(
+                                // Kotlin inline functions
+                                "*\$\$inlined\$*",
                                 // begin excludes generated classes
                                 "*.databinding.*",
                                 "*.BuildConfig",

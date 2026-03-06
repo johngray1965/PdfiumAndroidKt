@@ -34,12 +34,16 @@ import io.mockk.every
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.api.extension.ExtendWith
+import kotlin.coroutines.ContinuationInterceptor
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -122,6 +126,51 @@ class PdfDocumentTest {
                 )
             assertThat(result).isTrue()
             coVerify { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun renderPagesRenderAnnotTrue() =
+        runTest {
+            coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
+            val result =
+                pdfDocument.renderPages(
+                    surface,
+                    emptyList(),
+                    emptyList(),
+                    emptyList(),
+                    true,
+                    renderCoroutinesDispatcher = Dispatchers.Main,
+                )
+            assertThat(result).isTrue()
+            coVerify { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun renderPagesIsActiveFalse() =
+        runTest {
+            coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
+            val job =
+                launch {
+                    this.coroutineContext.cancel()
+                    val result =
+                        pdfDocument.renderPages(
+                            surface,
+                            emptyList(),
+                            emptyList(),
+                            emptyList(),
+                            false,
+                            renderCoroutinesDispatcher = this.coroutineContext[ContinuationInterceptor] as CoroutineDispatcher,
+                        )
+                    assertThat(result).isTrue()
+                }
+            job.join()
+        }
+
+    @Test
+    fun getDocument() =
+        runTest {
+            val result = pdfDocument.getDocument()
+            assertThat(result.document).isEqualTo(pdfDocumentU)
         }
 
     @Test

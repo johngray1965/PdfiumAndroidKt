@@ -193,6 +193,30 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
         }
 
     @Test
+    fun getPageMediaBoxReturnNUll() =
+        nullableTest {
+            val mediaBox = mockk<PdfRectF>()
+            setup {
+                every { page.getPageMediaBox() } returns mediaBox
+                every { page.close() } just runs
+            }
+
+            apiCall = { pdfiumCore.getPageMediaBox(document, 0) }
+
+            verifyHappy {
+                assertThat(it).isEqualTo(mediaBox)
+                verify { page.getPageMediaBox() }
+                verify { page.close() }
+                verify { document.openPage(any()) }
+            }
+
+            verifyDefault {
+                assertThat(it).isEqualTo(PdfRectF(-1f, -1f, -1f, -1f))
+                verify { document.openPage(any()) }
+            }
+        }
+
+    @Test
     fun textPageCountChars() =
         nullableTest {
             setup {
