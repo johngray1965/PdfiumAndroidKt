@@ -65,7 +65,7 @@ private const val RECT_SIZE = 4
  * @property pageMap A mutable map used internally to track open page counts.
  * @property nativePage The native interface for page operations.
  */
-@Suppress("TooManyFunctions")
+@Suppress("TooManyFunctions", "LargeClass")
 class PdfPageU(
     val doc: PdfDocumentU,
     val pageIndex: Int,
@@ -484,11 +484,13 @@ class PdfPageU(
             pageBackgroundColor,
         )
     }
-    
+
+    @Suppress("LongParameterList", "MaxLineLength")
     @Deprecated(
         "Use renderPageBitmap(bitmap: Bitmap?, matrix: MatrixValues, clipRect: FloatRectValues, renderAnnot: Boolean, textMask: Boolean, canvasColor: Int, pageBackgroundColor: Int)",
         ReplaceWith(
-            "renderPageBitmap(bitmap, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)")
+            "renderPageBitmap(bitmap, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)",
+        ),
     )
     fun renderPageBitmap(
         bitmap: Bitmap?,

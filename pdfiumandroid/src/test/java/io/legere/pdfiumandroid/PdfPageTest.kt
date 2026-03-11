@@ -51,6 +51,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 @TestInstance(Lifecycle.PER_CLASS)
+@Suppress("LargeClass")
 class PdfPageTest {
     val page: PdfPageU =
         mockk {

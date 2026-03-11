@@ -52,6 +52,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class, StandardTestDispatcherExtension::class)
+@Suppress("LargeClass")
 class PdfPageTest {
     lateinit var pdfPage: PdfPageKt
 
