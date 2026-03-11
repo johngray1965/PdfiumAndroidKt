@@ -21,6 +21,8 @@
 
 package io.legere.pdfiumandroid.suspend
 
+import android.graphics.Matrix
+import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
 import io.legere.geokt.FloatRectValues
@@ -31,6 +33,8 @@ import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.types.toKtMatrix
+import io.legere.pdfiumandroid.api.types.toKtRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -119,6 +123,41 @@ class PdfDocumentKt internal constructor(
                     pages.map { it.page },
                     matrices,
                     clipRects,
+                    renderAnnot,
+                    textMask,
+                    canvasColor,
+                    pageBackgroundColor,
+                )
+            }
+        }
+
+    @JvmName("renderPagesWithAndroidGraphics")
+    @Suppress("LongParameterList", "MaxLineLength")
+    @Deprecated(
+        "use renderPages(surface: Surface, pages: List<PdfPageKt>, matrices: List<MatrixValues>, clipRects: List<FloatRectValues>, renderAnnot: Boolean, textMask: Boolean, canvasColor: Int, pageBackgroundColor: Int, renderCoroutinesDispatcher: CoroutineDispatcher)",
+        ReplaceWith(
+            "renderPages(surface, pages, matrices.map { it.toKtMatrix() }, clipRects.map { it.toKtRectF() }, renderAnnot, textMask, canvasColor, pageBackgroundColor, renderCoroutinesDispatcher)",
+        ),
+    )
+    suspend fun renderPages(
+        surface: Surface,
+        pages: List<PdfPageKt>,
+        matrices: List<Matrix>,
+        clipRects: List<RectF>,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+        renderCoroutinesDispatcher: CoroutineDispatcher,
+    ): Boolean =
+        withContext(renderCoroutinesDispatcher) {
+            PdfiumCore.surfaceMutex.withLock {
+                if (!coroutineContext.isActive) return@withContext false
+                document.renderPages(
+                    surface,
+                    pages.map { it.page },
+                    matrices.map { it.toKtMatrix() },
+                    clipRects.map { it.toKtRectF() },
                     renderAnnot,
                     textMask,
                     canvasColor,

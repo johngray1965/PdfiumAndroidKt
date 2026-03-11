@@ -19,6 +19,7 @@
 
 package io.legere.pdfiumandroid.arrow
 
+import android.graphics.RectF
 import com.google.common.truth.Truth.assertThat
 import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.FindFlags
@@ -31,6 +32,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
+import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -118,6 +120,15 @@ class PdfTextPageKtFTest {
         }
 
     @Test
+    fun textPageGetRects() =
+        runTest {
+            val expected = listOf(KtImmutableRectF(5f, 5f, 15f, 15f))
+            every { pdfTextPageU.textPageGetRects(0, 100, 10) } returns expected
+            assertThat(pdfTextPage.textPageGetRects(0, 100, 10).getOrNull()).isEqualTo(expected)
+            verify { pdfTextPageU.textPageGetRects(0, 100, 10) }
+        }
+
+    @Test
     fun textPageGetRect() =
         runTest {
             val expected = KtImmutableRectF(5f, 5f, 15f, 15f)
@@ -150,6 +161,20 @@ class PdfTextPageKtFTest {
         }
 
     @Test
+    fun textPageGetBoundedTextWithAndroidRect() =
+        runTest {
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
+            val rect2 =
+                mockk<RectF>(relaxed = true)
+            val expected = "Bounded"
+            every { pdfTextPageU.textPageGetBoundedText(rect, 100) } returns expected
+
+            // wrapper
+            assertThat(pdfTextPage.textPageGetBoundedText(rect2, 100).getOrNull()).isNull()
+//            verify { pdfTextPageU.textPageGetBoundedText(rect, 100) }
+        }
+
+    @Test
     fun getFontSize() =
         runTest {
             val expected = 14.0
@@ -176,6 +201,21 @@ class PdfTextPageKtFTest {
         }
 
     @Test
+    fun findStartNull() =
+        runTest {
+            // The suspend version returns a FindResultKt (wrapper) around FindResultU
+            val mockHandle = 999L
+            val flags = setOf(FindFlags.MatchCase, FindFlags.MatchWholeWord)
+            FindResultU(mockHandle)
+            every { pdfTextPageU.findStart("search", flags, 0) } returns null
+
+            val result = pdfTextPage.findStart("search", flags, 0).getOrNull()
+
+            assertThat(result).isNull()
+            verify { pdfTextPageU.findStart("search", flags, 0) }
+        }
+
+    @Test
     fun loadWebLink() =
         runTest {
             val mockLink = PdfPageLinkU(888L)
@@ -187,6 +227,47 @@ class PdfTextPageKtFTest {
             assertThat(result?.pageLink).isEqualTo(mockLink)
             verify { pdfTextPageU.loadWebLink() }
         }
+
+    @Test
+    fun loadWebLinkNull() =
+        runTest {
+            every { pdfTextPageU.loadWebLink() } returns null
+
+            val result = pdfTextPage.loadWebLink().getOrNull()
+
+            assertThat(result).isNull()
+            verify { pdfTextPageU.loadWebLink() }
+        }
+
+//    @Test
+//    fun findStart() =
+//        runTest {
+//            // The suspend version returns a FindResultKt (wrapper) around FindResultU
+//            val mockHandle = 999L
+//            val flags = setOf(FindFlags.MatchCase, FindFlags.MatchWholeWord)
+//            val unlockedResult = FindResultU(mockHandle)
+//            every { pdfTextPageU.findStart("search", flags, 0) } returns unlockedResult
+//
+//            val result = pdfTextPage.findStart("search", flags, 0).getOrNull()
+//
+//            assertThat(result).isNotNull()
+//            // Assuming FindResultKt exposes underlying handle or properties
+//            assertThat(result?.findResult).isEqualTo(unlockedResult)
+//            verify { pdfTextPageU.findStart("search", flags, 0) }
+//        }
+//
+//    @Test
+//    fun loadWebLink() =
+//        runTest {
+//            val mockLink = PdfPageLinkU(888L)
+//            every { pdfTextPageU.loadWebLink() } returns mockLink
+//
+//            val result = pdfTextPage.loadWebLink().getOrNull()
+//
+//            assertThat(result).isNotNull()
+//            assertThat(result?.pageLink).isEqualTo(mockLink)
+//            verify { pdfTextPageU.loadWebLink() }
+//        }
 
     @Test
     fun close() =

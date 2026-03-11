@@ -19,8 +19,10 @@
 
 package io.legere.pdfiumandroid.arrow
 
+import android.graphics.Matrix
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
@@ -132,6 +134,30 @@ class PdfDocumentKtFTest {
             renderPagesWithOptions(renderPages = true, textMask = true)
         }
 
+    @Test
+    fun renderPagesFalseFalseWithAndroidType() =
+        runTest {
+            renderPagesWithOptionsWithAndroidType(renderPages = false, textMask = false)
+        }
+
+    @Test
+    fun renderPagesTrueFalseWithAndroidType() =
+        runTest {
+            renderPagesWithOptionsWithAndroidType(renderPages = true, textMask = false)
+        }
+
+    @Test
+    fun renderPagesFalseTrueWithAndroidType() =
+        runTest {
+            renderPagesWithOptionsWithAndroidType(renderPages = false, textMask = true)
+        }
+
+    @Test
+    fun renderPagesTrueTrueWithAndroidType() =
+        runTest {
+            renderPagesWithOptionsWithAndroidType(renderPages = true, textMask = true)
+        }
+
     private suspend fun renderPagesWithOptions(
         renderPages: Boolean,
         textMask: Boolean,
@@ -152,7 +178,50 @@ class PdfDocumentKtFTest {
             pdfDocument.renderPages(
                 surface,
                 emptyList(),
+                emptyList<MatrixValues>(),
                 emptyList(),
+                renderAnnot = renderPages,
+                textMask = textMask,
+                canvasColor = 0,
+                pageBackgroundColor = 0,
+                renderCoroutinesDispatcher = Dispatchers.Main,
+            )
+        assertThat(result).isTrue()
+        coVerify {
+            pdfDocumentU.renderPages(
+                any<Surface>(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        }
+    }
+
+    private suspend fun renderPagesWithOptionsWithAndroidType(
+        renderPages: Boolean,
+        textMask: Boolean,
+    ) {
+        coEvery {
+            pdfDocumentU.renderPages(
+                any<Surface>(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+            )
+        } returns true
+        val result =
+            pdfDocument.renderPages(
+                surface,
+                emptyList(),
+                emptyList<Matrix>(),
                 emptyList(),
                 renderAnnot = renderPages,
                 textMask = textMask,
@@ -194,7 +263,45 @@ class PdfDocumentKtFTest {
                 pdfDocument.renderPages(
                     surface,
                     emptyList(),
+                    emptyList<MatrixValues>(),
                     emptyList(),
+                    renderCoroutinesDispatcher = Dispatchers.Main,
+                )
+            assertThat(result).isTrue()
+            coVerify {
+                pdfDocumentU.renderPages(
+                    any<Surface>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
+        }
+
+    @Test
+    fun renderPagesDefaultWithAndroidType() =
+        runTest {
+            coEvery {
+                pdfDocumentU.renderPages(
+                    any<Surface>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+            val result =
+                pdfDocument.renderPages(
+                    surface,
+                    emptyList(),
+                    emptyList<Matrix>(),
                     emptyList(),
                     renderCoroutinesDispatcher = Dispatchers.Main,
                 )

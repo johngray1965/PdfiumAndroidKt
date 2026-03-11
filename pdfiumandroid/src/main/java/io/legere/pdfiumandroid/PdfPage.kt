@@ -22,6 +22,9 @@
 package io.legere.pdfiumandroid
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.geokt.FloatRectValues
@@ -35,6 +38,11 @@ import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.api.types.toKtMatrix
+import io.legere.pdfiumandroid.api.types.toKtRect
+import io.legere.pdfiumandroid.api.types.toKtRectF
+import io.legere.pdfiumandroid.api.types.toRect
+import io.legere.pdfiumandroid.api.types.toRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -277,6 +285,38 @@ class PdfPage internal constructor(
             )
         }
 
+    @Suppress("LongParameterList", "MaxLineLength")
+    @Deprecated(
+        "Use version with KtRect And KtMatrix",
+        ReplaceWith(
+            "renderPage(bufferPtr, drawSizeX, drawSizeY, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)",
+            "io.legere.pdfiumandroid.api.types.toKtMatrix",
+            "io.legere.pdfiumandroid.api.types.toKtRectF",
+        ),
+    )
+    fun renderPage(
+        bufferPtr: Long,
+        drawSizeX: Int,
+        drawSizeY: Int,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ): Boolean =
+        renderPage(
+            bufferPtr,
+            drawSizeX,
+            drawSizeY,
+            matrix.toKtMatrix(),
+            clipRect.toKtRectF(),
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
+
     @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface,
@@ -298,6 +338,34 @@ class PdfPage internal constructor(
                 pageBackgroundColor,
             )
         }
+
+    @Suppress("LongParameterList")
+    @Deprecated(
+        "Use version with KtRect And KtMatrix",
+        ReplaceWith(
+            "renderPage(surface, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)",
+            "io.legere.pdfiumandroid.api.types.toKtMatrix",
+            "io.legere.pdfiumandroid.api.types.toKtRectF",
+        ),
+    )
+    fun renderPage(
+        surface: Surface,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ): Boolean =
+        renderPage(
+            surface,
+            matrix.toKtMatrix(),
+            clipRect.toKtRectF(),
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+        )
 
     /**
      * Render page fragment on [Bitmap].<br></br>
@@ -382,6 +450,33 @@ class PdfPage internal constructor(
             pageBackgroundColor,
         )
     }
+
+    @Suppress("LongParameterList")
+    @Deprecated(
+        "Use version with KtRect And KtMatrix",
+        ReplaceWith(
+            "renderPageBitmap(bitmap, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)",
+            "io.legere.pdfiumandroid.api.types.toKtMatrix",
+            "io.legere.pdfiumandroid.api.types.toKtRectF",
+        ),
+    )
+    fun renderPageBitmap(
+        bitmap: Bitmap?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) = renderPageBitmap(
+        bitmap,
+        matrix.toKtMatrix(),
+        clipRect.toKtRectF(),
+        renderAnnot,
+        textMask,
+        canvasColor,
+        pageBackgroundColor,
+    )
 
     /** Get all links from given page  */
     fun getPageLinks(): List<Link> =
@@ -496,6 +591,32 @@ class PdfPage internal constructor(
             )
         }
 
+    @Deprecated(
+        "Use version with KtRect",
+        ReplaceWith(
+            "mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRectF()).toRect()",
+            "io.legere.pdfiumandroid.api.types.toKtRectF",
+            "io.legere.pdfiumandroid.api.types.toRect",
+        ),
+    )
+    @Suppress("LongParameterList")
+    fun mapRectToDevice(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: RectF,
+    ): Rect =
+        mapRectToDevice(
+            startX,
+            startY,
+            sizeX,
+            sizeY,
+            rotate,
+            coords.toKtRectF(),
+        ).toRect()
+
     /**
      * Maps a rectangle from device space to page space
      * @param startX    left pixel position of the display area in device coordinates
@@ -527,6 +648,32 @@ class PdfPage internal constructor(
                 coords,
             )
         }
+
+    @Deprecated(
+        "Use version with KtRect",
+        ReplaceWith(
+            "mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRect()).toRectF()",
+            "io.legere.pdfiumandroid.api.types.toKtRect",
+            "io.legere.pdfiumandroid.api.types.toRectF",
+        ),
+    )
+    @Suppress("LongParameterList")
+    fun mapRectToPage(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: Rect,
+    ): RectF =
+        mapRectToPage(
+            startX,
+            startY,
+            sizeX,
+            sizeY,
+            rotate,
+            coords.toKtRect(),
+        ).toRectF()
 
     /**
      * Get all attributes of a page in a single call.

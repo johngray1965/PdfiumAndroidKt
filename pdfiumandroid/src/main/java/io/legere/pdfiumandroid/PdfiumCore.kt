@@ -38,6 +38,8 @@ import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfiumSource
 import io.legere.pdfiumandroid.api.types.toKtRect
 import io.legere.pdfiumandroid.api.types.toKtRectF
+import io.legere.pdfiumandroid.api.types.toRect
+import io.legere.pdfiumandroid.api.types.toRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU.Companion.lock
 import io.legere.pdfiumandroid.core.util.wrapLock
@@ -435,7 +437,7 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: Rect,
-    ): KtImmutableRectF = mapRectToPage(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRect())
+    ): RectF = mapRectToPage(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRect()).toRectF()
 
     @Deprecated(
         "Use KtPage.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)",
@@ -578,8 +580,8 @@ class PdfiumCore(
      * @deprecated Use [PdfPage.mapRectToDevice] after obtaining a [PdfPage] from [PdfDocument.openPage].
      */
     @Deprecated(
-        "Use page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords.toPdfRectF())",
-        ReplaceWith("mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toPdfRectF())"),
+        "Use page.mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRectF())",
+        ReplaceWith("mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRectF()).toRect()"),
         DeprecationLevel.WARNING,
     )
     @Suppress("LongParameterList")
@@ -592,7 +594,7 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: RectF,
-    ): KtImmutableRect = mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRectF())
+    ): Rect = mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRectF()).toRect()
 
     @Deprecated(
         "Use PdfPage.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)",

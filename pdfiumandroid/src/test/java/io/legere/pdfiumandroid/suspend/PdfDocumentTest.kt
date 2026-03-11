@@ -19,8 +19,11 @@
 
 package io.legere.pdfiumandroid.suspend
 
+import android.graphics.Matrix
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
@@ -115,13 +118,66 @@ class PdfDocumentTest {
     fun renderPages() =
         runTest {
             coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
+            listOf(false, true).forEach { renderAnnot ->
+                val result =
+                    pdfDocument.renderPages(
+                        surface,
+                        emptyList<PdfPageKt>(),
+                        emptyList<MatrixValues>(),
+                        emptyList<FloatRectValues>(),
+                        renderAnnot,
+                        renderCoroutinesDispatcher = Dispatchers.Main,
+                    )
+                assertThat(result).isTrue()
+            }
+            coVerify { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun renderPageWithDefaults() =
+        runTest {
+            coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
+            val result =
+                pdfDocument.renderPages(
+                    surface,
+                    emptyList<PdfPageKt>(),
+                    emptyList<MatrixValues>(),
+                    emptyList<FloatRectValues>(),
+                    renderCoroutinesDispatcher = Dispatchers.Main,
+                )
+            assertThat(result).isTrue()
+            coVerify { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun renderPagesWithAndroidTypes() =
+        runTest {
+            coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
+            listOf(false, true).forEach { renderAnnot ->
+                val result =
+                    pdfDocument.renderPages(
+                        surface,
+                        emptyList(),
+                        emptyList<Matrix>(),
+                        emptyList(),
+                        renderAnnot,
+                        renderCoroutinesDispatcher = Dispatchers.Main,
+                    )
+                assertThat(result).isTrue()
+            }
+            coVerify { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun renderPageWithDefaultsWithAndroidTypes() =
+        runTest {
+            coEvery { pdfDocumentU.renderPages(any(), any(), any(), any(), any()) } returns true
             val result =
                 pdfDocument.renderPages(
                     surface,
                     emptyList(),
+                    emptyList<Matrix>(),
                     emptyList(),
-                    emptyList(),
-                    false,
                     renderCoroutinesDispatcher = Dispatchers.Main,
                 )
             assertThat(result).isTrue()
@@ -135,9 +191,9 @@ class PdfDocumentTest {
             val result =
                 pdfDocument.renderPages(
                     surface,
-                    emptyList(),
-                    emptyList(),
-                    emptyList(),
+                    emptyList<PdfPageKt>(),
+                    emptyList<MatrixValues>(),
+                    emptyList<FloatRectValues>(),
                     true,
                     renderCoroutinesDispatcher = Dispatchers.Main,
                 )
@@ -155,9 +211,9 @@ class PdfDocumentTest {
                     val result =
                         pdfDocument.renderPages(
                             surface,
-                            emptyList(),
-                            emptyList(),
-                            emptyList(),
+                            emptyList<PdfPageKt>(),
+                            emptyList<MatrixValues>(),
+                            emptyList<FloatRectValues>(),
                             false,
                             renderCoroutinesDispatcher = this.coroutineContext[ContinuationInterceptor] as CoroutineDispatcher,
                         )

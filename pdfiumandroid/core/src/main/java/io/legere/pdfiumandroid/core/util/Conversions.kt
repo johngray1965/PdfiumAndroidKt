@@ -37,8 +37,6 @@ import io.legere.geokt.SKEW_Y
 import io.legere.geokt.THREE_BY_THREE
 import io.legere.geokt.TRANS_X
 import io.legere.geokt.TRANS_Y
-import io.legere.pdfiumandroid.api.types.toDoubleArray
-import io.legere.pdfiumandroid.api.types.toFloatArray
 
 /**
  * Returns the first 6 values of the matrix in the order:
@@ -164,18 +162,18 @@ fun rectsToFloatArray(rects: Collection<FloatRectValues>): FloatArray =
             rectToFloatArray(rect).asIterable()
         }.toFloatArray()
 
-fun Matrix.toPdfMatrix(): KtImmutableMatrix {
-    val values = FloatArray(THREE_BY_THREE)
-    this.getValues(values)
-    return KtImmutableMatrix(values.toDoubleArray())
-}
-
-fun KtImmutableMatrix.toMatrix(): Matrix {
-    val matrix = Matrix()
-    matrix.setValues(this.values.toFloatArray())
-    return matrix
-}
-
-fun RectF.toPdfRectF(): KtImmutableRectF = KtImmutableRectF(left, top, right, bottom)
-
-fun KtImmutableRectF.toRectF(): RectF = RectF(left, top, right, bottom)
+// fun Matrix.toPdfMatrix(): KtImmutableMatrix {
+//    val values = FloatArray(THREE_BY_THREE)
+//    this.getValues(values)
+//    return KtImmutableMatrix(values.toDoubleArray())
+// }
+//
+// fun KtImmutableMatrix.toMatrix(): Matrix {
+//    val matrix = Matrix()
+//    matrix.setValues(this.values.toFloatArray())
+//    return matrix
+// }
+//
+// fun RectF.toPdfRectF(): KtImmutableRectF = KtImmutableRectF(left, top, right, bottom)
+//
+// fun KtImmutableRectF.toRectF(): RectF = RectF(left, top, right, bottom)

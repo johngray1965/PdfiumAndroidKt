@@ -22,6 +22,8 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.ColorInt
 import io.legere.geokt.FloatRectValues
@@ -37,6 +39,8 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.types.toKtMatrix
+import io.legere.pdfiumandroid.api.types.toKtRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePageContract
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
@@ -480,6 +484,29 @@ class PdfPageU(
             pageBackgroundColor,
         )
     }
+    
+    @Deprecated(
+        "Use renderPageBitmap(bitmap: Bitmap?, matrix: MatrixValues, clipRect: FloatRectValues, renderAnnot: Boolean, textMask: Boolean, canvasColor: Int, pageBackgroundColor: Int)",
+        ReplaceWith(
+            "renderPageBitmap(bitmap, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)")
+    )
+    fun renderPageBitmap(
+        bitmap: Bitmap?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ) = renderPageBitmap(
+        bitmap,
+        matrix.toKtMatrix(),
+        clipRect.toKtRectF(),
+        renderAnnot,
+        textMask,
+        canvasColor,
+        pageBackgroundColor,
+    )
 
     /**
      * Get all links from given page.

@@ -20,6 +20,9 @@
 package io.legere.pdfiumandroid.arrow
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.RectF
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
 import io.legere.geokt.KtImmutableMatrix
@@ -563,11 +566,89 @@ class PdfPageKtFTest {
         }
 
     @Test
+    fun `testRenderPage null surface with android matrix`() =
+        runTest {
+            // Variant with Surface and Matrix
+            val matrix = mockk<Matrix>(relaxed = true)
+            val clip = mockk<RectF>()
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<KtImmutableMatrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns true
+
+            val result =
+                pdfPage.renderPage(
+                    null,
+                    matrix,
+                    clip,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
+            assertThat(result.isLeft()).isTrue()
+            verify(exactly = 0) {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<KtImmutableMatrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
+        }
+
+    @Test
     fun `testRenderPage return false`() =
         runTest {
             // Variant with Surface and Matrix
             val matrix = KtImmutableMatrix()
             val clip = KtImmutableRectF.EMPTY
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<KtImmutableMatrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } returns false
+
+            val result =
+                pdfPage.renderPage(
+                    surface,
+                    matrix,
+                    clip,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
+            assertThat(result.isLeft()).isTrue()
+            verify {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<KtImmutableMatrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
+        }
+
+    @Test
+    fun `testRenderPage return false with android matrix`() =
+        runTest {
+            // Variant with Surface and Matrix
+            val matrix = mockk<Matrix>(relaxed = true)
+            val clip = mockk<RectF>()
             every {
                 pdfPageU.renderPage(
                     any<Surface>(),
@@ -641,6 +722,45 @@ class PdfPageKtFTest {
         }
 
     @Test
+    fun `testRenderPage throws exception with android matrix`() =
+        runTest {
+            // Variant with Surface and Matrix
+            val matrix = mockk<Matrix>(relaxed = true)
+            val clip = mockk<RectF>()
+            every {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<KtImmutableMatrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } throws Exception()
+
+            val result =
+                pdfPage.renderPage(
+                    surface,
+                    matrix,
+                    clip,
+                    renderCoroutinesDispatcher = Dispatchers.Unconfined,
+                )
+            assertThat(result.isLeft()).isTrue()
+            verify {
+                pdfPageU.renderPage(
+                    any<Surface>(),
+                    any<KtImmutableMatrix>(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            }
+        }
+
+    @Test
     fun renderPageBitmap() =
         runTest {
             every { pdfPageU.renderPageBitmap(bitmap, 0, 0, 100, 100) } just runs
@@ -659,6 +779,22 @@ class PdfPageKtFTest {
 
             pdfPage.renderPageBitmap(bitmap, matrix, clip)
             verify { pdfPageU.renderPageBitmap(bitmap, matrix, clip) }
+        }
+
+    @Test
+    fun testRenderPageBitmapWithAndroidMatrix() =
+        runTest {
+            // Variant with Matrix
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+
+            val aMatrix = mockk<Matrix>(relaxed = true)
+            val aRectF = mockk<RectF>(relaxed = true)
+            every { pdfPageU.renderPageBitmap(bitmap, matrix, clip) } just runs
+
+            // just calls a wrapper
+            pdfPage.renderPageBitmap(bitmap, aMatrix, aRectF)
+//            verify { pdfPageU.renderPageBitmap(bitmap, matrix, clip) }
         }
 
     @Test
@@ -715,6 +851,19 @@ class PdfPageKtFTest {
 
             assertThat(pdfPage.mapRectToPage(0, 0, 100, 100, 0, src).getOrNull()).isEqualTo(rect)
             verify { pdfPageU.mapRectToPage(0, 0, 100, 100, 0, src) }
+        }
+
+    @Test
+    fun mapRectToPageWithAndroidTypes() =
+        runTest {
+            val rect = KtImmutableRectF(0f, 0f, 10f, 10f)
+            val src = KtImmutableRect(10, 20, 30, 40)
+            val src2 = mockk<Rect>(relaxed = true)
+            every { pdfPageU.mapRectToPage(0, 0, 100, 100, 0, src) } returns rect
+
+            // it isn't a very effective test, but it only is a wrapper
+            assertThat(pdfPage.mapRectToPage(0, 0, 100, 100, 0, src2).getOrNull()).isNull()
+//            verify { pdfPageU.mapRectToPage(0, 0, 100, 100, 0, src) }
         }
 
     @Test

@@ -20,6 +20,9 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.RectF
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
 import io.legere.geokt.KtImmutableMatrix
@@ -532,6 +535,364 @@ class PdfPageTest {
         }
 
     @Test
+    fun testRenderPageWithDefaults() =
+        runTest {
+            val expected = true
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            pdfPage.renderPage(surface, 0, 0, 0, 0)
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
+    fun testRenderPage1() =
+        runTest {
+            val expected = true
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            listOf(false, true).forEach { renderAnnot ->
+                listOf(false, true).forEach { textMask ->
+                    val result =
+                        pdfPage.renderPage(
+                            surface,
+                            mockk<KtImmutableMatrix>(),
+                            mockk<KtImmutableRectF>(),
+                            renderAnnot,
+                            textMask,
+                            0,
+                            0,
+                        )
+                    assertThat(result).isEqualTo(expected)
+                }
+            }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
+    fun testRenderPage1WithAndroidTypes() =
+        runTest {
+            val expected = true
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            listOf(false, true).forEach { renderAnnot ->
+                listOf(false, true).forEach { textMask ->
+                    val result =
+                        pdfPage.renderPage(surface, mockk<Matrix>(relaxed = true), mockk<RectF>(), renderAnnot, textMask, 0, 0)
+                    assertThat(result).isEqualTo(expected)
+                }
+            }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
+    fun testRenderPage2() =
+        runTest {
+            val expected = true
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            listOf(false, true).forEach { renderAnnot ->
+                listOf(false, true).forEach { textMask ->
+                    val result =
+                        pdfPage.renderPage(
+                            surface,
+                            mockk<KtImmutableMatrix>(),
+                            mockk<KtImmutableRectF>(),
+                            renderAnnot,
+                            textMask,
+                            0,
+                            0,
+                        )
+                    assertThat(result).isEqualTo(expected)
+                }
+            }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
+    fun testRenderPage2WithDefaults() =
+        runTest {
+            val expected = true
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            val result =
+                pdfPage.renderPage(surface, mockk<KtImmutableMatrix>(), mockk<KtImmutableRectF>(), false, false, 0, 0)
+            assertThat(result).isEqualTo(expected)
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
+    fun testRenderPage2WithAndroidTypes() =
+        runTest {
+            val expected = true
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            listOf(false, true).forEach { renderAnnot ->
+                listOf(false, true).forEach { textMask ->
+                    val result =
+                        pdfPage.renderPage(
+                            surface,
+                            mockk<Matrix>(relaxed = true),
+                            mockk<RectF>(),
+                            renderAnnot,
+                            textMask,
+                            0,
+                            0,
+                        )
+                    assertThat(result).isEqualTo(expected)
+                }
+            }
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
+    fun testRenderPage2WithDefaultsWithAndroidTypes() =
+        runTest {
+            val expected = true
+            val surface = mockk<Surface>()
+            every { pdfPageU.lockSurface(surface, any(), any()) } answers {
+                thirdArg<LongArray>().let {
+                    it[0] = 1
+                    it[1] = 1
+                }
+                true
+            }
+            every { pdfPageU.unlockSurface(any()) } just runs
+            every {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            } returns
+                expected
+            // every { page.renderPage(any<Long>(), any(), any(), any(), any(), any(), any()) } returns expected
+            val result =
+                pdfPage.renderPage(surface, mockk<Matrix>(relaxed = true), mockk<RectF>(), false, false, 0, 0)
+            assertThat(result).isEqualTo(expected)
+            verify {
+                pdfPageU.renderPage(
+                    any<Long>(),
+                    any<Int>(),
+                    any<Int>(),
+                    any<KtImmutableMatrix>(),
+                    any<KtImmutableRectF>(),
+                    any<Boolean>(),
+                    any<Boolean>(),
+                    any<Int>(),
+                    any<Int>(),
+                )
+            }
+        }
+
+    @Test
     fun getPageLinks() =
         runTest {
             val links = listOf(Link(bounds = mockk(), uri = "uri", destPageIdx = 1))
@@ -573,6 +934,15 @@ class PdfPageTest {
         }
 
     @Test
+    fun mapRectToDeviceWithAndroidTypes() =
+        runTest {
+            val expected = KtImmutableRect.EMPTY
+            every { pdfPageU.mapRectToDevice(any(), any(), any(), any(), any(), any()) } returns expected
+            // a deprecated wrapper, it doesn't matter in this case
+            pdfPage.mapRectToDevice(0, 0, 0, 0, 0, mockk<RectF>())
+        }
+
+    @Test
     fun mapRectToPage() =
         runTest {
             val rect = KtImmutableRectF(0f, 0f, 10f, 10f)
@@ -581,6 +951,15 @@ class PdfPageTest {
 
             assertThat(pdfPage.mapRectToPage(0, 0, 100, 100, 0, src)).isEqualTo(rect)
             verify { pdfPageU.mapRectToPage(0, 0, 100, 100, 0, src) }
+        }
+
+    @Test
+    fun mapRectToPageWithAndroidTypes() =
+        runTest {
+            val expected = KtImmutableRectF.EMPTY
+            every { pdfPageU.mapRectToPage(any(), any(), any(), any(), any(), any()) } returns expected
+            // a deprecated wrapper, it doesn't matter in this case
+            pdfPage.mapRectToPage(0, 0, 0, 0, 0, mockk<Rect>())
         }
 
     @Test

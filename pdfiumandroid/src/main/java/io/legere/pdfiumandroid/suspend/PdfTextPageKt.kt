@@ -21,12 +21,14 @@
 
 package io.legere.pdfiumandroid.suspend
 
+import android.graphics.RectF
 import androidx.annotation.Keep
 import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.api.types.toKtRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -144,6 +146,18 @@ class PdfTextPageKt internal constructor(
     ): String? =
         wrapSuspend(dispatcher) {
             page.textPageGetBoundedText(rect, length)
+        }
+
+    @Deprecated(
+        "use textPageGetBoundedText(rect: KtImmutableRectF, length: Int)",
+        ReplaceWith("textPageGetBoundedText(rect.toKtRectF(), length)"),
+    )
+    suspend fun textPageGetBoundedText(
+        rect: RectF,
+        length: Int,
+    ): String? =
+        wrapSuspend(dispatcher) {
+            page.textPageGetBoundedText(rect.toKtRectF(), length)
         }
 
     /**

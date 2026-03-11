@@ -22,6 +22,9 @@
 package io.legere.pdfiumandroid.suspend
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.RectF
 import android.view.Surface
 import androidx.annotation.Keep
 import io.legere.geokt.FloatRectValues
@@ -38,6 +41,11 @@ import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.api.types.toKtMatrix
+import io.legere.pdfiumandroid.api.types.toKtRect
+import io.legere.pdfiumandroid.api.types.toKtRectF
+import io.legere.pdfiumandroid.api.types.toRect
+import io.legere.pdfiumandroid.api.types.toRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -288,6 +296,65 @@ class PdfPageKt internal constructor(
         return retValue
     }
 
+    @Suppress("LongParameterList", "ComplexCondition", "MaxLineLength")
+    @Deprecated(
+        "use renderPage(surface: Surface?, matrix: MatrixValues, clipRect: FloatRectValues, renderAnnot: Boolean, textMask: Boolean, canvasColor: Int, pageBackgroundColor: Int)",
+        ReplaceWith(
+            "renderPage(surface, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)",
+        ),
+    )
+    suspend fun renderPage(
+        surface: Surface?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ): Boolean {
+        var retValue: Boolean
+        PdfiumCore.surfaceMutex.withLock {
+            withContext(dispatcher) {
+                val sizes = IntArray(2)
+                val pointers = LongArray(2)
+                surface?.let {
+                    page.lockSurface(
+                        it,
+                        sizes,
+                        pointers,
+                    )
+                }
+                val nativeWindow = pointers[0]
+                val bufferPtr = pointers[1]
+                val surfaceWidth = sizes[0]
+                val surfaceHeight = sizes[1]
+                if (bufferPtr != 0L && bufferPtr != -1L && nativeWindow != 0L && nativeWindow != -1L) {
+                    try {
+                        retValue =
+                            page.renderPage(
+                                bufferPtr,
+                                surfaceWidth,
+                                surfaceHeight,
+                                matrix.toKtMatrix(),
+                                clipRect.toKtRectF(),
+                                renderAnnot,
+                                textMask,
+                                canvasColor,
+                                pageBackgroundColor,
+                            )
+                    } finally {
+                        surface?.let {
+                            page.unlockSurface(longArrayOf(nativeWindow, bufferPtr))
+                        }
+                    }
+                } else {
+                    retValue = false
+                }
+            }
+        }
+        return retValue
+    }
+
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
@@ -398,6 +465,23 @@ class PdfPageKt internal constructor(
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
 
+    @Suppress("LongParameterList")
+    @Deprecated(
+        "use mapRectToDevice(startX: Int, startY: Int, sizeX: Int, sizeY: Int, rotate: Int, coords: FloatRectValues)",
+        ReplaceWith("mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords.toKtRectF()).toRect()"),
+    )
+    suspend fun mapRectToDevice(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: RectF,
+    ): Rect =
+        wrapSuspend(dispatcher) {
+            page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords.toKtRectF()).toRect()
+        }
+
     /**
      * suspend version of [PdfPage.mapRectToPage]
      */
@@ -412,6 +496,23 @@ class PdfPageKt internal constructor(
     ): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
+        }
+
+    @Suppress("LongParameterList")
+    @Deprecated(
+        "use mapRectToPage(startX: Int, startY: Int, sizeX: Int, sizeY: Int, rotate: Int, coords: IntRectValues)",
+        ReplaceWith("mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRect())"),
+    )
+    suspend fun mapRectToPage(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: Rect,
+    ): RectF =
+        wrapSuspend(dispatcher) {
+            page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRect()).toRectF()
         }
 
     /**

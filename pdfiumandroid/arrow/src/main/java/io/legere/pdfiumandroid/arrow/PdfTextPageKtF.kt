@@ -21,11 +21,13 @@
 
 package io.legere.pdfiumandroid.arrow
 
+import android.graphics.RectF
 import arrow.core.Either
 import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.WordRangeRect
+import io.legere.pdfiumandroid.api.types.toKtRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -139,6 +141,18 @@ class PdfTextPageKtF internal constructor(
             page.textPageGetBoundedText(rect, length)
         }
 
+    @Deprecated(
+        "use textPageGetBoundedText(rect: KtImmutableRectF, length: Int)",
+        ReplaceWith("textPageGetBoundedText(rect.toKtRectF(), length)"),
+    )
+    suspend fun textPageGetBoundedText(
+        rect: RectF,
+        length: Int,
+    ): Either<PdfiumKtFErrors, String?> =
+        wrapEither(dispatcher) {
+            page.textPageGetBoundedText(rect.toKtRectF(), length)
+        }
+
     /**
      * suspend version of [PdfTextPage.getFontSize]
      */
@@ -153,12 +167,9 @@ class PdfTextPageKtF internal constructor(
         startIndex: Int,
     ): Either<PdfiumKtFErrors, FindResultKtF> =
         wrapEither(dispatcher) {
-            val findResult = page.findStart(findWhat, flags, startIndex)
-            if (findResult == null) {
-                error("findResult is null")
-            } else {
+            page.findStart(findWhat, flags, startIndex)?.let { findResult ->
                 FindResultKtF(findResult, dispatcher)
-            }
+            } ?: error("findResult is null")
         }
 
     suspend fun loadWebLink(): Either<PdfiumKtFErrors, PdfPageLinkKtF> =

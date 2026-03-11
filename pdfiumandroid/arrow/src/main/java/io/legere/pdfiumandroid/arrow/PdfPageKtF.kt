@@ -22,6 +22,9 @@
 package io.legere.pdfiumandroid.arrow
 
 import android.graphics.Bitmap
+import android.graphics.Matrix
+import android.graphics.Rect
+import android.graphics.RectF
 import android.view.Surface
 import arrow.core.Either
 import arrow.core.left
@@ -40,6 +43,10 @@ import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
+import io.legere.pdfiumandroid.api.types.toKtMatrix
+import io.legere.pdfiumandroid.api.types.toKtRect
+import io.legere.pdfiumandroid.api.types.toKtRectF
+import io.legere.pdfiumandroid.api.types.toRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -281,6 +288,36 @@ class PdfPageKtF internal constructor(
         }
     }
 
+    @Suppress("LongParameterList", "MaxLineLength")
+    @Deprecated(
+        "use renderPage(surface, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor, renderCoroutinesDispatcher)",
+        ReplaceWith(
+            "renderPage(surface, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor, renderCoroutinesDispatcher)"),
+        DeprecationLevel.WARNING
+    )
+    suspend fun renderPage(
+        surface: Surface?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+        renderCoroutinesDispatcher: CoroutineDispatcher,
+    ): Either<PdfiumKtFErrors, Boolean> =
+        renderPage(
+            surface,
+            matrix.toKtMatrix(),
+            clipRect.toKtRectF(),
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+            renderCoroutinesDispatcher,
+    )
+
+
+
     /**
      * suspend version of [PdfPage.renderPageBitmap]
      */
@@ -328,6 +365,32 @@ class PdfPageKtF internal constructor(
             page.renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)
             true
         }
+
+    @Suppress("LongParameterList")
+    @Deprecated(
+        "use renderPageBitmap(bitmap, matrix, clipRect, renderAnnot, textMask, canvasColor, pageBackgroundColor)",
+        ReplaceWith(
+            "renderPageBitmap(bitmap, matrix.toKtMatrix(), clipRect.toKtRectF(), renderAnnot, textMask, canvasColor, pageBackgroundColor)")
+    )
+    suspend fun renderPageBitmap(
+        bitmap: Bitmap?,
+        matrix: Matrix,
+        clipRect: RectF,
+        renderAnnot: Boolean = false,
+        textMask: Boolean = false,
+        canvasColor: Int = 0xFF848484.toInt(),
+        pageBackgroundColor: Int = 0xFFFFFFFF.toInt(),
+    ): Either<PdfiumKtFErrors, Boolean> =
+        renderPageBitmap(
+            bitmap,
+            matrix.toKtMatrix(),
+            clipRect.toKtRectF(),
+            renderAnnot,
+            textMask,
+            canvasColor,
+            pageBackgroundColor,
+    )
+
 
     /**
      * suspend version of [PdfPage.getPageLinks]
@@ -402,6 +465,20 @@ class PdfPageKtF internal constructor(
         wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }
+
+    @Suppress("LongParameterList")
+    @Deprecated(
+        "use mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRect())",
+        ReplaceWith("mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRect()).toRectF()"),
+    )
+    suspend fun mapRectToPage(
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: Rect,
+    ): Either<PdfiumKtFErrors, RectF> = mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toKtRect()).map { it.toRectF() }
 
     /**
      * suspend version of [PdfPage.getPageAttributes]
