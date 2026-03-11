@@ -21,7 +21,7 @@ import android.graphics.Matrix as AndroidPlatformMatrix
  */
 @RunWith(AndroidJUnit4::class)
 @Suppress("LargeClass")
-class CustomMatrixComparisonTest {
+class ConversionsTest {
     private lateinit var pdfMatrix: KtImmutableMatrix
 
     @Before
@@ -135,22 +135,5 @@ class CustomMatrixComparisonTest {
                 .isWithin(delta)
                 .of(expected[i])
         }
-    }
-}
-
-private fun assertDoubleArraysEqual(
-    expected: FloatArray,
-    actual: DoubleArray,
-    delta: Double,
-) {
-    assertThat(actual).hasLength(expected.size)
-    for (i in expected.indices) {
-        assertWithMessage(
-            "Value at index $i, \n" +
-                "expected: ${expected.contentToString()}, \n" +
-                "actual:   ${actual.contentToString()}",
-        ).that(actual[i])
-            .isWithin(delta)
-            .of(expected[i].toDouble())
     }
 }
