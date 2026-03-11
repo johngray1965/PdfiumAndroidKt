@@ -26,11 +26,11 @@ import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.PdfiumCore
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -129,8 +129,8 @@ class PDFBenchmark {
     @Test
     fun getPagBitmapViaMatrix() {
         val bitmap = Bitmap.createBitmap(612, 792, Bitmap.Config.RGB_565)
-        val rect = PdfRectF(0f, 0f, 612f, 792f)
-        val matrix = PdfMatrix()
+        val rect = KtImmutableRectF(0f, 0f, 612f, 792f)
+        val matrix = KtImmutableMatrix()
         pdfDocument.openPage(0)?.use { page ->
             benchmarkRule.measureRepeated {
                 page.renderPageBitmap(
@@ -291,7 +291,7 @@ class PDFBenchmark {
 //        }
 //    }
 //
-//    private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, PdfRectF, PdfMatrix> {
+//    private fun commonParams8X(bitmapConfig: Bitmap.Config): Triple<Bitmap, KtImmutableRectF, KtImmutableMatrix> {
 //        val scaleFactor = (1080f / 612) * 8
 //        val width = 1080 * 3
 //        val height = 2280 * 3
@@ -301,8 +301,8 @@ class PDFBenchmark {
 //                height,
 //                bitmapConfig,
 //            )
-//        val rect = PdfRectF(0f, 0f, width.toFloat(), height.toFloat())
-//        val matrix = PdfMatrix()
+//        val rect = KtImmutableRectF(0f, 0f, width.toFloat(), height.toFloat())
+//        val matrix = KtImmutableMatrix()
 //        matrix.postScale(scaleFactor, scaleFactor)
 //        return Triple(bitmap, rect, matrix)
 //    }

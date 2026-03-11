@@ -23,17 +23,21 @@ package io.legere.pdfiumandroid
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
+import android.graphics.RectF
 import android.os.ParcelFileDescriptor
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Config
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.LockManager
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfiumSource
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.pdfiumandroid.api.types.toKtRect
+import io.legere.pdfiumandroid.api.types.toKtRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU.Companion.lock
 import io.legere.pdfiumandroid.core.util.wrapLock
@@ -62,7 +66,7 @@ class PdfiumCore(
     val config: Config = Config(),
     private val coreInternal: PdfiumCoreU = PdfiumCoreU(config = config),
 ) {
-    val invalidRect = PdfRectF(-1f, -1f, -1f, -1f)
+    val invalidRect = KtImmutableRectF(-1f, -1f, -1f, -1f)
 
     /**
      * Creates a new [PdfDocument] from a [ParcelFileDescriptor].
@@ -207,7 +211,7 @@ class PdfiumCore(
     fun getPageMediaBox(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): PdfRectF {
+    ): KtImmutableRectF {
         pdfDocument.openPage(pageIndex).use { page ->
             return page?.getPageMediaBox() ?: invalidRect
         }
@@ -370,7 +374,7 @@ class PdfiumCore(
         pdfDocument: PdfDocument,
         pageIndex: Int,
         index: Int,
-    ): PdfRectF? {
+    ): KtImmutableRectF? {
         pdfDocument.openPage(pageIndex).use { page ->
             return page?.openTextPage()?.use { textPage ->
                 textPage.textPageGetRect(index)
@@ -381,6 +385,18 @@ class PdfiumCore(
     /**
      * @deprecated Use [PdfTextPage.textPageGetBoundedText] after obtaining a [PdfTextPage] from [PdfPage.openTextPage].
      */
+    @Deprecated(
+        "Use textPage.textPageGetBoundedText(sourceRect.toPdfRectF(), size)",
+        ReplaceWith("textPageGetBoundedText(pdfDocument, pageIndex, sourceRect.toPdfRectF(), size)"),
+        DeprecationLevel.WARNING,
+    )
+    fun textPageGetBoundedText(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        sourceRect: RectF,
+        size: Int,
+    ): String? = textPageGetBoundedText(pdfDocument, pageIndex, sourceRect.toKtRectF(), size)
+
     @Deprecated(
         "Use PdfPage.textPageGetBoundedText(sourceRect, size)",
         ReplaceWith(
@@ -405,7 +421,24 @@ class PdfiumCore(
      * @deprecated Use [PdfPage.mapRectToPage] after obtaining a [PdfPage] from [PdfDocument.openPage].
      */
     @Deprecated(
-        "Use PdfPage.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)",
+        "Use page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords.toPdfRect())",
+        ReplaceWith("mapRectToPage(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toPdfRect())"),
+        DeprecationLevel.WARNING,
+    )
+    @Suppress("LongParameterList")
+    fun mapRectToPage(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: Rect,
+    ): KtImmutableRectF = mapRectToPage(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRect())
+
+    @Deprecated(
+        "Use KtPage.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)",
         ReplaceWith(
             "page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)",
         ),
@@ -420,8 +453,8 @@ class PdfiumCore(
         sizeX: Int,
         sizeY: Int,
         rotate: Int,
-        coords: PdfRect,
-    ): PdfRectF {
+        coords: KtImmutableRect,
+    ): KtImmutableRectF {
         pdfDocument.openPage(pageIndex).use { page ->
             return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: invalidRect
         }
@@ -535,15 +568,32 @@ class PdfiumCore(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): PdfPoint {
+    ): KtImmutablePoint {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: PdfPoint(-1, -1)
+            return page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: KtImmutablePoint(-1, -1)
         }
     }
 
     /**
      * @deprecated Use [PdfPage.mapRectToDevice] after obtaining a [PdfPage] from [PdfDocument.openPage].
      */
+    @Deprecated(
+        "Use page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords.toPdfRectF())",
+        ReplaceWith("mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toPdfRectF())"),
+        DeprecationLevel.WARNING,
+    )
+    @Suppress("LongParameterList")
+    fun mapRectToDevice(
+        pdfDocument: PdfDocument,
+        pageIndex: Int,
+        startX: Int,
+        startY: Int,
+        sizeX: Int,
+        sizeY: Int,
+        rotate: Int,
+        coords: RectF,
+    ): KtImmutableRect = mapRectToDevice(pdfDocument, pageIndex, startX, startY, sizeX, sizeY, rotate, coords.toKtRectF())
+
     @Deprecated(
         "Use PdfPage.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)",
         ReplaceWith(
@@ -561,9 +611,9 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): PdfRect {
+    ): KtImmutableRect {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: PdfRect(-1, -1, -1, -1)
+            return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: KtImmutableRect(-1, -1, -1, -1)
         }
     }
 

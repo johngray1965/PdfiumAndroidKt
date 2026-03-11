@@ -21,12 +21,12 @@
 package io.legere.pdfiumandroid
 
 import android.view.Surface
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_REMOVE_SECURITY
 import io.legere.pdfiumandroid.api.PdfWriteCallback
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable

@@ -22,15 +22,16 @@ package io.legere.pdfiumandroid
 import android.graphics.Bitmap
 import android.os.ParcelFileDescriptor
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.LockManager
 import io.legere.pdfiumandroid.api.LockManagerReentrantLock
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfiumSource
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
 import io.legere.pdfiumandroid.testing.ClosableTestContext
@@ -171,7 +172,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun getPageMediaBox() =
         nullableTest {
-            val mediaBox = mockk<PdfRectF>()
+            val mediaBox = mockk<KtImmutableRectF>()
             setup {
                 every { page.getPageMediaBox() } returns mediaBox
                 every { page.close() } just runs
@@ -187,7 +188,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
             }
 
             verifyDefault {
-                assertThat(it).isEqualTo(PdfRectF(-1f, -1f, -1f, -1f))
+                assertThat(it).isEqualTo(KtImmutableRectF(-1f, -1f, -1f, -1f))
                 verify { document.openPage(any()) }
             }
         }
@@ -195,7 +196,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun getPageMediaBoxReturnNUll() =
         nullableTest {
-            val mediaBox = mockk<PdfRectF>()
+            val mediaBox = mockk<KtImmutableRectF>()
             setup {
                 every { page.getPageMediaBox() } returns mediaBox
                 every { page.close() } just runs
@@ -211,7 +212,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
             }
 
             verifyDefault {
-                assertThat(it).isEqualTo(PdfRectF(-1f, -1f, -1f, -1f))
+                assertThat(it).isEqualTo(KtImmutableRectF(-1f, -1f, -1f, -1f))
                 verify { document.openPage(any()) }
             }
         }
@@ -415,7 +416,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun textPageGetRect() =
         nullableTest {
-            val rect = mockk<PdfRectF>()
+            val rect = mockk<KtImmutableRectF>()
             setup {
                 every { page.openTextPage() } returns textPage
                 every { textPage.textPageGetRect(any()) } returns rect
@@ -449,7 +450,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
                 every { textPage.close() } just runs
             }
 
-            apiCall = { pdfiumCore.textPageGetBoundedText(document, 0, mockk(), 0) }
+            apiCall = { pdfiumCore.textPageGetBoundedText(document, 0, mockk<FloatRectValues>(), 0) }
 
             verifyHappy {
                 assertThat(it).isEqualTo("Yo")
@@ -469,13 +470,13 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun mapRectToPage() =
         nullableTest {
-            val expected = mockk<PdfRectF>()
+            val expected = mockk<KtImmutableRectF>()
             setup {
                 every { page.mapRectToPage(any(), any(), any(), any(), any(), any()) } returns expected
                 every { page.close() } just runs
             }
 
-            apiCall = { pdfiumCore.mapRectToPage(document, 0, 0, 0, 0, 0, 0, mockk()) }
+            apiCall = { pdfiumCore.mapRectToPage(document, 0, 0, 0, 0, 0, 0, mockk<KtImmutableRect>()) }
 
             verifyHappy {
                 assertThat(it).isEqualTo(expected)
@@ -485,7 +486,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
             }
 
             verifyDefault {
-                assertThat(it).isEqualTo(PdfRectF(-1f, -1f, -1f, -1f))
+                assertThat(it).isEqualTo(KtImmutableRectF(-1f, -1f, -1f, -1f))
                 verify { document.openPage(any()) }
             }
         }
@@ -543,7 +544,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun mapPageCoordsToDevice() =
         nullableTest {
-            val expected = mockk<PdfPoint>()
+            val expected = mockk<KtImmutablePoint>()
             setup {
                 every {
                     page.mapPageCoordsToDevice(
@@ -571,7 +572,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
             }
 
             verifyDefault {
-                assertThat(it).isEqualTo(PdfPoint(-1, -1))
+                assertThat(it).isEqualTo(KtImmutablePoint(-1, -1))
                 verify { document.openPage(any()) }
             }
         }
@@ -579,14 +580,14 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @Test
     fun mapRectToDevice() =
         nullableTest {
-            val expected = mockk<PdfRect>()
+            val expected = mockk<KtImmutableRect>()
             setup {
                 every { page.mapRectToDevice(any(), any(), any(), any(), any(), any()) } returns expected
                 every { page.close() } just runs
             }
 
             apiCall = {
-                pdfiumCore.mapRectToDevice(document, 0, 0, 0, 0, 0, 0, mockk())
+                pdfiumCore.mapRectToDevice(document, 0, 0, 0, 0, 0, 0, mockk<FloatRectValues>())
             }
 
             verifyHappy {
@@ -597,7 +598,7 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
             }
 
             verifyDefault {
-                assertThat(it).isEqualTo(PdfRect(-1, -1, -1, -1))
+                assertThat(it).isEqualTo(KtImmutableRect(-1, -1, -1, -1))
                 verify { document.openPage(any()) }
             }
         }

@@ -23,20 +23,20 @@ package io.legere.pdfiumandroid.core.util
 
 import android.graphics.Matrix
 import android.graphics.RectF
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
-import io.legere.pdfiumandroid.api.types.PERSP_0
-import io.legere.pdfiumandroid.api.types.PERSP_1
-import io.legere.pdfiumandroid.api.types.PERSP_2
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
-import io.legere.pdfiumandroid.api.types.SCALE_X
-import io.legere.pdfiumandroid.api.types.SCALE_Y
-import io.legere.pdfiumandroid.api.types.SKEW_X
-import io.legere.pdfiumandroid.api.types.SKEW_Y
-import io.legere.pdfiumandroid.api.types.THREE_BY_THREE
-import io.legere.pdfiumandroid.api.types.TRANS_X
-import io.legere.pdfiumandroid.api.types.TRANS_Y
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutableRectF
+import io.legere.geokt.MatrixValues
+import io.legere.geokt.PERSP_0
+import io.legere.geokt.PERSP_1
+import io.legere.geokt.PERSP_2
+import io.legere.geokt.SCALE_X
+import io.legere.geokt.SCALE_Y
+import io.legere.geokt.SKEW_X
+import io.legere.geokt.SKEW_Y
+import io.legere.geokt.THREE_BY_THREE
+import io.legere.geokt.TRANS_X
+import io.legere.geokt.TRANS_Y
 import io.legere.pdfiumandroid.api.types.toDoubleArray
 import io.legere.pdfiumandroid.api.types.toFloatArray
 
@@ -58,7 +58,7 @@ fun matrixToFloatArray(matrix: Matrix): FloatArray {
 }
 
 /**
- * Returns the first 6 values of the PdfMatrix in the order:
+ * Returns the first 6 values of the KtImmutableMatrix in the order:
  * [MSCALE_X, MSKEW_X, MTRANS_X, MSKEW_Y, MSCALE_Y, MTRANS_Y]
  */
 fun matrixToFloatArray(matrix: MatrixValues): FloatArray {
@@ -92,7 +92,7 @@ fun floatArrayToMatrix(matrixValues: FloatArray): Matrix {
     return matrix
 }
 
-fun floatArrayToPdfMatrix(matrixValues: FloatArray): PdfMatrix {
+fun floatArrayToPdfMatrix(matrixValues: FloatArray): KtImmutableMatrix {
     val values = DoubleArray(THREE_BY_THREE)
     // input is [MSCALE_X, MSKEW_X, MTRANS_X, MSKEW_Y, MSCALE_Y, MTRANS_Y]
     var i = 0
@@ -105,7 +105,7 @@ fun floatArrayToPdfMatrix(matrixValues: FloatArray): PdfMatrix {
     values[PERSP_0] = 0.0
     values[PERSP_1] = 0.0
     values[PERSP_2] = 1.0
-    return PdfMatrix(values)
+    return KtImmutableMatrix(values)
 }
 
 fun matricesToFloatArray(matrices: Collection<Matrix>): FloatArray =
@@ -141,9 +141,9 @@ fun floatArrayToRect(rectValues: FloatArray): RectF {
     )
 }
 
-fun floatArrayToPdfRect(rectValues: FloatArray): PdfRectF {
+fun floatArrayToPdfRect(rectValues: FloatArray): KtImmutableRectF {
     var i = 0
-    return PdfRectF(
+    return KtImmutableRectF(
         rectValues[i++],
         rectValues[i++],
         rectValues[i++],
@@ -164,18 +164,18 @@ fun rectsToFloatArray(rects: Collection<FloatRectValues>): FloatArray =
             rectToFloatArray(rect).asIterable()
         }.toFloatArray()
 
-fun Matrix.toPdfMatrix(): PdfMatrix {
+fun Matrix.toPdfMatrix(): KtImmutableMatrix {
     val values = FloatArray(THREE_BY_THREE)
     this.getValues(values)
-    return PdfMatrix(values.toDoubleArray())
+    return KtImmutableMatrix(values.toDoubleArray())
 }
 
-fun PdfMatrix.toMatrix(): Matrix {
+fun KtImmutableMatrix.toMatrix(): Matrix {
     val matrix = Matrix()
     matrix.setValues(this.values.toFloatArray())
     return matrix
 }
 
-fun RectF.toPdfRectF(): PdfRectF = PdfRectF(left, top, right, bottom)
+fun RectF.toPdfRectF(): KtImmutableRectF = KtImmutableRectF(left, top, right, bottom)
 
-fun PdfRectF.toRectF(): RectF = RectF(left, top, right, bottom)
+fun KtImmutableRectF.toRectF(): RectF = RectF(left, top, right, bottom)

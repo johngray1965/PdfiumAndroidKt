@@ -128,6 +128,7 @@ configure<LibraryExtension> {
 dependencies {
 //    dokkaPlugin(libs.android.documentation.plugin)
     implementation(libs.guava)
+    api(libs.geokt)
     testImplementation(libs.junit)
     testImplementation(libs.espresso.core)
     testImplementation(libs.kotlinx.coroutines.test)

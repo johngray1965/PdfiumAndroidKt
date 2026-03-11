@@ -17,8 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.suspend.PdfPageKtCache
 import io.legere.pdfiumandroidkt.PdfHolder
 import timber.log.Timber
@@ -96,7 +96,7 @@ suspend fun drawPdf(
         matrix.postScale(scaleFactor, scaleFactor)
         matrix.postTranslate(startX.toFloat(), startY.toFloat())
         val clipRect =
-            PdfRectF(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat())
+            KtImmutableRectF(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat())
         pageHolder.page.renderPage(
             surface = surface,
             matrix.toPdfMatrix(),
@@ -108,8 +108,8 @@ suspend fun drawPdf(
 }
 
 @Suppress("MagicNumber")
-private fun Matrix.toPdfMatrix(): PdfMatrix {
+private fun Matrix.toPdfMatrix(): KtImmutableMatrix {
     val values = FloatArray(9)
     this.getValues(values)
-    return PdfMatrix(values.map { it.toDouble() }.toDoubleArray())
+    return KtImmutableMatrix(values.map { it.toDouble() }.toDoubleArray())
 }

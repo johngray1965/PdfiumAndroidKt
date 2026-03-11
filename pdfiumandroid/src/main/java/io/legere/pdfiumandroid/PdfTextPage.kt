@@ -21,8 +21,8 @@
 
 package io.legere.pdfiumandroid
 
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -114,10 +114,10 @@ class PdfTextPage internal constructor(
     /**
      * Get the bounding box of a character on the page.
      * @param index the index of the character to get
-     * @return the bounding box as a [PdfRectF], or `null` if an error occurs
+     * @return the bounding box as a [KtImmutableRectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
-    fun textPageGetCharBox(index: Int): PdfRectF? =
+    fun textPageGetCharBox(index: Int): KtImmutableRectF? =
         wrapLock {
             textPage.textPageGetCharBox(index)
         }
@@ -159,10 +159,10 @@ class PdfTextPage internal constructor(
     /**
      * Get the bounding box of a text rectangle on the page.
      * @param rectIndex the 0-based index of the rectangle to get
-     * @return the bounding box as a [PdfRectF], or `null` if an error occurs
+     * @return the bounding box as a [KtImmutableRectF], or `null` if an error occurs
      * @throws IllegalStateException if the page or document is closed
      */
-    fun textPageGetRect(rectIndex: Int): PdfRectF? =
+    fun textPageGetRect(rectIndex: Int): KtImmutableRectF? =
         wrapLock {
             textPage.textPageGetRect(rectIndex)
         }
@@ -171,7 +171,7 @@ class PdfTextPage internal constructor(
         textPagePtr: Long,
         offset: Int,
         limit: Int,
-    ): List<PdfRectF>? =
+    ): List<KtImmutableRectF>? =
         wrapLock {
             textPage.textPageGetRects(textPagePtr, offset, limit)
         }

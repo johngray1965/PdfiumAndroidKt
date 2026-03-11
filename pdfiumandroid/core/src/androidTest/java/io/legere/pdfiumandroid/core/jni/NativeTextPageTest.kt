@@ -22,8 +22,8 @@ package io.legere.pdfiumandroid.core.jni
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.WordRangeRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
@@ -129,7 +129,7 @@ class NativeTextPageTest : BasePDFTest() {
                             data?.let {
                                 val wordRangeRects = mutableListOf<WordRangeRect>()
                                 for (i in data.indices step 6) {
-                                    val r = PdfRectF(data[i + 0], data[i + 1], data[i + 2], data[i + 3])
+                                    val r = KtImmutableRectF(data[i + 0], data[i + 1], data[i + 2], data[i + 3])
                                     val rangeStart = data[i + 4].toInt()
                                     val rangeLength = data[i + 5].toInt()
                                     WordRangeRect(rangeStart, rangeLength, r).let {
@@ -154,7 +154,7 @@ class NativeTextPageTest : BasePDFTest() {
         val time =
             measureTime {
                 repeat(iterations) {
-                    val result = mutableListOf<PdfRectF>()
+                    val result = mutableListOf<KtImmutableRectF>()
                     var chunk = 0
                     val chunkSize = 256
                     var fetchSize: Int
@@ -165,7 +165,7 @@ class NativeTextPageTest : BasePDFTest() {
                         data?.let {
                             println("data: ${data.size}")
                             for (i in data.indices step 4) {
-                                val r = PdfRectF(data[i + 0], data[i + 1], data[i + 2], data[i + 3])
+                                val r = KtImmutableRectF(data[i + 0], data[i + 1], data[i + 2], data[i + 3])
                                 result.add(r)
                             }
                         }

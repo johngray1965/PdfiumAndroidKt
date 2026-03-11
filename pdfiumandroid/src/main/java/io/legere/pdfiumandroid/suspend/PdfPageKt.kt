@@ -24,20 +24,20 @@ package io.legere.pdfiumandroid.suspend
 import android.graphics.Bitmap
 import android.view.Surface
 import androidx.annotation.Keep
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.IntRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.IntRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfPointF
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -108,7 +108,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageMatrix]
      */
-    suspend fun getPageMatrix(): PdfMatrix? =
+    suspend fun getPageMatrix(): KtImmutableMatrix? =
         wrapSuspend(dispatcher) {
             page.getPageMatrix()
         }
@@ -125,7 +125,7 @@ class PdfPageKt internal constructor(
      * suspend version of [PdfPage.getPageCropBox]
      */
     @Suppress("LongParameterList")
-    suspend fun getPageCropBox(): PdfRectF =
+    suspend fun getPageCropBox(): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.getPageCropBox()
         }
@@ -133,7 +133,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageMediaBox]
      */
-    suspend fun getPageMediaBox(): PdfRectF =
+    suspend fun getPageMediaBox(): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.getPageMediaBox()
         }
@@ -141,7 +141,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageBleedBox]
      */
-    suspend fun getPageBleedBox(): PdfRectF =
+    suspend fun getPageBleedBox(): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.getPageBleedBox()
         }
@@ -149,7 +149,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageTrimBox]
      */
-    suspend fun getPageTrimBox(): PdfRectF =
+    suspend fun getPageTrimBox(): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.getPageTrimBox()
         }
@@ -157,7 +157,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageArtBox]
      */
-    suspend fun getPageArtBox(): PdfRectF =
+    suspend fun getPageArtBox(): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.getPageArtBox()
         }
@@ -165,7 +165,7 @@ class PdfPageKt internal constructor(
     /**
      * suspend version of [PdfPage.getPageBoundingBox]
      */
-    suspend fun getPageBoundingBox(): PdfRectF =
+    suspend fun getPageBoundingBox(): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.getPageBoundingBox()
         }
@@ -360,7 +360,7 @@ class PdfPageKt internal constructor(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): PdfPoint =
+    ): KtImmutablePoint =
         wrapSuspend(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
@@ -377,7 +377,7 @@ class PdfPageKt internal constructor(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): PdfPointF =
+    ): KtImmutablePointF =
         wrapSuspend(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
@@ -393,7 +393,7 @@ class PdfPageKt internal constructor(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): PdfRect =
+    ): KtImmutableRect =
         wrapSuspend(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
@@ -409,7 +409,7 @@ class PdfPageKt internal constructor(
         sizeY: Int,
         rotate: Int,
         coords: IntRectValues,
-    ): PdfRectF =
+    ): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }

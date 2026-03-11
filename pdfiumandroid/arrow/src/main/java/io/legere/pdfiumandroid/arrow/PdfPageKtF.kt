@@ -26,20 +26,20 @@ import android.view.Surface
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.IntRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.IntRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfPointF
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -104,7 +104,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageMatrix]
      */
-    suspend fun getPageMatrix(): Either<PdfiumKtFErrors, PdfMatrix> =
+    suspend fun getPageMatrix(): Either<PdfiumKtFErrors, KtImmutableMatrix> =
         wrapEither(dispatcher) {
             page.getPageMatrix() ?: error("Page matrix is null")
         }
@@ -129,7 +129,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageCropBox]
      */
-    suspend fun getPageCropBox(): Either<PdfiumKtFErrors, PdfRectF> =
+    suspend fun getPageCropBox(): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.getPageCropBox()
         }
@@ -137,7 +137,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageMediaBox]
      */
-    suspend fun getPageMediaBox(): Either<PdfiumKtFErrors, PdfRectF> =
+    suspend fun getPageMediaBox(): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.getPageMediaBox()
         }
@@ -145,7 +145,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageBleedBox]
      */
-    suspend fun getPageBleedBox(): Either<PdfiumKtFErrors, PdfRectF> =
+    suspend fun getPageBleedBox(): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.getPageBleedBox()
         }
@@ -153,7 +153,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageTrimBox]
      */
-    suspend fun getPageTrimBox(): Either<PdfiumKtFErrors, PdfRectF> =
+    suspend fun getPageTrimBox(): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.getPageTrimBox()
         }
@@ -161,7 +161,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageArtBox]
      */
-    suspend fun getPageArtBox(): Either<PdfiumKtFErrors, PdfRectF> =
+    suspend fun getPageArtBox(): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.getPageArtBox()
         }
@@ -169,7 +169,7 @@ class PdfPageKtF internal constructor(
     /**
      * suspend version of [PdfPage.getPageBoundingBox]
      */
-    suspend fun getPageBoundingBox(): Either<PdfiumKtFErrors, PdfRectF> =
+    suspend fun getPageBoundingBox(): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.getPageBoundingBox()
         }
@@ -317,7 +317,7 @@ class PdfPageKtF internal constructor(
     @Suppress("LongParameterList")
     suspend fun renderPageBitmap(
         bitmap: Bitmap?,
-        matrix: PdfMatrix,
+        matrix: KtImmutableMatrix,
         clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
@@ -349,7 +349,7 @@ class PdfPageKtF internal constructor(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): Either<PdfiumKtFErrors, PdfPoint> =
+    ): Either<PdfiumKtFErrors, KtImmutablePoint> =
         wrapEither(dispatcher) {
             page.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY)
         }
@@ -366,7 +366,7 @@ class PdfPageKtF internal constructor(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): Either<PdfiumKtFErrors, PdfPointF> =
+    ): Either<PdfiumKtFErrors, KtImmutablePointF> =
         wrapEither(dispatcher) {
             page.mapDeviceCoordsToPage(startX, startY, sizeX, sizeY, rotate, deviceX, deviceY)
         }
@@ -382,7 +382,7 @@ class PdfPageKtF internal constructor(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): Either<PdfiumKtFErrors, PdfRect> =
+    ): Either<PdfiumKtFErrors, KtImmutableRect> =
         wrapEither(dispatcher) {
             page.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords)
         }
@@ -398,7 +398,7 @@ class PdfPageKtF internal constructor(
         sizeY: Int,
         rotate: Int,
         coords: IntRectValues,
-    ): Either<PdfiumKtFErrors, PdfRectF> =
+    ): Either<PdfiumKtFErrors, KtImmutableRectF> =
         wrapEither(dispatcher) {
             page.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords)
         }

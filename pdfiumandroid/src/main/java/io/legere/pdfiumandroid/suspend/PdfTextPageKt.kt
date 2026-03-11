@@ -22,11 +22,11 @@
 package io.legere.pdfiumandroid.suspend
 
 import androidx.annotation.Keep
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.WordRangeRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -81,7 +81,7 @@ class PdfTextPageKt internal constructor(
     /**
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
-    suspend fun textPageGetCharBox(index: Int): PdfRectF? =
+    suspend fun textPageGetCharBox(index: Int): KtImmutableRectF? =
         wrapSuspend(dispatcher) {
             page.textPageGetCharBox(index)
         }
@@ -113,7 +113,7 @@ class PdfTextPageKt internal constructor(
     /**
      * suspend version of [PdfTextPage.textPageGetRect]
      */
-    suspend fun textPageGetRect(rectIndex: Int): PdfRectF? =
+    suspend fun textPageGetRect(rectIndex: Int): KtImmutableRectF? =
         wrapSuspend(dispatcher) {
             page.textPageGetRect(rectIndex)
         }
@@ -122,7 +122,7 @@ class PdfTextPageKt internal constructor(
         textPagePtr: Long,
         offset: Int,
         limit: Int,
-    ): List<PdfRectF>? =
+    ): List<KtImmutableRectF>? =
         wrapSuspend(dispatcher) {
             page.textPageGetRects(textPagePtr, offset, limit)
         }
@@ -139,7 +139,7 @@ class PdfTextPageKt internal constructor(
      * suspend version of [PdfTextPage.textPageGetBoundedText]
      */
     suspend fun textPageGetBoundedText(
-        rect: PdfRectF,
+        rect: KtImmutableRectF,
         length: Int,
     ): String? =
         wrapSuspend(dispatcher) {

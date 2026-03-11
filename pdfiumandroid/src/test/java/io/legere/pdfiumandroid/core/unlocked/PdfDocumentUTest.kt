@@ -20,13 +20,13 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.api.Config
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.api.pdfiumConfig
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeDocument
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativeTextPage
@@ -190,7 +190,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                     every { isClosed } returns false
                     every { pagePtr } returns 1L
                 }
-            val matrix = PdfMatrix()
+            val matrix = KtImmutableMatrix()
 //            matrix.setScale(2f, 2f)
             matrix.postTranslate(10f, 10f)
             setupHappy {
@@ -210,7 +210,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                 } just runs
             }
             apiCall = {
-                pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(matrix), listOf(PdfRectF.EMPTY))
+                pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(matrix), listOf(KtImmutableRectF.EMPTY))
             }
 
             verifyHappy {
@@ -257,7 +257,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
     @Test
     fun `renderPages  buffer  clip rect flattening`() =
         closableTest {
-            val clipRect = PdfRectF(1f, 2f, 3f, 4f)
+            val clipRect = KtImmutableRectF(1f, 2f, 3f, 4f)
             val clipSlot = slot<FloatArray>()
             val page =
                 mockk<PdfPageU> {
@@ -281,7 +281,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                 } just runs
             }
             apiCall = {
-                pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(PdfMatrix()), listOf(clipRect))
+                pdfDocumentU.renderPages(0L, 0, 0, listOf(page), listOf(KtImmutableMatrix()), listOf(clipRect))
             }
 
             verifyHappy {
@@ -336,7 +336,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
                 } returns true
             }
             apiCall = {
-                pdfDocumentU.renderPages(mockk(), listOf(page), listOf(PdfMatrix()), listOf(PdfRectF.EMPTY))
+                pdfDocumentU.renderPages(mockk(), listOf(page), listOf(KtImmutableMatrix()), listOf(KtImmutableRectF.EMPTY))
             }
 
             verifyHappy {

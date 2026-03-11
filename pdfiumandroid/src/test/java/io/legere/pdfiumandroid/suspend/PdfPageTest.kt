@@ -22,15 +22,15 @@ package io.legere.pdfiumandroid.suspend
 import android.graphics.Bitmap
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.PdfPage
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfPointF
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
@@ -143,7 +143,7 @@ class PdfPageTest {
     @Test
     fun getPageMatrix() =
         runTest {
-            val expected = PdfMatrix()
+            val expected = KtImmutableMatrix()
             every { pdfPageU.getPageMatrix() } returns expected
             assertThat(pdfPage.getPageMatrix()).isEqualTo(expected)
             verify { pdfPageU.getPageMatrix() }
@@ -160,7 +160,7 @@ class PdfPageTest {
     @Test
     fun getPageCropBox() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 100f, 100f)
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
             every { pdfPageU.getPageCropBox() } returns rect
             assertThat(pdfPage.getPageCropBox()).isEqualTo(rect)
             verify { pdfPageU.getPageCropBox() }
@@ -169,7 +169,7 @@ class PdfPageTest {
     @Test
     fun getPageMediaBox() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 100f, 100f)
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
             every { pdfPageU.getPageMediaBox() } returns rect
             assertThat(pdfPage.getPageMediaBox()).isEqualTo(rect)
             verify { pdfPageU.getPageMediaBox() }
@@ -178,7 +178,7 @@ class PdfPageTest {
     @Test
     fun getPageBleedBox() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 100f, 100f)
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
             every { pdfPageU.getPageBleedBox() } returns rect
             assertThat(pdfPage.getPageBleedBox()).isEqualTo(rect)
             verify { pdfPageU.getPageBleedBox() }
@@ -187,7 +187,7 @@ class PdfPageTest {
     @Test
     fun getPageTrimBox() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 100f, 100f)
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
             every { pdfPageU.getPageTrimBox() } returns rect
             assertThat(pdfPage.getPageTrimBox()).isEqualTo(rect)
             verify { pdfPageU.getPageTrimBox() }
@@ -196,7 +196,7 @@ class PdfPageTest {
     @Test
     fun getPageArtBox() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 100f, 100f)
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
             every { pdfPageU.getPageArtBox() } returns rect
             assertThat(pdfPage.getPageArtBox()).isEqualTo(rect)
             verify { pdfPageU.getPageArtBox() }
@@ -205,7 +205,7 @@ class PdfPageTest {
     @Test
     fun getPageBoundingBox() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 100f, 100f)
+            val rect = KtImmutableRectF(0f, 0f, 100f, 100f)
             every { pdfPageU.getPageBoundingBox() } returns rect
             assertThat(pdfPage.getPageBoundingBox()).isEqualTo(rect)
             verify { pdfPageU.getPageBoundingBox() }
@@ -393,9 +393,9 @@ class PdfPageTest {
         runTest {
             // Variant with Surface and Matrix
             val surface = mockk<Surface>()
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
-            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 1
@@ -406,7 +406,7 @@ class PdfPageTest {
             every { pdfPageU.unlockSurface(any()) } just runs
 
             assertThat(pdfPage.renderPage(surface, matrix, clip)).isTrue()
-            verify { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) }
+            verify { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) }
             verify { pdfPageU.lockSurface(surface, any(), any()) }
             verify { pdfPageU.unlockSurface(any()) }
         }
@@ -416,9 +416,9 @@ class PdfPageTest {
         runTest {
             // Variant with Surface and Matrix
             val surface = mockk<Surface>()
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
-            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 0
@@ -437,9 +437,9 @@ class PdfPageTest {
         runTest {
             // Variant with Surface and Matrix
             val surface = mockk<Surface>()
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
-            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = -1
@@ -458,9 +458,9 @@ class PdfPageTest {
         runTest {
             // Variant with Surface and Matrix
             val surface = mockk<Surface>()
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
-            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 1
@@ -479,9 +479,9 @@ class PdfPageTest {
         runTest {
             // Variant with Surface and Matrix
             val surface = mockk<Surface>()
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
-            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) } returns true
             every { pdfPageU.lockSurface(surface, any(), any()) } answers {
                 thirdArg<LongArray>().let {
                     it[0] = 1
@@ -500,9 +500,9 @@ class PdfPageTest {
         runTest {
             // Variant with Surface and Matrix
             val surface = null
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
-            every { pdfPageU.renderPage(any(), any(), any(), any<PdfMatrix>(), any(), any(), any(), any()) } returns true
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
+            every { pdfPageU.renderPage(any(), any(), any(), any<KtImmutableMatrix>(), any(), any(), any(), any()) } returns true
             every { pdfPageU.unlockSurface(any()) } just runs
 
             assertThat(pdfPage.renderPage(surface, matrix, clip)).isFalse()
@@ -523,8 +523,8 @@ class PdfPageTest {
         runTest {
             // Variant with Matrix
             val bitmap = mockk<Bitmap>()
-            val matrix = PdfMatrix()
-            val clip = PdfRectF.EMPTY
+            val matrix = KtImmutableMatrix()
+            val clip = KtImmutableRectF.EMPTY
             every { pdfPageU.renderPageBitmap(bitmap, matrix, clip) } just runs
 
             pdfPage.renderPageBitmap(bitmap, matrix, clip)
@@ -544,7 +544,7 @@ class PdfPageTest {
     @Test
     fun mapPageCoordsToDevice() =
         runTest {
-            val point = PdfPoint(10, 20)
+            val point = KtImmutablePoint(10, 20)
             every { pdfPageU.mapPageCoordsToDevice(0, 0, 100, 100, 0, 5.0, 5.0) } returns point
 
             assertThat(pdfPage.mapPageCoordsToDevice(0, 0, 100, 100, 0, 5.0, 5.0)).isEqualTo(point)
@@ -554,7 +554,7 @@ class PdfPageTest {
     @Test
     fun mapDeviceCoordsToPage() =
         runTest {
-            val point = PdfPointF(5.0f, 5.0f)
+            val point = KtImmutablePointF(5.0f, 5.0f)
             every { pdfPageU.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 10, 20) } returns point
 
             assertThat(pdfPage.mapDeviceCoordsToPage(0, 0, 100, 100, 0, 10, 20)).isEqualTo(point)
@@ -564,8 +564,8 @@ class PdfPageTest {
     @Test
     fun mapRectToDevice() =
         runTest {
-            val rect = PdfRect(10, 20, 30, 40)
-            val src = PdfRectF(0f, 0f, 10f, 10f)
+            val rect = KtImmutableRect(10, 20, 30, 40)
+            val src = KtImmutableRectF(0f, 0f, 10f, 10f)
             every { pdfPageU.mapRectToDevice(0, 0, 100, 100, 0, src) } returns rect
 
             assertThat(pdfPage.mapRectToDevice(0, 0, 100, 100, 0, src)).isEqualTo(rect)
@@ -575,8 +575,8 @@ class PdfPageTest {
     @Test
     fun mapRectToPage() =
         runTest {
-            val rect = PdfRectF(0f, 0f, 10f, 10f)
-            val src = PdfRect(10, 20, 30, 40)
+            val rect = KtImmutableRectF(0f, 0f, 10f, 10f)
+            val src = KtImmutableRect(10, 20, 30, 40)
             every { pdfPageU.mapRectToPage(0, 0, 100, 100, 0, src) } returns rect
 
             assertThat(pdfPage.mapRectToPage(0, 0, 100, 100, 0, src)).isEqualTo(rect)

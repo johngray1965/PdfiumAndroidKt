@@ -20,8 +20,8 @@
 package io.legere.pdfiumandroid.api
 
 import androidx.annotation.Keep
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutableRectF
 
 /**
  * PageAttributes contains various attributes of a PDF page.
@@ -32,15 +32,15 @@ data class PageAttributes(
     val pageWidth: Int,
     val pageHeight: Int,
     val pageRotation: Int,
-    val rect: PdfRectF,
-    val mediaBox: PdfRectF,
-    val cropBox: PdfRectF,
-    val bleedBox: PdfRectF,
-    val trimBox: PdfRectF,
-    val artBox: PdfRectF,
-    val boundingBox: PdfRectF,
+    val rect: KtImmutableRectF,
+    val mediaBox: KtImmutableRectF,
+    val cropBox: KtImmutableRectF,
+    val bleedBox: KtImmutableRectF,
+    val trimBox: KtImmutableRectF,
+    val artBox: KtImmutableRectF,
+    val boundingBox: KtImmutableRectF,
     val links: List<Link>,
-    val pageMatrix: PdfMatrix,
+    val pageMatrix: KtImmutableMatrix,
 ) {
     companion object {
         /**
@@ -52,15 +52,15 @@ data class PageAttributes(
                 pageWidth = 0,
                 pageHeight = 0,
                 pageRotation = 0,
-                rect = PdfRectF(0f, 0f, 0f, 0f),
-                mediaBox = PdfRectF(0f, 0f, 0f, 0f),
-                cropBox = PdfRectF(0f, 0f, 0f, 0f),
-                bleedBox = PdfRectF(0f, 0f, 0f, 0f),
-                trimBox = PdfRectF(0f, 0f, 0f, 0f),
-                artBox = PdfRectF(0f, 0f, 0f, 0f),
-                boundingBox = PdfRectF(0f, 0f, 0f, 0f),
+                rect = KtImmutableRectF(0f, 0f, 0f, 0f),
+                mediaBox = KtImmutableRectF(0f, 0f, 0f, 0f),
+                cropBox = KtImmutableRectF(0f, 0f, 0f, 0f),
+                bleedBox = KtImmutableRectF(0f, 0f, 0f, 0f),
+                trimBox = KtImmutableRectF(0f, 0f, 0f, 0f),
+                artBox = KtImmutableRectF(0f, 0f, 0f, 0f),
+                boundingBox = KtImmutableRectF(0f, 0f, 0f, 0f),
                 links = emptyList(),
-                pageMatrix = PdfMatrix(),
+                pageMatrix = KtImmutableMatrix(),
             )
     }
 }

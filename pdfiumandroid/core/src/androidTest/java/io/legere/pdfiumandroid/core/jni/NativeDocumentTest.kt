@@ -24,9 +24,9 @@ import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableMatrix
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.PdfWriteCallback
-import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.unlocked.PdfiumCoreU
@@ -183,7 +183,7 @@ class NativeDocumentTest : BasePDFTest() {
         surfaceTexture.setDefaultBufferSize(100, 100)
         val surface = Surface(surfaceTexture)
 
-        val matrix = PdfMatrix()
+        val matrix = KtImmutableMatrix()
         matrix.postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
@@ -212,7 +212,7 @@ class NativeDocumentTest : BasePDFTest() {
         surfaceTexture.setDefaultBufferSize(100, 100)
         val surface = Surface(surfaceTexture)
 
-        val matrix = PdfMatrix()
+        val matrix = KtImmutableMatrix()
         matrix.postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 

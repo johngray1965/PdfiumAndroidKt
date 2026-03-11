@@ -19,7 +19,7 @@
 
 package io.legere.pdfiumandroid.api
 
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableRectF
 
 /**
  * Represents a link (e.g., internal page link or URI link) found on a PDF page.
@@ -30,7 +30,7 @@ import io.legere.pdfiumandroid.api.types.PdfRectF
  * @property uri The URI string if this is a web link, or `null` if it's an internal page link.
  */
 class Link(
-    val bounds: PdfRectF,
+    val bounds: KtImmutableRectF,
     val destPageIdx: Int?,
     val uri: String?,
 )

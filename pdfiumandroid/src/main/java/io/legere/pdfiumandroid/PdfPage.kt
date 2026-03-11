@@ -24,17 +24,17 @@ package io.legere.pdfiumandroid
 import android.graphics.Bitmap
 import android.view.Surface
 import androidx.annotation.ColorInt
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.IntRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.IntRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfPointF
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -109,7 +109,7 @@ class PdfPage internal constructor(
         }
 
     @Suppress("LongParameterList", "MagicNumber")
-    fun getPageMatrix(): PdfMatrix? =
+    fun getPageMatrix(): KtImmutableMatrix? =
         wrapLock {
             page.getPageMatrix()
         }
@@ -132,60 +132,60 @@ class PdfPage internal constructor(
 
     /**
      *  Get the page's crop box in PostScript points (1/72th of an inch)
-     *  @return page crop box in points or PdfRectF(-1, -1, -1, -1) if not present
+     *  @return page crop box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageCropBox(): PdfRectF =
+    fun getPageCropBox(): KtImmutableRectF =
         wrapLock {
             page.getPageCropBox()
         }
 
     /**
      *  Get the page's media box in PostScript points (1/72th of an inch)
-     *  @return page media box in points or PdfRectF(-1, -1, -1, -1) if not present
+     *  @return page media box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageMediaBox(): PdfRectF =
+    fun getPageMediaBox(): KtImmutableRectF =
         wrapLock {
             page.getPageMediaBox()
         }
 
     /**
      *  Get the page's bleed box in PostScript points (1/72th of an inch)
-     *  @return page bleed box in pointsor PdfRectF(-1, -1, -1, -1) if not present
+     *  @return page bleed box in pointsor KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBleedBox(): PdfRectF =
+    fun getPageBleedBox(): KtImmutableRectF =
         wrapLock {
             page.getPageBleedBox()
         }
 
     /**
      *  Get the page's trim box in PostScript points (1/72th of an inch)
-     *  @return page trim box in points or PdfRectF(-1, -1, -1, -1) if not present
+     *  @return page trim box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageTrimBox(): PdfRectF =
+    fun getPageTrimBox(): KtImmutableRectF =
         wrapLock {
             page.getPageTrimBox()
         }
 
     /**
      *  Get the page's art box in PostScript points (1/72th of an inch)
-     *  @return page art box in points or PdfRectF(-1, -1, -1, -1) if not present
+     *  @return page art box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageArtBox(): PdfRectF =
+    fun getPageArtBox(): KtImmutableRectF =
         wrapLock {
             page.getPageArtBox()
         }
 
     /**
      *  Get the page's bounding box in PostScript points (1/72th of an inch)
-     *  @return page bounding box in points or PdfRectF(-1, -1, -1, -1) if not present
+     *  @return page bounding box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBoundingBox(): PdfRectF =
+    fun getPageBoundingBox(): KtImmutableRectF =
         wrapLock {
             page.getPageBoundingBox()
         }
@@ -280,7 +280,7 @@ class PdfPage internal constructor(
     @Suppress("LongParameterList")
     fun renderPage(
         surface: Surface,
-        matrix: PdfMatrix,
+        matrix: KtImmutableMatrix,
         clipRect: FloatRectValues,
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
@@ -412,7 +412,7 @@ class PdfPage internal constructor(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): PdfPoint =
+    ): KtImmutablePoint =
         wrapLock {
             page.mapPageCoordsToDevice(
                 startX,
@@ -448,7 +448,7 @@ class PdfPage internal constructor(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): PdfPointF =
+    ): KtImmutablePointF =
         wrapLock {
             page.mapDeviceCoordsToPage(
                 startX,
@@ -484,7 +484,7 @@ class PdfPage internal constructor(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): PdfRect =
+    ): KtImmutableRect =
         wrapLock {
             page.mapRectToDevice(
                 startX,
@@ -516,7 +516,7 @@ class PdfPage internal constructor(
         sizeY: Int,
         rotate: Int,
         coords: IntRectValues,
-    ): PdfRectF =
+    ): KtImmutableRectF =
         wrapLock {
             page.mapRectToPage(
                 startX,

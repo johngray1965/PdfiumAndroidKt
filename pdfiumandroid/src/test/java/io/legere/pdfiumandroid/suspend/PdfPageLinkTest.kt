@@ -20,7 +20,7 @@
 package io.legere.pdfiumandroid.suspend
 
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import io.legere.pdfiumandroid.testing.StandardTestDispatcherExtension
 import io.mockk.every
@@ -85,7 +85,7 @@ class PdfPageLinkTest {
     @Test
     fun getRect() =
         runTest {
-            val expected = mockk<PdfRectF>()
+            val expected = mockk<KtImmutableRectF>()
             every { pdfPageLinkU.getRect(any(), any()) } returns expected
             val result = pdfPageLink.getRect(0, 1)
             assertThat(result).isEqualTo(expected)

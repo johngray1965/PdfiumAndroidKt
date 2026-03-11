@@ -19,8 +19,8 @@
 
 package io.legere.pdfiumandroid.core.unlocked
 
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.Logger
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePageLinkContract
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
@@ -69,9 +69,9 @@ class PdfPageLinkU(
     fun getRect(
         linkIndex: Int,
         rectIndex: Int,
-    ): PdfRectF =
+    ): KtImmutableRectF =
         nativePageLink.getRect(pageLinkPtr, linkIndex, rectIndex).let {
-            PdfRectF(it[0], it[1], it[2], it[3])
+            KtImmutableRectF(it[0], it[1], it[2], it[3])
         }
 
     fun getTextRange(index: Int): Pair<Int, Int> =

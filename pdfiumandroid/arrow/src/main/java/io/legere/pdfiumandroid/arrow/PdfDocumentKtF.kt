@@ -23,13 +23,13 @@ package io.legere.pdfiumandroid.arrow
 
 import android.view.Surface
 import arrow.core.Either
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher

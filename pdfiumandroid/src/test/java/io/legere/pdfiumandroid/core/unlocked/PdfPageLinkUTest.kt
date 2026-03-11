@@ -20,7 +20,7 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePageLink
 import io.mockk.every
@@ -114,7 +114,7 @@ class PdfPageLinkUTest {
     fun getRect() {
         every { mockNativePageLink.getRect(any(), any(), any()) } returns floatArrayOf(10f, 20f, 30f, 40f)
         val result = pdfPageLink.getRect(10, 20)
-        assertThat(result).isEqualTo(PdfRectF(10f, 20f, 30f, 40f))
+        assertThat(result).isEqualTo(KtImmutableRectF(10f, 20f, 30f, 40f))
     }
 
     @Test

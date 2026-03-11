@@ -20,10 +20,10 @@
 package io.legere.pdfiumandroid.core.unlocked
 
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.api.Config
 import io.legere.pdfiumandroid.api.pdfiumConfig
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeDocument
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePage
@@ -192,7 +192,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
             }
 
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(90.0f, 700.0f, 100.0f, 600.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(90.0f, 700.0f, 100.0f, 600.0f))
             }
             verifyDefault {
                 assertThat(it).isNull()
@@ -252,7 +252,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
             }
 
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(90.0f, 700.0f, 100.0f, 600.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(90.0f, 700.0f, 100.0f, 600.0f))
             }
             verifyDefault {
                 assertThat(it).isNull()
@@ -272,7 +272,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
 
             verifyHappy {
                 assertThat(it).hasSize(1)
-                assertThat(it!![0].rect).isEqualTo(PdfRectF(10f, 20f, 30f, 40f))
+                assertThat(it!![0].rect).isEqualTo(KtImmutableRectF(10f, 20f, 30f, 40f))
             }
             verifyDefault {
                 assertThat(it).isNull()
@@ -309,7 +309,7 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
                 }
             }
             apiCall = {
-                pdfTextPage.textPageGetBoundedText(PdfRectF(0f, 0f, 100f, 100f), 10)
+                pdfTextPage.textPageGetBoundedText(KtImmutableRectF(0f, 0f, 100f, 100f), 10)
             }
 
             verifyHappy {
@@ -484,7 +484,7 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
     @Test
     fun `textPageGetCharBox native order correction`() {
         // Verify that textPageGetCharBox returns a correctly populated
-        // PdfRectF (left, top, right, bottom) for a valid character index.
+        // KtImmutableRectF (left, top, right, bottom) for a valid character index.
         every { mockNativeTextPage.textGetCharBox(any(), any()) } returns
             doubleArrayOf(
                 90.314415,
@@ -495,7 +495,7 @@ class PdfTextPageHappyPathTest : PdfTextPageBaseTest() {
 
         val rect = pdfTextPage.textPageGetCharBox(0)
 
-        assertThat(rect).isEqualTo(PdfRectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
+        assertThat(rect).isEqualTo(KtImmutableRectF(90.314415f, 715.3187f, 103.44171f, 699.1206f))
     }
 
     @Test

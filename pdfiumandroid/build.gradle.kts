@@ -82,6 +82,7 @@ dependencies {
 
     api(project(":pdfiumandroid:api"))
     implementation(project(":pdfiumandroid:core"))
+    api(libs.geokt)
     implementation(libs.guava)
 
     testImplementation(libs.junit)

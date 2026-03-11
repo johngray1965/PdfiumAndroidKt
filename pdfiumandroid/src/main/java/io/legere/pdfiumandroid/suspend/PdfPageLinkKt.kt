@@ -19,7 +19,7 @@
 
 package io.legere.pdfiumandroid.suspend
 
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfPageLinkU
 import kotlinx.coroutines.CoroutineDispatcher
 import java.io.Closeable
@@ -86,12 +86,12 @@ class PdfPageLinkKt internal constructor(
      *
      * @param linkIndex The 0-based index of the web link.
      * @param rectIndex The 0-based index of the rectangle within that web link.
-     * @return A [PdfRectF] representing the bounding box of the specified rectangle.
+     * @return A [KtImmutableRectF] representing the bounding box of the specified rectangle.
      */
     suspend fun getRect(
         linkIndex: Int,
         rectIndex: Int,
-    ): PdfRectF =
+    ): KtImmutableRectF =
         wrapSuspend(dispatcher) {
             pageLink.getRect(linkIndex, rectIndex)
         }

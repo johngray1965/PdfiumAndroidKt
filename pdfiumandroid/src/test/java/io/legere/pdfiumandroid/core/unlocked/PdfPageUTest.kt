@@ -22,15 +22,15 @@ package io.legere.pdfiumandroid.core.unlocked
 import android.graphics.Bitmap
 import android.view.Surface
 import com.google.common.truth.Truth.assertThat
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.pdfiumConfig
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfPointF
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeDocument
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePage
@@ -74,7 +74,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
     override fun shouldReturnDefault() = getBehavior() == AlreadyClosedBehavior.IGNORE && isStateClosed()
 
-    val invalidRectF = PdfRectF(-1.0f, -1.0f, -1.0f, -1.0f)
+    val invalidRectF = KtImmutableRectF(-1.0f, -1.0f, -1.0f, -1.0f)
 
     @BeforeEach
     fun setUp() {
@@ -201,7 +201,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
 
             verifyHappy {
                 assertThat(it).isEqualTo(
-                    PdfMatrix(
+                    KtImmutableMatrix(
                         doubleArrayOf(
                             1.0,
                             3.0,
@@ -251,7 +251,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             }
 
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(10.0f, 20.0f, 30.0f, 40.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
@@ -270,7 +270,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
             }
 
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(10.0f, 20.0f, 30.0f, 40.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
@@ -288,7 +288,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfPage.getPageBleedBox()
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(10.0f, 20.0f, 30.0f, 40.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
@@ -306,7 +306,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfPage.getPageTrimBox()
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(10.0f, 20.0f, 30.0f, 40.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
@@ -324,7 +324,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfPage.getPageArtBox()
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(10.0f, 20.0f, 30.0f, 40.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
@@ -342,7 +342,7 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfPage.getPageBoundingBox()
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(10.0f, 20.0f, 30.0f, 40.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(10.0f, 20.0f, 30.0f, 40.0f))
             }
             verifyDefault {
                 assertThat(it).isEqualTo(invalidRectF)
@@ -449,9 +449,9 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     @Test
     fun `renderPage with Matrix to bufferPtr success`() =
         closableTest {
-            val matrix = PdfMatrix()
+            val matrix = KtImmutableMatrix()
             matrix.postTranslate(100f, 100f)
-            val clipRect = PdfRectF(0f, 0f, 100f, 100f)
+            val clipRect = KtImmutableRectF(0f, 0f, 100f, 100f)
 
             setupHappy {
                 every {
@@ -485,9 +485,9 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `renderPage with Matrix to Surface success`() =
         closableTest {
             val surface = mockk<Surface>()
-            val matrix = PdfMatrix()
+            val matrix = KtImmutableMatrix()
             matrix.postTranslate(100f, 100f)
-            val clipRect = PdfRectF(0f, 0f, 100f, 100f)
+            val clipRect = KtImmutableRectF(0f, 0f, 100f, 100f)
 
             setupHappy {
                 every {
@@ -518,9 +518,9 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `renderPageBitmap coordinates success`() =
         closableTest {
             val bitmap = mockk<Bitmap>()
-            val matrix = PdfMatrix()
+            val matrix = KtImmutableMatrix()
             matrix.postTranslate(100f, 100f)
-            val clipRect = PdfRectF(0f, 0f, 100f, 100f)
+            val clipRect = KtImmutableRectF(0f, 0f, 100f, 100f)
 
             setupHappy {
                 every {
@@ -584,9 +584,9 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
     fun `renderPageBitmap null bitmap`() {
         if (isStateClosed()) return
 
-        val matrix = PdfMatrix()
+        val matrix = KtImmutableMatrix()
         matrix.postTranslate(100f, 100f)
-        val clipRect = PdfRectF(0f, 0f, 100f, 100f)
+        val clipRect = KtImmutableRectF(0f, 0f, 100f, 100f)
         every {
             mockNativePage.renderPageBitmapWithMatrix(
                 any(),
@@ -646,10 +646,10 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfPage.mapPageCoordsToDevice(0, 0, 0, 0, 0, 0.0, 0.0)
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfPoint(100, 200))
+                assertThat(it).isEqualTo(KtImmutablePoint(100, 200))
             }
             verifyDefault {
-                assertThat(it).isEqualTo(PdfPoint(0, 0)) // Fixed expectation from -1,-1 to 0,0 based on PdfPageU change
+                assertThat(it).isEqualTo(KtImmutablePoint(0, 0)) // Fixed expectation from -1,-1 to 0,0 based on PdfPageU change
             }
         }
 
@@ -675,10 +675,10 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                 pdfPage.mapDeviceCoordsToPage(0, 0, 0, 0, 0, 0, 0)
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfPointF(100.0f, 200.0f))
+                assertThat(it).isEqualTo(KtImmutablePointF(100.0f, 200.0f))
             }
             verifyDefault {
-                assertThat(it).isEqualTo(PdfPointF(0f, 0f)) // Fixed expectation
+                assertThat(it).isEqualTo(KtImmutablePointF(0f, 0f)) // Fixed expectation
             }
         }
 
@@ -701,13 +701,13 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                     intArrayOf(100, 200)
             }
             apiCall = {
-                pdfPage.mapRectToDevice(0, 0, 0, 0, 0, PdfRectF(100f, 200f, 300f, 400f))
+                pdfPage.mapRectToDevice(0, 0, 0, 0, 0, KtImmutableRectF(100f, 200f, 300f, 400f))
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRect(100, 200, 100, 200))
+                assertThat(it).isEqualTo(KtImmutableRect(100, 200, 100, 200))
             }
             verifyDefault {
-                assertThat(it).isEqualTo(PdfRect(0, 0, 0, 0)) // Fixed expectation
+                assertThat(it).isEqualTo(KtImmutableRect(0, 0, 0, 0)) // Fixed expectation
             }
         }
 
@@ -730,13 +730,13 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                     floatArrayOf(100f, 200f)
             }
             apiCall = {
-                pdfPage.mapRectToPage(0, 0, 0, 0, 0, PdfRect(100, 200, 300, 400))
+                pdfPage.mapRectToPage(0, 0, 0, 0, 0, KtImmutableRect(100, 200, 300, 400))
             }
             verifyHappy {
-                assertThat(it).isEqualTo(PdfRectF(100.0f, 200.0f, 100.0f, 200.0f))
+                assertThat(it).isEqualTo(KtImmutableRectF(100.0f, 200.0f, 100.0f, 200.0f))
             }
             verifyDefault {
-                assertThat(it).isEqualTo(PdfRectF(-1f, -1f, -1f, -1f))
+                assertThat(it).isEqualTo(KtImmutableRectF(-1f, -1f, -1f, -1f))
             }
         }
 
@@ -800,15 +800,15 @@ abstract class PdfPageUBaseTest : ClosableTestContext {
                         1,
                         2,
                         3,
-                        PdfRectF(0.0f, 0.0f, 1.0f, 2.0f),
-                        PdfRectF(4.0f, 5.0f, 6.0f, 7.0f),
-                        PdfRectF(8.0f, 9.0f, 10.0f, 11.0f),
-                        PdfRectF(12.0f, 13.0f, 14.0f, 15.0f),
-                        PdfRectF(16.0f, 17.0f, 18.0f, 19.0f),
-                        PdfRectF(20.0f, 21.0f, 22.0f, 23.0f),
-                        PdfRectF(24.0f, 25.0f, 26.0f, 27.0f),
+                        KtImmutableRectF(0.0f, 0.0f, 1.0f, 2.0f),
+                        KtImmutableRectF(4.0f, 5.0f, 6.0f, 7.0f),
+                        KtImmutableRectF(8.0f, 9.0f, 10.0f, 11.0f),
+                        KtImmutableRectF(12.0f, 13.0f, 14.0f, 15.0f),
+                        KtImmutableRectF(16.0f, 17.0f, 18.0f, 19.0f),
+                        KtImmutableRectF(20.0f, 21.0f, 22.0f, 23.0f),
+                        KtImmutableRectF(24.0f, 25.0f, 26.0f, 27.0f),
                         emptyList(),
-                        PdfMatrix(
+                        KtImmutableMatrix(
                             doubleArrayOf(
                                 2.0,
                                 0.0,

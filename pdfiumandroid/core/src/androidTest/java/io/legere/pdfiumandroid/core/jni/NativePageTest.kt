@@ -25,8 +25,8 @@ import android.view.Surface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.base.BasePDFTest
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.unlocked.PdfPageU
@@ -201,12 +201,12 @@ class NativePageTest : BasePDFTest() {
         assertThat(attribs.pageWidth).isEqualTo(612)
         assertThat(attribs.pageHeight).isEqualTo(792)
         assertThat(attribs.pageRotation).isEqualTo(0)
-        assertThat(attribs.mediaBox).isEqualTo(PdfRectF(0.0f, 0.0f, 612.0f, 792.0f))
+        assertThat(attribs.mediaBox).isEqualTo(KtImmutableRectF(0.0f, 0.0f, 612.0f, 792.0f))
         assertThat(attribs.cropBox).isEqualTo(noResultRect)
         assertThat(attribs.bleedBox).isEqualTo(noResultRect)
         assertThat(attribs.trimBox).isEqualTo(noResultRect)
         assertThat(attribs.artBox).isEqualTo(noResultRect)
-        assertThat(attribs.boundingBox).isEqualTo(PdfRectF(0f, 792f, 612f, 0f))
+        assertThat(attribs.boundingBox).isEqualTo(KtImmutableRectF(0f, 792f, 612f, 0f))
 
         val matrixValues = attribs.pageMatrix.values
 
@@ -245,7 +245,7 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmapWithMatrix() {
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
@@ -265,7 +265,7 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmapWithMatrixWithDefaults() {
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
@@ -283,7 +283,7 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun renderPageBitmapWithMatrixWithAnnotations() {
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
         val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
         nativePage.renderPageBitmapWithMatrix(
@@ -333,7 +333,7 @@ class NativePageTest : BasePDFTest() {
             surfaceTexture.setDefaultBufferSize(100, 100)
             val surface = Surface(surfaceTexture)
 
-            val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+            val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
             val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
             val result =
@@ -365,7 +365,7 @@ class NativePageTest : BasePDFTest() {
         surfaceTexture.setDefaultBufferSize(100, 100)
         val surface = Surface(surfaceTexture)
 
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -458,7 +458,7 @@ class NativePageTest : BasePDFTest() {
 
         assertThat(bufferPtr).isNotEqualTo(0L)
 
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -495,7 +495,7 @@ class NativePageTest : BasePDFTest() {
 
         assertThat(bufferPtr).isNotEqualTo(0L)
 
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =
@@ -532,7 +532,7 @@ class NativePageTest : BasePDFTest() {
 
         assertThat(bufferPtr).isNotEqualTo(0L)
 
-        val matrix = PdfMatrix().postScale(0.5f, 0.5f)
+        val matrix = KtImmutableMatrix().postScale(0.5f, 0.5f)
         val clipRect = floatArrayOf(0f, 0f, 100f, 100f)
 
         val result =

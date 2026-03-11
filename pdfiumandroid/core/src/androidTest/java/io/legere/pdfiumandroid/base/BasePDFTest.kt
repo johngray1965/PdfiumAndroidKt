@@ -22,7 +22,7 @@ package io.legere.pdfiumandroid.base
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
-import io.legere.pdfiumandroid.api.types.PdfRectF
+import io.legere.geokt.KtImmutableRectF
 import org.junit.After
 import java.io.File
 
@@ -32,22 +32,22 @@ open class BasePDFTest {
     // set to false to force unimplemented tests to fail
     val notImplementedAssetValue = false
 
-    val noResultRect = PdfRectF(-1f, -1f, -1f, -1f)
+    val noResultRect = KtImmutableRectF(-1f, -1f, -1f, -1f)
     val noResultFloatArray = floatArrayOf(-1f, -1f, -1f, -1f)
 
-    @After
-    fun dumpCoverage() {
-        try {
-            // Use the target application's cache directory for a reliably writable path.
-            val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
-            val outputPath = targetContext.cacheDir.absolutePath + "/default.profraw"
-
-//            NativeCore().dumpCoverageData(outputPath)
-        } catch (e: Throwable) {
-            // Log a warning if dumping fails, but do not fail the test suite.
-            Log.w(BasePDFTest::class.simpleName, "Failed to dump coverage data", e)
-        }
-    }
+//    @After
+//    fun dumpCoverage() {
+//        try {
+//            // Use the target application's cache directory for a reliably writable path.
+//            val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
+//            val outputPath = targetContext.cacheDir.absolutePath + "/default.profraw"
+//
+// //            NativeCore().dumpCoverageData(outputPath)
+//        } catch (e: Throwable) {
+//            // Log a warning if dumping fails, but do not fail the test suite.
+//            Log.w(BasePDFTest::class.simpleName, "Failed to dump coverage data", e)
+//        }
+//    }
 
     fun getPdfBytes(filename: String): ByteArray? {
         val appContext = InstrumentationRegistry.getInstrumentation().context

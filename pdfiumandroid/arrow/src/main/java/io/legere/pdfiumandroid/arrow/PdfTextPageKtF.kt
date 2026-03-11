@@ -22,10 +22,10 @@
 package io.legere.pdfiumandroid.arrow
 
 import arrow.core.Either
+import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.PdfTextPage
 import io.legere.pdfiumandroid.api.FindFlags
 import io.legere.pdfiumandroid.api.WordRangeRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfTextPageU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -74,7 +74,7 @@ class PdfTextPageKtF internal constructor(
     /**
      * suspend version of [PdfTextPage.textPageGetCharBox]
      */
-    suspend fun textPageGetCharBox(index: Int): Either<PdfiumKtFErrors, PdfRectF?> =
+    suspend fun textPageGetCharBox(index: Int): Either<PdfiumKtFErrors, KtImmutableRectF?> =
         wrapEither(dispatcher) {
             page.textPageGetCharBox(index)
         }
@@ -107,7 +107,7 @@ class PdfTextPageKtF internal constructor(
         textPagePtr: Long,
         offset: Int,
         limit: Int,
-    ): Either<PdfiumKtFErrors, List<PdfRectF>?> =
+    ): Either<PdfiumKtFErrors, List<KtImmutableRectF>?> =
         wrapEither(dispatcher) {
             page.textPageGetRects(textPagePtr, offset, limit)
         }
@@ -115,7 +115,7 @@ class PdfTextPageKtF internal constructor(
     /**
      * suspend version of [PdfTextPage.textPageGetRect]
      */
-    suspend fun textPageGetRect(rectIndex: Int): Either<PdfiumKtFErrors, PdfRectF?> =
+    suspend fun textPageGetRect(rectIndex: Int): Either<PdfiumKtFErrors, KtImmutableRectF?> =
         wrapEither(dispatcher) {
             page.textPageGetRect(rectIndex)
         }
@@ -132,7 +132,7 @@ class PdfTextPageKtF internal constructor(
      * suspend version of [PdfTextPage.textPageGetBoundedText]
      */
     suspend fun textPageGetBoundedText(
-        rect: PdfRectF,
+        rect: KtImmutableRectF,
         length: Int,
     ): Either<PdfiumKtFErrors, String?> =
         wrapEither(dispatcher) {

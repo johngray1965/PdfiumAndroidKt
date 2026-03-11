@@ -29,44 +29,60 @@ import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.core.graphics.toRect
+import io.legere.geokt.FloatPointValues
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.IntPointValues
+import io.legere.geokt.IntRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
+import io.legere.geokt.KtMatrix
+import io.legere.geokt.KtPoint
+import io.legere.geokt.KtPointF
+import io.legere.geokt.KtRect
+import io.legere.geokt.MatrixValues
+import io.legere.geokt.THREE_BY_THREE
 import kotlin.math.roundToInt
 
 // --- Point Conversions ---
 
 fun IntPointValues.toPoint(): Point = Point(x, y)
 
-fun Point.toPdfPoint(): PdfPoint = PdfPoint(x, y)
+fun Point.toKtPoint(): KtImmutablePoint = KtImmutablePoint(x, y)
 
-fun Point.toMutablePdfPoint(): MutablePdfPoint = MutablePdfPoint(x, y)
+fun Point.toMutableKtPoint(): KtPoint = KtPoint(x, y)
 
 fun FloatPointValues.toPointF(): PointF = PointF(x, y)
 
-fun PointF.toPdfPointF(): PdfPointF = PdfPointF(x, y)
+fun PointF.toKtImmutablePointF(): KtImmutablePointF = KtImmutablePointF(x, y)
 
-fun PointF.toMutablePdfPointF(): MutablePdfPointF = MutablePdfPointF(x, y)
+fun PointF.toKtPointF(): KtPointF = KtPointF(x, y)
 
 // --- Rect Conversions ---
 
 fun FloatRectValues.toRectF(): RectF = RectF(left, top, right, bottom)
 
-fun RectF.toPdfRectF(): PdfRectF = PdfRectF(left, top, right, bottom)
+fun RectF.toKtRectF(): KtImmutableRectF = KtImmutableRectF(left, top, right, bottom)
 
-fun RectF.toMutablePdfRectF(): MutablePdfRectF = MutablePdfRectF(left, top, right, bottom)
+fun RectF.toMutableKtRectF(): KtImmutableRectF = KtImmutableRectF(left, top, right, bottom)
 
 fun IntRectValues.toRect(): Rect = Rect(left, top, right, bottom)
 
-fun Rect.toPdfRect(): PdfRect = PdfRect(left, top, right, bottom)
+fun Rect.toKtRect(): KtImmutableRect = KtImmutableRect(left, top, right, bottom)
 
-fun Rect.toMutablePdfRect(): MutablePdfRect = MutablePdfRect(left, top, right, bottom)
+fun Rect.toMutableKtRect(): KtRect = KtRect(left, top, right, bottom)
 
-fun RectF.toPdfRect(): PdfRect {
+fun RectF.toKtRect(): KtImmutableRect {
     val rect = this.toRect()
-    return PdfRect(rect.left, rect.top, rect.right, rect.bottom)
+    return KtImmutableRect(rect.left, rect.top, rect.right, rect.bottom)
 }
 
-fun FloatRectValues.toPdfRect(): PdfRect = PdfRect(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
+fun FloatRectValues.toKtRect(): KtImmutableRect =
+    KtImmutableRect(left.roundToInt(), top.roundToInt(), right.roundToInt(), bottom.roundToInt())
 
-fun IntRectValues.toPdfRectF(): PdfRectF = PdfRectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+fun IntRectValues.toKtRectF(): KtImmutableRectF = KtImmutableRectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
 
 // --- Matrix Conversions ---
 
@@ -75,16 +91,16 @@ fun MatrixValues.toMatrix(): Matrix =
         setValues(values.toFloatArray())
     }
 
-fun Matrix.toPdfMatrix(): PdfMatrix {
+fun Matrix.toKtMatrix(): KtImmutableMatrix {
     val values = FloatArray(THREE_BY_THREE)
     getValues(values)
-    return PdfMatrix(values.toDoubleArray())
+    return KtImmutableMatrix(values.toDoubleArray())
 }
 
-fun Matrix.toMutablePdfMatrix(): MutablePdfMatrix {
+fun Matrix.toMutableKtMatrix(): KtMatrix {
     val values = FloatArray(THREE_BY_THREE)
     getValues(values)
-    return MutablePdfMatrix(values.toDoubleArray())
+    return KtMatrix(values.toDoubleArray())
 }
 
 fun DoubleArray.toFloatArray(): FloatArray {

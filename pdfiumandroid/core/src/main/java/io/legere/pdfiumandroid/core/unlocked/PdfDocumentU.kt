@@ -24,15 +24,15 @@ package io.legere.pdfiumandroid.core.unlocked
 import android.os.ParcelFileDescriptor
 import android.view.Surface
 import androidx.annotation.OpenForTesting
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.api.PdfiumSource
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
-import io.legere.pdfiumandroid.api.types.PdfMatrix
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU.Companion.FPDF_INCREMENTAL
@@ -228,7 +228,7 @@ class PdfDocumentU(
      *
      * @param surface The [Surface] on which to render the pages.
      * @param pages The list of [PdfPageU] to render.
-     * @param matrices The list of transformation [PdfMatrix] for each page, mapping page coordinates
+     * @param matrices The list of transformation [KtImmutableMatrix] for each page, mapping page coordinates
      * to surface coordinates.
      * @param clipRects The list of [FloatRectValues] for each page, defining the clipping area in surface coordinates.
      * @param renderAnnot whether to render annotations.

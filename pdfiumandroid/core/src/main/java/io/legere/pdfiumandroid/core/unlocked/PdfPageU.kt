@@ -24,19 +24,19 @@ package io.legere.pdfiumandroid.core.unlocked
 import android.graphics.Bitmap
 import android.view.Surface
 import androidx.annotation.ColorInt
+import io.legere.geokt.FloatRectValues
+import io.legere.geokt.IntRectValues
+import io.legere.geokt.KtImmutableMatrix
+import io.legere.geokt.KtImmutablePoint
+import io.legere.geokt.KtImmutablePointF
+import io.legere.geokt.KtImmutableRect
+import io.legere.geokt.KtImmutableRectF
+import io.legere.geokt.MatrixValues
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.PageAttributes
 import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
-import io.legere.pdfiumandroid.api.types.FloatRectValues
-import io.legere.pdfiumandroid.api.types.IntRectValues
-import io.legere.pdfiumandroid.api.types.MatrixValues
-import io.legere.pdfiumandroid.api.types.PdfMatrix
-import io.legere.pdfiumandroid.api.types.PdfPoint
-import io.legere.pdfiumandroid.api.types.PdfPointF
-import io.legere.pdfiumandroid.api.types.PdfRect
-import io.legere.pdfiumandroid.api.types.PdfRectF
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.NativePageContract
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
@@ -72,7 +72,7 @@ class PdfPageU(
     @Volatile
     var isClosed = false
 
-    val invalidRect = PdfRectF(-1f, -1f, -1f, -1f)
+    val invalidRect = KtImmutableRectF(-1f, -1f, -1f, -1f)
 
     private val nativePage: NativePageContract = nativeFactory.getNativePage()
 
@@ -140,10 +140,10 @@ class PdfPageU(
      * Get the page's transformation matrix.
      * For internal use only.
      *
-     * @return A [PdfMatrix] representing the page's transformation, or `null` if an error occurs.
+     * @return A [KtImmutableMatrix] representing the page's transformation, or `null` if an error occurs.
      */
     @Suppress("LongParameterList", "MagicNumber")
-    fun getPageMatrix(): PdfMatrix? {
+    fun getPageMatrix(): KtImmutableMatrix? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
 
         return floatArrayToPdfMatrix(nativePage.getPageMatrix(pagePtr))
@@ -171,10 +171,10 @@ class PdfPageU(
      * Get the page's crop box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page crop box in points or PdfRectF(-1, -1, -1, -1) if not present
+     * @return page crop box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageCropBox(): PdfRectF {
+    fun getPageCropBox(): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         return floatArrayToPdfRect(nativePage.getPageCropBox(pagePtr))
     }
@@ -183,10 +183,10 @@ class PdfPageU(
      * Get the page's media box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page media box in points or PdfRectF(-1, -1, -1, -1) if not present
+     * @return page media box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageMediaBox(): PdfRectF {
+    fun getPageMediaBox(): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         return floatArrayToPdfRect(nativePage.getPageMediaBox(pagePtr))
     }
@@ -195,10 +195,10 @@ class PdfPageU(
      * Get the page's bleed box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page bleed box in pointsor PdfRectF(-1, -1, -1, -1) if not present
+     * @return page bleed box in pointsor KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBleedBox(): PdfRectF {
+    fun getPageBleedBox(): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         return floatArrayToPdfRect(nativePage.getPageBleedBox(pagePtr))
     }
@@ -207,10 +207,10 @@ class PdfPageU(
      * Get the page's trim box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page trim box in points or PdfRectF(-1, -1, -1, -1) if not present
+     * @return page trim box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageTrimBox(): PdfRectF {
+    fun getPageTrimBox(): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         return floatArrayToPdfRect(nativePage.getPageTrimBox(pagePtr))
     }
@@ -219,10 +219,10 @@ class PdfPageU(
      * Get the page's art box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page art box in points or PdfRectF(-1, -1, -1, -1) if not present
+     * @return page art box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageArtBox(): PdfRectF {
+    fun getPageArtBox(): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         return floatArrayToPdfRect(nativePage.getPageArtBox(pagePtr))
     }
@@ -231,10 +231,10 @@ class PdfPageU(
      * Get the page's bounding box in PostScript points (1/72th of an inch).
      * For internal use only.
      *
-     * @return page bounding box in points or PdfRectF(-1, -1, -1, -1) if not present
+     * @return page bounding box in points or KtImmutableRectF(-1, -1, -1, -1) if not present
      *  @throws IllegalStateException If the page or document is closed
      */
-    fun getPageBoundingBox(): PdfRectF {
+    fun getPageBoundingBox(): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         return floatArrayToPdfRect(nativePage.getPageBoundingBox(pagePtr))
     }
@@ -518,7 +518,7 @@ class PdfPageU(
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param pageX     X value in page coordinates
      * @param pageY     Y value in page coordinate
-     * @return mapped coordinates as a [PdfPoint]
+     * @return mapped coordinates as a [KtImmutablePoint]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -530,8 +530,8 @@ class PdfPageU(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): PdfPoint {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfPoint.ZERO
+    ): KtImmutablePoint {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return KtImmutablePoint.ZERO
         return nativePage
             .pageCoordsToDevice(
                 pagePtr,
@@ -543,7 +543,7 @@ class PdfPageU(
                 pageX,
                 pageY,
             ).let {
-                PdfPoint(it[0], it[1])
+                KtImmutablePoint(it[0], it[1])
             }
     }
 
@@ -559,7 +559,7 @@ class PdfPageU(
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param deviceX   X value in page coordinates
      * @param deviceY   Y value in page coordinate
-     * @return mapped coordinates as a [PdfPointF]
+     * @return mapped coordinates as a [KtImmutablePointF]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -571,8 +571,8 @@ class PdfPageU(
         rotate: Int,
         deviceX: Int,
         deviceY: Int,
-    ): PdfPointF {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfPointF.ZERO
+    ): KtImmutablePointF {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return KtImmutablePointF.ZERO
         return nativePage
             .deviceCoordsToPage(
                 pagePtr,
@@ -584,7 +584,7 @@ class PdfPageU(
                 deviceX,
                 deviceY,
             ).let {
-                PdfPointF(it[0], it[1])
+                KtImmutablePointF(it[0], it[1])
             }
     }
 
@@ -600,7 +600,7 @@ class PdfPageU(
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param coords    rectangle to map
      *
-     * @return mapped coordinates as a [PdfRect]
+     * @return mapped coordinates as a [KtImmutableRect]
      *
      * @throws IllegalStateException If the page or document is closed
      */
@@ -612,8 +612,8 @@ class PdfPageU(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): PdfRect {
-        if (handleAlreadyClosed(isClosed || doc.isClosed)) return PdfRect.EMPTY
+    ): KtImmutableRect {
+        if (handleAlreadyClosed(isClosed || doc.isClosed)) return KtImmutableRect.EMPTY
         val leftTop =
             mapPageCoordsToDevice(
                 startX,
@@ -634,7 +634,7 @@ class PdfPageU(
                 coords.right.toDouble(),
                 coords.bottom.toDouble(),
             )
-        return PdfRect(
+        return KtImmutableRect(
             leftTop.x,
             leftTop.y,
             rightBottom.x,
@@ -653,7 +653,7 @@ class PdfPageU(
      * @param rotate    page orientation: 0 (normal), 1 (rotated 90 degrees clockwise),
      * 2 (rotated 180 degrees), 3 (rotated 270 degrees clockwise)
      * @param coords    rectangle to map
-     * @return mapped coordinates as a [PdfRectF]
+     * @return mapped coordinates as a [KtImmutableRectF]
      * @throws IllegalStateException If the page or document is closed
      */
     @Suppress("LongParameterList")
@@ -664,7 +664,7 @@ class PdfPageU(
         sizeY: Int,
         rotate: Int,
         coords: IntRectValues,
-    ): PdfRectF {
+    ): KtImmutableRectF {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return invalidRect
         val leftTop =
             mapDeviceCoordsToPage(
@@ -686,7 +686,7 @@ class PdfPageU(
                 coords.right,
                 coords.bottom,
             )
-        return PdfRectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
+        return KtImmutableRectF(leftTop.x, leftTop.y, rightBottom.x, rightBottom.y)
     }
 
     /**
@@ -723,13 +723,13 @@ class PdfPageU(
             pageWidth = pageWidth.toInt(),
             pageHeight = pageHeight.toInt(),
             pageRotation = data[2].toInt(),
-            rect = PdfRectF(0f, 0f, pageWidth, pageHeight),
-            mediaBox = PdfRectF(data[3], data[4], data[5], data[6]),
-            cropBox = PdfRectF(data[7], data[8], data[9], data[10]),
-            bleedBox = PdfRectF(data[11], data[12], data[13], data[14]),
-            trimBox = PdfRectF(data[15], data[16], data[17], data[18]),
-            artBox = PdfRectF(data[19], data[20], data[21], data[22]),
-            boundingBox = PdfRectF(data[23], data[24], data[25], data[26]),
+            rect = KtImmutableRectF(0f, 0f, pageWidth, pageHeight),
+            mediaBox = KtImmutableRectF(data[3], data[4], data[5], data[6]),
+            cropBox = KtImmutableRectF(data[7], data[8], data[9], data[10]),
+            bleedBox = KtImmutableRectF(data[11], data[12], data[13], data[14]),
+            trimBox = KtImmutableRectF(data[15], data[16], data[17], data[18]),
+            artBox = KtImmutableRectF(data[19], data[20], data[21], data[22]),
+            boundingBox = KtImmutableRectF(data[23], data[24], data[25], data[26]),
             pageMatrix = matrix,
             links = getPageLinks(),
         )
@@ -799,13 +799,13 @@ class PdfPageU(
          *
          * @param from The source [FloatRectValues].
          * @param to The destination [FloatRectValues].
-         * @return The [PdfMatrix] object to store the calculated transformation. Will be
+         * @return The [KtImmutableMatrix] object to store the calculated transformation. Will be
          * reset before calculation.
          */
         fun calculateRectTranslateMatrix(
             from: FloatRectValues?,
             to: FloatRectValues?,
-        ): PdfMatrix? {
+        ): KtImmutableMatrix? {
             if (from == null || to == null) {
                 return null
             }
@@ -834,11 +834,11 @@ class PdfPageU(
             toTop: Float,
             toRight: Float,
             toBottom: Float,
-        ): PdfMatrix {
+        ): KtImmutableMatrix {
             val fromWidth = fromRight - fromLeft
             val fromHeight = fromBottom - fromTop
             if (fromWidth == 0f || fromHeight == 0f) {
-                return PdfMatrix()
+                return KtImmutableMatrix()
             }
 
             val sx = (toRight - toLeft) / fromWidth
@@ -847,7 +847,7 @@ class PdfPageU(
             val tx = toLeft - sx * fromLeft
             val ty = toTop - sy * fromTop
 
-            return PdfMatrix(
+            return KtImmutableMatrix(
                 doubleArrayOf(
                     sx + 0.0,
                     0.0,
