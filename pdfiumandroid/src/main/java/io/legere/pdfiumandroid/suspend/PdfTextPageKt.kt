@@ -126,7 +126,7 @@ class PdfTextPageKt internal constructor(
         limit: Int,
     ): List<KtImmutableRectF>? =
         wrapSuspend(dispatcher) {
-            page.textPageGetRects(textPagePtr, offset, limit)
+            page.textPageGetRects(offset, limit)
         }
 
     /**

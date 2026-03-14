@@ -414,12 +414,11 @@ class PdfTextPageU(
 
     @Suppress("ReturnCount")
     fun textPageGetRects(
-        textPagePtr: Long,
         offset: Int,
         limit: Int,
     ): List<KtImmutableRectF>? {
         if (handleAlreadyClosed(isClosed || doc.isClosed)) return null
-        val data = nativeTextPage.textPageGetRects(textPagePtr, offset, limit)
+        val data = nativeTextPage.textPageGetRects(pagePtr, offset, limit)
         if (data != null) {
             val count = data.size / PAGE_RECT_DATA_SIZE
             // Pre-allocating the exact size avoids "resizing" overhead

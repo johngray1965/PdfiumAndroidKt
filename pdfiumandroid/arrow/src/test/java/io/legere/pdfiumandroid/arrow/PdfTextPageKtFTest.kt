@@ -123,9 +123,9 @@ class PdfTextPageKtFTest {
     fun textPageGetRects() =
         runTest {
             val expected = listOf(KtImmutableRectF(5f, 5f, 15f, 15f))
-            every { pdfTextPageU.textPageGetRects(0, 100, 10) } returns expected
+            every { pdfTextPageU.textPageGetRects(100, 10) } returns expected
             assertThat(pdfTextPage.textPageGetRects(0, 100, 10).getOrNull()).isEqualTo(expected)
-            verify { pdfTextPageU.textPageGetRects(0, 100, 10) }
+            verify { pdfTextPageU.textPageGetRects(100, 10) }
         }
 
     @Test

@@ -111,7 +111,7 @@ class PdfTextPageKtF internal constructor(
         limit: Int,
     ): Either<PdfiumKtFErrors, List<KtImmutableRectF>?> =
         wrapEither(dispatcher) {
-            page.textPageGetRects(textPagePtr, offset, limit)
+            page.textPageGetRects(offset, limit)
         }
 
     /**

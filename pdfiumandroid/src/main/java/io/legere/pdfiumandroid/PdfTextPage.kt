@@ -168,12 +168,11 @@ class PdfTextPage internal constructor(
         }
 
     fun textPageGetRects(
-        textPagePtr: Long,
         offset: Int,
         limit: Int,
     ): List<KtImmutableRectF>? =
         wrapLock {
-            textPage.textPageGetRects(textPagePtr, offset, limit)
+            textPage.textPageGetRects(offset, limit)
         }
 
     /**
