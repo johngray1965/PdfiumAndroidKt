@@ -298,21 +298,18 @@ class PdfDocumentU(
         level: Long,
     ) {
         if (handleAlreadyClosed(isClosed)) return
-        var levelMutable = level
-        val bookmark = Bookmark()
-        bookmark.mNativePtr = bookmarkPtr
-        bookmark.title = nativeDocument.getBookmarkTitle(bookmarkPtr)
-        bookmark.pageIdx = nativeDocument.getBookmarkDestIndex(mNativeDocPtr, bookmarkPtr)
-        tree.add(bookmark)
-        val child = nativeDocument.getFirstChildBookmark(mNativeDocPtr, bookmarkPtr)
-        if (child != 0L && levelMutable < MAX_RECURSION) {
-            println("child: $child, level: $levelMutable")
-            recursiveGetBookmark(bookmark.children, child, ++levelMutable)
-        }
-        val sibling = nativeDocument.getSiblingBookmark(mNativeDocPtr, bookmarkPtr)
-        if (sibling != 0L && levelMutable < MAX_RECURSION) {
-            println("sibling: $sibling, level: $levelMutable")
-            recursiveGetBookmark(tree, sibling, levelMutable)
+        var currentPtr = bookmarkPtr
+        while (currentPtr != 0L) {
+            val bookmark = Bookmark()
+            bookmark.mNativePtr = currentPtr
+            bookmark.title = nativeDocument.getBookmarkTitle(currentPtr)
+            bookmark.pageIdx = nativeDocument.getBookmarkDestIndex(mNativeDocPtr, currentPtr)
+            tree.add(bookmark)
+            val child = nativeDocument.getFirstChildBookmark(mNativeDocPtr, currentPtr)
+            if (child != 0L && level < MAX_RECURSION) {
+                recursiveGetBookmark(bookmark.children, child, level + 1)
+            }
+            currentPtr = nativeDocument.getSiblingBookmark(mNativeDocPtr, currentPtr)
         }
     }
 
