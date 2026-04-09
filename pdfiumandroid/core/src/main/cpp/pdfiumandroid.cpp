@@ -373,7 +373,7 @@ static jlong NativeCore_nativeOpenDocument(JNIEnv *env, jobject, jint fd,
 
         const unsigned long errorNum = FPDF_GetLastError();
         if(errorNum == FPDF_ERR_PASSWORD) {
-            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+            jniThrowException(env, "io/legere/pdfiumandroid/api/PdfPasswordException",
                               "Password required or incorrect password.");
         } else {
             char* error = getErrorDescription(errorNum);
@@ -415,7 +415,7 @@ static jlong NativeCore_nativeOpenMemDocument(JNIEnv *env, jobject,
 
         const unsigned long errorNum = FPDF_GetLastError();
         if(errorNum == FPDF_ERR_PASSWORD) {
-            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+            jniThrowException(env, "io/legere/pdfiumandroid/api/PdfPasswordException",
                               "Password required or incorrect password.");
         } else {
             char* error = getErrorDescription(errorNum);
@@ -465,7 +465,7 @@ static jlong NativeCore_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject n
 
         const unsigned long errorNum = FPDF_GetLastError();
         if(errorNum == FPDF_ERR_PASSWORD) {
-            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+            jniThrowException(env, "io/legere/pdfiumandroid/api/PdfPasswordException",
                               "Password required or incorrect password.");
         } else {
             char* error = getErrorDescription(errorNum);
