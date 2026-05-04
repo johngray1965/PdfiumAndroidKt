@@ -1643,7 +1643,14 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
                               0, flags);
 
         if (render_annot) {
-            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, FPDF_ANNOT);
+            // Pass the full `flags` (which already contains
+            // FPDF_REVERSE_BYTE_ORDER | FPDF_ANNOT) so the form-widget pass
+            // writes pixels in the same byte order as FPDF_RenderPageBitmap
+            // above. Using just FPDF_ANNOT drops FPDF_REVERSE_BYTE_ORDER and
+            // causes form widgets to be written as BGRA into a buffer that
+            // Android then interprets as RGBA, swapping the R and B channels
+            // on every annotation/widget appearance.
+            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, flags);
             FPDFDOC_ExitFormFillEnvironment(form);
         }
 
