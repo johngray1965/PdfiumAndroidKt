@@ -1,10 +1,10 @@
 [versions]
 androidDocumentationPlugin = "2.2.0"
-kotlin-stdlib = "2.3.20"
+kotlin-stdlib = "2.3.21"
 kotlin_version = "2.3.21"
 ksp_version = "2.3.4"
 hilt_version = "2.59.2"
-gradleplugin = "9.1.1"
+gradleplugin = "9.2.1"
 detekt_version = "1.23.8"
 kover_version = "0.9.8"
 ktlint_version = "14.2.0"
