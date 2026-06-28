@@ -68,3 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 - **Deprecated APIs Removed:** Cleaned up old APIs.
 - **Property Access:** Restricted direct access to internal properties like `.page.pageIndex`. Use wrapper properties (e.g., `.pageIndex`) instead.
+
+## [3.0.3-SNAPSHOT] 2026-06-11
+
+### Key Features
+- ** Uses GeoKt for Matrix, Rect, RectF, Point, PointF
+
+### Breaking Changes
+- ** Uses GeoKt for Matrix, Rect, RectF, Point, PointF
+
