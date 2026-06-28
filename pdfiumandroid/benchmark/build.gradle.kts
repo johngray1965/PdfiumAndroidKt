@@ -34,7 +34,7 @@ plugins {
 configure<LibraryExtension> {
     namespace = "io.legere.pdfiumandroid.benchmark"
     compileSdk {
-        version = release(36)
+        version = release(37)
     }
     compileOptions.sourceCompatibility = JavaVersion.VERSION_17
     compileOptions.targetCompatibility = JavaVersion.VERSION_17
@@ -46,10 +46,10 @@ configure<LibraryExtension> {
         testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "DEBUGGABLE,LOW-BATTERY"
     }
     lint {
-        targetSdk = 36
+        targetSdk = 37
     }
     testOptions {
-        targetSdk = 36
+        targetSdk = 37
     }
     testBuildType = "release"
     buildTypes {

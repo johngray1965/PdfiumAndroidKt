@@ -8,9 +8,9 @@ import java.math.BigDecimal
 
 @Suppress("ktlint:standard:property-naming")
 object AppConfig {
-    const val compileSdk: Int = 36
+    const val compileSdk: Int = 37
     const val minSdk: Int = 24
-    const val targetSdk: Int = 36
+    const val targetSdk: Int = 37
 
     val minimumCoverageLimit: BigDecimal = BigDecimal("0.7")
 }
