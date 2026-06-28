@@ -1722,7 +1722,8 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
                               0, flags);
 
         if (render_annot && form != nullptr) { // FPDFDOC_InitFormFillEnvironment can return null
-            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, FPDF_ANNOT);
+            // main's 5dfd985: pass `flags` (which already includes FPDF_ANNOT when render_annot), not FPDF_ANNOT
+            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, flags);
             FPDFDOC_ExitFormFillEnvironment(form);
         }
 
