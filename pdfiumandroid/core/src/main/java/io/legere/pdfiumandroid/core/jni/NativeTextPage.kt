@@ -244,6 +244,12 @@ interface NativeTextPageContract {
         textPagePtr: Long,
         charIndex: Int,
     ): Double
+
+    fun textPageGetRects(
+        textPagePtr: Long,
+        offset: Int,
+        limit: Int,
+    ): FloatArray?
 }
 
 @Suppress("TooManyFunctions")
@@ -330,6 +336,12 @@ class NativeTextPage : NativeTextPageContract {
         charIndex: Int,
     ) = nativeGetFontSize(textPagePtr, charIndex)
 
+    override fun textPageGetRects(
+        textPagePtr: Long,
+        offset: Int,
+        limit: Int,
+    ): FloatArray? = nativeTextPageGetRects(textPagePtr, offset, limit)
+
     /**
      * @suppress
      */
@@ -368,6 +380,14 @@ class NativeTextPage : NativeTextPageContract {
         private external fun nativeTextGetRects(
             textPagePtr: Long,
             wordRanges: IntArray,
+        ): FloatArray?
+
+        @JvmStatic
+        @FastNative
+        private external fun nativeTextPageGetRects(
+            textPagePtr: Long,
+            offset: Int,
+            limit: Int,
         ): FloatArray?
 
         @Suppress("LongParameterList")
