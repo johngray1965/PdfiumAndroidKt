@@ -65,8 +65,12 @@ fi
 echo "⬆️  Pushing tag..."
 git push origin "$VERSION"
 
-# 5. Create GitHub Release
-echo "🐙 Creating GitHub Release..."
+# 5. Create the GitHub Release WITH the built AAR assets.
+# The AARs are attached at creation time (positional args below) because GitHub
+# immutable releases forbid modifying a release after it exists. Owning this here
+# -- rather than a CI step reacting to the release event -- is what keeps the CI
+# "Build & Test" workflow from failing on an already-published release.
+echo "🐙 Creating GitHub Release (with AAR assets)..."
 
 # Auto-detect pre-release based on hyphen (semver)
 PRERELEASE_FLAG=""
@@ -75,12 +79,26 @@ if [[ "$VERSION" == *"-"* ]]; then
   PRERELEASE_FLAG="--prerelease"
 fi
 
-gh release create "$VERSION" --title "Release $VERSION" --notes-file "$NOTES_FILE" $PRERELEASE_FLAG
+# Collect the release AARs produced by ./deploy.sh above (bash 3.2-safe: no
+# globstar, which macOS /bin/bash lacks).
+AAR_FILES=()
+while IFS= read -r aar; do
+  AAR_FILES+=("$aar")
+done < <(find . -path '*/build/outputs/aar/*-release.aar')
+
+if [ ${#AAR_FILES[@]} -eq 0 ]; then
+  echo "⚠️  No release AARs found under */build/outputs/aar/ -- creating the release without assets."
+else
+  echo "📎 Attaching ${#AAR_FILES[@]} AAR(s):"
+  printf '   - %s\n' "${AAR_FILES[@]}"
+fi
+
+gh release create "$VERSION" "${AAR_FILES[@]}" \
+  --title "Release $VERSION" --notes-file "$NOTES_FILE" $PRERELEASE_FLAG
 
 # Cleanup
 rm "$NOTES_FILE"
 
 echo "✅ Release $VERSION completed successfully!"
 echo "   - Maven Central: Uploaded (Staging)"
-echo "   - GitHub Release: Created"
-echo "   - CI: Triggered (will publish to GitHub Packages and upload AARs)"
+echo "   - GitHub Release: Created (with ${#AAR_FILES[@]} AAR asset(s))"
