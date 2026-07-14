@@ -154,7 +154,7 @@ kover {
 publishPlugin {
     artifactId.set("pdfiumandroid")
     name.set("pdfiumandroid")
-    description.set(rootProject.properties["POM_DESCRIPTION"] as String)
+    description.set(rootProject.property("POM_DESCRIPTION") as String)
 }
 
 // dokka {

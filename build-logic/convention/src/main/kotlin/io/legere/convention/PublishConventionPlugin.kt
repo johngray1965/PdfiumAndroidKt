@@ -37,18 +37,21 @@ class PublishConventionPlugin : Plugin<Project> {
                 publications {
                     create<MavenPublication>("maven") {
                         groupId = "io.legere"
-                        
+
                         // Resolve version robustly
                         val ver = project.version.toString()
-                        val finalVersion = if (ver == "unspecified") {
-                            val rootVer = project.rootProject.version.toString()
-                            if (rootVer == "unspecified") {
-                                error("Project version is 'unspecified'. Check git-sensitive-semantic-versioning configuration or tags.")
+                        val finalVersion =
+                            if (ver == "unspecified") {
+                                val rootVer = project.rootProject.version.toString()
+                                if (rootVer == "unspecified") {
+                                    error(
+                                        "Project version is 'unspecified'. Check git-sensitive-semantic-versioning configuration or tags.",
+                                    )
+                                }
+                                rootVer
+                            } else {
+                                ver
                             }
-                            rootVer
-                        } else {
-                            ver
-                        }
                         version = finalVersion
 
                         pom {

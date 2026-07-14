@@ -76,5 +76,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Issues for Annotation and color swapping
 - Fix bookmark truncation and optimize sibling traversal
 
+### [2.0.2] - 2026-06-14
 
-
+### Improvements
+- ** Native performance and memory leak fixes
+- ** Unified the background drawing

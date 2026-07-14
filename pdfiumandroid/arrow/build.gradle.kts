@@ -28,10 +28,6 @@ plugins {
     id("io.legere.convention.publish")
 //    id("org.jetbrains.dokka")
 //    id("org.jetbrains.dokka-javadoc")
-    jacoco
-}
-jacoco {
-    toolVersion = "0.8.13"
 }
 
 configure<LibraryExtension> {

@@ -2,165 +2,125 @@ package io.legere.convention
 
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
-import io.legere.support.AppConfig
-import java.util.Locale
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
-import org.gradle.api.tasks.testing.Test
+import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.findByType
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withType
 import org.gradle.testing.jacoco.plugins.JacocoPluginExtension
-import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import org.gradle.testing.jacoco.tasks.JacocoReportBase
+
+abstract class JacocoConventionExtension {
+    abstract val reportPackage: Property<String>
+}
 
 class JacocoPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-//        val jacocoMetaData = project.extensions.create("jacocoMetaData", JacocoMetaData::class.java)
+        val extension = project.extensions.create<JacocoConventionExtension>("jacocoConvention")
 
         with(project) {
             pluginManager.apply("jacoco")
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+            val jacocoVersion = libs.findVersion("jacoco").get().toString()
+            extensions.configure<JacocoPluginExtension> {
+                toolVersion = jacocoVersion
+            }
 
-            afterEvaluate {
-                val appExtension = extensions.findByType<ApplicationExtension>()
-                val libraryExtension = extensions.findByType<LibraryExtension>()
+            plugins.withId("com.android.application") {
+                extensions.configure<ApplicationExtension> {
+                    buildTypes.getByName("debug").enableAndroidTestCoverage = true
+                    testCoverage.jacocoVersion = jacocoVersion
+                }
+            }
+            plugins.withId("com.android.library") {
+                extensions.configure<LibraryExtension> {
+                    buildTypes.getByName("debug").enableAndroidTestCoverage = true
+                    testCoverage.jacocoVersion = jacocoVersion
+                }
+            }
 
-                if (appExtension == null && libraryExtension == null) {
-                    println("Dude you've applied the JacocoPlugin in unknown AndroidComponent")
-                    return@afterEvaluate
+            val classDirectoriesProvider =
+                extension.reportPackage.map { reportPackage ->
+                    val pkgPath = reportPackage.replace(".", "/")
+                    listOf(
+                        fileTree(layout.buildDirectory.dir("intermediates/javac/debug/compileDebugJavaWithJavac/classes")) {
+                            include("**/$pkgPath/*.class")
+                        },
+                        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
+                            exclude($$"**/*$DefaultImpls.class") // Exclude DefaultImpls
+                            include("**/$pkgPath/*.class")
+                        },
+                        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+                            // Legacy/Fallback
+                            include("**/$pkgPath/*.class")
+                        },
+                        fileTree(layout.buildDirectory.dir("intermediates/classes/debug")) {
+                            // Fallback for newer AGP if classes are merged here
+                            include("**/$pkgPath/*.class")
+                        },
+                    )
                 }
 
-//                val variantList =
-//                    if (appExtension != null) {
-//                        appExtension.applicationVariants.map { it.name }.toList()
-//                    } else if (libraryExtension != null) {
-//                        libraryExtension.libraryVariants.map { it.name }.toList()
-//                    } else {
-//                        emptyList<String>()
-//                    }
-//
-//                configureJacoco(
-//                    coverageExclusionList = jacocoMetaData.coverageExclusionList,
-//                    variantList = variantList
-//                )
-            }
-        }
-    }
-}
+            val executionDataProvider =
+                fileTree(
+                    layout.buildDirectory.dir(
+                        "intermediates/managed_device_code_coverage/debugAndroidTest",
+                    ),
+                ) {
+                    include("**/*.ec")
+                }
 
-open class JacocoMetaData {
-    var coverageExclusionList: List<String> = emptyList()
-}
 
-private val DEFAULT_COVERAGE_EXCLUSIONS =
-    listOf(
-        // Android
-        "**/R.class",
-        "**/R\$*.class",
-        "**/BuildConfig.*",
-        "**/Manifest*.*"
-    )
+            val sourceDirectoriesProvider = files("$projectDir/src/main/java", "$projectDir/src/main/kotlin")
 
-private fun String.capitalize() =
-    replaceFirstChar {
-        if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString()
-    }
+            project.tasks.register<JacocoReport>("jacocoAndroidTestReport") {
+                group = "Reporting"
+                description = "Generates Jacoco report for Android instrumentation tests."
+                dependsOn("pixelPhoneDebugAndroidTest")
 
-internal fun JacocoReportBase.setupReporting(
-    project: Project,
-    testTaskName: String,
-    variant: String,
-    coverageExclusionList: List<String>
-) {
-    with(project) {
-        classDirectories.setFrom(
-            fileTree("${layout.buildDirectory}/tmp/kotlin-classes/$variant") {
-                exclude(DEFAULT_COVERAGE_EXCLUSIONS)
-                exclude(coverageExclusionList)
-            }
-        )
+                onlyIf { extension.reportPackage.isPresent }
 
-        sourceDirectories.setFrom(files("$projectDir/src/main/java", "$projectDir/src/main/kotlin"))
-        executionData.setFrom(file("${layout.buildDirectory}/jacoco/$testTaskName.exec"))
-    }
-}
-
-internal fun Project.configureJacoco(
-    coverageExclusionList: List<String>,
-    variantList: List<String>
-) {
-    val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-
-    configure<JacocoPluginExtension> {
-        toolVersion = libs.findVersion("jacoco").get().toString()
-    }
-
-    val groupName = "jacoco"
-
-    val allJacocoTestReport = tasks.register("jacocoTestReport") { group = groupName }
-    val allJacocoTestVerification = tasks.register("jacocoTestVerification") { group = groupName }
-
-    variantList.forEach { variant ->
-        val testTaskName = "test${variant.capitalize()}UnitTest"
-        val jacocoReportTask =
-            tasks.register("jacoco${testTaskName.capitalize()}Report", JacocoReport::class) {
-                group = groupName
-                dependsOn(testTaskName)
+                classDirectories.setFrom(classDirectoriesProvider)
+                executionData.setFrom(executionDataProvider)
+                sourceDirectories.setFrom(sourceDirectoriesProvider)
 
                 reports {
+                    xml.required.set(true)
                     html.required.set(true)
                 }
 
-                setupReporting(
-                    project = this@configureJacoco,
-                    testTaskName = testTaskName,
-                    variant = variant,
-                    coverageExclusionList = coverageExclusionList
-                )
+                doLast {
+                    val reportPath =
+                        reports.html.outputLocation
+                            .get()
+                            .asFile
+                    val reportUrl = reportPath.resolve("index.html").toURI()
+                    println("Jacoco report for '$name' generated at: $reportUrl")
+                }
             }
 
-        val verificationTask =
-            tasks.register(
-                "jacoco${testTaskName.capitalize()}Verification",
-                JacocoCoverageVerification::class.java
-            ) {
-                group = groupName
-                dependsOn(jacocoReportTask)
+            project.tasks.register<JacocoCoverageVerification>("jacocoAndroidTestCoverageVerification") {
+                group = "Reporting"
+                description = "Verifies JaCoCo coverage for Android instrumentation tests."
+                dependsOn("pixelPhoneDebugAndroidTest")
 
+                onlyIf { extension.reportPackage.isPresent }
+
+                classDirectories.setFrom(classDirectoriesProvider)
+                executionData.setFrom(executionDataProvider)
+                sourceDirectories.setFrom(sourceDirectoriesProvider)
                 violationRules {
                     rule {
                         limit {
-                            minimum = AppConfig.minimumCoverageLimit
+                            minimum = 0.95.toBigDecimal()
                         }
                     }
                 }
-
-                setupReporting(
-                    project = this@configureJacoco,
-                    testTaskName = testTaskName,
-                    variant = variant,
-                    coverageExclusionList = coverageExclusionList
-                )
             }
-
-        allJacocoTestReport.configure { dependsOn(jacocoReportTask) }
-        allJacocoTestVerification.configure { dependsOn(verificationTask) }
-    }
-
-    tasks.withType<Test>().configureEach {
-        configure<JacocoTaskExtension> {
-            // Required for JaCoCo + Robolectric
-            // https://github.com/robolectric/robolectric/issues/2230
-            isIncludeNoLocationClasses = true
-
-            // Required for JDK 11 with the above
-            // https://github.com/gradle/gradle/issues/5184#issuecomment-391982009
-            excludes = listOf("jdk.internal.*")
         }
     }
 }

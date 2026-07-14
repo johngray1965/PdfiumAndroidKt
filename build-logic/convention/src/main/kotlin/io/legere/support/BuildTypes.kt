@@ -28,7 +28,6 @@ internal fun configureBuildTypes(commonExtension: CommonExtension) {
             )
         }
         getByName("debug") {
-            enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
         }
 //        maybeCreate("qa")
