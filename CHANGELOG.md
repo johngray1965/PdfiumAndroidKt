@@ -69,15 +69,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Deprecated APIs Removed:** Cleaned up old APIs.
 - **Property Access:** Restricted direct access to internal properties like `.page.pageIndex`. Use wrapper properties (e.g., `.pageIndex`) instead.
 
-### [2.0.1] - 2026-05-12
+## [2.0.1] - 2026-05-12
 
 ### Improvements
 - Fixed Pdf Password Handling
 - Fixed Issues for Annotation and color swapping
 - Fix bookmark truncation and optimize sibling traversal
 
-### [2.0.2] - 2026-06-14
+## [2.0.2] - 2026-06-14
 
 ### Improvements
-- ** Native performance and memory leak fixes
-- ** Unified the background drawing
+- Native performance and memory leak fixes
+- Unified the background drawing
+
