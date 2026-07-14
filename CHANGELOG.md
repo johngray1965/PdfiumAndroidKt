@@ -77,3 +77,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 - ** Uses GeoKt for Matrix, Rect, RectF, Point, PointF
 
+## [3.0.3-alpha02] 2026-06-11
+
+### Key Features
+- ** Native performance and memory leak fixes
+
+## [3.0.3-alpha03] 2026-06-14
+- ** Unified the background drawing
+
+
