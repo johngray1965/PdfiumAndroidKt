@@ -165,6 +165,9 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @BeforeEach
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
+        // Reset the global lock — the setLockManager() test swaps in an unstubbed
+        // mock and doesn't restore it, which would break any later test that locks.
+        pdfiumCore.setLockManager(LockManagerReentrantLock())
         setupRules()
     }
 
