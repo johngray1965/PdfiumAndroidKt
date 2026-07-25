@@ -211,3 +211,4 @@ fabric.properties
 
 /*/.cxx
 /x/**
+/.claude/settings.local.json

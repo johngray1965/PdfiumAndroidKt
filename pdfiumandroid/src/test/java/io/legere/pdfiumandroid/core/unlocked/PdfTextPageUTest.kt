@@ -383,6 +383,10 @@ abstract class PdfTextPageBaseTest : ClosableTestContext {
         // Logic test, generally unaffected by "state" unless setupClosedState() forced a close already
         if (isStateClosed()) return
 
+        // Reference counting on its own: with retention off, the last release closes the text page.
+        // Retaining it instead is covered by PdfDocumentUPageRetentionTest.
+        pdfiumConfig = Config(alreadyClosedBehavior = getBehavior(), pageRetentionCount = 0)
+
         val map = mutableMapOf(0 to PageCount(100L, 2))
         val page = PdfTextPageU(pdfDocumentU, 0, 100L, map, mockNativeFactory)
 

@@ -752,10 +752,15 @@ class PdfPageU(
                 return
             }
 
-            pageMap.remove(pageIndex)
-
+            it.count = 0
             isClosed = true
-            nativePage.closePage(pagePtr)
+
+            // The page has no holders left. The document may keep it open so that reopening it is
+            // free; if it does not want it, close it now.
+            if (!doc.retainOnRelease(pageIndex)) {
+                pageMap.remove(pageIndex)
+                nativePage.closePage(pagePtr)
+            }
         } ?: run {
             isClosed = true
             nativePage.closePage(pagePtr)

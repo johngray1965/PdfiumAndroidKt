@@ -31,6 +31,7 @@ import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import kotlinx.coroutines.CoroutineDispatcher
@@ -67,6 +68,25 @@ class PdfDocumentKt internal constructor(
     suspend fun getPageCharCounts(): IntArray =
         wrapSuspend(dispatcher) {
             document.getPageCharCounts()
+        }
+
+    /**
+     * suspend version of [PdfDocument.getPageSize]
+     */
+    suspend fun getPageSize(
+        pageIndex: Int,
+        screenDpi: Int,
+    ): Size =
+        wrapSuspend(dispatcher) {
+            document.getPageSize(pageIndex, screenDpi)
+        }
+
+    /**
+     * suspend version of [PdfDocument.getPageSizes]
+     */
+    suspend fun getPageSizes(screenDpi: Int): List<Size> =
+        wrapSuspend(dispatcher) {
+            document.getPageSizes(screenDpi)
         }
 
     /**

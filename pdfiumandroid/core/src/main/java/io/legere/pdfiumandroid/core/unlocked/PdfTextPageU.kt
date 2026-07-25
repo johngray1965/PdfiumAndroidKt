@@ -436,10 +436,16 @@ class PdfTextPageU(
                 it.count--
                 return
             }
-            pageMap.remove(pageIndex)
 
+            it.count = 0
             isClosed = true
-            nativeTextPage.closeTextPage(pagePtr)
+
+            // No holders left. The document may keep the text page open so that reopening it is
+            // free; if it does not want it, close it now.
+            if (!doc.retainOnRelease(pageIndex)) {
+                pageMap.remove(pageIndex)
+                nativeTextPage.closeTextPage(pagePtr)
+            }
         }
     }
 

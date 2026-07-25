@@ -30,12 +30,27 @@ import androidx.annotation.Keep
  * @property alreadyClosedBehavior Defines how the library reacts when an operation is attempted
  *                                 on a PDFium object that has already been closed.
  *                                 Defaults to [AlreadyClosedBehavior.EXCEPTION].
+ * @property pageRetentionCount How many pages are kept open after the last holder closes them.
+ *                              Loading a page is expensive, and callers routinely reopen one they
+ *                              just released — rendering a page in tiles, reading its links, then
+ *                              rendering it again at a new zoom. Retaining the most recently
+ *                              released pages makes reopening them free. Set to 0 to close each
+ *                              page as soon as its last holder releases it, which is the behaviour
+ *                              of releases before this setting existed.
+ *                              Defaults to [DEFAULT_PAGE_RETENTION].
  */
 @Keep
 data class Config(
     val logger: LoggerInterface = DefaultLogger(),
     val alreadyClosedBehavior: AlreadyClosedBehavior = AlreadyClosedBehavior.EXCEPTION,
+    val pageRetentionCount: Int = DEFAULT_PAGE_RETENTION,
 )
+
+/**
+ * The default for [Config.pageRetentionCount]. Large enough to cover the pages a viewer works with
+ * at once, small enough that the retained pages stay a minor part of a document's memory.
+ */
+const val DEFAULT_PAGE_RETENTION = 8
 
 /**
  * Defines the behavior when an operation is attempted on an already closed PDFium object.

@@ -565,14 +565,19 @@ class NativePageTest : BasePDFTest() {
 
     @Test
     fun closePages() {
-        val pdfPage2 = pdfDocument.openPage(1)!!
-        val pagePtr2 = pdfPage2.pagePtr
-        val pages2close = longArrayOf(pagePtr, pagePtr2)
+        // Load pages the document is not tracking. closePages frees them behind the object model's
+        // back, and the document closes whatever is still in its page table when it is closed, so
+        // handing it pointers that are already freed would close them twice. setUp holds page 0,
+        // hence pages 1 and 2 here.
+        val nativeDocument = defaultNativeFactory.getNativeDocument()
+        val pages2close =
+            longArrayOf(
+                nativeDocument.loadPage(pdfDocument.mNativeDocPtr, 1),
+                nativeDocument.loadPage(pdfDocument.mNativeDocPtr, 2),
+            )
+
         println("Before Closing pages: ${pages2close.joinToString()}")
         nativePage.closePages(pages2close)
         println("After Closing pages: ${pages2close.joinToString()}")
-        // reopen the page so it's not closed
-        pdfPage = pdfDocument.openPage(0)!!
-        pagePtr = pdfPage.pagePtr
     }
 }

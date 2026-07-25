@@ -27,6 +27,7 @@ import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_NO_INCREMENTAL
 import io.legere.pdfiumandroid.PdfDocument.Companion.FPDF_REMOVE_SECURITY
 import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
 import io.legere.pdfiumandroid.core.util.wrapLock
 import java.io.Closeable
@@ -75,6 +76,40 @@ class PdfDocument internal constructor(
     fun getPageCharCounts(): IntArray =
         wrapLock {
             document.getPageCharCounts()
+        }
+
+    /**
+     * Get a page's size in pixels without opening it.
+     *
+     * PDFium reads the size off the document itself, so this avoids the cost of loading the page.
+     * Prefer it over [openPage] when the size is all that is wanted.
+     *
+     * @param pageIndex the page index
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return page size in pixels
+     * @throws IllegalStateException if document is closed
+     */
+    fun getPageSize(
+        pageIndex: Int,
+        screenDpi: Int,
+    ): Size =
+        wrapLock {
+            document.getPageSize(pageIndex, screenDpi)
+        }
+
+    /**
+     * Get the size of every page in the document, in pixels, without opening any of them.
+     *
+     * Takes the lock once for the whole document rather than once per page, so prefer it over
+     * calling [getPageSize] in a loop when every page's size is wanted.
+     *
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return the pages' sizes in pixels, in page order
+     * @throws IllegalStateException if document is closed
+     */
+    fun getPageSizes(screenDpi: Int): List<Size> =
+        wrapLock {
+            document.getPageSizes(screenDpi)
         }
 
     /**
