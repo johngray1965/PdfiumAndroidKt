@@ -32,7 +32,9 @@ import io.legere.pdfiumandroid.api.Logger
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
 import io.legere.pdfiumandroid.api.PdfiumSource
+import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.handleAlreadyClosed
+import io.legere.pdfiumandroid.api.pdfiumConfig
 import io.legere.pdfiumandroid.core.jni.NativeFactory
 import io.legere.pdfiumandroid.core.jni.defaultNativeFactory
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU.Companion.FPDF_INCREMENTAL
@@ -62,6 +64,13 @@ class PdfDocumentU(
     private val textPageMap = mutableMapOf<Int, PageCount>()
 
     /**
+     * Indexes of pages that every holder has closed but which are still open natively, in the order
+     * they were released. Their [PageCount.count] is 0, so reopening one costs nothing and the next
+     * release past [io.legere.pdfiumandroid.api.Config.pageRetentionCount] evicts the oldest.
+     */
+    private val retainedPages = LinkedHashSet<Int>()
+
+    /**
      * Represents a key for caching transformation matrices.
      * For internal use only.
      *
@@ -80,6 +89,11 @@ class PdfDocumentU(
     )
 
     private val nativeDocument = nativeFactory.getNativeDocument()
+
+    // Only needed when this document has to close pages itself, which a document whose pages the
+    // caller closes never does. Resolved on first use, unsynchronized like the rest of this layer.
+    private val nativePage by lazy(LazyThreadSafetyMode.NONE) { nativeFactory.getNativePage() }
+    private val nativeTextPage by lazy(LazyThreadSafetyMode.NONE) { nativeFactory.getNativeTextPage() }
 
     @Volatile
     var isClosed = false
@@ -128,15 +142,56 @@ class PdfDocumentU(
             if (pageMap.containsKey(pageIndex)) {
                 pageMap[pageIndex]?.let {
                     it.count++
-                    return PdfPageU(this, pageIndex, it.pagePtr, pageMap)
+                    // The page has a holder again, so it is no longer a candidate for eviction
+                    retainedPages.remove(pageIndex)
+                    return PdfPageU(this, pageIndex, it.pagePtr, pageMap, nativeFactory)
                 }
             }
             val pagePtr = nativeDocument.loadPage(this.mNativeDocPtr, pageIndex)
             pageMap[pageIndex] = PageCount(pagePtr, 1)
-            return PdfPageU(this, pageIndex, pagePtr, pageMap)
+            return PdfPageU(this, pageIndex, pagePtr, pageMap, nativeFactory)
         } catch (e: RuntimeException) {
             Logger.e(TAG, e, "openPage: pageIndex: $pageIndex $e")
             return null
+        }
+    }
+
+    /**
+     * Get a page's size in pixels without opening it.
+     * For internal use only.
+     *
+     * PDFium reads the size off the document itself, so this avoids the cost of loading the page.
+     * Prefer it over opening a page when the size is all that is wanted.
+     *
+     * @param pageIndex the page index
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return page size in pixels, or `Size(-1, -1)` if the document is closed
+     * @throws IllegalStateException if document is closed
+     */
+    fun getPageSize(
+        pageIndex: Int,
+        screenDpi: Int,
+    ): Size {
+        if (handleAlreadyClosed(isClosed)) return Size(-1, -1)
+        return nativePage
+            .getPageSizeByIndex(mNativeDocPtr, pageIndex, screenDpi)
+            .let { Size(it[0], it[1]) }
+    }
+
+    /**
+     * Get the size of every page in the document, in pixels, without opening any of them.
+     * For internal use only.
+     *
+     * @param screenDpi screen DPI (Dots Per Inch)
+     * @return the pages' sizes in pixels, in page order, or an empty list if the document is closed
+     * @throws IllegalStateException if document is closed
+     */
+    fun getPageSizes(screenDpi: Int): List<Size> {
+        if (handleAlreadyClosed(isClosed)) return emptyList()
+        return (0..<nativeDocument.getPageCount(mNativeDocPtr)).map { pageIndex ->
+            nativePage
+                .getPageSizeByIndex(mNativeDocPtr, pageIndex, screenDpi)
+                .let { Size(it[0], it[1]) }
         }
     }
 
@@ -168,12 +223,60 @@ class PdfDocumentU(
     ): List<PdfPageU> {
         if (handleAlreadyClosed(isClosed)) return emptyList()
         val pagesPtr: LongArray = nativeDocument.loadPages(this.mNativeDocPtr, fromIndex, toIndex)
-        var pageIndex = fromIndex
-        for (page in pagesPtr) {
-            if (pageIndex > toIndex) break
-            pageIndex++
+        return pagesPtr.mapIndexed { offset, loadedPtr ->
+            val pageIndex = fromIndex + offset
+            val open = pageMap[pageIndex]
+            if (open == null) {
+                pageMap[pageIndex] = PageCount(loadedPtr, 1)
+                PdfPageU(this, pageIndex, loadedPtr, pageMap, nativeFactory)
+            } else {
+                // The native call loads a fresh handle for every index in the range, so when the
+                // page is already open, drop the duplicate and hand back the one being tracked.
+                nativePage.closePage(loadedPtr)
+                open.count++
+                retainedPages.remove(pageIndex)
+                PdfPageU(this, pageIndex, open.pagePtr, pageMap, nativeFactory)
+            }
         }
-        return pagesPtr.map { PdfPageU(this, pageIndex, it, pageMap) }
+    }
+
+    /**
+     * Offer a page, or a text page, whose last holder has just closed it to the retention pool, so
+     * that reopening it does not have to load it again. Evicts, and closes, whatever has been
+     * released for longest beyond [io.legere.pdfiumandroid.api.Config.pageRetentionCount].
+     *
+     * For internal use only.
+     *
+     * @param pageIndex the index of the page or text page being released
+     * @return `true` if it was retained and must be left open, `false` if the caller should close
+     * it now
+     */
+    internal fun retainOnRelease(pageIndex: Int): Boolean {
+        val retentionCount = pdfiumConfig.pageRetentionCount
+        if (retentionCount <= 0) return false
+
+        // A text page is loaded from its page, so the two are evicted together and the index only
+        // becomes a candidate once nothing holds either of them.
+        if (isFullyReleased(pageIndex)) {
+            retainedPages.remove(pageIndex)
+            retainedPages.add(pageIndex)
+
+            while (retainedPages.size > retentionCount) {
+                val oldest = retainedPages.first()
+                retainedPages.remove(oldest)
+                evict(oldest)
+            }
+        }
+        return true
+    }
+
+    private fun isFullyReleased(pageIndex: Int): Boolean =
+        (pageMap[pageIndex]?.count ?: 0) == 0 && (textPageMap[pageIndex]?.count ?: 0) == 0
+
+    /** Close and forget the page at [pageIndex], text page first so it never outlives its page. */
+    private fun evict(pageIndex: Int) {
+        textPageMap.remove(pageIndex)?.let { nativeTextPage.closeTextPage(it.pagePtr) }
+        pageMap.remove(pageIndex)?.let { nativePage.closePage(it.pagePtr) }
     }
 
     /**
@@ -346,6 +449,8 @@ class PdfDocumentU(
         if (textPageMap.containsKey(page.pageIndex)) {
             textPageMap[page.pageIndex]?.let {
                 it.count++
+                // The text page has a holder again, so its index is no longer evictable
+                retainedPages.remove(page.pageIndex)
 //                    Timber.d("from cache openTextPage: pageIndex: ${page.pageIndex}, count: ${it.count}")
                 return PdfTextPageU(this, page.pageIndex, it.pagePtr, textPageMap, nativeFactory)
             }
@@ -407,12 +512,30 @@ class PdfDocumentU(
      */
     override fun close() {
         if (handleAlreadyClosed(isClosed)) return
+        closeOpenPages()
         isClosed = true
         nativeDocument.closeDocument(mNativeDocPtr)
         parcelFileDescriptor?.close()
         parcelFileDescriptor = null
         source?.close()
         source = null
+    }
+
+    /**
+     * Close every native page this document still owns, whether it is retained or a page a caller
+     * never closed. PDFium requires a page to outlive neither its text page nor its document, so
+     * text pages go first and both go before the document itself is closed.
+     */
+    private fun closeOpenPages() {
+        if (textPageMap.isNotEmpty()) {
+            textPageMap.values.forEach { nativeTextPage.closeTextPage(it.pagePtr) }
+            textPageMap.clear()
+        }
+        if (pageMap.isNotEmpty()) {
+            pageMap.values.forEach { nativePage.closePage(it.pagePtr) }
+            pageMap.clear()
+        }
+        retainedPages.clear()
     }
 
     /**

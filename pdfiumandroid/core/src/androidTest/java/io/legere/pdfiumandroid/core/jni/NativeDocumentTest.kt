@@ -71,6 +71,26 @@ class NativeDocumentTest : BasePDFTest() {
     }
 
     @Test
+    fun getPageSizeMatchesTheSizeReadFromAnOpenPage() {
+        // The document-level read never loads the page, so check it against the page-level one that
+        // does, on a real document rather than a mocked native layer.
+        for (pageIndex in 0..<4) {
+            val fromDocument = pdfDocument.getPageSize(pageIndex, 72)
+            val fromPage = pdfDocument.openPage(pageIndex)!!.use { it.getPageSize(72) }
+
+            assertThat(fromDocument).isEqualTo(fromPage)
+        }
+    }
+
+    @Test
+    fun getPageSizesCoversEveryPage() {
+        val sizes = pdfDocument.getPageSizes(72)
+
+        assertThat(sizes).hasSize(4)
+        assertThat(sizes).isEqualTo((0..<4).map { pdfDocument.getPageSize(it, 72) })
+    }
+
+    @Test
     fun loadPage() {
         val page = nativeDocument.loadPage(pdfDocument.mNativeDocPtr, 0)
 

@@ -32,6 +32,7 @@ import io.legere.pdfiumandroid.PdfiumCore
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.types.toKtMatrix
 import io.legere.pdfiumandroid.api.types.toKtRectF
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
@@ -66,6 +67,25 @@ class PdfDocumentKtF internal constructor(
     suspend fun getPageCharCounts(): Either<PdfiumKtFErrors, IntArray> =
         wrapEither(dispatcher) {
             document.getPageCharCounts()
+        }
+
+    /**
+     * suspend version of [PdfDocument.getPageSize]
+     */
+    suspend fun getPageSize(
+        pageIndex: Int,
+        screenDpi: Int,
+    ): Either<PdfiumKtFErrors, Size> =
+        wrapEither(dispatcher) {
+            document.getPageSize(pageIndex, screenDpi)
+        }
+
+    /**
+     * suspend version of [PdfDocument.getPageSizes]
+     */
+    suspend fun getPageSizes(screenDpi: Int): Either<PdfiumKtFErrors, List<Size>> =
+        wrapEither(dispatcher) {
+            document.getPageSizes(screenDpi)
         }
 
     /**

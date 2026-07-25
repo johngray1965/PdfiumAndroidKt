@@ -22,13 +22,16 @@ package io.legere.pdfiumandroid.core.unlocked
 import com.google.common.truth.Truth.assertThat
 import io.legere.geokt.KtImmutableMatrix
 import io.legere.geokt.KtImmutableRectF
+import io.legere.pdfiumandroid.PdfDocument
 import io.legere.pdfiumandroid.api.AlreadyClosedBehavior
 import io.legere.pdfiumandroid.api.Config
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfWriteCallback
+import io.legere.pdfiumandroid.api.Size
 import io.legere.pdfiumandroid.api.pdfiumConfig
 import io.legere.pdfiumandroid.core.jni.NativeDocument
 import io.legere.pdfiumandroid.core.jni.NativeFactory
+import io.legere.pdfiumandroid.core.jni.NativePage
 import io.legere.pdfiumandroid.core.jni.NativeTextPage
 import io.legere.pdfiumandroid.core.unlocked.testing.ClosableTestContext
 import io.legere.pdfiumandroid.core.unlocked.testing.closableTest
@@ -40,6 +43,7 @@ import io.mockk.mockk
 import io.mockk.runs
 import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -54,6 +58,9 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
 
     @MockK
     lateinit var mockNativeTextPage: NativeTextPage
+
+    @MockK
+    lateinit var mockNativePage: NativePage
 
     lateinit var pdfDocumentU: PdfDocumentU
 
@@ -74,6 +81,7 @@ abstract class PdfDocumentUBaseTest : ClosableTestContext {
 
         every { mockNativeFactory.getNativeDocument() } returns mockNativeDocument
         every { mockNativeFactory.getNativeTextPage() } returns mockNativeTextPage
+        every { mockNativeFactory.getNativePage() } returns mockNativePage
         every { mockNativeDocument.closeDocument(any()) } just runs
 
         pdfDocumentU = PdfDocumentU(0, mockNativeFactory)
@@ -664,5 +672,292 @@ class PdfDocumentUCloseIgnoreTest : PdfDocumentUBaseTest() {
     override fun setupClosedState() {
         every { mockNativeDocument.closeDocument(any()) } just runs
         pdfDocumentU.close()
+    }
+}
+
+class PdfDocumentUPageRetentionTest : PdfDocumentUBaseTest() {
+    override fun getBehavior() = AlreadyClosedBehavior.EXCEPTION
+
+    override fun isStateClosed() = false
+
+    override fun setupClosedState() {
+        every { mockNativeDocument.closeDocument(any()) } just runs
+    }
+
+    @BeforeEach
+    fun setUpNativePage() {
+        every { mockNativePage.closePage(any()) } just runs
+    }
+
+    /** A document that keeps [retaining] pages open after their last holder closes them. */
+    private fun documentRetaining(retaining: Int): PdfDocumentU {
+        pdfiumConfig = Config(alreadyClosedBehavior = getBehavior(), pageRetentionCount = retaining)
+        return PdfDocumentU(0, mockNativeFactory)
+    }
+
+    @Test
+    fun `page released by its last holder is kept open, and reopening it does not load it again`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        document.openPage(0)?.close()
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+
+        document.openPage(0)
+        verify(exactly = 1) { mockNativeDocument.loadPage(any(), any()) }
+    }
+
+    @Test
+    fun `releasing more pages than are retained closes the least recently released`() {
+        val document = documentRetaining(retaining = 2)
+        every { mockNativeDocument.loadPage(any(), 0) } returns 100
+        every { mockNativeDocument.loadPage(any(), 1) } returns 200
+        every { mockNativeDocument.loadPage(any(), 2) } returns 300
+
+        document.openPage(0)?.close()
+        document.openPage(1)?.close()
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+
+        document.openPage(2)?.close()
+
+        // Page 0 was released first, so it is the one that gets evicted
+        verify(exactly = 1) { mockNativePage.closePage(100) }
+        verify(exactly = 0) { mockNativePage.closePage(200) }
+        verify(exactly = 0) { mockNativePage.closePage(300) }
+    }
+
+    @Test
+    fun `reopening a retained page makes it the most recently released once closed again`() {
+        val document = documentRetaining(retaining = 2)
+        every { mockNativeDocument.loadPage(any(), 0) } returns 100
+        every { mockNativeDocument.loadPage(any(), 1) } returns 200
+        every { mockNativeDocument.loadPage(any(), 2) } returns 300
+
+        document.openPage(0)?.close()
+        document.openPage(1)?.close()
+        // Page 0 goes back to the end of the queue, leaving page 1 as the oldest
+        document.openPage(0)?.close()
+
+        document.openPage(2)?.close()
+
+        verify(exactly = 1) { mockNativePage.closePage(200) }
+        verify(exactly = 0) { mockNativePage.closePage(100) }
+    }
+
+    @Test
+    fun `a page held by another caller is not closed when one holder releases it`() {
+        val document = documentRetaining(retaining = 0)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        val first = document.openPage(0)
+        val second = document.openPage(0)
+
+        first?.close()
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+
+        second?.close()
+        verify(exactly = 1) { mockNativePage.closePage(100) }
+    }
+
+    @Test
+    fun `retention turned off closes the page as soon as its last holder does`() {
+        val document = documentRetaining(retaining = 0)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        document.openPage(0)?.close()
+
+        verify(exactly = 1) { mockNativePage.closePage(100) }
+    }
+
+    @Test
+    fun `closing the document closes the pages it is still holding open`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        document.openPage(0)?.close()
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+
+        document.close()
+
+        verify(exactly = 1) { mockNativePage.closePage(100) }
+    }
+
+    @Test
+    fun `closing the document closes pages a caller never closed`() {
+        val document = documentRetaining(retaining = 0)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        document.openPage(0)
+
+        document.close()
+
+        verify(exactly = 1) { mockNativePage.closePage(100) }
+    }
+
+    @Test
+    fun `open-use-close of the same page through the public API loads it once`() {
+        // The pattern the deprecated helpers use internally, and the one callers write by hand:
+        // every `use` takes the count to 1 and back to 0, which before retention closed the page
+        // and made the next call load it again.
+        val document = PdfDocument(documentRetaining(retaining = 4))
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        repeat(5) {
+            document.openPage(0)?.use { page -> page.pageIndex }
+        }
+
+        verify(exactly = 1) { mockNativeDocument.loadPage(any(), any()) }
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+    }
+
+    @Test
+    fun `open-use-close of the same page loads it every time when retention is off`() {
+        val document = PdfDocument(documentRetaining(retaining = 0))
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+
+        repeat(5) {
+            document.openPage(0)?.use { page -> page.pageIndex }
+        }
+
+        verify(exactly = 5) { mockNativeDocument.loadPage(any(), any()) }
+        verify(exactly = 5) { mockNativePage.closePage(100) }
+    }
+
+    @Test
+    fun `open-use-close of a page and its text page loads each once`() {
+        // The shape of the deprecated text helpers: textPageCountChars, textPageGetText,
+        // textPageGetRect, textPageGetBoundedText and textPageCountRects all open a page, open its
+        // text page, and close both on every call.
+        val document = PdfDocument(documentRetaining(retaining = 4))
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+        every { mockNativeDocument.loadTextPage(any(), any()) } returns 500
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+
+        repeat(5) {
+            document.openPage(0)?.use { page ->
+                page.openTextPage().use { textPage -> textPage }
+            }
+        }
+
+        verify(exactly = 1) { mockNativeDocument.loadPage(any(), any()) }
+        verify(exactly = 1) { mockNativeDocument.loadTextPage(any(), any()) }
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+        verify(exactly = 0) { mockNativeTextPage.closeTextPage(any()) }
+    }
+
+    @Test
+    fun `closing the document closes a retained text page before its page`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+        every { mockNativeDocument.loadTextPage(any(), any()) } returns 500
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+
+        document.openPage(0)?.let { page ->
+            page.openTextPage().close()
+            page.close()
+        }
+
+        document.close()
+
+        verifyOrder {
+            mockNativeTextPage.closeTextPage(500)
+            mockNativePage.closePage(100)
+        }
+    }
+
+    @Test
+    fun `a page whose text page is still held is not evicted`() {
+        val document = documentRetaining(retaining = 1)
+        every { mockNativeDocument.loadPage(any(), 0) } returns 100
+        every { mockNativeDocument.loadPage(any(), 1) } returns 200
+        every { mockNativeDocument.loadTextPage(any(), any()) } returns 500
+        every { mockNativeTextPage.closeTextPage(any()) } just runs
+
+        // Page 0 is released, but a caller still holds its text page
+        val page0 = document.openPage(0)
+        val textPage0 = page0?.openTextPage()
+        page0?.close()
+
+        // Releasing another page would push page 0 out if it were eligible
+        document.openPage(1)?.close()
+
+        verify(exactly = 0) { mockNativePage.closePage(100) }
+        verify(exactly = 0) { mockNativeTextPage.closeTextPage(500) }
+        assertThat(textPage0).isNotNull()
+    }
+
+    @Test
+    fun `getPageSize reads the size without opening the page`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativePage.getPageSizeByIndex(any(), 2, 72) } returns intArrayOf(612, 792)
+
+        val size = document.getPageSize(2, 72)
+
+        assertThat(size).isEqualTo(Size(612, 792))
+        verify(exactly = 0) { mockNativeDocument.loadPage(any(), any()) }
+        verify(exactly = 0) { mockNativePage.closePage(any()) }
+    }
+
+    @Test
+    fun `getPageSizes covers every page without opening any of them`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.getPageCount(any()) } returns 3
+        every { mockNativePage.getPageSizeByIndex(any(), 0, 72) } returns intArrayOf(612, 792)
+        every { mockNativePage.getPageSizeByIndex(any(), 1, 72) } returns intArrayOf(595, 842)
+        every { mockNativePage.getPageSizeByIndex(any(), 2, 72) } returns intArrayOf(200, 300)
+
+        val sizes = document.getPageSizes(72)
+
+        assertThat(sizes).containsExactly(Size(612, 792), Size(595, 842), Size(200, 300)).inOrder()
+        verify(exactly = 0) { mockNativeDocument.loadPage(any(), any()) }
+    }
+
+    @Test
+    fun `getPageSize agrees with the size read from an open page`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+        every { mockNativePage.getPageSizeByIndex(any(), 0, 72) } returns intArrayOf(612, 792)
+
+        val fromDocument = document.getPageSize(0, 72)
+        val fromPage = document.openPage(0)?.getPageSize(72)
+
+        assertThat(fromDocument).isEqualTo(fromPage)
+    }
+
+    @Test
+    fun `getPageSize on a closed document does not reach the native layer`() {
+        pdfiumConfig = Config(alreadyClosedBehavior = AlreadyClosedBehavior.IGNORE, pageRetentionCount = 4)
+        val document = PdfDocumentU(0, mockNativeFactory)
+        document.close()
+
+        assertThat(document.getPageSize(0, 72)).isEqualTo(Size(-1, -1))
+        assertThat(document.getPageSizes(72)).isEmpty()
+        verify(exactly = 0) { mockNativePage.getPageSizeByIndex(any(), any(), any()) }
+    }
+
+    @Test
+    fun `openPages gives every page in the range its own index and pointer`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.loadPages(any(), 0, 2) } returns longArrayOf(100, 200, 300)
+
+        val pages = document.openPages(0, 2)
+
+        assertThat(pages.map { it.pageIndex }).containsExactly(0, 1, 2).inOrder()
+        assertThat(pages.map { it.pagePtr }).containsExactly(100L, 200L, 300L).inOrder()
+    }
+
+    @Test
+    fun `openPages hands back the page already open and drops the duplicate handle`() {
+        val document = documentRetaining(retaining = 4)
+        every { mockNativeDocument.loadPage(any(), any()) } returns 100
+        every { mockNativeDocument.loadPages(any(), 0, 1) } returns longArrayOf(111, 200)
+
+        document.openPage(0)
+
+        val pages = document.openPages(0, 1)
+
+        // The range load opens a second handle for page 0; the tracked one is what callers get
+        verify(exactly = 1) { mockNativePage.closePage(111) }
+        assertThat(pages.map { it.pagePtr }).containsExactly(100L, 200L).inOrder()
     }
 }
