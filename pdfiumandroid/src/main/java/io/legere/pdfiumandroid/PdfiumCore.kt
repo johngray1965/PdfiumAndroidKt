@@ -363,8 +363,11 @@ class PdfiumCore(
         renderAnnot: Boolean = false,
         textMask: Boolean = false,
     ) {
-        pdfDocument.openPage(pageIndex).use { page ->
-            page?.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+        // Lock across open+render+close so another thread can't close the document mid-render (crashes in pdfium).
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot, textMask)
+            }
         }
     }
 
@@ -534,8 +537,11 @@ class PdfiumCore(
         drawSizeY: Int,
         renderAnnot: Boolean = false,
     ) {
-        pdfDocument.openPage(pageIndex).use { page ->
-            page?.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+        // Lock across open+render+close so another thread can't close the document mid-render (crashes in pdfium).
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.renderPageBitmap(bitmap, startX, startY, drawSizeX, drawSizeY, renderAnnot)
+            }
         }
     }
 
@@ -554,8 +560,11 @@ class PdfiumCore(
         pdfDocument: PdfDocument,
         pageIndex: Int,
     ): List<Link> {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.getPageLinks() ?: emptyList()
+        // Lock across open+read so another thread can't close the document mid-read.
+        return wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.getPageLinks() ?: emptyList()
+            }
         }
     }
 
