@@ -9,7 +9,7 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "io.legere.pdfiumandroidkt"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "io.legere.pdfiumandroidkt"
