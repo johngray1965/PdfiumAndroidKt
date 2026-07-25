@@ -82,6 +82,19 @@ static int sLibraryReferenceCount = 0;
 const int MATRIX_VALUES_LEN = 6;
 const int RECT_VALUES_LEN = 4;
 
+// RAII for FPDFBitmap_CreateEx — Destroy the CFX_DIBitmap wrapper on EVERY scope exit (success or
+// early return). The external pixel buffer is NOT freed by Destroy (it's owned by the caller/Surface);
+// only the bitmap wrapper, which was leaking on every render call. Implicitly converts to FPDF_BITMAP
+// so existing `FPDFBitmap_FillRect(pdfBitmap, ...)` / render call sites are unchanged.
+struct ScopedBitmap {
+    FPDF_BITMAP bmp;
+    explicit ScopedBitmap(FPDF_BITMAP b) : bmp(b) {}
+    ~ScopedBitmap() { if (bmp) FPDFBitmap_Destroy(bmp); }
+    operator FPDF_BITMAP() const { return bmp; } // NOLINT(google-explicit-constructor): intentional
+    ScopedBitmap(const ScopedBitmap &) = delete;
+    ScopedBitmap &operator=(const ScopedBitmap &) = delete;
+};
+
 static void initLibraryIfNeed(){
     const std::lock_guard<std::mutex> lock(sLibraryLock);
     if(sLibraryReferenceCount == 0){
@@ -335,6 +348,7 @@ int getBlockFromCustomSource(void* param, unsigned long position, unsigned char*
 
     auto buffer = (jbyteArray) env->GetObjectField(nativeSourceBridge, dataBuffer);
     env->GetByteArrayRegion(buffer, 0, bytesRead, (jbyte*) outBuffer);
+    env->DeleteLocalRef(buffer); // this callback fires per block during load; refs accumulate otherwise
 
     if (!jniDetachCurrentThread(attached)) {
         return 0;
@@ -374,7 +388,7 @@ static jlong NativeCore_nativeOpenDocument(JNIEnv *env, jobject, jint fd,
 
         const unsigned long errorNum = FPDF_GetLastError();
         if(errorNum == FPDF_ERR_PASSWORD) {
-            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+            jniThrowException(env, "io/legere/pdfiumandroid/api/PdfPasswordException",
                               "Password required or incorrect password.");
         } else {
             char* error = getErrorDescription(errorNum);
@@ -416,7 +430,7 @@ static jlong NativeCore_nativeOpenMemDocument(JNIEnv *env, jobject,
 
         const unsigned long errorNum = FPDF_GetLastError();
         if(errorNum == FPDF_ERR_PASSWORD) {
-            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+            jniThrowException(env, "io/legere/pdfiumandroid/api/PdfPasswordException",
                               "Password required or incorrect password.");
         } else {
             char* error = getErrorDescription(errorNum);
@@ -466,7 +480,7 @@ static jlong NativeCore_nativeOpenCustomDocument(JNIEnv *env, jobject, jobject n
 
         const unsigned long errorNum = FPDF_GetLastError();
         if(errorNum == FPDF_ERR_PASSWORD) {
-            jniThrowException(env, "io/legere/pdfiumandroid/PdfPasswordException",
+            jniThrowException(env, "io/legere/pdfiumandroid/api/PdfPasswordException",
                               "Password required or incorrect password.");
         } else {
             char* error = getErrorDescription(errorNum);
@@ -513,6 +527,16 @@ static void closePageInternal(jlong pagePtr) {
     FPDF_ClosePage(reinterpret_cast<FPDF_PAGE>(pagePtr));
 }
 
+// The coverage-aware canvas/render helpers are defined once (further down) and shared by every render path,
+// including the ones above their definition — hence these forward declarations.
+static void fillCanvasBorder(FPDF_BITMAP bitmap, int bufW, int bufH, FS_RECTF cover, int canvasColor);
+static void fillCanvasGaps(FPDF_BITMAP bitmap, int bufW, int bufH, JNIEnv *env,
+                           const jfloat *clipRectFloats, int numPages, const jlong *pagePtrs,
+                           int canvasColor);
+static void fillAndRenderPage(FPDF_BITMAP bitmap, int bufW, int bufH, FPDF_PAGE page,
+                              FS_RECTF clip, const FS_MATRIX &matrix, int pageBackgroundColor,
+                              int flags);
+
 static void renderPageInternal( FPDF_PAGE page,
                                 ANativeWindow_Buffer *windowBuffer,
                                 int startX, int startY,
@@ -520,14 +544,16 @@ static void renderPageInternal( FPDF_PAGE page,
                                 int drawSizeHor, int drawSizeVer,
                                 bool renderAnnot, FPDF_DWORD canvasColor, FPDF_DWORD pageBackgroundColor){
 
-    FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx( canvasHorSize, canvasVerSize,
+    ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx( canvasHorSize, canvasVerSize,
                                                  FPDFBitmap_BGRA,
-                                                 windowBuffer->bits, (int)(windowBuffer->stride) * 4);
+                                                 windowBuffer->bits, (int)(windowBuffer->stride) * 4));
 
-    if ((drawSizeHor < canvasHorSize || drawSizeVer < canvasVerSize) && canvasColor != 0){
-        FPDFBitmap_FillRect( pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
-                             canvasColor); //Gray
-    }
+    // Gray fills ONLY the gaps around the page footprint (never under the white page background below), so no
+    // pixel is written twice.
+    fillCanvasBorder(pdfBitmap, canvasHorSize, canvasVerSize,
+                     FS_RECTF{ (float) startX, (float) startY,
+                               (float) (startX + drawSizeHor), (float) (startY + drawSizeVer) },
+                     (int) canvasColor);
 
     int baseHorSize = (canvasHorSize < drawSizeHor)? canvasHorSize : drawSizeHor;
     int baseVerSize = (canvasVerSize < drawSizeVer)? canvasVerSize : drawSizeVer;
@@ -807,6 +833,7 @@ static jstring NativeDocument_nativeGetDocumentMetaText(JNIEnv *env, jobject,
 
         int bufferLen = (int) FPDF_GetMetaText(doc->pdfDocument, ctag, nullptr, 0);
         if (bufferLen <= 2) {
+            env->ReleaseStringUTFChars(tag, ctag); // was leaked on this early return
             return env->NewStringUTF("");
         }
         std::wstring text;
@@ -875,7 +902,7 @@ static jboolean NativeDocument_nativeSaveAsCopy(JNIEnv *env, jobject, jlong doc_
                                                           jobject callback, jint flags) {
     return runSafe(env, (jboolean) false, [&]() {
         jclass callbackClass = env->FindClass("io/legere/pdfiumandroid/api/PdfWriteCallback");
-        if (callback != nullptr && env->IsInstanceOf(callback, callbackClass)) {
+        if (callback != nullptr && callbackClass != nullptr && env->IsInstanceOf(callback, callbackClass)) {
             //Setup the callback to Java.
             FileWrite fw = FileWrite();
             fw.version = 1;
@@ -1062,10 +1089,12 @@ static jboolean NativePage_nativeLockSurface(JNIEnv *env, jclass clazz, jobject 
     }
     env->SetIntArrayRegion(widthHeightArray, 0, 2, wh);
 
-    auto *buffer = new ANativeWindow_Buffer();
+    auto *buffer = new ANativeWindow_Buffer(); // handed to Java; freed in nativeUnlockSurface
     int ret;
     if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
         LOGE("Locking native window failed: %s", strerror(ret * -1));
+        delete buffer;                       // was leaked on this path
+        ANativeWindow_release(nativeWindow);  // was leaked on this path
         return false;
     }
     jlong ptrs[2];
@@ -1136,52 +1165,26 @@ static jboolean NativePage_nativeRenderPageWithMatrix(JNIEnv *env, jclass,
         auto buffer = *bufferPtr;
 
 
-        auto clip = floatArrayToRect(env, clipRect);
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
 
-        auto canvasHorSize = draw_size_hor;
-        auto canvasVerSize = draw_size_ver;
+        int bufW = draw_size_hor;
+        int bufH = draw_size_ver;
+        ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx(bufW, bufH, FPDFBitmap_BGRA,
+                                                    buffer.bits, (int) (buffer.stride) * 4));
 
-        auto drawSizeHor = (int) (clip.right - clip.left);
-        auto drawSizeVer = (int) (clip.bottom - clip.top);
-
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(canvasHorSize, canvasVerSize,
-                                                    FPDFBitmap_BGRA,
-                                                    buffer.bits, (int)(buffer.stride) * 4);
-
-        if((drawSizeHor < canvasHorSize || drawSizeVer < canvasVerSize) && canvasColor != 0) {
-            FPDFBitmap_FillRect( pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
-                                 canvasColor); //Gray
-        }
-
-        auto startX = (int) clip.left;
-        auto startY = (int) clip.top;
-        int baseHorSize = (canvasHorSize < drawSizeHor)? canvasHorSize : drawSizeHor;
-        int baseVerSize = (canvasVerSize < drawSizeVer)? canvasVerSize : drawSizeVer;
-        int baseX = (startX < 0)? 0 : startX;
-        int baseY = (startY < 0)? 0 : startY;
-        if (startX + baseHorSize > canvasHorSize) {
-            baseHorSize = canvasHorSize - startX;
-        }
-        if (startY + baseVerSize > canvasVerSize) {
-            baseVerSize = canvasVerSize - startY;
-        }
+        // Coverage-aware fill + render (shared helpers): gray only in the gaps the page's footprint (the clip)
+        // doesn't cover, then the footprint filled white and rendered on top — no pixel written twice.
+        fillCanvasGaps(pdfBitmap, bufW, bufH, env, clipRectFloats, 1, &page_ptr, canvasColor);
 
         int flags = FPDF_REVERSE_BYTE_ORDER;
-
         if (render_annot) {
             flags |= FPDF_ANNOT;
         }
-
-
-
-        if (pageBackgroundColor != 0) {
-            FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
-                                pageBackgroundColor); //White
-        }
-
+        auto clip = floatArrayToRect(env, clipRectFloats, 0);
         auto matrix = floatArrayToMatrix(env, matrixValues);
+        fillAndRenderPage(pdfBitmap, bufW, bufH, page, clip, matrix, pageBackgroundColor, flags);
 
-        FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
 
         return (jboolean) true;
     });
@@ -1214,14 +1217,15 @@ static jboolean NativePage_nativeRenderPageSurface(JNIEnv *env, jclass, jlong pa
                                              WINDOW_FORMAT_RGBA_8888);
         }
 
-        auto *buffer = new ANativeWindow_Buffer();
+        ANativeWindow_Buffer buffer{}; // stack (was heap-new'd and never deleted)
         int ret;
-        if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
+        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
             LOGE("Locking native window failed: %s", strerror(ret * -1));
+            ANativeWindow_release(nativeWindow); // was leaked on this path
             return (jboolean) false;
         }
 
-        renderPageInternal(page, buffer,
+        renderPageInternal(page, &buffer,
                            (int) start_x, (int) start_y,
                            width, height,
                            (int) width, (int) height,
@@ -1264,81 +1268,116 @@ static jboolean NativePage_nativeRenderPageSurfaceWithMatrix(JNIEnv *env, jclass
                                              WINDOW_FORMAT_RGBA_8888);
         }
 
-        auto *buffer = new ANativeWindow_Buffer();
+        ANativeWindow_Buffer buffer{}; // stack (was heap-new'd and never deleted)
         int ret;
-        if ((ret = ANativeWindow_lock(nativeWindow, buffer, nullptr)) != 0) {
+        if ((ret = ANativeWindow_lock(nativeWindow, &buffer, nullptr)) != 0) {
             LOGE("Locking native window failed: %s", strerror(ret * -1));
+            ANativeWindow_release(nativeWindow); // was leaked on this path
             return (jboolean) false;
         }
 
 
-        auto clip = floatArrayToRect(env, clipRect);
+        // Buffer's actual dimensions, not the window's — during a rapid resize the buffer may not match the
+        // window yet (same reasoning as the multi-page paths).
+        int bufW = buffer.width;
+        int bufH = buffer.height;
+        ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx(bufW, bufH, FPDFBitmap_BGRA,
+                                                    buffer.bits, (int) (buffer.stride) * 4));
 
-        auto drawSizeHor = (int) (clip.right - clip.left);
-        auto drawSizeVer = (int) (clip.bottom - clip.top);
-        auto startX = (int) clip.left;
-        auto startY = (int) clip.top;
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
 
-        int baseHorSize = (width < drawSizeHor)? width : drawSizeHor;
-        int baseVerSize = (height < drawSizeVer)? height : drawSizeVer;
-        int baseX = (startX < 0)? 0 : startX;
-        int baseY = (startY < 0)? 0 : startY;
-        if (startX + baseHorSize > width) {
-            baseHorSize = width - startX;
-        }
-        if (startY + baseVerSize > height) {
-            baseVerSize = height - startY;
-        }
-
-        if (clip.left < 0) {
-            clip.left = 0;
-        }
-        if (clip.top < 0) {
-            clip.top = 0;
-        }
-        auto fWidth = (float) width;
-        auto fHeight = (float) height;
-
-        if (clip.right > fWidth) {
-            clip.right = fWidth;
-            baseHorSize = width - startX;
-        }
-        if (clip.bottom > fHeight) {
-            clip.bottom = fHeight;
-            baseVerSize = height - startY;
-        }
-
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(width, height,
-                                                    FPDFBitmap_BGRA,
-                                                    buffer->bits, (int)(buffer->stride) * 4);
-
-        if((drawSizeHor < width || drawSizeVer < height) && canvasColor != 0) {
-            FPDFBitmap_FillRect( pdfBitmap, 0, 0, width, height,
-                                 canvasColor); //Gray
-        }
+        // ONE page, but the SAME coverage-aware fill + render as the multi-page paths. [clipRect] is the page's
+        // device footprint: fillCanvasGaps paints canvasColor only in the GAPS the footprint doesn't cover (all
+        // four strips — so a page narrower than the surface gets gray on the sides, not just top/bottom), and
+        // fillAndRenderPage fills the footprint with pageBackgroundColor and renders on top. No pixel is written
+        // twice, and the tangled per-axis base-size math is gone.
+        fillCanvasGaps(pdfBitmap, bufW, bufH, env, clipRectFloats, 1, &page_ptr, canvasColor);
 
         int flags = FPDF_REVERSE_BYTE_ORDER;
-
         if (render_annot) {
             flags |= FPDF_ANNOT;
         }
-
-        if (pageBackgroundColor != 0) {
-            FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
-                                pageBackgroundColor); //White
-        }
-
+        auto clip = floatArrayToRect(env, clipRectFloats, 0);
         auto matrix = floatArrayToMatrix(env, matrixValues);
+        fillAndRenderPage(pdfBitmap, bufW, bufH, page, clip, matrix, pageBackgroundColor, flags);
 
-        LOGD("FPDF_RenderPageBitmapWithMatrix");
-        FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
-
-        LOGD("ANativeWindow_unlockAndPost");
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
         ANativeWindow_unlockAndPost(nativeWindow);
         ANativeWindow_release(nativeWindow);
 
         return (jboolean) true;
     });
+}
+
+// Coverage-aware gray canvas fill for the MULTI-page render paths. The per-page loop fills each clip
+// white and renders on top, so filling the whole bitmap with canvasColor first writes every covered
+// pixel twice (gray then white). Instead fill canvasColor only in the GAPS no page covers: compute the
+// union bbox of the (clamped) page clips and fill just the border strips around it. The visible pages
+// are a vertical, same-width, contiguous stack, so the union has no interior holes and the frame is the
+// exact complement. No visible page -> nothing to cover, so fall back to filling the whole bitmap.
+// Fill canvasColor ONLY in the border strips outside [cover] — the region the page(s) will paint. No pixel
+// the page covers is touched, so canvasColor is never written under the page background (no double-write).
+// A degenerate/empty cover (nothing visible) fills the whole bitmap. Shared by every render path.
+static void fillCanvasBorder(FPDF_BITMAP bitmap, int bufW, int bufH, FS_RECTF cover, int canvasColor) {
+    if (canvasColor == 0) return;
+    if (cover.left < 0) cover.left = 0;
+    if (cover.top < 0) cover.top = 0;
+    if (cover.right > (float) bufW) cover.right = (float) bufW;
+    if (cover.bottom > (float) bufH) cover.bottom = (float) bufH;
+    if (cover.left >= cover.right || cover.top >= cover.bottom) {
+        FPDFBitmap_FillRect(bitmap, 0, 0, bufW, bufH, canvasColor);
+        return;
+    }
+    int l = (int) floor(cover.left), t = (int) floor(cover.top);
+    int r = (int) ceil(cover.right), b = (int) ceil(cover.bottom);
+    if (t > 0) FPDFBitmap_FillRect(bitmap, 0, 0, bufW, t, canvasColor);              // top
+    if (b < bufH) FPDFBitmap_FillRect(bitmap, 0, b, bufW, bufH - b, canvasColor);    // bottom
+    if (l > 0) FPDFBitmap_FillRect(bitmap, 0, t, l, b - t, canvasColor);             // left
+    if (r < bufW) FPDFBitmap_FillRect(bitmap, r, t, bufW - r, b - t, canvasColor);   // right
+}
+
+// Coverage-aware canvas fill for the MULTI-page paths: the union bbox of the visible page clips is the region
+// the pages cover (a contiguous, same-width stack -> no interior holes), so fill the strips around it.
+static void fillCanvasGaps(FPDF_BITMAP bitmap, int bufW, int bufH, JNIEnv *env,
+                           const jfloat *clipRectFloats, int numPages, const jlong *pagePtrs,
+                           int canvasColor) {
+    if (canvasColor == 0) return;
+    float uL = (float) bufW, uT = (float) bufH, uR = 0.0f, uB = 0.0f;
+    for (int i = 0; i < numPages; ++i) {
+        if (pagePtrs[i] == 0) continue;
+        auto c = floatArrayToRect(env, clipRectFloats, i);
+        if (c.left < 0) c.left = 0;
+        if (c.top < 0) c.top = 0;
+        if (c.right > (float) bufW) c.right = (float) bufW;
+        if (c.bottom > (float) bufH) c.bottom = (float) bufH;
+        if (c.left >= c.right || c.top >= c.bottom) continue;
+        uL = fmin(uL, c.left);
+        uT = fmin(uT, c.top);
+        uR = fmax(uR, c.right);
+        uB = fmax(uB, c.bottom);
+    }
+    // No visible page -> the union stays inverted -> fillCanvasBorder fills the whole bitmap.
+    fillCanvasBorder(bitmap, bufW, bufH, FS_RECTF{uL, uT, uR, uB}, canvasColor);
+}
+
+// Clamp a page clip to the bitmap, fill its background white to the CLIP extent (not the buffer edge),
+// and render the page. Shared by the multi-page paths so the fill geometry is identical.
+static void fillAndRenderPage(FPDF_BITMAP bitmap, int bufW, int bufH, FPDF_PAGE page,
+                              FS_RECTF clip, const FS_MATRIX &matrix, int pageBackgroundColor,
+                              int flags) {
+    if (clip.left < 0) clip.left = 0;
+    if (clip.top < 0) clip.top = 0;
+    if (clip.right > (float) bufW) clip.right = (float) bufW;
+    if (clip.bottom > (float) bufH) clip.bottom = (float) bufH;
+    if (clip.left >= clip.right || clip.top >= clip.bottom) return;
+    int baseX = (int) floor(clip.left);
+    int baseY = (int) floor(clip.top);
+    int baseWidth = (int) ceil(clip.right) - baseX;
+    int baseHeight = (int) ceil(clip.bottom) - baseY;
+    if (pageBackgroundColor != 0 && baseWidth > 0 && baseHeight > 0) {
+        FPDFBitmap_FillRect(bitmap, baseX, baseY, baseWidth, baseHeight, pageBackgroundColor);
+    }
+    FPDF_RenderPageBitmapWithMatrix(bitmap, page, &matrix, &clip, flags);
 }
 
 static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
@@ -1381,6 +1420,13 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
 
         auto pagePtrs = env->GetLongArrayElements(pages, nullptr);
         auto numPages = env->GetArrayLength(pages);
+        // Clamp so a caller passing mismatched-length matrices/clipRect can't drive OOB reads of them.
+        if (numPages > env->GetArrayLength(matrices) / MATRIX_VALUES_LEN) {
+            numPages = env->GetArrayLength(matrices) / MATRIX_VALUES_LEN;
+        }
+        if (numPages > env->GetArrayLength(clipRect) / RECT_VALUES_LEN) {
+            numPages = env->GetArrayLength(clipRect) / RECT_VALUES_LEN;
+        }
 
         auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
 
@@ -1393,54 +1439,25 @@ static jboolean NativeDocument_nativeRenderPagesSurfaceWithMatrix(JNIEnv *env,
         int bufStride = buffer.stride;
 
         // Use the buffer's stride for the bitmap pitch (pixels * 4 bytes)
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(bufW, bufH,
+        ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx(bufW, bufH,
                                                     FPDFBitmap_BGRA,
                                                     buffer.bits,
-                                                    bufStride * 4);
+                                                    bufStride * 4));
 
-        if (canvasColor != 0) {
-            FPDFBitmap_FillRect(pdfBitmap, 0, 0, bufW, bufH, canvasColor);
-        }
+        // Coverage-aware canvas fill + per-page render, the SAME shared helpers the other paths use: gray only
+        // in the gaps the pages don't cover, then each page's background filled to its clip and rendered on top.
+        fillCanvasGaps(pdfBitmap, bufW, bufH, env, clipRectFloats, numPages, pagePtrs, canvasColor);
 
         int flags = FPDF_REVERSE_BYTE_ORDER;
-
         if (render_annot) {
             flags |= FPDF_ANNOT;
         }
-
         for (int pageIndex = 0; pageIndex < numPages; ++pageIndex) {
             auto page = reinterpret_cast<FPDF_PAGE>(pagePtrs[pageIndex]);
             if (page == nullptr) continue;
-
-            // 3. Get the raw rect from Java
             auto clip = floatArrayToRect(env, clipRectFloats, pageIndex);
-
-            // 4. ROBUST CLIPPING:
-            // We clamp and floor/ceil to ensure we stay within the bitmask bounds.
-            // PDFium uses floats for FPDF_RECT, but internally maps to pixels.
-            if (clip.left < 0) clip.left = 0;
-            if (clip.top < 0) clip.top = 0;
-            if (clip.right > (float)bufW) clip.right = (float)bufW;
-            if (clip.bottom > (float)bufH) clip.bottom = (float)bufH;
-
-            // Sanity check: if the clip is inverted or empty, skip this page.
-            if (clip.left >= clip.right || clip.top >= clip.bottom) continue;
-
-            // 5. Background Fill Calculation
-            // Ensure baseX/Y and sizes are strictly within [0, bufW/bufH]
-            int baseX = (int)fmax(0.0f, floor(clip.left));
-            int baseY = (int)fmax(0.0f, floor(clip.top));
-            int baseWidth = (int)fmax((float)bufW - baseX, ceil(clip.right) - baseX);
-            int baseHeight = (int)fmax((float)bufH - baseY, ceil(clip.bottom) - baseY);
-
-            if (pageBackgroundColor != 0 && baseWidth > 0 && baseHeight > 0) {
-                FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseWidth, baseHeight,
-                                    pageBackgroundColor);
-            }
-
-            // 6. Final Render
             auto matrix = floatArrayToMatrix(env, matrixFloats, pageIndex);
-            FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+            fillAndRenderPage(pdfBitmap, bufW, bufH, page, clip, matrix, pageBackgroundColor, flags);
         }
 
         ANativeWindow_unlockAndPost(nativeWindow);
@@ -1467,81 +1484,45 @@ static void NativeDocument_nativeRenderPagesWithMatrix(JNIEnv *env, jobject thiz
     runSafe(env, [&]() {
         auto bufferPtr = reinterpret_cast<ANativeWindow_Buffer*>(buffer_ptr);
         auto buffer = *bufferPtr;
-        jboolean isCopyPages;
-        auto pagePtrs = env->GetLongArrayElements(pages, &isCopyPages);
+        auto pagePtrs = env->GetLongArrayElements(pages, nullptr);
         auto numPages = env->GetArrayLength(pages);
-
-        jboolean isCopyClipRect;
-        auto clipRectFloats = env->GetFloatArrayElements(clipRect, &isCopyClipRect);
-
-        jboolean isCopyMatrices;
-        auto matrixFloats = env->GetFloatArrayElements(matrices, &isCopyMatrices);
-
-
-        auto canvasHorSize = draw_size_hor;
-        auto canvasVerSize = draw_size_ver;
-
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx(canvasHorSize, canvasVerSize,
-                                                    FPDFBitmap_BGRA,
-                                                    buffer.bits, (int)(buffer.stride) * 4);
-
-        if(canvasColor != 0) {
-            FPDFBitmap_FillRect( pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
-                                 canvasColor); //Gray
+        // Clamp so a caller passing mismatched-length matrices/clipRect can't drive OOB reads of them.
+        if (numPages > env->GetArrayLength(matrices) / MATRIX_VALUES_LEN) {
+            numPages = env->GetArrayLength(matrices) / MATRIX_VALUES_LEN;
         }
+        if (numPages > env->GetArrayLength(clipRect) / RECT_VALUES_LEN) {
+            numPages = env->GetArrayLength(clipRect) / RECT_VALUES_LEN;
+        }
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
+        auto matrixFloats = env->GetFloatArrayElements(matrices, nullptr);
+
+        int bufW = draw_size_hor;
+        int bufH = draw_size_ver;
+        ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx(bufW, bufH, FPDFBitmap_BGRA,
+                                                    buffer.bits, (int) (buffer.stride) * 4));
+
+        fillCanvasGaps(pdfBitmap, bufW, bufH, env, clipRectFloats, numPages, pagePtrs, canvasColor);
 
         int flags = FPDF_REVERSE_BYTE_ORDER;
-
         if (render_annot) {
             flags |= FPDF_ANNOT;
         }
 
-        /* from here we process each page */
         for (int pageIndex = 0; pageIndex < numPages; ++pageIndex) {
-
             auto page = reinterpret_cast<FPDF_PAGE>(pagePtrs[pageIndex]);
-
-            if (page == nullptr) {
-                LOGE("Render page pointers invalid");
-                return;
-            }
-
+            if (page == nullptr) continue; // skip a bad page; the old code `return`ed, aborting the
+                                           // whole batch AND leaking the array elements below
             auto clip = floatArrayToRect(env, clipRectFloats, pageIndex);
-
-            auto drawSizeHor = (int) (clip.right - clip.left);
-            auto drawSizeVer = (int) (clip.bottom - clip.top);
-
-            auto startX = (int) clip.left;
-            auto startY = (int) clip.top;
-            int baseHorSize = (canvasHorSize < drawSizeHor) ? canvasHorSize : drawSizeHor;
-            int baseVerSize = (canvasVerSize < drawSizeVer) ? canvasVerSize : drawSizeVer;
-            int baseX = (startX < 0) ? 0 : startX;
-            int baseY = (startY < 0) ? 0 : startY;
-
-
-            if (pageBackgroundColor != 0) {
-                FPDFBitmap_FillRect(pdfBitmap, baseX, baseY, baseHorSize, baseVerSize,
-                                    pageBackgroundColor); //White
-            }
-
             auto matrix = floatArrayToMatrix(env, matrixFloats, pageIndex);
-
-
-            FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
-            /* end process each page */
+            fillAndRenderPage(pdfBitmap, bufW, bufH, page, clip, matrix, pageBackgroundColor, flags);
         }
 
-
-        if (isCopyMatrices) {
-            env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
-        }
-
-        if (isCopyClipRect) {
-            env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
-        }
-        if (isCopyClipRect) {
-            env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
-        }
+        // Always release (JNI_ABORT — the arrays are never modified). The prior code guarded each
+        // Release on its isCopy flag and released `pages` under `isCopyClipRect` (a copy-paste bug),
+        // leaking the elements whenever the JVM didn't hand back a copy.
+        env->ReleaseFloatArrayElements(matrices, (jfloat *) matrixFloats, JNI_ABORT);
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
+        env->ReleaseLongArrayElements(pages, pagePtrs, JNI_ABORT);
     });
 }
 static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
@@ -1557,7 +1538,7 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
         auto *doc = reinterpret_cast<DocumentFile*>(doc_ptr);
         auto page = reinterpret_cast<FPDF_PAGE>(page_ptr);
 
-        if (page == nullptr || bitmap == nullptr) {
+        if (doc == nullptr || page == nullptr || bitmap == nullptr) { // doc used below for form fill
             LOGE("Render page pointers invalid");
             return;
         }
@@ -1597,8 +1578,8 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
             format = FPDFBitmap_BGRA;
         }
 
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
-                                                    format, tmp, sourceStride);
+        ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
+                                                    format, tmp, sourceStride));
 
         /*LOGD("Start X: %d", startX);
         LOGD("Start Y: %d", startY);
@@ -1607,10 +1588,11 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
         LOGD("Draw Hor: %d", drawSizeHor);
         LOGD("Draw Ver: %d", drawSizeVer);*/
 
-        if ((draw_size_hor < canvasHorSize || draw_size_ver < canvasVerSize) && canvasColor != 0) {
-            FPDFBitmap_FillRect(pdfBitmap, 0, 0, (int) canvasHorSize, (int) canvasVerSize,
-                                canvasColor); //Gray
-        }
+        // Gray fills ONLY the gaps around the page footprint (never under the white page background below).
+        fillCanvasBorder(pdfBitmap, (int) canvasHorSize, (int) canvasVerSize,
+                         FS_RECTF{ (float) start_x, (float) start_y,
+                                   (float) (start_x + draw_size_hor), (float) (start_y + draw_size_ver) },
+                         (int) canvasColor);
 
         int baseHorSize = (canvasHorSize < draw_size_hor) ? (int) canvasHorSize
                                                           : (int) draw_size_hor;
@@ -1622,7 +1604,7 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
 
         FPDF_FORMFILLINFO form_callbacks = {0};
         form_callbacks.version = 2;
-        FPDF_FORMHANDLE form;
+        FPDF_FORMHANDLE form = nullptr; // was uninitialized
 
         if (render_annot) {
             form = FPDFDOC_InitFormFillEnvironment(doc->pdfDocument, &form_callbacks);
@@ -1643,8 +1625,9 @@ static void NativePage_nativeRenderPageBitmap(JNIEnv *env, jclass,
                               (int) draw_size_hor, (int) draw_size_ver,
                               0, flags);
 
-        if (render_annot) {
-            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, FPDF_ANNOT);
+        if (render_annot && form != nullptr) { // FPDFDOC_InitFormFillEnvironment can return null
+            // main's 5dfd985: pass `flags` (which already includes FPDF_ANNOT when render_annot), not FPDF_ANNOT
+            FPDF_FFLDraw(form, pdfBitmap, page, start_x, start_y, (int) draw_size_hor, (int) draw_size_ver, 0, flags);
             FPDFDOC_ExitFormFillEnvironment(form);
         }
 
@@ -1708,8 +1691,8 @@ static void NativePage_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jclass,
             format = FPDFBitmap_BGRA;
         }
 
-        FPDF_BITMAP pdfBitmap = FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
-                                                    format, tmp, sourceStride);
+        ScopedBitmap pdfBitmap(FPDFBitmap_CreateEx((int) canvasHorSize, (int) canvasVerSize,
+                                                    format, tmp, sourceStride));
 
         /*LOGD("Start X: %d", startX);
         LOGD("Start Y: %d", startY);
@@ -1718,38 +1701,22 @@ static void NativePage_nativeRenderPageBitmapWithMatrix(JNIEnv *env, jclass,
         LOGD("Draw Hor: %d", drawSizeHor);
         LOGD("Draw Ver: %d", drawSizeVer);*/
 
-//        if (draw_size_hor < canvasHorSize || draw_size_ver < canvasVerSize) {
-//            FPDFBitmap_FillRect(pdfBitmap, 0, 0, canvasHorSize, canvasVerSize,
-//                                0x848484FF); //Gray
-//        }
-//
-//        int baseHorSize = (canvasHorSize < draw_size_hor) ? (int) canvasHorSize
-//                                                          : (int) draw_size_hor;
-//        int baseVerSize = (canvasVerSize < draw_size_ver) ? (int) canvasVerSize
-//                                                          : (int) draw_size_ver;
-//        int baseX = (start_x < 0) ? 0 : (int) start_x;
-//        int baseY = (start_y < 0) ? 0 : (int) start_y;
         int flags = FPDF_REVERSE_BYTE_ORDER;
-
         if (render_annot) {
             flags |= FPDF_ANNOT;
         }
 
-//    if(text_mask) {
-//        flags |= FPDF_RENDER_TEXT_MASK;
-//    }
-
-        if (pageBackgroundColor != 0) {
-            FPDFBitmap_FillRect(pdfBitmap, 0, 0, (int) canvasHorSize, (int) canvasVerSize,
-                                pageBackgroundColor); //White
-        }
-
-        auto clip = floatArrayToRect(env, clipRect);
-
+        // Coverage-aware fill + render, the same shared helpers as the other paths: canvasColor only in the gaps
+        // around the page footprint (the clip), pageBackgroundColor to the footprint, page on top. (This path
+        // previously filled the WHOLE bitmap with pageBackgroundColor and ignored canvasColor.)
+        auto clipRectFloats = env->GetFloatArrayElements(clipRect, nullptr);
+        fillCanvasGaps(pdfBitmap, (int) canvasHorSize, (int) canvasVerSize, env, clipRectFloats, 1, &page_ptr,
+                       canvasColor);
+        auto clip = floatArrayToRect(env, clipRectFloats, 0);
         auto matrix = floatArrayToMatrix(env, matrixValues);
-
-
-        FPDF_RenderPageBitmapWithMatrix(pdfBitmap, page, &matrix, &clip, flags);
+        fillAndRenderPage(pdfBitmap, (int) canvasHorSize, (int) canvasVerSize, page, clip, matrix,
+                          pageBackgroundColor, flags);
+        env->ReleaseFloatArrayElements(clipRect, (jfloat *) clipRectFloats, JNI_ABORT);
 
         if (info.format == ANDROID_BITMAP_FORMAT_RGB_565) {
             rgbBitmapTo565(tmp, sourceStride, addr, &info);
@@ -1806,7 +1773,9 @@ static jlongArray NativePage_nativeGetPageLinks(JNIEnv *env, jclass, jlong page_
         }
 
         jlongArray result = env->NewLongArray((int) links.size());
-        env->SetLongArrayRegion(result, 0, (int) links.size(), &links[0]);
+        if (result != nullptr && !links.empty()) {
+            env->SetLongArrayRegion(result, 0, (int) links.size(), links.data());
+        }
         return result;
     });
 }
@@ -1884,13 +1853,17 @@ static jint NativeTextPage_nativeTextGetText(JNIEnv *env, jclass,
                                                            jint count, jshortArray result) {
     return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-        jboolean isCopy = 1;
+        // FPDFText_GetText writes count chars + a null terminator, so result must hold count+1 shorts.
+        if (count < 0 || env->GetArrayLength(result) < count + 1) {
+            return -1;
+        }
+        jboolean isCopy = 0;
         auto *arr = (unsigned short *) env->GetShortArrayElements(result, &isCopy);
         jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, arr);
         if (isCopy) {
             env->SetShortArrayRegion(result, 0, output, (jshort *) arr);
-            env->ReleaseShortArrayElements(result, (jshort *) arr, JNI_ABORT);
         }
+        env->ReleaseShortArrayElements(result, (jshort *) arr, JNI_ABORT); // always release (was leaked when not a copy)
         return output;
     });
 }
@@ -1921,15 +1894,21 @@ static jint NativeTextPage_nativeTextGetTextByteArray(JNIEnv *env, jclass,
                                                                     jbyteArray result) {
     return runSafe(env, -1, [&]() {
         auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-        jboolean isCopy = 0;
-        auto *arr = (jbyteArray) env->GetByteArrayElements(result, &isCopy);
-        unsigned short buffer[count];
-        jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, buffer);
-        memcpy(arr, buffer, count * sizeof(unsigned short));
-        if (isCopy) {
-            env->SetByteArrayRegion(result, 0, count * 2, (jbyte *) arr);
-            env->ReleaseByteArrayElements(result, (jbyte *) arr, JNI_ABORT);
+        if (count <= 0) {
+            return 0;
         }
+        // Was: `unsigned short buffer[count]` (a VLA — stack-overflow / UB for large or negative count)
+        // into which FPDFText_GetText writes count+1 shorts (one past the end), then a `memcpy` into the
+        // Java array with no length check. Use a heap buffer sized count+1 and clamp the copy to the
+        // actual array length so neither the stack buffer nor the Java array can overrun.
+        std::vector<unsigned short> buffer(count + 1);
+        jint output = (jint) FPDFText_GetText(textPage, (int) start_index, (int) count, buffer.data());
+        auto bytesToCopy = (jsize) (count * 2);
+        jsize resultLen = env->GetArrayLength(result);
+        if (bytesToCopy > resultLen) {
+            bytesToCopy = resultLen;
+        }
+        env->SetByteArrayRegion(result, 0, bytesToCopy, (jbyte *) buffer.data());
         return output;
     });
 }
@@ -2017,9 +1996,14 @@ static jint NativeTextPage_nativeTextGetBoundedText(JNIEnv *env, jclass,
         jint output = (jint) FPDFText_GetBoundedText(textPage, (double) left, (double) top,
                                                      (double) right, (double) bottom, buffer,
                                                      bufLen);
-        if (isCopy) {
-            env->SetShortArrayRegion(arr, 0, output, (jshort *) buffer);
-            env->ReleaseShortArrayElements(arr, (jshort *) buffer, JNI_ABORT);
+        if (buffer != nullptr) {
+            if (isCopy) {
+                jint toCopy = output < bufLen ? output : bufLen; // never read/write past the buffer
+                if (toCopy > 0) {
+                    env->SetShortArrayRegion(arr, 0, toCopy, (jshort *) buffer);
+                }
+            }
+            env->ReleaseShortArrayElements(arr, (jshort *) buffer, JNI_ABORT); // always release (was leaked when not a copy)
         }
         return output;
     });
@@ -2169,7 +2153,9 @@ static jintArray NativeDocument_nativeGetPageCharCounts(JNIEnv *env, jobject,
         }
 
         jintArray result = env->NewIntArray((int) charCounts.size());
-        env->SetIntArrayRegion(result, 0, (int) charCounts.size(), &charCounts[0]);
+        if (result != nullptr && !charCounts.empty()) {
+            env->SetIntArrayRegion(result, 0, (int) charCounts.size(), charCounts.data());
+        }
         return result;
     });
 }
@@ -2293,18 +2279,19 @@ static jint NativePageLink_nativeGetURL(JNIEnv *env, jclass,
     return runSafe(env, 0, [&]() {
         auto pageLink = reinterpret_cast<FPDF_PAGELINK>(page_link_ptr);
 
-        jboolean isCopy = 0;
-        auto *arr = (jbyteArray) env->GetByteArrayElements(result, &isCopy);
-        unsigned short buffer[count];
-
-        jint output = (jint) FPDFLink_GetURL(pageLink, index, buffer, count);
-
-
-        memcpy(arr, buffer, count * sizeof(unsigned short));
-        if (isCopy) {
-            env->SetByteArrayRegion(result, 0, count * 2, (jbyte *) arr);
-            env->ReleaseByteArrayElements(result, (jbyte *) arr, JNI_ABORT);
+        if (count <= 0) {
+            return 0;
         }
+        // Was a VLA `unsigned short buffer[count]` + unchecked `memcpy` into the Java array (same bug
+        // as nativeTextGetTextByteArray). Heap buffer + clamp the copy to the actual array length.
+        std::vector<unsigned short> buffer(count);
+        jint output = (jint) FPDFLink_GetURL(pageLink, index, buffer.data(), count);
+        auto bytesToCopy = (jsize) (count * 2);
+        jsize resultLen = env->GetArrayLength(result);
+        if (bytesToCopy > resultLen) {
+            bytesToCopy = resultLen;
+        }
+        env->SetByteArrayRegion(result, 0, bytesToCopy, (jbyte *) buffer.data());
         return output;
     });
 }
@@ -2381,57 +2368,8 @@ static jintArray NativePageLink_nativeGetTextRange(JNIEnv *env, jclass,
 }
 
 
-static jdoubleArray NativeTextPage_nativeTextGetRects(JNIEnv *env, jclass clazz,
-                                                            jlong text_page_ptr,
-                                                            jintArray wordRanges) {
-    auto textPage = reinterpret_cast<FPDF_TEXTPAGE>(text_page_ptr);
-
-    jsize numRanges = env->GetArrayLength(wordRanges) / 2;
-
-    // Get the ranges array
-    jint *ranges = env->GetIntArrayElements(wordRanges, nullptr);
-
-    // Create a vector to store the data
-    std::vector<double> data;
-
-    // Iterate through the ranges
-    for (jsize i = 0; i < numRanges; ++i) {
-        // Get the start and length
-        jint start = ranges[i * 2];
-        jint length = ranges[i * 2 + 1];
-
-        // Get the number of rectangles in the range
-        int rectCount = FPDFText_CountRects(textPage, start, length);
-
-        // Get the rectangles
-        for (int j = 0; j < rectCount; ++j) {
-            double left, top, right, bottom;
-            FPDFText_GetRect(textPage, j, &left, &top, &right, &bottom);
-
-            // Add the rectangle to the data vector (left, top, right, bottom)
-            data.push_back(left);
-            data.push_back(top);
-            data.push_back(right);
-            data.push_back(bottom);
-
-            // Add the range to the data vector (start, length)
-            data.push_back(static_cast<double>(start));
-            data.push_back(static_cast<double>(length));
-        }
-    }
-
-    // Release the ranges array
-    env->ReleaseIntArrayElements(wordRanges, ranges, JNI_ABORT);
-
-    // Create a jdoubleArray and copy the data
-    jdoubleArray result = env->NewDoubleArray(static_cast<jsize>(data.size()));
-    if (result == nullptr) {
-        return nullptr; // Out of memory error
-    }
-    env->SetDoubleArrayRegion(result, 0, static_cast<jsize>(data.size()), data.data());
-
-    return result;
-}
+// (Removed a long-dead, unregistered double-rects variant of nativeTextGetRects; the registered
+//  nativeTextGetRects binds to the float version below.)
 
 static jfloatArray NativeTextPage_nativeTextGetRectsFloat(JNIEnv *env, jclass clazz,
                                                             jlong text_page_ptr,

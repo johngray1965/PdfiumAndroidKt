@@ -94,6 +94,8 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
 mockk-agent = { module = "io.mockk:mockk-agent", version.ref = "mockk" }
 
+kotlin-metadata-jvm = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm", version.ref = "kotlin_version" }
+
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junitBom" }
 junit-jupiter = { group = "org.junit.jupiter",  name="junit-jupiter" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api" }
@@ -144,5 +146,5 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover_version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint_version" }
 benchmark = { id = "androidx.benchmark", version.ref = "benchmark" }
 gradle-publish = { id = "org.danilopianini.publish-on-central", version.ref = "publish_on_central"}
-gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:7.0.23"
+gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:7.0.22"
 
