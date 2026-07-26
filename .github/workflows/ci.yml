@@ -5,16 +5,11 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
-  release:
-    types: [ created ]
 
 jobs:
   build_and_test:
     name: Build & Test
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Needed to upload release assets
-      packages: write # Needed to publish to GitHub Packages
 
     steps:
       - uses: actions/checkout@v4
@@ -34,15 +29,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # Run checks (tests, lint) on every trigger
-      - name: Build Artifacts
-        if: github.event_name == 'release'
-        run: ./gradlew build
-
-      - name: Upload Release Assets
-        if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          fail_on_unmatched_files: true
-          files: |
-            **/build/outputs/aar/*.aar
+      # Build + test on every push / PR. Releasing (Maven Central + GitHub
+      # release + AAR assets) is owned end-to-end by release.sh, not here.
+      - name: Build & Test
+        run: ./gradlew :pdfiumandroid:check :pdfiumandroid:api:check :pdfiumandroid:core:check :pdfiumandroid:arrow:check
