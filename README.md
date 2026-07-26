@@ -1,6 +1,6 @@
 # PdfiumAndroidKt
 
-[![Android CI](https://github.com/johngray1965/PdfiumAndroidKt/actions/workflows/android.yml/badge.svg)](https://github.com/johngray1965/PdfiumAndroidKt/actions/workflows/android.yml)
+[![Android CI](https://github.com/johngray1965/PdfiumAndroidKt/actions/workflows/ci.yml/badge.svg)](https://github.com/johngray1965/PdfiumAndroidKt/actions/workflows/android.yml)
 
 A Pdfium Android library using the latest stable version Pdfium.  Written in Kotlin with coroutines to easily talk to the native code off the main thread.
 
