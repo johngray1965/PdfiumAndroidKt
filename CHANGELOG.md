@@ -85,4 +85,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.0.3-alpha03] 2026-06-14
 - ** Unified the background drawing
 
+## [3.0.4-alpha01] - 2026-07-26
+
+### Improvements
+- Retain recently released pages so repeated open/use/close is cheap
+- Hold the lock across the deprecated render/read compat helpers
+- Added document level getPageSize(pageIndex, dpi) and getPageSizes(dpi) for getting the page size without opening the page
 
