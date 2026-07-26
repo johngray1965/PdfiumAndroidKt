@@ -213,11 +213,12 @@ class PdfiumCore(
     fun getPageMediaBox(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): KtImmutableRectF {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.getPageMediaBox() ?: invalidRect
+    ): KtImmutableRectF =
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.getPageMediaBox() ?: invalidRect
+            }
         }
-    }
 
     /**
      * @deprecated Use [PdfPage.close] instead.
@@ -385,13 +386,15 @@ class PdfiumCore(
         pdfDocument: PdfDocument,
         pageIndex: Int,
         index: Int,
-    ): KtImmutableRectF? = wrapLock {
-        pdfDocument.openPage(pageIndex).use { page ->
-           page?.openTextPage()?.use { textPage ->
-                textPage.textPageGetRect(index)
+    ): KtImmutableRectF? =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.openTextPage()?.use { textPage ->
+                    textPage.textPageGetRect(index)
+                }
             }
         }
-    }
 
     /**
      * @deprecated Use [PdfTextPage.textPageGetBoundedText] after obtaining a [PdfTextPage] from [PdfPage.openTextPage].
@@ -467,11 +470,13 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: KtImmutableRect,
-    ): KtImmutableRectF = wrapLock {
-        pdfDocument.openPage(pageIndex).use { page ->
-            page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: invalidRect
+    ): KtImmutableRectF =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: invalidRect
+            }
         }
-    }
 
     /**
      * @deprecated Use [PdfTextPage.textPageCountRects] after obtaining a [PdfTextPage] from [PdfPage.openTextPage].
@@ -589,11 +594,13 @@ class PdfiumCore(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): KtImmutablePoint = wrapLock {
-         pdfDocument.openPage(pageIndex).use { page ->
-            page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: KtImmutablePoint(-1, -1)
+    ): KtImmutablePoint =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: KtImmutablePoint(-1, -1)
+            }
         }
-    }
 
     /**
      * @deprecated Use [PdfPage.mapRectToDevice] after obtaining a [PdfPage] from [PdfDocument.openPage].
@@ -632,11 +639,13 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): KtImmutableRect = wrapLock {
-        pdfDocument.openPage(pageIndex).use { page ->
-            page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: KtImmutableRect(-1, -1, -1, -1)
+    ): KtImmutableRect =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: KtImmutableRect(-1, -1, -1, -1)
+            }
         }
-    }
 
     /**
      * Sets the global [io.legere.pdfiumandroid.api.LockManager] for PdfiumAndroidKt.

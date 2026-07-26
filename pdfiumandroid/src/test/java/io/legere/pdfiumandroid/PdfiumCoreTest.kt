@@ -197,7 +197,7 @@ class PdfiumCoreBasicTest {
                 },
             )
 
-        helpers.forEach { (name, call) ->
+        helpers.forEach { (_, call) ->
             val before = tracking.blockingCallCount
             call()
             assertThat(tracking.blockingCallCount).isGreaterThan(before)
@@ -265,9 +265,6 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     @BeforeEach
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
-        // Reset the global lock — the setLockManager() test swaps in an unstubbed
-        // mock and doesn't restore it, which would break any later test that locks.
-        pdfiumCore.setLockManager(LockManagerReentrantLock())
         setupRules()
     }
 
