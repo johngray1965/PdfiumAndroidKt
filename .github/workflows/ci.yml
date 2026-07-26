@@ -32,4 +32,4 @@ jobs:
       # Build + test on every push / PR. Releasing (Maven Central + GitHub
       # release + AAR assets) is owned end-to-end by release.sh, not here.
       - name: Build & Test
-        run: ./gradlew build
+        run: ./gradlew :pdfiumandroid:check :pdfiumandroid:api:check :pdfiumandroid:core:check :pdfiumandroid:arrow:check
