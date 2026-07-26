@@ -47,10 +47,6 @@ dependencies {
     compileOnly(libs.arrow.core)
     implementation(libs.guava)
 
-    testImplementation(libs.junit)
-    testImplementation(libs.espresso.core)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.core.testing)
     testImplementation(libs.bundles.test)
 
     testImplementation(platform(libs.junit.bom))
@@ -62,11 +58,7 @@ dependencies {
     testRuntimeOnly(libs.junit.jupiter.engine)
     testImplementation(libs.arrow.fx.coroutines)
 
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.truth)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.core.testing)
+    androidTestImplementation(libs.bundles.instrumented.non.ui.test)
 }
 
 publishPlugin {

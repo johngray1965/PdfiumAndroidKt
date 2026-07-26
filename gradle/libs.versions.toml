@@ -126,9 +126,9 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
 jacoco-agent = { module = "org.jacoco:org.jacoco.agent", version.ref = "jacoco" }
 
 [bundles]
-test = ["junit","truth","mockk-android",  "mockk-agent",  "kotlinx-coroutines-test"]
+test = ["junit","truth","mockk-android",  "mockk-agent",  "kotlinx-coroutines-test", "espresso-core", "ext-junit", "core-testing"]
 
-instrumented-non-ui-test = ["junit",  "mockk", "mockk-android", "mockk-agent", ]
+instrumented-non-ui-test = ["junit","truth",  "mockk", "mockk-android", "mockk-agent",  "kotlinx-coroutines-test", "espresso-core", "ext-junit", "core-testing" ]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "gradleplugin" }

@@ -128,12 +128,7 @@ configure<LibraryExtension> {
 dependencies {
 //    dokkaPlugin(libs.android.documentation.plugin)
     implementation(libs.guava)
-    testImplementation(libs.junit)
-    testImplementation(libs.espresso.core)
-    testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.core.testing)
     testImplementation(libs.bundles.test)
-    testImplementation(libs.ext.junit)
     testImplementation(libs.robolectric)
 
     testImplementation(platform(libs.junit.bom))
@@ -144,13 +139,7 @@ dependencies {
     testImplementation(libs.junit.jupiter.api)
     testRuntimeOnly(libs.junit.jupiter.engine)
 
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.espresso.core)
-    androidTestImplementation(libs.truth)
-    androidTestImplementation(libs.kotlinx.coroutines.test)
-    androidTestImplementation(libs.core.testing)
     androidTestImplementation(libs.bundles.instrumented.non.ui.test)
-    androidTestImplementation(libs.ext.junit)
     androidTestUtil(libs.androidx.orchestrator)
     androidTestUtil(libs.androidx.test.services)
 }
