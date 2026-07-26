@@ -32,7 +32,6 @@ import io.legere.geokt.KtImmutableRectF
 import io.legere.pdfiumandroid.api.Bookmark
 import io.legere.pdfiumandroid.api.Link
 import io.legere.pdfiumandroid.api.LockManager
-import io.legere.pdfiumandroid.api.LockManagerReentrantLock
 import io.legere.pdfiumandroid.api.Meta
 import io.legere.pdfiumandroid.api.PdfiumSource
 import io.legere.pdfiumandroid.core.unlocked.PdfDocumentU
@@ -50,6 +49,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import java.util.concurrent.locks.ReentrantLock
 
 @Suppress("DEPRECATION")
 @ExtendWith(MockKExtension::class)
@@ -69,7 +69,7 @@ class PdfiumCoreBasicTest {
 
     @AfterEach
     fun tearDown() {
-        pdfiumCore.setLockManager(LockManagerReentrantLock())
+        PdfiumCoreU.resetForTesting()
     }
 
     @Test
@@ -147,6 +147,102 @@ class PdfiumCoreBasicTest {
         assertThat(results).isEqualTo(meta)
         verify { pdfiumCore.getDocumentMeta(document) }
     }
+
+    /**
+     * Regression: every deprecated open+operate+close compat helper must hold the global
+     * lock across the whole sequence. Otherwise another thread can close the document in
+     * the gap between the (individually locked) open, operate, and close calls, which
+     * crashes pdfium on the now-stale native page pointer.
+     *
+     * We install a lock manager backed by a real [ReentrantLock] and assert that the page
+     * is opened while the lock is held by the calling thread — which is only true when the
+     * helper wraps its work in `wrapLock`.
+     */
+    @Test
+    fun deprecatedPageHelpersHoldLockAcrossOpenAndClose() {
+        val tracking = TrackingLockManager()
+        pdfiumCore.setLockManager(tracking)
+
+        val doc = mockk<PdfDocument>(relaxed = true)
+        val page = mockk<PdfPage>(relaxed = true)
+        val textPage = mockk<PdfTextPage>(relaxed = true)
+        val bitmap = mockk<Bitmap>(relaxed = true)
+        val rectF = mockk<RectF>(relaxed = true)
+        val rect = mockk<Rect>(relaxed = true)
+
+        var openedWhileUnlocked = false
+        every { doc.openPage(any()) } answers {
+            if (!tracking.isHeldByCurrentThread()) openedWhileUnlocked = true
+            page
+        }
+        every { page.openTextPage() } returns textPage
+
+        val helpers: List<Pair<String, () -> Unit>> =
+            listOf(
+                "getPageMediaBox" to { pdfiumCore.getPageMediaBox(doc, 0) },
+                "getPageWidthPoint" to { pdfiumCore.getPageWidthPoint(doc, 0) },
+                "getPageHeightPoint" to { pdfiumCore.getPageHeightPoint(doc, 0) },
+                "textPageCountChars" to { pdfiumCore.textPageCountChars(doc, 0) },
+                "textPageGetText" to { pdfiumCore.textPageGetText(doc, 0, 0, 0) },
+                "textPageGetRect" to { pdfiumCore.textPageGetRect(doc, 0, 0) },
+                "textPageGetBoundedText" to { pdfiumCore.textPageGetBoundedText(doc, 0, rectF, 0) },
+                "textPageCountRects" to { pdfiumCore.textPageCountRects(doc, 0, 0, 0) },
+                "mapRectToPage" to { pdfiumCore.mapRectToPage(doc, 0, 0, 0, 0, 0, 0, rect) },
+                "mapPageCoordsToDevice" to { pdfiumCore.mapPageCoordsToDevice(doc, 0, 0, 0, 0, 0, 0, 0.0, 0.0) },
+                "mapRectToDevice" to { pdfiumCore.mapRectToDevice(doc, 0, 0, 0, 0, 0, 0, rectF) },
+                "getPageLinks" to { pdfiumCore.getPageLinks(doc, 0) },
+                "renderPageBitmap" to { pdfiumCore.renderPageBitmap(doc, bitmap, 0, 0, 0, 0, 0) },
+                "renderPageBitmap(textMask)" to {
+                    pdfiumCore.renderPageBitmap(doc, bitmap, 0, 0, 0, 0, 0, renderAnnot = true, textMask = true)
+                },
+            )
+
+        helpers.forEach { (name, call) ->
+            val before = tracking.blockingCallCount
+            call()
+            assertThat(tracking.blockingCallCount).isGreaterThan(before)
+            // The lock must be released once the helper returns.
+            assertThat(tracking.isHeldByCurrentThread()).isFalse()
+        }
+
+        assertThat(openedWhileUnlocked).isFalse()
+        assertThat(tracking.blockingCallCount).isAtLeast(helpers.size)
+    }
+}
+
+/**
+ * A [LockManager] backed by a real [ReentrantLock] that records how many times the blocking
+ * lock was taken and whether it's currently held by the calling thread, so tests can assert
+ * that operations actually run inside the lock.
+ */
+private class TrackingLockManager : LockManager {
+    private val lock = ReentrantLock()
+
+    var blockingCallCount = 0
+        private set
+
+    override suspend fun <T> withLock(block: suspend () -> T): T {
+        lock.lock()
+        try {
+            return block()
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    override fun <T> withLockBlocking(block: () -> T): T {
+        blockingCallCount++
+        lock.lock()
+        try {
+            return block()
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    override fun status(): Boolean = lock.isLocked
+
+    fun isHeldByCurrentThread(): Boolean = lock.isHeldByCurrentThread
 }
 
 @Suppress("DEPRECATION")
@@ -170,6 +266,14 @@ abstract class PdfiumCoreBaseTest : ClosableTestContext {
     fun setUp() {
         pdfiumCore = PdfiumCore(coreInternal = pdfiumCoreU)
         setupRules()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        // Restore the global static state — the setLockManager() test swaps in an
+        // unstubbed mock and can't restore it itself, which would break any later
+        // test that locks.
+        PdfiumCoreU.resetForTesting()
     }
 
     @Test

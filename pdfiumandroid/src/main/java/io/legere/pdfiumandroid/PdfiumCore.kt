@@ -259,15 +259,15 @@ class PdfiumCore(
     fun textPageCountChars(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): Int {
-        pdfDocument.openPage(pageIndex).use { page ->
-            val ret =
+    ): Int =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
                 page?.openTextPage()?.use { textPage ->
-                    return textPage.textPageCountChars()
-                }
-            return ret ?: -1
+                    textPage.textPageCountChars()
+                } ?: -1
+            }
         }
-    }
 
     /**
      * @deprecated Use [PdfTextPage.textPageGetText] after obtaining a [PdfTextPage] from [PdfPage.openTextPage].
@@ -282,13 +282,15 @@ class PdfiumCore(
         pageIndex: Int,
         start: Int,
         count: Int,
-    ): String? {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.openTextPage()?.use { textPage ->
-                textPage.textPageGetText(start, count)
+    ): String? =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.openTextPage()?.use { textPage ->
+                    textPage.textPageGetText(start, count)
+                }
             }
         }
-    }
 
     /**
      * @deprecated Use [PdfDocument.getDocumentMeta] instead.
@@ -311,11 +313,13 @@ class PdfiumCore(
     fun getPageWidthPoint(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): Int {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.getPageWidthPoint() ?: -1
+    ): Int =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.getPageWidthPoint() ?: -1
+            }
         }
-    }
 
     /**
      * @deprecated Use [PdfPage.getPageHeightPoint] after obtaining a [PdfPage] from [PdfDocument.openPage].
@@ -328,11 +332,13 @@ class PdfiumCore(
     fun getPageHeightPoint(
         pdfDocument: PdfDocument,
         pageIndex: Int,
-    ): Int {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.getPageHeightPoint() ?: -1
+    ): Int =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.getPageHeightPoint() ?: -1
+            }
         }
-    }
 
     /**
      * @deprecated Use [PdfPage.renderPageBitmap] after obtaining a [PdfPage] from [PdfDocument.openPage].
@@ -376,9 +382,9 @@ class PdfiumCore(
         pdfDocument: PdfDocument,
         pageIndex: Int,
         index: Int,
-    ): KtImmutableRectF? {
+    ): KtImmutableRectF? = wrapLock {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.openTextPage()?.use { textPage ->
+           page?.openTextPage()?.use { textPage ->
                 textPage.textPageGetRect(index)
             }
         }
@@ -411,13 +417,15 @@ class PdfiumCore(
         pageIndex: Int,
         sourceRect: FloatRectValues,
         size: Int,
-    ): String? {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.openTextPage()?.use { textPage ->
-                textPage.textPageGetBoundedText(sourceRect, size)
+    ): String? =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.openTextPage()?.use { textPage ->
+                    textPage.textPageGetBoundedText(sourceRect, size)
+                }
             }
         }
-    }
 
     /**
      * @deprecated Use [PdfPage.mapRectToPage] after obtaining a [PdfPage] from [PdfDocument.openPage].
@@ -456,9 +464,9 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: KtImmutableRect,
-    ): KtImmutableRectF {
+    ): KtImmutableRectF = wrapLock {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: invalidRect
+            page?.mapRectToPage(startX, startY, sizeX, sizeY, rotate, coords) ?: invalidRect
         }
     }
 
@@ -477,13 +485,15 @@ class PdfiumCore(
         pageIndex: Int,
         startIndex: Int,
         count: Int,
-    ): Int {
-        pdfDocument.openPage(pageIndex).use { page ->
-            page?.openTextPage().use { textPage ->
-                return textPage?.textPageCountRects(startIndex, count) ?: -1
+    ): Int =
+        // Lock across open+read+close so another thread can't close the document mid-read.
+        wrapLock {
+            pdfDocument.openPage(pageIndex).use { page ->
+                page?.openTextPage().use { textPage ->
+                    textPage?.textPageCountRects(startIndex, count) ?: -1
+                }
             }
         }
-    }
 
     /**
      * @deprecated This method is no longer supported. Use [PdfDocument.openPages] instead.
@@ -570,9 +580,9 @@ class PdfiumCore(
         rotate: Int,
         pageX: Double,
         pageY: Double,
-    ): KtImmutablePoint {
-        pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: KtImmutablePoint(-1, -1)
+    ): KtImmutablePoint = wrapLock {
+         pdfDocument.openPage(pageIndex).use { page ->
+            page?.mapPageCoordsToDevice(startX, startY, sizeX, sizeY, rotate, pageX, pageY) ?: KtImmutablePoint(-1, -1)
         }
     }
 
@@ -613,9 +623,9 @@ class PdfiumCore(
         sizeY: Int,
         rotate: Int,
         coords: FloatRectValues,
-    ): KtImmutableRect {
+    ): KtImmutableRect = wrapLock {
         pdfDocument.openPage(pageIndex).use { page ->
-            return page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: KtImmutableRect(-1, -1, -1, -1)
+            page?.mapRectToDevice(startX, startY, sizeX, sizeY, rotate, coords) ?: KtImmutableRect(-1, -1, -1, -1)
         }
     }
 
