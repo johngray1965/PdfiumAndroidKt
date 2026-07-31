@@ -35,6 +35,7 @@ plugins {
     alias(libs.plugins.kover) apply false
     // alias(libs.plugins.ktlint)
     alias(libs.plugins.gradle.publish)
+    alias(libs.plugins.nmcp.aggregation)
     alias(libs.plugins.gitSemVer)
     alias(libs.plugins.benchmark) apply false
 //    id("org.jetbrains.dokka") version "2.2.0-Beta"
@@ -52,4 +53,25 @@ plugins {
 
 gitSemVer {
     buildMetadataSeparator.set("-")
+}
+
+// Aggregate all four publishable modules into ONE Maven Central Portal deployment (nmcp), instead of
+// publish-on-central firing a separate deployment per module (which hit the Portal's per-month deployment
+// limit). publish-on-central still defines each module's publication (POM/signing); nmcp only replaces the
+// upload with a single aggregated one. Deploy with: ./gradlew clean publishAggregationToCentralPortal
+nmcpAggregation {
+    centralPortal {
+        username = providers.gradleProperty("mavenCentralPortalUsername")
+        password = providers.gradleProperty("mavenCentralPortalPassword")
+        // USER_MANAGED: uploads the bundle but leaves the release for a manual click in the Portal, so the
+        // first aggregated run can be eyeballed. Switch to "AUTOMATIC" once you trust it.
+        publishingType = "USER_MANAGED"
+    }
+}
+
+dependencies {
+    nmcpAggregation(project(":pdfiumandroid"))
+    nmcpAggregation(project(":pdfiumandroid:api"))
+    nmcpAggregation(project(":pdfiumandroid:arrow"))
+    nmcpAggregation(project(":pdfiumandroid:core"))
 }

@@ -32,6 +32,7 @@ truth = "1.4.5"
 arrow = "2.2.3"
 annotation-jvm = "1.10.0"
 publish_on_central = "9.2.8"
+nmcp = "1.6.1"
 runner = "1.7.0"
 guava = "33.6.0-android"
 orchestrator_version = "1.6.1"
@@ -112,6 +113,7 @@ androidx-baselineprofile-gradle-plugin = { module = "androidx.baselineprofile:an
 kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover_version" }
 android-test-extensions = { module = "de.mannodermaus.junit5:android-test-extensions", version.ref = "androidJunit5" }
 publish-on-central-gradle-plugin = { module = "org.danilopianini.publish-on-central:org.danilopianini.publish-on-central.gradle.plugin", version.ref = "publish_on_central" }
+nmcp-gradle-plugin = { module = "com.gradleup.nmcp:com.gradleup.nmcp.gradle.plugin", version.ref = "nmcp" }
 firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
 navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationSafeArgsGradlePlugin" }
 android-junit5 = { module = "de.mannodermaus.gradle.plugins:android-junit5", version.ref = "androidJunit5" }
@@ -146,5 +148,6 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover_version" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint_version" }
 benchmark = { id = "androidx.benchmark", version.ref = "benchmark" }
 gradle-publish = { id = "org.danilopianini.publish-on-central", version.ref = "publish_on_central"}
+nmcp-aggregation = { id = "com.gradleup.nmcp.aggregation", version.ref = "nmcp" }
 gitSemVer = "org.danilopianini.git-sensitive-semantic-versioning:7.0.23"
 

@@ -22,6 +22,9 @@ class PublishConventionPlugin : Plugin<Project> {
                 apply("org.danilopianini.publish-on-central")
                 apply("maven-publish")
                 apply("signing")
+                // Base nmcp plugin: exposes this module's publications as an `nmcp` bundle variant that the
+                // root's nmcpAggregation consumes, so all modules land in ONE Central Portal deployment.
+                apply("com.gradleup.nmcp")
             }
 
             extensions.configure<LibraryExtension> {

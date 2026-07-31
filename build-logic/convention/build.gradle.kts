@@ -27,6 +27,7 @@ dependencies {
     implementation(libs.androidx.baselineprofile.gradle.plugin)
     implementation(libs.kover.gradle.plugin)
     implementation(libs.publish.on.central.gradle.plugin)
+    implementation(libs.nmcp.gradle.plugin)
 }
 
 gradlePlugin {
